@@ -1,0 +1,7 @@
+// Accounts are made through the gateway (/api/register), never by the game protocol's _M/_F suffix.
+new_account: no
+// Passwords are stored as MD5, not as plain text. The gateway writes them the same way.
+use_MD5_passwords: yes
+// Every player reaches this server from the gateway's address, so a ban by IP here would lock everyone out
+// after a few wrong passwords by anyone. The gateway, which sees the players' real addresses, limits attempts.
+ipban_dynamic_pass_failure_ban: no

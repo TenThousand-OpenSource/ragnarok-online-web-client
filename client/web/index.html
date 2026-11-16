@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ragnarok 2026</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: none; }
+  #ui { position: fixed; inset: 0; overflow: hidden; background: #000 center / cover no-repeat;
+        font: 12px/1.25 Tahoma, Arial, sans-serif; color: #000; user-select: none; }
+  #ui * { box-sizing: border-box; }
+  /* In the game the world shows through, and takes the mouse wherever no window is. */
+  #ui.ingame { background: none !important; pointer-events: none; }
+  #ui.ingame .hud, #ui.ingame .lang, #ui.ingame .minimap, #ui.ingame .w, #ui.ingame .veil, #ui.ingame #narrow { pointer-events: auto; }
+  #narrow { position: absolute; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px;
+            background: rgba(20, 28, 66, .94); }
+  #narrow p { max-width: 320px; margin: 0; font-size: 15px; line-height: 1.5; color: #fff; text-align: center; }
+  .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+  /* The server's name over the login picture, and the language switch. */
+  .title { position: absolute; top: 5%; left: 0; right: 0; text-align: center; font: bold 44px Georgia, "Times New Roman", serif;
+           color: #fff; letter-spacing: 1px; pointer-events: none;
+           text-shadow: 0 0 6px #2b3f8f, 0 0 14px #2b3f8f, 2px 2px 0 #1c2a66, -1px -1px 0 #1c2a66, 1px -1px 0 #1c2a66, -1px 1px 0 #1c2a66; }
+  .lang { position: absolute; top: 8px; right: 8px; display: flex; gap: 2px; z-index: 30; }
+  .lang button { padding: 2px 7px; font: bold 11px Tahoma, Arial, sans-serif; color: #33406e; background: rgba(255, 255, 255, .8);
+                 border: 1px solid #7f93b8; border-radius: 3px; cursor: pointer; }
+  .lang button.on { color: #fff; background: #5a6b9c; }
+  .lang button svg { display: block; }
+  .lang button:first-of-type { padding: 2px 5px; margin-right: 4px; }
+  .lang .hint { align-self: center; margin-right: 6px; padding: 2px 8px; font-size: 11px; color: #fff; background: rgba(43, 63, 143, .8);
+                border-radius: 9px; white-space: nowrap; pointer-events: none; }
+
+  /* A window of the original client: a fixed size in pixels, its parts placed by coordinates. */
+  .w { position: absolute; transform-origin: 0 0; background: no-repeat 0 0; z-index: 10; }
+  .w.top { z-index: 25; }
+  .w form { margin: 0; }
+  .a { position: absolute; margin: 0; }
+  .pass { pointer-events: none; }
+  .veil { position: absolute; inset: 0; z-index: 20; }
+  .b { padding: 0; border: 0; background: var(--n) no-repeat 0 0; font: 12px Tahoma, Arial, sans-serif; color: #313131;
+       cursor: pointer; white-space: nowrap; overflow: hidden; }
+  .b:hover { background-image: var(--o); }
+  .b:active { background-image: var(--p); }
+  .b:disabled { color: #909090; cursor: default; background-image: var(--n); }
+  .b img { display: block; pointer-events: none; }
+  .b[data-big] { font-size: 14px; font-weight: bold; }
+  .check { padding: 0; border: 0; background: no-repeat 0 0; cursor: pointer; }
+  .in { padding: 0 3px; border: 0; outline: 0; background: transparent; font: 12px Tahoma, Arial, sans-serif; color: #000; user-select: text; }
+  .in.centre { text-align: center; }
+  .in::placeholder { color: #9c9c9c; }
+  .combo { padding: 0 5px; line-height: 22px; }
+  .small { font-size: 11px; }
+  .centre { text-align: center; }
+  .w p.a.tight { line-height: 14px; }
+  .in.boxed { background: #fff; border: 1px solid #9c9c9c; }
+  .w p.a { line-height: 16px; }
+
+  /* Character select. */
+  .name { font-size: 11px; font-weight: bold; color: #374177; text-align: center; white-space: nowrap; overflow: hidden; }
+  .value { line-height: 15px; white-space: nowrap; overflow: hidden; }
+  .list-title { color: #576691; text-align: center; }
+  .page { font: bold 18px Tahoma, Arial, sans-serif; color: #fff; text-align: center; }
+  .start { font: bold 18px Tahoma, Arial, sans-serif; color: #fff; padding-top: 34px; }
+  .start:disabled { color: #dc747f; }
+  .chosen { pointer-events: none; animation: chosen .664s steps(1) infinite; }
+
+  /* Character creation. */
+  .race { padding: 0; border: 0; background: no-repeat 0 0; font: inherit; text-align: left; cursor: pointer; }
+  .race b { position: absolute; left: 45px; top: 20px; color: #fff; }
+  .race p { position: absolute; left: 110px; top: 20px; width: 230px; margin: 0; line-height: 15px; color: #555; max-height: 60px; overflow: hidden; }
+
+  /* The forms the original client does not have, in the look of its newer windows. */
+  .panel { background: linear-gradient(135deg, #dfe4fb, #fff 30%, #fff 70%, #fbe1ea); border: 1px solid #8d93b5; border-radius: 9px;
+           box-shadow: 0 1px 4px rgba(40, 50, 110, .45); }
+  .panel h1 { margin: 9px 14px 6px; font: bold 12px Tahoma, Arial, sans-serif; color: #576691; }
+  .panel .rows { margin: 0 14px; }
+  .panel .rows p { margin: 0 0 6px; font-size: 11px; line-height: 14px; color: #555; }
+  .panel label { display: grid; grid-template-columns: 76px 1fr; align-items: center; margin-bottom: 5px; color: #333; }
+  .panel input, .panel select { min-width: 0; height: 20px; padding: 0 5px; font: 12px Tahoma, Arial, sans-serif; color: #000;
+                                background: #fff; border: 1px solid #b9bfdc; border-radius: 9px; outline: 0; user-select: text; }
+  .panel input:focus, .panel select:focus { border-color: #7f8fd0; }
+
+  /* The game's own windows. */
+  .hud { z-index: 10; }
+  .t { white-space: nowrap; line-height: 13px; }
+  .t.titled { color: #000; text-shadow: 1px 1px 0 #fff; }
+  #chat { z-index: 9; }
+  /* Items, skills, and the slots they are dragged to. */
+  .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .cell, .slot { width: 32px; height: 32px; }
+  .slot { width: 24px; height: 24px; cursor: pointer; }
+  .slot:hover { background: rgba(130, 170, 230, .63); }
+  .cell img { position: absolute; left: 4px; top: 4px; pointer-events: none; }
+  .slot img { position: absolute; left: 0; top: 0; pointer-events: none; }
+  .cell[draggable=true], .cell[data-use] { cursor: pointer; }
+  .cell.worn { outline: 1px solid #e0a000; outline-offset: -2px; background: rgba(255, 220, 120, .35); }
+  .n { position: absolute; right: 1px; bottom: 0; font-size: 11px; line-height: 11px; color: #000; pointer-events: none;
+       text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff; }
+  .tab { padding: 4px 0 0; border: 1px solid #c3c3c3; background: #e8e8e8; font: 12px Tahoma, Arial, sans-serif; color: #000; cursor: pointer; }
+  .tab.open { background: #fff; border-right-color: #fff; width: 18px !important; }
+  .tab span { display: block; line-height: 13px; text-align: center; }
+  #chat-log { padding: 3px 2px; overflow: hidden; background: rgba(0, 0, 0, .4); border-left: 1px solid #fff; border-right: 1px solid #fff;
+              display: flex; flex-direction: column; justify-content: flex-end; }
+  #chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
+  #chat-input { background: #f0f0f0; }
+  .mapname { position: absolute; right: 8px; top: 168px; width: 130px; text-align: center; color: #fff; font-size: 11px;
+             text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; }
+  .lang button:first-of-type { }
+  /* The minimap, in the corner where the original client has it. */
+  .minimap { position: absolute; right: 8px; top: 36px; width: 128px; height: 128px; background: rgba(0, 0, 0, .35);
+             border: 1px solid rgba(255, 255, 255, .6); }
+  .minimap img { width: 100%; height: 100%; display: block; opacity: .9; }
+  .minimap i { position: absolute; width: 6px; height: 6px; margin: -4px 0 0 -4px; background: #fff; border: 1px solid #000;
+               border-radius: 50%; box-shadow: 0 0 4px 1px #ff0; }
+</style>
+<style id="frames"></style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="ui"></div>
+<script type="module">
+  import init from "./roweb_client.js";
+  init().catch((error) => { document.getElementById("ui").textContent = String(error); });
+</script>
+</body>
+</html>

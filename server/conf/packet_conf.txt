@@ -1,0 +1,7 @@
+// rAthena counts connections per address and locks an address out for ten minutes after 5 connections in
+// 3 seconds. Every player reaches these servers from the gateway's address, so that would lock everyone out.
+// The gateway limits connections per player address instead.
+//
+// "all" is right only while these ports are reachable by nothing but the gateway, as in docker-compose.yml
+// (published on 127.0.0.1). On a server with public game ports, put the gateway's address here instead.
+allow: all

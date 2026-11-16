@@ -1,0 +1,4 @@
+login_ip: login
+// The address clients are told to connect to: the gateway runs on the host and reaches the published port.
+char_ip: 127.0.0.1
+pincode_enabled: no

@@ -1,0 +1,7 @@
+.git
+.github
+3rdparty/mysql
+doc
+tools
+*.sln
+*.vcxproj*

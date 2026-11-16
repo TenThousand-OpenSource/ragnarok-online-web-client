@@ -1,0 +1,5 @@
+target/
+client/dist/
+# Made from the client's maps by `roweb-gateway mapcache` (see README).
+server/mapcache/map_cache.dat
+.DS_Store

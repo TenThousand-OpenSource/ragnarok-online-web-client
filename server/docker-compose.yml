@@ -1,0 +1,72 @@
+# Local rAthena for roweb. All ports are published on 127.0.0.1 only.
+#   docker compose -f roweb/server/docker-compose.yml up -d --build
+# Login 127.0.0.1:6900, char 6121, map 5121, database 3306, test mailbox http://127.0.0.1:8025.
+# Accounts are seeded from conf/accounts.sql on the first start.
+
+x-rathena: &rathena
+  image: roweb/rathena:20260219
+  build:
+    context: ../../rathena
+    dockerfile: ../roweb/server/Dockerfile
+    args:
+      PACKETVER: "20260219"
+  init: true
+  restart: unless-stopped
+  volumes:
+    - ./conf/inter_conf.txt:/rathena/conf/import/inter_conf.txt:ro
+    - ./conf/login_conf.txt:/rathena/conf/import/login_conf.txt:ro
+    - ./conf/char_conf.txt:/rathena/conf/import/char_conf.txt:ro
+    - ./conf/map_conf.txt:/rathena/conf/import/map_conf.txt:ro
+    - ./conf/packet_conf.txt:/rathena/conf/import/packet_conf.txt:ro
+    # Where one can walk, made from the client's own maps (see the gateway's `mapcache` command).
+    - ./mapcache/map_cache.dat:/rathena/db/import/map_cache.dat:ro
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ragnarok
+      MARIADB_DATABASE: ragnarok
+      MARIADB_USER: ragnarok
+      MARIADB_PASSWORD: ragnarok
+    volumes:
+      - db:/var/lib/mysql
+      - ../../rathena/sql-files/main.sql:/docker-entrypoint-initdb.d/01-main.sql:ro
+      - ../../rathena/sql-files/logs.sql:/docker-entrypoint-initdb.d/02-logs.sql:ro
+      - ./conf/accounts.sql:/docker-entrypoint-initdb.d/03-accounts.sql:ro
+    # For the gateway, which makes accounts and resets passwords.
+    ports: ["127.0.0.1:3306:3306"]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      retries: 40
+
+  login:
+    <<: *rathena
+    command: ./login-server
+    ports: ["127.0.0.1:6900:6900"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  char:
+    <<: *rathena
+    command: sh -c "until nc -z login 6900; do sleep 1; done; exec ./char-server"
+    ports: ["127.0.0.1:6121:6121"]
+    depends_on: [login]
+
+  map:
+    <<: *rathena
+    command: sh -c "until nc -z char 6121; do sleep 1; done; exec ./map-server"
+    ports: ["127.0.0.1:5121:5121"]
+    depends_on: [char]
+
+  # A mailbox for development: it accepts every e-mail the gateway sends and shows it at http://127.0.0.1:8025.
+  # Nothing leaves the machine. A real server points the gateway at a real SMTP server instead.
+  mail:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+
+volumes:
+  db:

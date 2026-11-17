@@ -112,6 +112,15 @@ impl App {
                     if !matches!(landed.skill, 14 | 19 | 20) {
                         self.skill_shown(&effect_tables::skill_hits(landed.skill), landed.source, landed.target, own);
                     }
+                    // What the striker launches as it strikes, and what follows on the one struck as the blow
+                    // lands (the client's two tables, `CGameActor::ProcessSkillMessage`). The bolts of fire and
+                    // of lightning have their hits shown above.
+                    if let Some(effect) = effect_tables::skill_launch(landed.skill) {
+                        self.effect_shown(effect, landed.source, own, 0.0);
+                    }
+                    if let Some(effect) = effect_tables::skill_follow(landed.skill).filter(|_| !matches!(landed.skill, 19 | 20)) {
+                        self.effect_shown(effect, landed.target, own, delay);
+                    }
                     for hit in 0..hits {
                         let when = delay + f64::from(hit) * 200.0;
                         match landed.skill {
@@ -163,28 +172,27 @@ impl App {
         true
     }
 
-    /// Shows a skill's effects of the client's tables, each on the one who used the skill or on its target, with
-    /// the sound it starts with. An effect that is a `.str` file is played from the file; of those the client
-    /// draws by code, only the ones drawn here too.
+    /// Shows a skill's effects of the client's tables, each on the one who used the skill or on its target.
     fn skill_shown(&self, effects: &[(bool, u32)], who: u32, target: u32, own: u32) {
         for &(on_target, effect) in effects {
-            let whom = if on_target { target } else { who };
-            let on = (whom != own).then_some(whom);
-            let shown = match (effect, effect_tables::effect_file(effect)) {
-                (_, Some(file)) => {
-                    world::effect(&file.to_lowercase(), on);
-                    true
-                }
-                // `EF_FIRSTAID`: a glitter over the one who used it, and the sound of healing.
-                (309, None) => {
-                    world::first_aid(on);
-                    sound::effect("_heal_effect.wav", 1.0);
-                    true
-                }
-                _ => false,
-            };
-            if let (true, Some(wave)) = (shown, effect_tables::effect_sound(effect)) {
-                sound::effect(wave, 1.0);
+            self.effect_shown(effect, if on_target { target } else { who }, own, 0.0);
+        }
+    }
+
+    /// Shows one of the client's effects on someone after `delay` milliseconds, with the sound it starts with.
+    /// An effect that is a `.str` file is played from the file; of those the client draws by code, only the ones
+    /// drawn here too (`world::burst`, and First Aid's glitter).
+    fn effect_shown(&self, effect: u32, whom: u32, own: u32, delay: f64) {
+        let on = (whom != own).then_some(whom);
+        match (effect, effect_tables::effect_file(effect)) {
+            (_, Some(file)) => world::effect_later(&file.to_lowercase(), on, delay, effect_tables::effect_sound(effect)),
+            // `EF_FIRSTAID`: a glitter over the one who used it, and the sound of healing.
+            (309, None) => {
+                world::first_aid(on);
+                sound::effect("_heal_effect.wav", 1.0);
+            }
+            _ => {
+                world::burst(effect, on, delay);
             }
         }
     }

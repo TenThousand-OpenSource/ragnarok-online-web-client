@@ -70,7 +70,18 @@ impl App {
     pub(super) fn set_hotkey(&mut self, slot: usize, dragged: &str) {
         let mut parts = dragged.split(':');
         let hotkey = match (parts.next(), parts.next().and_then(|id| id.parse::<u32>().ok()), parts.next().and_then(|level| level.parse().ok())) {
-            (Some("item"), Some(id), _) => Hotkey { skill: false, id, count: 0 },
+            // Not every item may go on the bar (the client's shortcut window, where a drag ends on it): one that
+            // is identified and is used up (the kinds 0, 1 and 2), shot or thrown (10, 16, 17, 19), or worn
+            // (4, 5, 8, 9, 11 to 15) with a place to wear it. Anything else is let go of and nothing happens.
+            (Some("item"), Some(id), _) => {
+                let fits = self.bag.items.iter().find(|item| item.id == id).is_some_and(|item| {
+                    item.identified && (matches!(item.kind, 0 | 1 | 2 | 10 | 16 | 17 | 19) || (matches!(item.kind, 4 | 5 | 8 | 9 | 11..=15) && item.wearable != 0))
+                });
+                if !fits {
+                    return;
+                }
+                Hotkey { skill: false, id, count: 0 }
+            }
             (Some("skill"), Some(id), Some(level)) => Hotkey { skill: true, id, count: level },
             (Some(""), ..) => Hotkey::default(),
             // From another slot of the bar: what was there moves here, and that slot is left empty.

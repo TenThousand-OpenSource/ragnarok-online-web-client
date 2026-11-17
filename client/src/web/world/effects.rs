@@ -123,20 +123,3 @@ pub(super) fn aid_glitter(feet: Vector, right: Vector, up: Vector, frame: f32, t
     }
     true
 }
-
-/// The flash of a blow at a place, `through` of its moment (0 to 1) gone: a low ring opening outwards.
-pub(super) fn spark(centre: Vector, through: f32, corners: &mut Vec<f32>) {
-    const SIDES: usize = 12;
-    let (low, high, height) = (2.0 + through * 5.0, 5.0 + through * 8.0, 2.5);
-    let point = |side: usize, radius: f32, up: f32| {
-        let angle = side as f32 / SIDES as f32 * std::f32::consts::TAU;
-        [centre[0] + radius * angle.cos(), centre[1] + up, centre[2] + radius * angle.sin()]
-    };
-    for side in 0..SIDES {
-        let (left, right) = ((side % 4) as f32 / 4.0, (side % 4 + 1) as f32 / 4.0);
-        for (side, radius, up, u, v) in [(side, low, 0.0, left, 1.0), (side + 1, low, 0.0, right, 1.0), (side, high, height, left, 0.0), (side, high, height, left, 0.0), (side + 1, low, 0.0, right, 1.0), (side + 1, high, height, right, 0.0)] {
-            corners.extend(point(side, radius, up));
-            corners.extend([u, v]);
-        }
-    }
-}

@@ -32,6 +32,7 @@ mod mover;
 mod gpu;
 mod loading;
 mod effects;
+mod prims;
 mod session;
 mod actors;
 mod combat;
@@ -73,9 +74,9 @@ const UNSEEN: [u16; 3] = [111, 139, 32767];
 /// The sprite number of a portal: drawn as rings of light, not as a sprite.
 const PORTAL: u16 = 45;
 /// The game's pointers, as actions of its pointer sprite: the plain one, over someone to talk to, over a monster,
-/// over a portal, over a thing to pick up, while the camera is turned, while a skill is aimed, and while a skill
-/// is aimed at someone it can be used on.
-const POINTERS: [usize; 8] = [0, 1, 5, 7, 9, 4, 10, 11];
+/// over a portal, over a thing to pick up, while the camera is turned, while a skill is aimed, while a skill
+/// is aimed at someone it can be used on, and over ground nobody can walk on.
+const POINTERS: [usize; 9] = [0, 1, 5, 7, 9, 4, 10, 11, 13];
 /// The walking speed until the server says otherwise, in milliseconds per cell.
 const DEFAULT_SPEED: f64 = 150.0;
 /// How long one picture of the walking animation shows at the default speed.
@@ -102,23 +103,6 @@ struct Playing {
     began: f64,
 }
 
-/// The pictures of the effects drawn by code: the rings around a caster and the mark on the one aimed at.
-const CAST_PICTURES: [&str; 14] = [
-    "pikapika2.bmp",
-    "ring_blue.tga",
-    "ring_yellow.tga",
-    "ring_white.tga",
-    "magic_green.tga",
-    "magic_violet.tga",
-    "lockon128.tga",
-    "icearrow.tga",
-    "불화살1.tga",
-    "불화살2.tga",
-    "불화살3.tga",
-    "불화살4.tga",
-    "불화살5.tga",
-    "불화살6.tga",
-];
 /// The pictures a bolt of fire runs through as it falls.
 const FIRE_BOLT: [&str; 6] = ["불화살1.tga", "불화살2.tga", "불화살3.tga", "불화살4.tga", "불화살5.tga", "불화살6.tga"];
 
@@ -411,6 +395,8 @@ struct State {
     over: Option<(u32, bool)>,
     /// The left button is held on the ground: where the pointer is, and when a walk was last asked for.
     held: Option<(f32, f32)>,
+    /// When the left button went down.
+    held_since: f64,
     held_asked: f64,
     /// The monster being fought: its ID, when it was last looked after, and whether the server was told to strike
     /// since it came near.
@@ -428,11 +414,11 @@ struct State {
     strike_range: Option<i32>,
     /// The thing on the ground the character is walking to, to pick it up, and when it was last looked after.
     fetch: Option<(u32, f64)>,
-    /// The flashes of blows that landed: where, and when.
-    sparks: Vec<(Vector, f64)>,
     /// The glitter of First Aid playing: on whom (none: the player's own character), since when, and the two
     /// angles it starts at (how it is turned, and where its slow pulse is), which the client draws by lot.
     aids: Vec<(Option<u32>, f64, f32, f32)>,
+    /// The effects the client draws by code that are under way.
+    bursts: Vec<prims::Burst>,
     /// The weapon the player's own character holds (kept across maps).
     weapon: u32,
     /// The player's own life and spirit, left and most: the bars under the character.
@@ -466,6 +452,8 @@ struct State {
     reach: Option<(Option<u32>, (i32, i32), f32, f64)>,
     /// Which pointer and whose name the page shows now.
     pointing: usize,
+    /// Since when it is that one: its pictures run from then.
+    pointing_since: f64,
     named: Option<u32>,
     /// The game's pointers as CSS, once read (see `POINTERS`): the pictures of each, in turn, and how long each
     /// picture shows.

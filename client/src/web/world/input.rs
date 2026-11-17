@@ -114,6 +114,7 @@ pub(super) fn listen() {
                         state.chase = None;
                         state.reach = None;
                         state.held = Some((event.client_x() as f32, event.client_y() as f32));
+                        state.held_since = now();
                         state.held_asked = now();
                     });
                     let request = STATE.with_borrow(|state| {

@@ -25,6 +25,7 @@ use crate::net::{emotions, npc, pets, trade, units};
 use crate::net::{Frame, Framer};
 
 mod wiring;
+mod dragging;
 mod page;
 mod account;
 mod connection;

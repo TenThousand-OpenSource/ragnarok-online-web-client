@@ -13,6 +13,9 @@ Read from the decompiled client (`rodecomp`):
   Source/Contents/Skills/SkillActionInfo.cpp          CSession::GetSkillActionInfo2: the motion of the body
   Source/Contents/Jobs/JobInheritance.cpp             CSession::PlaySkillEffect: the effects of a skill that
                                                       strikes somebody, and whose place each is put at
+  Source/Client/Session/SessionState.cpp              the tables `skillEffectIds` and `skillFollowEffects`: the
+                                                      effect the striker launches as a skill strikes, and the one
+                                                      launched on the one struck as the blow lands
 
 Written, one entry a line, tab between the fields:
   effect_files.txt     <effect>  <file.str>       (merged with what the folder already has)
@@ -20,6 +23,8 @@ Written, one entry a line, tab between the fields:
   skill_effects.txt    <skill>   <s|t>  <effect>  (s: on the one who used the skill, t: on its target)
   skill_hits.txt       <skill>   <s|t>  <effect>  (the same, for a skill that strikes: s at the striker's place,
                                                   t at the place of the one struck)
+  skill_launch.txt     <skill>   <effect>         (launched by the striker, as `CGameActor::ProcessSkillMessage` does)
+  skill_follow.txt     <skill>   <effect>         (launched on the one struck when the blow lands)
   skill_motions.txt    <skill>   <state>          (only skills whose state is not the usual one, 7)
   effects_missing.txt  <effect>  <EF_NAME>  <skills that use it>   effects of the list above that have no .str
                        file: the client draws them by code, and this client does not yet
@@ -143,6 +148,17 @@ for labels, body in switch(info, '  '):
             if label in skills and int(found[-1]) != 7:
                 motions[skills[label]] = int(found[-1])
 
+# The two tables the session fills when it starts: `key = <skill>;` and then the table's entry for it. An entry
+# of -1 says no effect.
+launch, follow, key = {}, {}, None
+for line in read('Source/Client/Session/SessionState.cpp').split('\n'):
+    keyed = re.match(r'\s*key = (\d+);', line)
+    entry = re.match(r'\s*this->(skillEffectIds|skillFollowEffects)\[key\] = (-?\d+);', line)
+    if keyed:
+        key = int(keyed.group(1))
+    elif entry and key is not None and int(entry.group(2)) >= 0:
+        (launch if entry.group(1) == 'skillEffectIds' else follow)[key] = int(entry.group(2))
+
 os.makedirs(out, exist_ok=True)
 
 
@@ -165,6 +181,8 @@ write('effect_files.txt', sorted(known.items()))
 write('effect_sounds.txt', sorted(sounds.items()))
 write('skill_effects.txt', sorted(skill_effects))
 write('skill_hits.txt', sorted(skill_hits))
+write('skill_launch.txt', sorted(launch.items()))
+write('skill_follow.txt', sorted(follow.items()))
 write('skill_motions.txt', sorted(motions.items()))
 names = {number: name for name, number in effects.items()}
 missing = {}
@@ -175,4 +193,4 @@ skill_names = {number: name for name, number in skills.items()}
 write('effects_missing.txt', [(effect, names[effect], ' '.join(skill_names[skill] for skill in sorted(set(users)))) for effect, users in sorted(missing.items())])
 print(f'{len(skills)} skills, {len(effects)} effects; {len(known)} effect files ({len(files)} from the code), {len(sounds)} sounds, '
       f'{len(skill_effects)} skill effects of {len(set(skill for skill, _, _ in skill_effects))} skills, '
-      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(motions)} motions, {len(missing)} effects without a file')
+      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(launch)} launched and {len(follow)} following effects, {len(motions)} motions, {len(missing)} effects without a file')

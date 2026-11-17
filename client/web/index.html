@@ -20,6 +20,8 @@
   /* The skill being aimed and its level, by the pointer. */
   #aim { position: fixed; display: none; padding: 1px 4px; white-space: nowrap; pointer-events: none; z-index: 5;
          font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
+  /* What is dragged out of a window, under the pointer (the client draws it a touch see-through: 0xFA of 0xFF). */
+  #drag { position: fixed; display: none; z-index: 40; width: 0; height: 0; pointer-events: none; opacity: .98; }
   #tip { position: fixed; display: none; z-index: 30; padding: 2px 4px; background: rgba(0, 0, 0, .53); color: #fff; white-space: nowrap; pointer-events: none; font-family: Arial, sans-serif; }
   #unit-name { position: fixed; display: none; transform: translateX(-50%); padding: 4px; white-space: nowrap; pointer-events: none;
                font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; z-index: 5;
@@ -69,7 +71,10 @@
   @keyframes note { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
   /* The game's own pointers over the page, once they are read: the plain one, and the pressing one on what can be pressed. */
   html, body, #ui { cursor: var(--point, auto); }
-  #ui button, #ui .b, #ui [data-click], #ui [data-use] { cursor: var(--press, pointer); }
+  /* Over what is pressed the client's pointer is its finger, which goes down as the button does. Over the things in
+     a window (items, skills) it stays the plain one: the client's item windows ask for no other. */
+  #ui button, #ui .b, #ui [data-click] { cursor: var(--press, pointer); }
+  #ui button:active, #ui .b:active, #ui [data-click]:active { cursor: var(--pressed, var(--press, pointer)); }
   canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: none; }
   #ui { position: fixed; inset: 0; overflow: hidden; background: #000 center / cover no-repeat;
         font: 12px/1.25 Tahoma, Arial, sans-serif; color: #000; user-select: none; }
@@ -235,6 +240,7 @@
 <canvas id="game"></canvas>
 <div id="unit-name"></div>
 <div id="tip"></div>
+<div id="drag"></div>
 <div id="aim"></div>
 <div id="mapsign"></div>
 <div id="bars"></div>

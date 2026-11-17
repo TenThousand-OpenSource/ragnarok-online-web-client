@@ -126,7 +126,7 @@ impl App {
             let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
             let worn = if item.worn != 0 { " worn" } else { "" };
             cells.push_str(&format!(
-                r#"<div class="a cell{worn}" style="left:{}px;top:{}px" draggable="true" data-drag="item:{}" data-use="{}:{}" data-info="{info}" title="{} : {} {}">{}<span class="n">{}</span></div>"#,
+                r#"<div class="a cell{worn}" style="left:{}px;top:{}px" data-drag="item:{}" data-use="{}:{}" data-info="{info}" title="{} : {} {}">{}<span class="n">{}</span></div>"#,
                 column * 32,
                 row * 32,
                 item.id,

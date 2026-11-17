@@ -33,6 +33,18 @@ pub fn skill_hits(skill: u16) -> Vec<(bool, u32)> {
     of_skill(include_str!("effect_tables/skill_hits.txt"), skill)
 }
 
+/// The effect the striker launches as a skill of its strikes, towards the one struck (the client's table
+/// `skillEffectIds`, used by `CGameActor::ProcessSkillMessage`).
+pub fn skill_launch(skill: u16) -> Option<u32> {
+    found(include_str!("effect_tables/skill_launch.txt"), u32::from(skill))?.parse().ok()
+}
+
+/// The effect launched on the one struck by a skill when the blow lands (the client's table
+/// `skillFollowEffects`): for most skills the flare, `EF_HIT2`.
+pub fn skill_follow(skill: u16) -> Option<u32> {
+    found(include_str!("effect_tables/skill_follow.txt"), u32::from(skill))?.parse().ok()
+}
+
 /// The lines `skill<TAB>s or t<TAB>effect` of a table that are of that skill.
 fn of_skill(table: &'static str, skill: u16) -> Vec<(bool, u32)> {
     table
@@ -83,6 +95,10 @@ mod tests {
         // Sonic Blow strikes: one effect at the striker, a file, and one the client draws at the one struck.
         assert_eq!(skill_hits(136), [(false, 143), (true, 121)]);
         assert_eq!(effect_file(143), Some("SonicBlow.str"));
+        // Bash launches nothing and is followed by the flare; Magnum Break launches `EF_BASH` and is followed
+        // by its own burst.
+        assert_eq!((skill_launch(5), skill_follow(5)), (None, Some(1)));
+        assert_eq!((skill_launch(7), skill_follow(7)), (Some(16), Some(17)));
     }
 
     #[test]

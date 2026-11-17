@@ -37,26 +37,8 @@ pub fn start() -> Result<(), String> {
             dispatch(Action::Use(what));
         }
     });
-    // Icons are dragged from the inventory and the skill list onto the hotkey bar; a right click empties a slot.
-    let on_drag = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
-        let dragged = pressed(&event, "data-drag").and_then(|dragged| dragged.get_attribute("data-drag"));
-        if let (Some(dragged), Some(transfer)) = (dragged, event.data_transfer()) {
-            let _ = transfer.set_data("text/plain", &dragged);
-        }
-    });
-    let on_drag_over = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
-        if pressed(&event, "data-slot").is_some() {
-            event.prevent_default();
-        }
-    });
-    let on_drop = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
-        let slot = pressed(&event, "data-slot").and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok());
-        let dragged = event.data_transfer().and_then(|transfer| transfer.get_data("text/plain").ok());
-        if let (Some(slot), Some(dragged)) = (slot, dragged) {
-            event.prevent_default();
-            dispatch(Action::Dropped(slot, dragged));
-        }
-    });
+    // Icons are dragged from the inventory and the skill list onto the hotkey bar, and out onto the world.
+    dragging::wire(&window, &ui)?;
     // A slider moved (`data-slide`): its name and where it stands.
     let on_slide = Closure::<dyn FnMut(Event)>::new(|event: Event| {
         let slider = event.target().and_then(|target| target.dyn_into::<HtmlInputElement>().ok());
@@ -93,19 +75,6 @@ pub fn start() -> Result<(), String> {
         check_music_soon();
     });
     // A thing dragged out of the inventory and let go over the world is dropped there.
-    if let Some(world) = document.get_element_by_id("game") {
-        let over = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| event.prevent_default());
-        let thrown = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
-            event.prevent_default();
-            if let Some(dragged) = event.data_transfer().and_then(|transfer| transfer.get_data("text/plain").ok()) {
-                dispatch(Action::Thrown(dragged));
-            }
-        });
-        world.add_event_listener_with_callback("dragover", over.as_ref().unchecked_ref()).map_err(js_error)?;
-        world.add_event_listener_with_callback("drop", thrown.as_ref().unchecked_ref()).map_err(js_error)?;
-        over.forget();
-        thrown.forget();
-    }
     drag_windows(&document)?;
     let on_resize = Closure::<dyn FnMut()>::new(|| dispatch(Action::Resized));
     let on_visibility = Closure::<dyn FnMut()>::new(|| APP.with_borrow(App::tune));
@@ -135,9 +104,6 @@ pub fn start() -> Result<(), String> {
     ui.add_event_listener_with_callback("submit", on_submit.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("click", on_click.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("dblclick", on_double_click.as_ref().unchecked_ref()).map_err(js_error)?;
-    ui.add_event_listener_with_callback("dragstart", on_drag.as_ref().unchecked_ref()).map_err(js_error)?;
-    ui.add_event_listener_with_callback("dragover", on_drag_over.as_ref().unchecked_ref()).map_err(js_error)?;
-    ui.add_event_listener_with_callback("drop", on_drop.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("contextmenu", on_menu.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("input", on_slide.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("keydown", on_key.as_ref().unchecked_ref()).map_err(js_error)?;
@@ -151,9 +117,6 @@ pub fn start() -> Result<(), String> {
     on_submit.forget();
     on_click.forget();
     on_double_click.forget();
-    on_drag.forget();
-    on_drag_over.forget();
-    on_drop.forget();
     on_menu.forget();
     on_slide.forget();
     on_key.forget();

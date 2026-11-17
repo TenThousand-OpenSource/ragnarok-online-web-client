@@ -71,7 +71,8 @@ client/src/
       accounts.rs     logging in, registering, recovering          characters.rs   server and character select, creation
       game.rs         the game's screen: the minimap and the character's place
     app.rs          the App: its state and types          ── children in app/ ──
-      wiring.rs       page events (click, key, drag, timer) -> Action
+      wiring.rs       page events (click, key, timer) -> Action
+      dragging.rs     taking a thing out of a window and letting it go, as the client does (its sprite under the pointer)
       actions.rs      which code sees to each Action (the one place everything arrives at); the longer ones in actions/
         forms.rs  bag.rs  link.rs  taming.rs  travel.rs
       clicks.rs       what each `data-click` does; split by kind in clicks/, as incoming/ is
@@ -102,6 +103,8 @@ client/src/
       gpu.rs          pipelines, textures, the draw call
       loading.rs      reading a map's files
       camera.rs  mover.rs  effects.rs  shaders.rs  math.rs
+      prims.rs        the effects the client draws by code: its primitives (CEffectPrim), kind by kind, and
+                      the effects made of them (CRagEffect), as far as they are ported
 gateway/src/
   main.rs           routes and start-up
   grf.rs            reading files out of GRF archives

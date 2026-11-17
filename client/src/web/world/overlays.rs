@@ -117,10 +117,37 @@ pub(super) fn overlays(state: &mut State, view: &View, time: f64, feet: Vector, 
         Some((_, _, unit, _)) if matches!(unit.look, Look::Creature(_)) => 1,
         None if state.pointer.is_some_and(|pointer| lying_at(gpu, scene, &view, pointer).is_some()) => 4,
         None if on_portal => 3,
+        // Over ground nobody can walk on, or off the map (the client's action 13, when nothing else is pointed at).
+        None if state.pointer.is_some_and(|pointer| view.pick(&scene.gat, (pointer.0 / width.max(1.0), pointer.1 / height.max(1.0))).is_none_or(|cell| !scene.gat.walkable(cell.0, cell.1))) => 8,
         _ => 0,
     };
-    // The pointer's pictures run in turn, as the original's do (the hand over a thing to pick up grabs).
-    let pointer_frame = state.pointers.get(pointing).map_or(0, |(pictures, shows)| (time / shows) as usize % pictures.len().max(1));
+    if pointing != state.pointing {
+        state.pointing_since = time;
+    }
+    // Which of the pointer's pictures shows now, as the client's `CMode::DrawCursor` has it: a tick is 24
+    // milliseconds and each pointer shows a picture for its own number of ticks, whatever its sprite says.
+    // Most run round and round from when the pointer became that one. The one for talking runs once and stays
+    // on its last picture. The hand over a thing to pick up is open while the button is up; when the button
+    // goes down it closes, and stays closed.
+    let pointer_frame = state.pointers.get(pointing).map_or(0, |(pictures, _)| {
+        let ticks = match POINTERS.get(pointing) {
+            Some(5) => 20.0,
+            Some(7) => 10.0,
+            Some(9) => 1.0,
+            Some(10) => 6.0,
+            Some(11) => 3.0,
+            Some(13) => 2.0,
+            _ => 4.0,
+        };
+        let (count, last) = (pictures.len().max(1), pictures.len().saturating_sub(1));
+        let since = |began: f64| ((time - began) / (24.0 * ticks)).max(0.0) as usize;
+        match (POINTERS.get(pointing), state.held) {
+            (Some(9), None) => 0,
+            (Some(9), Some(_)) => since(state.held_since).min(last),
+            (Some(1), _) => since(state.pointing_since).min(last),
+            _ => since(state.pointing_since) % count,
+        }
+    });
     if pointing != state.pointing || pointer_frame != state.pointer_frame {
         state.pointing = pointing;
         state.pointer_frame = pointer_frame;

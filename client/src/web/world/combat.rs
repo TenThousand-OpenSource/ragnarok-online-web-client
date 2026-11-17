@@ -148,6 +148,20 @@ pub fn effect_later(name: &str, on: Option<u32>, delay: f64, sound: Option<&str>
     });
 }
 
+/// One of the client's effects that it draws by code begins on someone (none named: the player's own character)
+/// after `delay` milliseconds, with the sound it starts with. Gives back whether it is one drawn here yet.
+pub fn burst(effect: u32, on: Option<u32>, delay: f64) -> bool {
+    let begins = now() + delay.max(0.0);
+    let Some((burst, sound)) = prims::burst(effect, on, begins) else { return false };
+    STATE.with_borrow_mut(|state| {
+        state.bursts.push(burst);
+        if !sound.is_empty() {
+            state.sounds_due.push((begins, sound.to_owned()));
+        }
+    });
+    true
+}
+
 /// An arrow is shot at someone, to arrive after `delay` milliseconds (the client's `CArrowEffect`): it leaves
 /// 10 above the archer's feet and flies for 8 of the client's frames.
 pub fn arrow(source: u32, target: u32, own: u32, delay: f64) {

@@ -86,7 +86,7 @@ pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<
             gpu.ring = Some(gpu.textured(&gpu.sprite_pipeline.get_bind_group_layout(1), &view, &gpu.pixel_sampler));
         }
     }
-    for name in CAST_PICTURES {
+    for name in CAST_PICTURES.into_iter().chain(prims::PICTURES) {
         if !gpu.effect_pictures.contains_key(name) {
             if let Ok(image) = picture(&format!("effect\\{name}")).await {
                 let view = gpu.texture(image.width, image.height, &image.rgba);
@@ -235,6 +235,10 @@ pub(super) fn pointers() {
         ) {
             let _ = root.style().set_property("--point", plain);
             let _ = root.style().set_property("--press", &press);
+            // The finger down: the last picture of that action, which the client runs to while the button is held.
+            if let Ok(pressed) = figure::cursor(2, 2).await {
+                let _ = root.style().set_property("--pressed", &pressed);
+            }
         }
         // Every picture of every pointer is read by the browser ahead of its use and kept on the page, out of
         // sight: a pointer whose picture the browser has yet to read shows as the plain arrow for a moment, which
@@ -260,3 +264,21 @@ pub(super) fn pointers() {
         });
     });
 }
+
+/// The pictures of the effects drawn by code: the rings around a caster and the mark on the one aimed at.
+const CAST_PICTURES: [&str; 14] = [
+    "pikapika2.bmp",
+    "ring_blue.tga",
+    "ring_yellow.tga",
+    "ring_white.tga",
+    "magic_green.tga",
+    "magic_violet.tga",
+    "lockon128.tga",
+    "icearrow.tga",
+    "불화살1.tga",
+    "불화살2.tga",
+    "불화살3.tga",
+    "불화살4.tga",
+    "불화살5.tga",
+    "불화살6.tga",
+];

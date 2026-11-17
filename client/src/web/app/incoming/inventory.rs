@@ -92,6 +92,13 @@ impl App {
             }
             items::ZC_DELETE_ITEM_FROM_BODY | items::ZC_ITEM_THROW_ACK => {
                 if let Some((index, count)) = items::lost(id, packet) {
+                    // Something thrown away is told of in the chat, among the lines about items (the client's
+                    // `ZC_ITEM_THROW_ACK`: its message 1609, "You dropped %s (%d).", in its 0xFFFF00, which
+                    // read as blue, green, red is cyan).
+                    let thrown = self.bag.items.iter().find(|item| id == items::ZC_ITEM_THROW_ACK && item.index == index && count > 0);
+                    if let Some((name, line)) = thrown.and_then(|item| Some((data::item_as(item.id, item.identified)?.0, data::message(1609)?))) {
+                        self.chat_line_of(said::ITEM, crate::i18n::tr(&line).replacen("%s", &name, 1).replacen("%d", &count.to_string(), 1), "#00ffff");
+                    }
                     if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
                         item.amount = item.amount.saturating_sub(count);
                     }

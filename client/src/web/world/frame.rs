@@ -50,7 +50,8 @@ pub(super) fn frame() {
                 if hurt.motion.is_none() && hurt.dying.is_none() && !hurt.dead {
                     hurt.motion = Some((if matches!(hurt.look, Look::Character(_)) { 48 } else { 24 }, time, 280.0));
                 }
-                state.sparks.push((along(on_ground(&scene.gat, hurt.at), [0.0, 1.0, 0.0], 7.0), time));
+                // The ring of a blow that lands (the client's `EF_HIT1`).
+                state.bursts.extend(prims::burst(0, (target != own).then_some(target), time).map(|(burst, _)| burst));
                 if let Some(heard) = heard {
                     sound::effect(&heard, 1.0);
                 }
@@ -136,11 +137,6 @@ pub(super) fn frame() {
         let mut ring_corners = Vec::new();
         for cell in scene.portals.values() {
             rings(on_ground(gat, (cell.0 as f32, cell.1 as f32)), time, &mut ring_corners);
-        }
-        // A blow that lands flashes: a ring of light opening for a moment where it struck.
-        state.sparks.retain(|(_, struck)| time - struck < 180.0);
-        for (at, struck) in &state.sparks {
-            spark(*at, ((time - struck) / 180.0) as f32, &mut ring_corners);
         }
         // The ground cell under the pointer is marked, as the original marks where a press would walk to.
         let mut marks = Vec::new();
@@ -248,6 +244,29 @@ pub(super) fn frame() {
                     effects.1.push((binds.clone(), true));
                 }
             }
+        }
+        // The effects drawn out of the client's primitives: each lives its ticks and is drawn around the one it
+        // is on, flat to the screen and a touch nearer than where that one stands.
+        state.bursts.retain_mut(|burst| burst.begins > time || burst.live(time));
+        for burst in state.bursts.iter_mut().filter(|burst| burst.begins <= time) {
+            let Some((at, facing)) = (match burst.on {
+                Some(id) => scene.units.get(&id).map(|unit| (unit.at, unit.facing)),
+                None => Some((scene.player.at, scene.player.facing)),
+            }) else { continue };
+            // The step on the ground that facing is (as `map::direction` numbers them, from the south round by the west).
+            let step = [(0.0, -1.0), (-1.0, -1.0), (-1.0, 0.0), (-1.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (1.0, -1.0)][usize::from(facing % 8)];
+            let length = f32::hypot(step.0, step.1);
+            let place = on_ground(&scene.gat, at);
+            let nearer = 1.0 - 25.0 / dot(subtract(place, view.eye), view.forward).max(40.0);
+            burst.draw(place, (step.0 / length, step.1 / length), view.right, view.up, |picture, corners, colour| {
+                let Some(binds) = gpu.effect_pictures.get(picture) else { return };
+                for (at, uv) in corners {
+                    effects.0.extend(along(view.eye, subtract(at, view.eye), nearer));
+                    effects.0.extend(uv);
+                    effects.0.extend(colour);
+                }
+                effects.1.push((binds.clone(), false));
+            });
         }
         // The bolts falling: each a picture turned along its fall, its tip ahead, until it reaches the ground.
         const BOLT_SPEED: f32 = 2.75;

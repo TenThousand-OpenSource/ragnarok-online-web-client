@@ -72,7 +72,7 @@ pub fn leave() {
         state.sounds_due.clear();
         state.effects.clear();
         state.landing.clear();
-        state.sparks.clear();
+        state.bursts.clear();
     });
     // What the game drew over the page goes with it: the bars, the names, the numbers of blows.
     if let Some(document) = web_sys::window().and_then(|window| window.document()) {
@@ -169,7 +169,7 @@ pub fn jump(cell: (u16, u16)) {
         state.sounds_due.clear();
         state.effects.clear();
         state.landing.clear();
-        state.sparks.clear();
+        state.bursts.clear();
     });
 }
 

@@ -36,7 +36,7 @@ impl App {
                 let key = if row == 0 { format!("F{} ", column + 1) } else { String::new() };
                 let skill = if hotkey.skill && hotkey.id != 0 { format!(r#" data-skill="{}""#, hotkey.id) } else { String::new() };
                 // What is on a slot can be dragged to another, or off the bar to take it away.
-                let skill = if hotkey.id != 0 { format!(r#"{skill} draggable="true" data-drag="slot:{slot}""#) } else { skill };
+                let skill = if hotkey.id != 0 { format!(r#"{skill} data-drag="slot:{slot}""#) } else { skill };
                 bar.push_str(&format!(
                     r#"<div class="a slot" style="{}" data-slot="{slot}" data-use="slot:{slot}"{skill} title="{key}{}">{icon}{count}</div>"#,
                     at(16 + 29 * column, row * 33 + 4, 24, 24),
@@ -125,7 +125,7 @@ impl App {
             let usable = learned.is_some_and(|skill| skill.level > 0 && !skill.passive());
             // The level it is used at: what the player picked with the arrows by its level, or all it has.
             let used = self.skills.use_level.get(&id).copied().filter(|used| (1..=level).contains(used)).unwrap_or(level);
-            let drag = if usable { format!(r#"draggable="true" data-drag="skill:{id}:{used}" data-use="skill:{id}""#) } else { String::new() };
+            let drag = if usable { format!(r#"data-drag="skill:{id}:{used}" data-use="skill:{id}""#) } else { String::new() };
             let dim = if level == 0 { "filter:grayscale(1) opacity(.55);" } else { "" };
             let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
             window.push_str(&format!(r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#, at(x + 4, y + 44, 24, 24), escape(&name)));

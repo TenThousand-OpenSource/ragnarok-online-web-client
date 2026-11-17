@@ -4,3 +4,5 @@
 // It does so only when loyal enough (pet_support_min_friendly, 900 of 1000 by default, left as is).
 pet_attack_support: yes
 pet_damage_support: yes
+// The line about the server's version on entering the game is not shown.
+display_version: no

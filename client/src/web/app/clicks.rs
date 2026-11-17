@@ -14,6 +14,7 @@ mod shops;
 mod pets;
 mod hotkeys;
 mod settings;
+mod guide;
 
 impl App {
     pub(super) fn click(&mut self, what: &str, arg: &str) {
@@ -42,6 +43,12 @@ impl App {
             "map-zoom" => {
                 let zoom = self.minimap_zoom.max(1.0);
                 self.minimap_zoom = if arg == "+" { (zoom + (zoom / 3.0 + zoom) * 0.25).min(4.0) } else { (zoom - zoom * 0.25).max(1.0) };
+                self.render();
+            }
+            // The minimap's first button shows and hides the marks of who stands where in a town (the client's
+            // `minimapMarkersVisible`).
+            "map-marks" => {
+                self.minimap_marks_off = !self.minimap_marks_off;
                 self.render();
             }
             "menu" => {
@@ -79,7 +86,8 @@ impl App {
                     || self.trade_click(what, arg)
                     || self.pet_click(what, arg)
                     || self.key_click(what, arg)
-                    || self.settings_click(what, arg);
+                    || self.settings_click(what, arg)
+                    || self.guide_click(what, arg);
             }
         }
     }

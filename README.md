@@ -74,6 +74,10 @@ docker compose -f server/docker-compose.yml up -d --build
 `server/conf/accounts.sql` seeds two accounts for development (`tester`, a game master, and `tester2`). They
 are for a server on your own machine only.
 
+What the gateway sends is compressed (gzip or Brotli, as the browser takes) and the client's own files, named by
+their build, are kept by the browser. Both can be switched off: `--compress off` where a proxy or a CDN in front
+does the compressing, `--cache-client off` to have the client asked for anew each time.
+
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's
 `--smtp-url` at a real server for anything else.
 

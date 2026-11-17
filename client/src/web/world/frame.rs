@@ -105,8 +105,9 @@ pub(super) fn frame() {
             }
         }
         // What lies on the ground, once the item's picture is known.
-        for (id, (_, item, at)) in &scene.drops {
-            let Some((_, resource)) = data::item(*item) else { continue };
+        for (id, (_, item, at, identified)) in &scene.drops {
+            // One not identified lies there as what the client's table shows it as until it is.
+            let Some((_, resource)) = data::item_as(*item, *identified) else { continue };
             let key = SpriteKey::Creature(format!("아이템/{}", if resource.is_empty() { "사과" } else { resource.as_str() }), 0, 0);
             if gpu.has_sprite(&key) {
                 // A thing that fell out of a monster starts 15 above the ground, is thrown up a little and
@@ -629,11 +630,11 @@ pub(super) fn lying_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32
     scene
         .drops
         .iter()
-        .filter_map(|(id, (_, item, at))| {
+        .filter_map(|(id, (_, item, at, identified))| {
             let feet = on_ground(&scene.gat, *at);
             let under = view.project(feet)?;
             // The picture's own rectangle, where the picture is known; a point at the thing's place otherwise.
-            let resource = data::item(*item).map(|(_, resource)| resource).unwrap_or_default();
+            let resource = data::item_as(*item, *identified).map(|(_, resource)| resource).unwrap_or_default();
             let key = SpriteKey::Creature(format!("아이템/{}", if resource.is_empty() { "사과" } else { resource.as_str() }), 0, 0);
             let (low, high) = match gpu.sprite_textures.get(&key) {
                 Some(texture) => {

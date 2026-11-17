@@ -149,6 +149,11 @@ impl App {
             let (text, field) = match ask {
                 Ask::Reserve(char_id) => (crate::i18n::fill(self.text(Key::AskDelete), &[&name(char_id)]), String::new()),
                 Ask::Delete(char_id) => (crate::i18n::fill(self.text(Key::AskDeleteNow), &[&name(char_id)]), String::new()),
+                // The client's message 1489, with what the entry that has the key is called.
+                Ask::Rebind(_, (table, place), _) => (
+                    escape(&data::message(1489).unwrap_or_else(|| "This key is already registered to [[%s]]. Bind it to this function instead?".to_owned()).replace("%s", &data::hotkeys(table).get(place).map(|(name, _)| name.clone()).unwrap_or_default())),
+                    String::new(),
+                ),
                 Ask::Birthdate(_) => (
                     self.text(Key::AskBirthdate).to_owned(),
                     format!(r#"<input class="a in boxed" id="birthdate" inputmode="numeric" maxlength="6" autocomplete="off" autofocus style="{}">"#, at(20, 70, 240, 18)),
@@ -175,7 +180,9 @@ impl App {
     }
 
     fn login_window(&self, view: (f64, f64)) -> String {
-        let field = |id: &str, y: i32, extra: &str| format!(r#"<input class="a in centre" id="{id}" maxlength="23" style="{}" {extra}>"#, at(15, y, 153, 16));
+        // The client writes these two in the middle of their fields and has the box 56 in; here, by the player's
+        // wish, the text starts at the left and the box stands under the fields' left edge.
+        let field = |id: &str, y: i32, extra: &str| format!(r#"<input class="a in" id="{id}" maxlength="23" style="{};text-align:left;padding-left:4px;box-sizing:border-box" {extra}>"#, at(15, y, 153, 16));
         let checkbox = if self.save_id { "login_interface/checkbox_on.bmp" } else { "login_interface/checkbox_off.bmp" };
         let inner = format!(
             r#"<form data-submit="login">
@@ -188,12 +195,12 @@ impl App {
             </form>"#,
             combo = at(13, 10, 160, 22),
             service = self.text(Key::Service),
-            id = field("user", 40, &format!(r#"name="username" autocomplete="username" autofocus value="{}""#, escape(&self.saved_id))),
+            id = field("user", 40, &format!(r#"name="username" autocomplete="username" autofocus placeholder="{}" value="{}""#, self.text(Key::Id), escape(&self.saved_id))),
             password = field("password", 64, &format!(r#"name="password" type="password" autocomplete="current-password" placeholder="{}""#, self.text(Key::Password))),
-            check = at(56, 85, 12, 12),
+            check = at(17, 85, 12, 12),
             check_picture = background(checkbox),
             save = click("save-id", ""),
-            save_label = at(73, 85, 110, 14),
+            save_label = at(34, 85, 110, 14),
             save_text = self.text(Key::SaveId),
             restore = button(&at(13, 104, 67, 21), &states_of("login_interface/bt_close"), &click("to-recover", ""), self.text(Key::Restore)),
             register = button(&at(87, 104, 84, 21), &states_of("login_interface/bt_join"), &click("to-register", ""), self.text(Key::Register)),
@@ -476,12 +483,17 @@ impl App {
         let map: String = game.map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
         // Under the minimap, as the original has it: the character's cell, and the minimap's buttons (which do
         // nothing yet).
-        // Plus and minus bring the map nearer and take it back (the client's `UIMinimapZoomWnd`); the others
-        // (the marks, the world map) do nothing yet.
-        let buttons: String = [("object", 1, ""), ("plus", 73, "+"), ("minus", 87, "-"), ("mini", 101, ""), ("viewon", 115, "")]
+        // Plus and minus bring the map nearer and take it back (the client's `UIMinimapZoomWnd`), the first
+        // button shows and hides the marks of who stands where in a town; the others (the small map's window,
+        // the world map) do nothing yet.
+        let buttons: String = [("object", 1, "marks"), ("plus", 73, "+"), ("minus", 87, "-"), ("mini", 101, ""), ("viewon", 115, "")]
             .iter()
             .map(|(name, x, zoom)| {
-                let press = if zoom.is_empty() { String::new() } else { format!(r#" data-click="map-zoom" data-arg="{zoom}""#) };
+                let press = match *zoom {
+                    "" => String::new(),
+                    "marks" => r#" data-click="map-marks""#.to_owned(),
+                    zoom => format!(r#" data-click="map-zoom" data-arg="{zoom}""#),
+                };
                 format!(
                     r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;{}" onerror="this.remove()"{press}>"#,
                     picture(&format!("minimap/i_{name}_1.bmp")),
@@ -493,15 +505,50 @@ impl App {
         let buttons = if self.option("TT_SHOW_MINIMAP_BUTTON_ONOFF") { buttons } else { String::new() };
         let (pictured, marked) = minimap_place(game, self.minimap_zoom).unwrap_or_else(|| (String::new(), "display:none".to_owned()));
         format!(
-            r#"<div class="minimap" style="overflow:hidden"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i></div>
+            r#"<div class="minimap" style="overflow:hidden"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i><div id="map-marks">{marks}</div></div>
                <div class="mapname"><span id="position"> {}  {}</span>{buttons}</div>{}"#,
             picture(&format!("map/{map}.bmp")),
             marked,
             game.x,
             game.y,
             self.hud(view),
+            marks = minimap_marks(game, self.minimap_zoom, self.minimap_marks_off),
         )
     }
+}
+
+/// The minimap's marks of who stands where in a town (the client's `CGameMode::DrawMiniMap` and
+/// `UIMinimapZoomWnd::AddTownButton`): each a small picture by its kind, its middle on the cell, with the name
+/// shown under the pointer. Those outside the part of the map shown are left out. (In the client a press on one
+/// starts the navigation there; this client has no navigation yet.)
+pub(super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> String {
+    const PICTURES: [&str; 8] = ["store", "weaponshop", "armorshops", "smithy", "guide", "inn", "kafra", "style"];
+    if hidden {
+        return String::new();
+    }
+    let Some((width, height)) = game.map_size else { return String::new() };
+    let zoom = zoom.clamp(1.0, 4.0);
+    let scale = 100.0 / width.max(height) as f32;
+    let on_picture = |x: f32, y: f32| (50.0 + (x - width as f32 / 2.0) * scale, 50.0 - (y - height as f32 / 2.0) * scale);
+    let (own_x, own_y) = on_picture(f32::from(game.x), f32::from(game.y));
+    let shown = 100.0 / zoom;
+    let from = |at: f32| (at - shown / 2.0).clamp(0.0, 100.0 - shown);
+    let (left, top) = (from(own_x), from(own_y));
+    data::town_marks(&game.map)
+        .iter()
+        .filter_map(|(name, x, y, kind)| {
+            let picture_name = PICTURES.get(usize::try_from(*kind).ok()?)?;
+            let (x, y) = on_picture(*x as f32, *y as f32);
+            let (x, y) = ((x - left) * zoom, (y - top) * zoom);
+            ((0.0..=100.0).contains(&x) && (0.0..=100.0).contains(&y)).then(|| {
+                format!(
+                    r#"<img class="mark" src="{}" alt="" title="{}" draggable="false" style="left:{x:.2}%;top:{y:.2}%" onerror="this.remove()">"#,
+                    picture(&format!("information/{picture_name}.bmp")),
+                    escape(name)
+                )
+            })
+        })
+        .collect()
 }
 
 /// How the minimap's picture and the character's mark on it are placed, as styles. The minimap is a square

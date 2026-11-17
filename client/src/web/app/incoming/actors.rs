@@ -18,11 +18,11 @@ impl App {
                 }
             }
             units::ZC_ITEM_FALL_ENTRY | units::ZC_ITEM_ENTRY => {
-                if let Some((drop, item, cell, within)) = units::dropped(id, packet) {
+                if let Some((drop, item, cell, within, identified)) = units::dropped(id, packet) {
                     // Its picture is drawn once the item's name is known. One that falls now (not one that
                     // already lay there) is seen falling.
                     data::want_items(std::iter::once(item), || {});
-                    world::drop_shown(drop, item, cell, within, id == units::ZC_ITEM_FALL_ENTRY);
+                    world::drop_shown(drop, item, identified, cell, within, id == units::ZC_ITEM_FALL_ENTRY);
                 }
             }
             units::ZC_ITEM_DISAPPEAR => {

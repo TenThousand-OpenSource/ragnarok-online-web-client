@@ -81,8 +81,9 @@ impl Mover {
         // The sprite's directions are numbered as the game's, seen by a camera looking north: a camera turned
         // around it sees it from another side.
         let turned = (f32::from(self.facing) * 45.0 - yaw).rem_euclid(360.0);
-        let motion = self.motion.filter(|(_, began, lasts)| !walking && now - began < *lasts);
-        if motion.is_none() {
+        // A motion that is yet to begin waits its turn; one under way ends when its time is up or a walk begins.
+        let motion = self.motion.filter(|(_, began, lasts)| !walking && now >= *began && now - began < *lasts);
+        if motion.is_none() && !self.motion.is_some_and(|(_, began, _)| began > now) {
             self.motion = None;
         }
         // A motion plays its pictures once over the time it takes, and holds the last.

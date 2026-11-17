@@ -40,9 +40,11 @@ impl App {
         }
         let fill = (110 * now.clamp(0, next) / next) as i32;
         format!(
-            r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf" title="{:.1} %"><div style="width:{fill}px;height:4px;background:#567fcf"></div></div>"#,
+            r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf" data-tip="{:.1} %"><div style="width:{fill}px;height:4px;background:#567fcf"></div></div>"#,
             at(x, y, 112, 6),
-            now as f64 * 100.0 / next as f64
+            // Under the pointer the bar tells how far it is, in tenths of a hundredth cut short, as the client's
+            // does (`UIINT64BarGraph::OnMouseHover`).
+            (now.clamp(0, next) as f64 / next as f64 * 1000.0).floor() / 10.0
         )
     }
 
@@ -75,7 +77,7 @@ impl App {
             ("attendance", "", "Attendance"),
             ("adventurerAgency", "", "Adventurer agency"),
             ("repute", "", "Reputation"),
-            ("adventureguide", "", "Adventure guide"),
+            ("adventureguide", "guide", "Adventure guide"),
             ("probability", "", "Probabilities"),
         ];
         let bar = |name: &str| {
@@ -147,6 +149,9 @@ impl App {
         // Weight is kept in tenths; carrying half of what one can is already too much to recover by resting.
         let (weight, max_weight) = (self.value(parameter::WEIGHT), self.value(parameter::MAX_WEIGHT));
         let heavy = if max_weight > 0 && weight * 2 >= max_weight { "#f00" } else { BLACK };
+        // The window's bottom left, 100 wide and 20 high, tells under the pointer how much of what can be carried
+        // is carried (`UIBasicInfoWnd::OnMouseHover`).
+        window.push_str(&format!(r#"<div class="a" style="{}" data-tip="Weight {}%"></div>"#, at(0, 114, 100, 20), if max_weight > 0 { weight * 100 / max_weight } else { 0 }));
         window.push_str(&format!(
             r#"<div class="a t" style="right:5px;top:116px;white-space:pre"><span style="color:{heavy}">{} : {:3} / {:3}</span>  {} : {}</div>"#,
             tr("Weight"),

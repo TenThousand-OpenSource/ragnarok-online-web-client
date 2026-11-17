@@ -122,6 +122,8 @@ pub(super) enum Action {
     /// The right button was pressed on someone on the map: their ID, and where on the page.
     Menu(u32, (f32, f32)),
     /// The slot machine's pictures were read.
+    /// A monster's picture for the Adventure Guide was made: the monster's number, and the picture.
+    GuideRead(u32, (String, (usize, usize), (f32, f32))),
     TamingRead(Vec<(String, (usize, usize), (f32, f32))>, Vec<(String, (usize, usize), (f32, f32))>),
     /// A moment of the slot machine has passed.
     TamingTick,
@@ -213,6 +215,9 @@ pub(super) enum Ask {
     Delete(u32),
     /// The same, for an account that has a date of birth to confirm it with.
     Birthdate(u32),
+    /// A key set in the Shortcut Settings window is another entry's already: take it from that one? The entry
+    /// it is set for, the one that has it (each a table and a place), and the key.
+    Rebind((usize, usize), (usize, usize), Chord),
 }
 
 /// The character being made.
@@ -346,6 +351,22 @@ pub(super) struct Deal {
     pub storage_tab: usize,
 }
 
+/// The Adventure Guide's window: whether it is open, which of its tabs, the monster picked in its list, and the
+/// monsters' pictures made so far (and those asked for), by the monster's number.
+#[derive(Default)]
+pub(super) struct GuideWnd {
+    pub open: bool,
+    pub tab: usize,
+    /// The kind picked under the tab (the tab's own smaller tabs), where it has kinds: its number.
+    pub kind: Option<u32>,
+    /// The open tab's kinds are folded away: a press on the tab that is open already does that, and another
+    /// brings them back (the client's `CUITab::SetSelected`).
+    pub folded: bool,
+    pub picked: Option<String>,
+    pub pictures: HashMap<u32, (String, (usize, usize), (f32, f32))>,
+    pub asked: std::collections::HashSet<u32>,
+}
+
 /// The Game Settings window, and what the player has set in it.
 #[derive(Default)]
 pub(super) struct Settings {
@@ -455,6 +476,7 @@ pub(super) struct App {
     pub pets: Pets,
     pub keys: Keys,
     pub settings: Settings,
+    pub guide: GuideWnd,
     /// Which server of the list is picked.
     pub server_picked: usize,
     /// The window of game options: 0 closed, 1 open, 2 asking whether to go back to the save point.
@@ -467,6 +489,9 @@ pub(super) struct App {
     ticks: u32,
     /// How near the minimap shows the map: 1 (all of it; also what 0 means) to 4.
     pub minimap_zoom: f32,
+    /// The minimap's marks of who stands where in a town are hidden (its first button; the client shows them
+    /// until it is pressed).
+    pub minimap_marks_off: bool,
     /// The window of the NPC being talked to.
     pub dialog: Option<Dialog>,
     /// The strip of menu icons is folded away.

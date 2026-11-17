@@ -92,6 +92,12 @@ impl App {
             Server::Map => {
                 if let (Some(account), Some(zone)) = (&self.account, &self.zone) {
                     socket.send(&packets::map_enter(account, zone.char_id, now()));
+                    // The levels this character's skills were last set to be used at.
+                    self.skills.use_level = stored(&format!("roweb.skill-levels.{}", zone.char_id))
+                        .unwrap_or_default()
+                        .split(';')
+                        .filter_map(|kept| kept.split_once(':').and_then(|(skill, level)| Some((skill.parse().ok()?, level.parse().ok()?))))
+                        .collect();
                 }
             }
             Server::None => {}

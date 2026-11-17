@@ -40,12 +40,19 @@ impl App {
     /// OK or Cancel on a question.
     pub(super) fn answer(&mut self, yes: bool) {
         let Some(ask) = self.ask.take() else { return };
+        if let Ask::Rebind(to, from, chord) = ask {
+            if yes {
+                self.rebind(to, from, chord);
+            }
+            return self.render();
+        }
         let Some(socket) = self.socket.as_ref().filter(|_| yes) else { return self.render() };
         match ask {
             Ask::Reserve(char_id) => socket.send(&packets::delete_reserve(char_id)),
             // An account without a date of birth confirms with none; the server says if it wants one.
             Ask::Delete(char_id) => socket.send(&packets::delete_now(char_id, "")),
             Ask::Birthdate(char_id) => socket.send(&packets::delete_now(char_id, &field("birthdate"))),
+            Ask::Rebind(..) => {}
         }
         self.sent_birthdate = matches!(ask, Ask::Birthdate(_));
         self.wait = Some(Key::PleaseWait);

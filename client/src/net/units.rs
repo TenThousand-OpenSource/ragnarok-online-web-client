@@ -169,11 +169,11 @@ pub const ZC_ITEM_DISAPPEAR: u16 = 0x00a1;
 
 /// `(id, item, cell, where within the cell in sixteenths)` of a thing on the ground, from either packet (the
 /// count stands before the place within the cell in the one, after it in the other).
-pub fn dropped(id: u16, packet: &[u8]) -> Option<(u32, u32, (u16, u16), (u8, u8))> {
-    let (at, within) = if id == ZC_ITEM_FALL_ENTRY { (13, 17) } else { (11, 17) };
+pub fn dropped(id: u16, packet: &[u8]) -> Option<(u32, u32, (u16, u16), (u8, u8), bool)> {
+    let (at, within, identified) = if id == ZC_ITEM_FALL_ENTRY { (13, 17, 12) } else { (11, 17, 10) };
     let short = |at: usize| Some(u16::from_le_bytes(packet.get(at..at + 2)?.try_into().ok()?));
     let long = |at: usize| Some(u32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?));
-    Some((long(2)?, long(6)?, (short(at)?, short(at + 2)?), (*packet.get(within)?, *packet.get(within + 1)?)))
+    Some((long(2)?, long(6)?, (short(at)?, short(at + 2)?), (*packet.get(within)?, *packet.get(within + 1)?), *packet.get(identified)? != 0))
 }
 
 /// CZ_ITEM_PICKUP (0x0362): `u32 id`.

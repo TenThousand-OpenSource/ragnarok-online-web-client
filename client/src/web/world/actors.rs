@@ -82,13 +82,13 @@ pub fn unit_life(id: u32, left: i32, most: i32) {
 }
 
 /// Something lies on the ground, or is gone from it.
-pub fn drop_shown(id: u32, item: u32, cell: (u16, u16), within: (u8, u8), falling: bool) {
+pub fn drop_shown(id: u32, item: u32, identified: bool, cell: (u16, u16), within: (u8, u8), falling: bool) {
     STATE.with_borrow_mut(|state| {
         if let Some(scene) = &mut state.scene {
             // The thing lies where the server put it within its cell, in sixteenths from the cell's corner (the
             // client's `SubcellPosition`): things on one cell do not lie on top of each other.
             let at = (f32::from(cell.0) + f32::from(within.0) / 16.0 - 0.5, f32::from(cell.1) + f32::from(within.1) / 16.0 - 0.5);
-            scene.drops.insert(id, ((i32::from(cell.0), i32::from(cell.1)), item, at));
+            scene.drops.insert(id, ((i32::from(cell.0), i32::from(cell.1)), item, at, identified));
             if falling {
                 scene.falls.insert(id, now());
             }

@@ -110,6 +110,28 @@ pub fn start() -> Result<(), String> {
     let on_resize = Closure::<dyn FnMut()>::new(|| dispatch(Action::Resized));
     let on_visibility = Closure::<dyn FnMut()>::new(|| APP.with_borrow(App::tune));
     let on_timer = Closure::<dyn FnMut()>::new(|| dispatch(Action::KeepAlive));
+    // The game's own tooltip (the client's `CMode::ShowTooltip`): white words on a see-through black box, shown
+    // at once over whatever has one (`data-tip`), 16 above its top left corner, and gone when the pointer leaves.
+    let on_over = Closure::<dyn FnMut(Event)>::new(|event: Event| {
+        let Some(tip) = element("tip") else { return };
+        let tipped = pressed(&event, "data-tip").and_then(|tipped| tipped.dyn_into::<web_sys::HtmlElement>().ok());
+        let style = match tipped {
+            Some(tipped) => {
+                let words = tipped.get_attribute("data-tip").unwrap_or_default();
+                if tip.text_content().as_deref() != Some(words.as_str()) {
+                    tip.set_text_content(Some(&words));
+                }
+                // The windows may be drawn larger than their own measures: the tooltip is as much larger.
+                let place = tipped.get_bounding_client_rect();
+                let scale = if tipped.offset_width() > 0 { place.width() / f64::from(tipped.offset_width()) } else { 1.0 };
+                format!("display:block;left:{:.0}px;top:{:.0}px;font-size:{:.1}px", place.left().max(0.0), (place.top() - 16.0 * scale).max(0.0), 12.0 * scale)
+            }
+            None => "display:none".to_owned(),
+        };
+        let _ = tip.set_attribute("style", &style);
+    });
+    ui.add_event_listener_with_callback("mouseover", on_over.as_ref().unchecked_ref()).map_err(js_error)?;
+    on_over.forget();
     ui.add_event_listener_with_callback("submit", on_submit.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("click", on_click.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("dblclick", on_double_click.as_ref().unchecked_ref()).map_err(js_error)?;

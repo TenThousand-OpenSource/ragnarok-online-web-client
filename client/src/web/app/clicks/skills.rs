@@ -39,6 +39,12 @@ impl App {
                 } else {
                     self.skills.use_level.insert(id, wanted);
                 }
+                // Kept in the browser for this character, so the levels are the same next time. (Where the
+                // client keeps them was not looked for: this is this client's own way.)
+                if let Some(zone) = &self.zone {
+                    let kept: Vec<String> = self.skills.use_level.iter().map(|(skill, level)| format!("{skill}:{level}")).collect();
+                    store(&format!("roweb.skill-levels.{}", zone.char_id), (!kept.is_empty()).then(|| kept.join(";")).as_deref());
+                }
                 self.refresh_items();
             }
             _ => return false,

@@ -18,6 +18,8 @@ impl App {
     pub(super) fn command(&mut self, words: &str) -> bool {
         let Some(socket) = &self.socket else { return false };
         match words {
+            // One who walks does not sit down (as with the key).
+            "/sit" if world::walking() => {}
             "/sit" | "/stand" => socket.send(&units::sit(words == "/sit")),
             // Where the character is, as the client writes it: the map's full name, its own, and the cell
             // (`ShowPlayerLocation`).

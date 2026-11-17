@@ -48,9 +48,11 @@ impl App {
         let words = format!("{} - {amount} {}", escape(&name), tr("obtained."));
         let width = 41 + words.chars().count() as i32 * 6 + 12;
         format!(
-            r#"<div class="note" style="position:relative;display:inline-block;width:{width}px;height:32px;text-align:left;animation-delay:-{shown:.2}s">{}<div class="a cell" style="left:9px;top:1px">{}</div><div class="a t" style="left:41px;top:10px;white-space:nowrap">{words}</div></div>"#,
+            r#"<div class="note" style="position:relative;display:block;left:{left}px;width:{width}px;height:32px;text-align:left;animation-delay:-{shown:.2}s">{}<div class="a cell" style="left:9px;top:1px">{}</div><div class="a t" style="left:41px;top:10px;white-space:nowrap">{words}</div></div>"#,
             system_box(0, width, 32),
             Self::icon(Some(&resource)),
+            // In the middle of its place (260 wide), on a whole pixel.
+            left = (260 - width) / 2,
         )
     }
 

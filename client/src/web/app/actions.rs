@@ -131,6 +131,7 @@ impl App {
                 self.tell_fed();
                 self.refresh_items();
                 self.refresh_trade();
+                self.refresh_guide();
                 self.paint_figures();
             }
             Action::Resized => self.render(),
@@ -216,6 +217,10 @@ impl App {
                 self.render();
             }
             Action::Aimed(None, _) if self.skills.aimed.is_some_and(|(skill, _)| skill == TAME) => self.skills.aimed = None,
+            Action::GuideRead(id, picture) => {
+                self.guide.pictures.insert(id, picture);
+                self.refresh_guide();
+            }
             Action::TamingRead(waiting, turning) => {
                 if let Some(taming) = &mut self.pets.taming {
                     taming.frames = [waiting, turning];
@@ -337,6 +342,12 @@ impl App {
                             if let Some(shown) = element(id) {
                                 let _ = shown.set_attribute("style", &style);
                             }
+                        }
+                    }
+                    // Brought nearer, the minimap moves under its marks as the character walks.
+                    if self.minimap_zoom > 1.0 {
+                        if let Some(marks) = element("map-marks") {
+                            marks.set_inner_html(&super::super::view::minimap_marks(game, self.minimap_zoom, self.minimap_marks_off));
                         }
                     }
                 }

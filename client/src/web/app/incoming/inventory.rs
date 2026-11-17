@@ -118,9 +118,18 @@ impl App {
                     self.items_changed();
                 }
             }
+            // The server sends the list twice on coming in: the hotkey bar (tab 0), then the second bar (tab 1),
+            // which this client does not show yet. Only the first is this bar; taking the second for it too
+            // emptied the bar at every login.
             items::ZC_SHORTCUT_KEY_LIST => {
-                self.skills.hotkeys = items::hotkeys(packet);
-                self.items_changed();
+                if packet.get(3..5) == Some(&[0, 0]) {
+                    self.skills.hotkeys = items::hotkeys(packet);
+                    // What the bar's skills are called and which pictures are theirs.
+                    for hotkey in self.skills.hotkeys.clone().iter().filter(|hotkey| hotkey.skill && hotkey.id != 0) {
+                        data::want_skill(hotkey.id as u16, || dispatch(Action::ItemsKnown));
+                    }
+                    self.items_changed();
+                }
             }
             // ZC_EQUIP_ARROW (0x013c): `u16 index`. The ammunition in use (0: none).
             0x013c => {

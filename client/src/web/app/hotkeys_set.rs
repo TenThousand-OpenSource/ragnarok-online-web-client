@@ -70,21 +70,43 @@ impl App {
         } else if self.keys.mac && hotkeys::missing_on_mac(chord.key) {
             self.keys.notice = Some(crate::i18n::tr("This keyboard does not have that key.").to_owned());
         } else {
-            // The two hotkey bars may share a key (the client's `CheckHotkeyConflict` lets them).
+            // A key another entry has is taken from it only if the player says so (the client's
+            // `CheckHotkeyConflict`, which asks with its message 1489). The two hotkey bars may share a key.
             let bars = [hotkeys::table::BAR, hotkeys::table::BAR_2];
             for other in 0..4 {
                 if bars.contains(&table) && bars.contains(&other) && other != table {
                     continue;
                 }
                 for at in 0..data::hotkeys(other).len() {
-                    if (other, at) != (table, place) && self.bound(other, at) == chord {
-                        self.keys.edited.insert((other, at), Chord::default());
+                    if self.bound(other, at) != chord {
+                        continue;
                     }
+                    // Its own key again: nothing changes.
+                    if (other, at) != (table, place) {
+                        self.ask = Some(Ask::Rebind((table, place), (other, at), chord));
+                        self.render();
+                    }
+                    return;
                 }
             }
             self.keys.edited.insert((table, place), chord);
         }
         self.refresh_keys();
+    }
+
+    /// The player agreed: the key is taken from the entry that had it and given to the one it was pressed for.
+    /// Taken from a slot of the first hotkey bar for something that is not on that bar, it is taken from the
+    /// second bar too (as the client's `CheckHotkeyConflict` does).
+    pub(super) fn rebind(&mut self, to: (usize, usize), from: (usize, usize), chord: Chord) {
+        self.keys.edited.insert(from, Chord::default());
+        if from.0 == hotkeys::table::BAR && to.0 != hotkeys::table::BAR {
+            for at in 0..data::hotkeys(hotkeys::table::BAR_2).len() {
+                if self.bound(hotkeys::table::BAR_2, at) == chord {
+                    self.keys.edited.insert((hotkeys::table::BAR_2, at), Chord::default());
+                }
+            }
+        }
+        self.keys.edited.insert(to, chord);
     }
 
     /// OK in the window: what was set there is the player's from now on, and is kept in the browser.

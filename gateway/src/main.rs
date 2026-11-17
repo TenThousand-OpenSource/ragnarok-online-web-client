@@ -29,6 +29,12 @@ struct Config {
     accounts: accounts::Config,
     /// rAthena's item database folder, for the items' names.
     item_database: PathBuf,
+    /// Whether what is sent is compressed for browsers that take it (`--compress on|off`). Off where something
+    /// in front of the gateway (a proxy, a CDN) does that itself.
+    compress: bool,
+    /// Whether the client's own files, asked for by their build (`?v=…`), may be kept by the browser for good
+    /// (`--cache-client on|off`). Off, they are asked for anew each time, as the page always is.
+    cache_client: bool,
 }
 
 struct App {
@@ -50,6 +56,8 @@ fn config() -> Result<(Config, Option<String>), String> {
         server_host: "127.0.0.1".into(),
         server_ports: vec![6900, 6121, 5121],
         item_database: "../rathena/db/re".into(),
+        compress: true,
+        cache_client: true,
         // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.
         accounts: accounts::Config {
             database_url: "mysql://ragnarok:ragnarok@127.0.0.1:3306/ragnarok".into(),
@@ -72,6 +80,8 @@ fn config() -> Result<(Config, Option<String>), String> {
                     value()?.split(',').map(|port| port.trim().parse()).collect::<Result<_, _>>().map_err(|error| format!("--server-ports: {error}"))?;
             }
             "--item-database" => config.item_database = value()?.into(),
+            "--compress" => config.compress = switch(&arg, &value()?)?,
+            "--cache-client" => config.cache_client = switch(&arg, &value()?)?,
             "--database-url" => config.accounts.database_url = value()?,
             "--smtp-url" => config.accounts.smtp_url = value()?,
             "--mail-from" => config.accounts.mail_from = value()?,
@@ -81,6 +91,8 @@ fn config() -> Result<(Config, Option<String>), String> {
             "ls" => command = Some(value()?),
             // `lua <file>,<file>`: runs datainfo files of the client and lists the tables they leave.
             "lua" => command = Some(format!("lua:{}", value()?)),
+            // `dump <file>,<file> <global>`: runs those files and prints that table of theirs as JSON.
+            "dump" => command = Some(format!("dump:{}:{}", value()?, value()?)),
             // `mapcache <file>`: writes the server's map cache from the client's maps (for rAthena's db/import).
             "mapcache" => command = Some(format!("mapcache:{}", value()?)),
             // `items <id>,<id>`: prints what the item table says of those items.
@@ -91,6 +103,27 @@ fn config() -> Result<(Config, Option<String>), String> {
         }
     }
     Ok((config, command))
+}
+
+/// The value of an option that is either on or off.
+fn switch(option: &str, value: &str) -> Result<bool, String> {
+    match value {
+        "on" => Ok(true),
+        "off" => Ok(false),
+        other => Err(format!("{option}: on or off, not {other}")),
+    }
+}
+
+/// What of the gateway's answers is worth compressing: not what is small, and not what is compressed already
+/// (PNG and JPEG pictures, music). Maps, tables, the client itself and the client's BMP pictures are.
+fn worth_compressing() -> impl tower_http::compression::Predicate {
+    use tower_http::compression::predicate::{NotForContentType, Predicate, SizeAbove};
+    SizeAbove::new(1024)
+        .and(NotForContentType::const_new("image/png"))
+        .and(NotForContentType::const_new("image/jpeg"))
+        .and(NotForContentType::const_new("audio/"))
+        .and(NotForContentType::GRPC)
+        .and(NotForContentType::SSE)
 }
 
 #[tokio::main]
@@ -115,9 +148,12 @@ async fn main() {
                 }
             }
         } else if filter == "tables:" {
-            println!("{}", tables::with_maps(tables::for_client(&grf), &config.client_dir));
+            println!("{}", tables::with_guide(tables::with_maps(tables::for_client(&grf), &config.client_dir), &grf, &config.item_database, &config.client_dir));
         } else if let Some(ids) = filter.strip_prefix("items:") {
             println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
+        } else if let Some((files, global)) = filter.strip_prefix("dump:").and_then(|dump| dump.rsplit_once(':')) {
+            let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
+            println!("{}", tables::json_of(&lua.globals().get::<mlua::Value>(global).unwrap_or(mlua::Value::Nil)));
         } else if let Some(files) = filter.strip_prefix("lua:") {
             let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
             tables::describe(&lua).iter().for_each(|line| println!("{line}"));
@@ -142,6 +178,17 @@ async fn main() {
         eprintln!("{error}");
         std::process::exit(2);
     });
+    // The client itself. The page is asked for anew each time: a browser keeping an older build would run it
+    // against a newer page. The files the page names by their build (`?v=…`) never change under that name, so
+    // they may be kept, where the configuration lets them.
+    let cache_client = config.cache_client;
+    let client = Router::new().fallback_service(ServeDir::new(&config.web_dir)).layer(axum::middleware::from_fn(move |request: axum::extract::Request, next: axum::middleware::Next| async move {
+        let by_build = cache_client && request.uri().query().is_some_and(|query| query.starts_with("v="));
+        let mut response = next.run(request).await;
+        let keep = if by_build && response.status().is_success() { "public, max-age=31536000, immutable" } else { "no-cache" };
+        response.headers_mut().insert(header::CACHE_CONTROL, axum::http::HeaderValue::from_static(keep));
+        response
+    }));
     let router = Router::new()
         .route("/assets/{*path}", get(asset))
         .route("/image/{*path}", get(image))
@@ -152,17 +199,17 @@ async fn main() {
         .route("/tables/ru/skills/{ids}", get(client_skills_russian))
         .route("/tables/ru/skill-names.json", get(client_skill_names_russian))
         .route("/tables/items.ko/{ids}", get(client_items_korean))
-        .with_state(Arc::new(App { tables: tables::with_maps(tables::for_client(&grf), &config.client_dir).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), grf }))
+        .with_state(Arc::new(App { tables: tables::with_guide(tables::with_maps(tables::for_client(&grf), &config.client_dir), &grf, &config.item_database, &config.client_dir).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), grf }))
         .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60 }))
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
-        // The client itself is asked for anew each time: a browser keeping an older build would run it against
-        // a newer page.
-        .fallback_service(tower_http::set_header::SetResponseHeader::overriding(
-            ServeDir::new(&config.web_dir),
-            header::CACHE_CONTROL,
-            axum::http::HeaderValue::from_static("no-cache"),
-        ));
+        .merge(client);
+    // Compressed as it is sent, and quickly: the maps are megabytes of mostly the same bytes.
+    let router = if config.compress {
+        router.layer(tower_http::compression::CompressionLayer::new().quality(tower_http::CompressionLevel::Fastest).compress_when(worth_compressing()))
+    } else {
+        router
+    };
 
     let listener = tokio::net::TcpListener::bind(config.listen).await.unwrap_or_else(|error| {
         eprintln!("{}: {error}", config.listen);

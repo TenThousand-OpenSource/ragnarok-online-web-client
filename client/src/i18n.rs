@@ -45,7 +45,7 @@ macro_rules! texts {
 
 texts! {
     // The login window.
-    Service: "Ragnarok", "Ragnarok";
+    Service: "TenThousand", "TenThousand";
     Password: "PASSWORD", "ПАРОЛЬ";
     SaveId: "Save ID", "Запомнить ID";
     Register: "Register", "Регистрация";
@@ -303,6 +303,12 @@ const PHRASES: &[(&str, &str)] = &[
     ("Skill has failed.", "Умение не удалось."),
     ("Pet Egg List", "Яйца питомцев"),
     ("Identify Item", "Опознание предмета"),
+    ("Refinable", "Можно точить"),
+    ("Not refinable", "Нельзя точить"),
+    ("Enchantable", "Можно зачаровать"),
+    ("Not enchantable", "Нельзя зачаровать"),
+    ("Grade enchantable", "Можно повысить ранг"),
+    ("Not grade enchantable", "Нельзя повысить ранг"),
     ("Pet Info", "Питомец"),
     ("Name", "Имя"),
     ("Level", "Ур."),

@@ -107,6 +107,11 @@ impl App {
                 // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
                 hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
                 hotkeys::interface::SIT => {
+                    // One who walks does not sit down: the key does nothing until the character stands. (The
+                    // server would stop the walk and seat it; the rule is this side's.)
+                    if world::walking() && !self.hero.sitting {
+                        return true;
+                    }
                     if let Some(socket) = &self.socket {
                         socket.send(&units::sit(!self.hero.sitting));
                     }

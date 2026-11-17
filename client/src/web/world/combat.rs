@@ -27,6 +27,17 @@ pub fn struck(source: u32, target: u32, own: u32, lasts: f64, delay: f64, damage
                 }
             }
         }
+        // A blow that hurts stops the player's own character where it walks, on the middle of the nearest cell,
+        // for as long as its flinch lasts; the server does so without a word (rAthena's `unit_set_walkdelay`:
+        // no packet tells of it), and goes on from that cell when it is next asked to walk. One just stopped is
+        // not stopped again for twice that long. Walking on here would be walking where the server is not, and
+        // being put back at the next thing it says.
+        if target == own && damage > 0 && delay > 0.0 && state.own_stopped_until <= time - delay {
+            state.own_stopped_until = time + delay;
+            if scene.player.walk.take().is_some() {
+                state.held_asked = time;
+            }
+        }
         // The blow lands a moment into the swing: then the one struck flinches, and the number rises.
         state.landing.push((time + delay.clamp(0.0, 1500.0), target, own, damage, sound));
     });
@@ -49,7 +60,12 @@ pub fn picks_up(id: u32, own: u32, thing: u32) {
         if let Some(cell) = lies.filter(|cell| *cell != mover.cell) {
             mover.facing = crate::map::direction(cell.0 - mover.cell.0, cell.1 - mover.cell.1);
         }
-        mover.motion = Some((PICKING_UP, now(), lasts.max(250.0)));
+        // The thing is asked for from a cell away, so the server may say it is taken while the character still
+        // walks its last step (after a monster killed from afar, as with a spell): it bends down when it gets
+        // there, not while walking, when the bending would not be seen at all.
+        let time = now();
+        let begins = mover.walk.as_ref().map_or(time, |(walk, started)| (started + walk.duration()).max(time));
+        mover.motion = Some((PICKING_UP, begins, lasts.max(250.0)));
     });
 }
 
@@ -201,6 +217,11 @@ pub fn aim_words(words: &str) {
 }
 
 /// Whether a skill is being aimed.
+/// Whether the player's own character is walking now.
+pub fn walking() -> bool {
+    STATE.with_borrow(|state| state.scene.as_ref().is_some_and(|scene| scene.player.walk.is_some()))
+}
+
 pub fn aiming() -> bool {
     STATE.with_borrow(|state| state.aiming.is_some())
 }

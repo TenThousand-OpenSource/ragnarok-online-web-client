@@ -299,7 +299,7 @@ struct Scene {
     /// Everyone else in sight, by the server's ID.
     units: HashMap<u32, Mover>,
     /// The things lying on the ground, by the server's ID: the cell, and which item.
-    drops: HashMap<u32, ((i32, i32), u32, (f32, f32))>,
+    drops: HashMap<u32, ((i32, i32), u32, (f32, f32), bool)>,
     /// When each thing that fell out of a monster began to fall.
     falls: HashMap<u32, f64>,
     /// Where the camera looks, and when it was last moved: it follows the character a tenth of the way each of
@@ -411,6 +411,8 @@ struct State {
     /// When the player's own character last struck, and when the server was last asked to strike: a fight that
     /// does not start is asked for again.
     own_struck: f64,
+    /// Until when the player's own character cannot walk for a blow it took (the server's walk delay).
+    own_stopped_until: f64,
     strike_asked: f64,
     /// How near the character must stand to strike with what it holds, in cells, once the server has said so
     /// (it says when a blow was asked for from too far).

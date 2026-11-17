@@ -24,6 +24,7 @@ mod dialogs;
 mod pets;
 mod hotkeys_set;
 mod settings;
+mod guide;
 mod trade;
 
 use basic::*;
@@ -58,7 +59,9 @@ fn system_box(top: i32, width: i32, height: i32) -> String {
         format!(r#"<div class="a" style="{};background:url('{}') 0 0 {repeat}"></div>"#, at(x, top + y, w, h), picture(&format!("sysbox_{name}.bmp")))
     };
     [
-        format!(r#"<div class="a" style="{};background:#fff"></div>"#, at(14, top + 14, width - 28, height - 28)),
+        // White under the pieces too, a little inside the frame: where the page is laid out between pixels (a
+        // box centred in an odd width, a zoomed page) the pieces part by a hair, and the ground must not show.
+        format!(r#"<div class="a" style="{};background:#fff;border-radius:2px"></div>"#, at(3, top + 3, width - 6, height - 6)),
         piece("mu", 14, 0, width - 28, 14, "repeat-x"),
         piece("md", 14, height - 14, width - 28, 14, "repeat-x"),
         piece("lm", 0, 14, 14, height - 28, "repeat-y"),
@@ -203,6 +206,8 @@ impl App {
             None => String::new(),
         };
         // The Game Settings window, in the middle of the view, as the client puts it.
+        // The Adventure Guide, 750 by 468, in the middle.
+        let guide = if self.guide.open { format!(r#"<div id="guide" class="a hud" style="left:{}px;top:{}px;width:750px;height:468px">{}</div>"#, ((view.0 as i32 - 750) / 2).max(0), ((view.1 as i32 - 468) / 2).max(0), self.guide_window()) } else { String::new() };
         let settings = if self.settings.open { format!(r#"<div id="settings" class="a hud" style="left:{}px;top:{}px;width:400px">{}</div>"#, ((view.0 as i32 - 400) / 2).max(0), ((view.1 as i32 - 350) / 2).max(0), self.settings_window()) } else { String::new() };
         // The Shortcut Settings window, in the middle of the view.
         let keys = if self.keys.open { format!(r#"<div id="keys" class="a hud" style="left:{}px;top:{}px;width:436px">{}</div>"#, ((view.0 as i32 - 436) / 2).max(0), ((view.1 as i32 - 432) / 2).max(0), self.key_window()) } else { String::new() };
@@ -218,7 +223,7 @@ impl App {
         // The menu hangs under the basic window, a little into it.
         let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.hero.basic_small { 55 } else { 134 } - 4, self.menu_icons());
         format!(
-            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{identify}{pet}{keys}{settings}{pet_menu}
+            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{identify}{pet}{keys}{settings}{guide}{pet_menu}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,
             self.basic_info(),
             u8::from(self.chat.locked),

@@ -25,8 +25,8 @@ impl App {
         match self.esc {
             1 => {
                 let buttons: &[(&str, &str)] =
-                    if self.dead { &[("esc_10", "esc-save"), ("esc_02", "esc-close")] } else { &[("esc_01", "logout"), ("esc_001", ""), ("esc_08", ""), ("esc_09", "exit"), ("esc_02", "esc-close")] };
-                let height = 17 + if self.dead { 53 } else { 122 };
+                    if self.hero.dead { &[("esc_10", "esc-save"), ("esc_02", "esc-close")] } else { &[("esc_01", "logout"), ("esc_001", ""), ("esc_08", ""), ("esc_09", "exit"), ("esc_02", "esc-close")] };
+                let height = 17 + if self.hero.dead { 53 } else { 122 };
                 let mut window = title_bar(280, "Game Options");
                 window.push_str(&art("basic_interface/sys_base_off.bmp", 3, 3, 11, 11));
                 window.push_str(&format!(
@@ -101,16 +101,16 @@ impl App {
     /// The eggs an incubator can hatch (the client's `UIPetEggListWnd`, 200 by 200): each with its picture and
     /// name; the picked one is hatched with OK (or with a double click).
     pub(in crate::web) fn egg_window(&self) -> String {
-        let Some(eggs) = &self.eggs else { return String::new() };
+        let Some(eggs) = &self.pets.eggs else { return String::new() };
         let mut window = title_bar(200, "Pet Egg List");
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 200, 162)));
         let rows: String = eggs
             .iter()
             .enumerate()
             .filter_map(|(row, index)| {
-                let item = self.inventory.iter().find(|item| item.index == *index)?;
+                let item = self.bag.items.iter().find(|item| item.index == *index)?;
                 let resource = data::item(item.id).map(|(_, resource)| resource);
-                let picked = if row == self.egg_picked { "background:#c6d6f7;" } else { "" };
+                let picked = if row == self.pets.egg_picked { "background:#c6d6f7;" } else { "" };
                 Some(format!(
                     r#"<div style="position:relative;height:26px;{picked}cursor:default" data-click="egg-pick" data-arg="{row}" data-use="egg:{row}"><div style="position:absolute;left:2px;top:1px;width:24px;height:24px">{}</div><div class="t" style="position:absolute;left:32px;top:6px">{}</div></div>"#,
                     Self::icon(resource.as_deref()),

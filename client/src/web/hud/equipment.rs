@@ -21,7 +21,7 @@ impl App {
         ));
         for (place, column, row) in PLACES {
             // A thing worn in two places (a two-handed weapon) shows in both.
-            let Some(item) = self.inventory.iter().find(|item| item.worn & place != 0) else { continue };
+            let Some(item) = self.bag.items.iter().find(|item| item.worn & place != 0) else { continue };
             let resource = data::item(item.id).map(|(_, resource)| resource);
             let (icon_x, name_x) = if column == 0 { (6, 33) } else { (251, 172) };
             window.push_str(&format!(
@@ -39,7 +39,7 @@ impl App {
         }
         // The ammunition in use (arrows): its picture at 115, 64 under the character's hands and its name under
         // it, 40 wide, as the client's window has them. A double click takes it off, as with anything worn.
-        if let Some(item) = self.inventory.iter().find(|item| item.kind == 10 && item.worn != 0) {
+        if let Some(item) = self.bag.items.iter().find(|item| item.kind == 10 && item.worn != 0) {
             let resource = data::item(item.id).map(|(_, resource)| resource);
             window.push_str(&format!(
                 r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" data-use="item:{}" data-info="{}" title="{} : {} {}"><div style="position:absolute;left:-4px;top:-4px">{}</div><span class="n">{}</span></div>

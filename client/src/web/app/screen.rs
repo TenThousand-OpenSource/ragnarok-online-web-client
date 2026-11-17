@@ -82,12 +82,12 @@ impl App {
                 }
             }
             // The character in the Equipment window.
-            Screen::Game if self.equipment_open || self.skills_open => {
-                if self.equipment_open {
+            Screen::Game if self.bag.equipment_open || self.skills.open => {
+                if self.bag.equipment_open {
                     figure::paint("pc-equip", self.own_figure());
                 }
                 // The character in the skill window.
-                if self.skills_open {
+                if self.skills.open {
                     figure::paint("pc-skill", self.own_figure());
                 }
             }

@@ -62,7 +62,7 @@ client/src/
     app.rs          the App: its state and types          ── children in app/ ──
       wiring.rs       page events (click, key, drag, timer) -> Action
       actions.rs      what each Action does (the one place everything arrives at)
-      clicks.rs       what each `data-click` does
+      clicks.rs       what each `data-click` does; split by kind in clicks/, as incoming/ is
       keys.rs         the keyboard
       account.rs      login, registration, recovery
       connection.rs   login -> char -> map server, and back
@@ -122,6 +122,11 @@ original client's bitmaps, placed at the original's coordinates. `App::render` w
 `refresh_*` functions rewrite one part (items, values, chat, a dialog) so that typing and scrolling survive.
 Elements carry `data-click`, `data-use` (double click), `data-info` / `data-skill` (right click), `data-drag`.
 
+**One system, one name.** A system of the game (pets, shops, skills…) is the same word in every layer:
+`net/pets.rs` (its packets), `app/incoming/pets.rs` (what the server says of it), `app/clicks/pets.rs` (what its
+buttons do), `hud/pets.rs` (its window), and `App::pets` (what is remembered of it). What belongs to no system
+(the connection, the account, the screen shown) is a plain field of `App`.
+
 ## How to…
 
 **…handle a new packet from the map server**
@@ -130,11 +135,12 @@ Elements carry `data-click`, `data-use` (double click), `data-info` / `data-skil
 3. Add an arm to the fitting `client/src/web/app/incoming/*.rs`.
 4. If the world must show it, add or call a function in `world/{session,actors,combat}.rs`.
 
-**…send a packet**: a builder function next to the parsers in `net/`, called from `app/clicks.rs`, `app/keys.rs`
+**…send a packet**: a builder function next to the parsers in `net/`, called from `app/clicks/*.rs`, `app/keys.rs`
 or `app/actions.rs` as `socket.send(&…)`.
 
 **…add or change a window**: the HTML in `hud/<window>.rs`; its place in `App::hud` (`hud.rs`); its state as a
-field of `App` (`app.rs`); what its buttons do in `app/clicks.rs`; its texts through `i18n::tr`.
+field of its system's group in `App` (`app.rs`: `Hero`, `Bag`, `Skills`, `Chat`, `Deal`, `Pets`; a new system
+gets a group of its own); what its buttons do in `app/clicks/<system>.rs`; its texts through `i18n::tr`.
 
 **…add an effect**: a `.str` effect needs no code — `world::effect("name.str", on_whom)`. An effect the original
 draws by code goes to `world/effects.rs` (geometry) and is fed to the GPU in `world/frame.rs`.
@@ -167,5 +173,5 @@ Test accounts for the local server are in `server/conf/accounts.sql`.
 ## Known debts
 
 - `world/frame.rs` is one long function (move, simulate, draw, overlays): to be cut into those four steps.
-- `app/actions.rs` and `app/clicks.rs` are long `match`es; they can be split by screen the way `incoming/` is.
+- `app/actions.rs` is a long `match`; it can be split by kind the way `incoming/` and `clicks/` are.
 - Windows are rebuilt as strings; there is no component model, by choice so far.

@@ -245,6 +245,105 @@ pub(super) struct Dialog {
     pub asks: Option<bool>,
 }
 
+/// The character itself: its values, and the windows that show them.
+#[derive(Default)]
+pub(super) struct Hero {
+    /// The character's values as the map server gives them, by parameter number (`packets::parameter`).
+    pub params: HashMap<u16, i64>,
+    /// What equipment and the like add to each stat: Str, Agi, Vit, Int, Dex, Luk.
+    pub stat_bonus: [i32; 6],
+    /// The character lies dead, until it is returned to its save point.
+    pub dead: bool,
+    pub sitting: bool,
+    /// Basic Information is in its small form; the Status window is open.
+    pub basic_small: bool,
+    pub status_open: bool,
+}
+
+/// What the character carries, and the windows of it.
+#[derive(Default)]
+pub(super) struct Bag {
+    pub items: Vec<Item>,
+    /// The Inventory window is open, and which of its tabs.
+    pub open: bool,
+    pub tab: Tab,
+    pub equipment_open: bool,
+    /// The item whose description is open.
+    pub info: Option<u32>,
+    /// The thing being dropped while its count is asked for: where it is carried, and how many there are.
+    pub throwing: Option<(u16, u16)>,
+    /// What was picked up last, and whether the chat has told of it (its name may arrive a moment later).
+    pub obtained: Option<(u32, u16)>,
+    /// When it was picked up (milliseconds since 1970): the note of it shows for five seconds from then.
+    pub obtained_at: f64,
+    pub told_obtained: bool,
+}
+
+/// What the character knows, and what is on its hotkey bar.
+#[derive(Default)]
+pub(super) struct Skills {
+    pub known: Vec<Skill>,
+    /// The Skill window is open, and which of its pages.
+    pub open: bool,
+    pub tab: usize,
+    /// The skill whose description is shown.
+    pub info: Option<u16>,
+    /// The skill being aimed with the pointer, and its level.
+    pub aimed: Option<(u16, u16)>,
+    pub hotkeys: Vec<Hotkey>,
+    /// The hotkey bar is put away; how many of its rows show beyond the first (none to three).
+    pub hotkeys_hidden: bool,
+    pub hotkey_rows: u8,
+}
+
+/// The chat window.
+#[derive(Default)]
+pub(super) struct Chat {
+    /// Its lines, oldest first, each with its colour.
+    pub lines: Vec<(String, String)>,
+    /// How many rows it shows (0 leaves only its input line), and how many it had before its log was hidden.
+    pub rows: usize,
+    pub rows_kept: usize,
+    /// Which of its tabs is open, and whether the window is locked where it is.
+    pub tab: usize,
+    pub locked: bool,
+}
+
+/// Dealing with NPCs: a shop and the Kafra's storage.
+#[derive(Default)]
+pub(super) struct Deal {
+    pub shop: Option<Shop>,
+    /// The row picked in the shop's list, and what was put aside to buy or sell: `(row, amount)`.
+    pub picked: Option<usize>,
+    pub basket: Vec<(usize, u16)>,
+    pub storage: Option<Storage>,
+    /// Which of the storage's tabs is open.
+    pub storage_tab: usize,
+}
+
+/// The player's pet: catching one, hatching it, and its window.
+#[derive(Default)]
+pub(super) struct Pets {
+    /// The slot machine of taming a monster, while it is open.
+    pub taming: Option<Taming>,
+    /// The pet eggs offered for hatching (their places in the inventory), while the incubator's list is open,
+    /// and which of them is picked.
+    pub eggs: Option<Vec<u16>>,
+    pub egg_picked: usize,
+    /// The pet, while one is out of its egg, and the unit on the map that is it.
+    pub pet: Option<pets::Pet>,
+    pub unit: u32,
+    /// The pet window is open; its menu of commands is; what it asks before acting (1 whether to feed, 2
+    /// whether to give the name typed, kept in `named`).
+    pub open: bool,
+    pub menu: bool,
+    pub asks: u8,
+    pub named: String,
+    /// The answer to feeding the pet (whether it ate, and its food), until the chat has told of it: the food's
+    /// name may arrive a moment later.
+    pub fed: Option<(bool, u32)>,
+}
+
 #[derive(Default)]
 pub(super) struct App {
     pub lang: Lang,
@@ -281,88 +380,23 @@ pub(super) struct App {
     pub make: Make,
     zone: Option<ZoneServer>,
     pub game: Option<Game>,
-    /// The character's values as the map server gives them, by parameter number (`packets::parameter`).
-    pub params: HashMap<u16, i64>,
-    /// What equipment and the like add to each stat: Str, Agi, Vit, Int, Dex, Luk.
-    pub stat_bonus: [i32; 6],
-    /// The chat's lines, oldest first, each with its colour.
-    pub chat: Vec<(String, String)>,
-    /// Basic Information in its small form; the Status window open; the hotkey bar put away; and how many
-    /// rows the chat shows (0 leaves only its input line).
-    pub basic_small: bool,
-    pub status_open: bool,
-    pub hotkeys_hidden: bool,
-    /// How many rows of the hotkey bar show beyond the first (none to three).
-    pub hotkey_rows: u8,
-    /// The thing being dropped while its count is asked for: where it is carried, and how many there are.
-    pub throwing: Option<(u16, u16)>,
+    /// What the game remembers, one group for each of its systems.
+    pub hero: Hero,
+    pub bag: Bag,
+    pub skills: Skills,
+    pub chat: Chat,
+    pub deal: Deal,
+    pub pets: Pets,
     /// Which server of the list is picked.
     pub server_picked: usize,
-    /// The Equipment window is open.
-    pub equipment_open: bool,
-    /// The item whose description is open.
-    pub item_info: Option<u32>,
-    /// The skill whose description is shown.
-    pub skill_info: Option<u16>,
-    /// What was picked up last, and whether the chat has told of it (its name may arrive a moment later).
-    pub obtained: Option<(u32, u16)>,
-    /// When it was picked up (milliseconds since 1970): the note of it shows for five seconds from then.
-    pub obtained_at: f64,
-    pub told_obtained: bool,
-    /// The character lies dead, until it is returned to its save point.
-    pub dead: bool,
-    /// The pet eggs offered for hatching (their places in the inventory), while the incubator's list is open,
-    /// and which of them is picked.
-    pub eggs: Option<Vec<u16>>,
-    pub egg_picked: usize,
-    /// The player's pet, while one is out of its egg, and the unit on the map that is it.
-    pub pet: Option<crate::net::pets::Pet>,
-    pub pet_unit: u32,
-    /// The pet window is open; its menu of commands is; what it asks before acting (1 whether to feed, 2
-    /// whether to give the name typed, kept in `pet_named`).
-    pub pet_open: bool,
-    pub pet_menu: bool,
-    pub pet_asks: u8,
-    pub pet_named: String,
-    /// The answer to feeding the pet (whether it ate, and its food), until the chat has told of it: the food's
-    /// name may arrive a moment later.
-    pub pet_fed: Option<(bool, u32)>,
-    /// The slot machine of taming a monster, while it is open.
-    pub taming: Option<Taming>,
-    /// Which page of the skill window is open.
-    pub skill_tab: usize,
-    /// The skill being aimed with the pointer, and its level.
-    aimed: Option<(u16, u16)>,
     /// The window of game options: 0 closed, 1 open, 2 asking whether to go back to the save point.
     pub esc: u8,
     /// How many loading screens were shown: each takes the next of the client's pictures.
     loadings: usize,
-    /// The character sits.
-    pub sitting: bool,
-    pub shop: Option<Shop>,
-    /// The row picked in the shop's list, and what was put aside to buy or sell: `(row, amount)`.
-    pub shop_picked: Option<usize>,
-    pub basket: Vec<(usize, u16)>,
-    pub storage: Option<Storage>,
-    /// Which of the storage's tabs is open.
-    pub storage_tab: usize,
     /// The window of the NPC being talked to.
     pub dialog: Option<Dialog>,
     /// The strip of menu icons is folded away.
     pub menu_closed: bool,
-    pub chat_rows: usize,
-    /// The rows the chat had before its log was hidden.
-    pub chat_rows_kept: usize,
-    /// Which of the chat's tabs is open, and whether the window is locked where it is.
-    pub chat_tab: usize,
-    pub chat_locked: bool,
-    /// What the character carries, what it knows, and what is on its hotkey bar.
-    pub inventory: Vec<Item>,
-    pub skills: Vec<Skill>,
-    pub hotkeys: Vec<Hotkey>,
-    pub inventory_open: bool,
-    pub inventory_tab: Tab,
-    pub skills_open: bool,
     /// Whether the last request to delete carried a date of birth.
     sent_birthdate: bool,
 }

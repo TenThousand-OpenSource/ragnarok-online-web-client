@@ -87,40 +87,40 @@ impl App {
         let chat = element("chat-input").and_then(|input| input.dyn_into::<web_sys::HtmlElement>().ok());
         let writing = chat.as_ref().is_some_and(|input| web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active == **input));
         match (key, code, alt) {
-            (_, "KeyV", true) => self.basic_small = !self.basic_small,
-            (_, "KeyA", true) => self.status_open = !self.status_open,
-            (_, "KeyE", true) => self.inventory_open = !self.inventory_open,
-            (_, "KeyQ", true) => self.equipment_open = !self.equipment_open,
-            (_, "KeyS", true) => self.skills_open = !self.skills_open,
+            (_, "KeyV", true) => self.hero.basic_small = !self.hero.basic_small,
+            (_, "KeyA", true) => self.hero.status_open = !self.hero.status_open,
+            (_, "KeyE", true) => self.bag.open = !self.bag.open,
+            (_, "KeyQ", true) => self.bag.equipment_open = !self.bag.equipment_open,
+            (_, "KeyS", true) => self.skills.open = !self.skills.open,
             // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
-            (_, "KeyJ", true) => self.pet_open = !self.pet_open && self.pet.is_some(),
+            (_, "KeyJ", true) => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
             // F1 to F9 use the first row of the hotkey bar.
             (_, "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9", false) => {
                 let slot = code[1..].parse::<usize>().unwrap_or(1) - 1;
                 self.use_it(&format!("slot:{slot}"));
                 return true;
             }
-            ("Escape", ..) if self.throwing.is_some() => {
-                self.throwing = None;
+            ("Escape", ..) if self.bag.throwing.is_some() => {
+                self.bag.throwing = None;
                 self.refresh_throw();
                 return true;
             }
             // Insert sits down and stands up.
             ("Insert", ..) => {
                 if let Some(socket) = &self.socket {
-                    socket.send(&units::sit(!self.sitting));
+                    socket.send(&units::sit(!self.hero.sitting));
                 }
                 return true;
             }
             // F12 runs the bar through its sizes, as the client does: a row more each time, then away, then one
             // row again.
             ("F12", ..) => {
-                if self.hotkeys_hidden {
-                    self.hotkeys_hidden = false;
-                } else if self.hotkey_rows >= 3 {
-                    (self.hotkey_rows, self.hotkeys_hidden) = (0, true);
+                if self.skills.hotkeys_hidden {
+                    self.skills.hotkeys_hidden = false;
+                } else if self.skills.hotkey_rows >= 3 {
+                    (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
                 } else {
-                    self.hotkey_rows += 1;
+                    self.skills.hotkey_rows += 1;
                 }
             }
             ("F10", ..) => self.chat_resize(),
@@ -138,7 +138,7 @@ impl App {
             // Escape lets go of a skill being aimed.
             ("Escape", ..) if world::aiming() => {
                 world::aim(None, 0);
-                self.aimed = None;
+                self.skills.aimed = None;
                 return true;
             }
             // Escape opens the window of game options and closes it, unless an NPC is being talked to.

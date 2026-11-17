@@ -41,7 +41,7 @@ impl App {
                     // has it returned to its save point.
                     if Some(id) == self.account.as_ref().map(|account| account.account_id) {
                         if died {
-                            self.dead = true;
+                            self.hero.dead = true;
                             // The client's data has one voice for dying, a man's (`die_male.wav`); where the
                             // client starts it was not found in its code.
                             if self.own_figure().sex == 1 {
@@ -59,8 +59,8 @@ impl App {
                         // The player's pet is out of sight (not teleported with its master: type 0): it is back
                         // in its egg, or it ran away. The server (rAthena) tells it no other way: its word of
                         // the egg, ZC_CHANGESTATE_PET type 6, says 0 only of a pet about to run away.
-                        if id == self.pet_unit && packet.get(6) == Some(&0) {
-                            (self.pet, self.pet_unit, self.pet_open, self.pet_menu, self.pet_asks) = (None, 0, false, false, 0);
+                        if id == self.pets.unit && packet.get(6) == Some(&0) {
+                            (self.pets.pet, self.pets.unit, self.pets.open, self.pets.menu, self.pets.asks) = (None, 0, false, false, 0);
                             self.render();
                         }
                     }
@@ -112,7 +112,7 @@ impl App {
             // window that offered the save point goes.
             0x0148 => {
                 if packet.len() >= 6 && Some(u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]])) == self.account.as_ref().map(|account| account.account_id) {
-                    self.dead = false;
+                    self.hero.dead = false;
                     self.esc = 0;
                     world::own_dead(false);
                     self.refresh_dialog();

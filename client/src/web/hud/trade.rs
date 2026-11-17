@@ -14,7 +14,7 @@ impl App {
     /// then the list of what is sold or what is taken, with how many of each. The lists are simpler than the
     /// original's two windows with a basket: one list, a number to each line.
     pub(in crate::web) fn trade_window(&self) -> String {
-        let Some(shop) = &self.shop else { return String::new() };
+        let Some(shop) = &self.deal.shop else { return String::new() };
         let rows: Vec<(u32, String, u32, Option<u16>)> = match shop {
             Shop::Choose(_) => {
                 return format!(
@@ -29,7 +29,7 @@ impl App {
             Shop::Sell(bids) => bids
                 .iter()
                 .filter_map(|(index, price)| {
-                    let item = self.inventory.iter().find(|item| item.index == *index)?;
+                    let item = self.bag.items.iter().find(|item| item.index == *index)?;
                     Some((item.id, Self::item_name(item), *price, Some(item.amount)))
                 })
                 .collect(),
@@ -56,15 +56,15 @@ impl App {
             )
         };
         // What is still to be had of each line: all of it when buying, what is carried less what is put aside.
-        let aside = |row: usize| self.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| *amount);
+        let aside = |row: usize| self.deal.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| *amount);
         let list: String = (0..rows.len())
             .filter_map(|row| {
                 let left = rows[row].3.map(|have| have.saturating_sub(aside(row)));
-                (left != Some(0)).then(|| line(row, left.filter(|left| *left > 1), self.shop_picked == Some(row), &format!(r#"data-use="shop-add:{row}""#)))
+                (left != Some(0)).then(|| line(row, left.filter(|left| *left > 1), self.deal.picked == Some(row), &format!(r#"data-use="shop-add:{row}""#)))
             })
             .collect();
-        let kept: String = self.basket.iter().map(|(row, amount)| line(*row, Some(*amount).filter(|amount| *amount > 1), false, &format!(r#"data-use="shop-remove:{row}""#))).collect();
-        let total: i64 = self.basket.iter().filter_map(|(row, amount)| Some(i64::from(rows.get(*row)?.2) * i64::from(*amount))).sum();
+        let kept: String = self.deal.basket.iter().map(|(row, amount)| line(*row, Some(*amount).filter(|amount| *amount > 1), false, &format!(r#"data-use="shop-remove:{row}""#))).collect();
+        let total: i64 = self.deal.basket.iter().filter_map(|(row, amount)| Some(i64::from(rows.get(*row)?.2) * i64::from(*amount))).sum();
         let frame = |x: i32, y: i32, title: &str, lines: i32, body: &str| {
             let footer = 17 + lines * 32;
             format!(
@@ -100,7 +100,7 @@ impl App {
     pub(in crate::web) fn storage_window(&self) -> String {
         const TABS: [&str; 8] = ["Item", "Cash", "Armor", "Wpn", "Cstm", "Ammo", "Card", "Misc"];
         const LINES: i32 = 11;
-        let Some(storage) = &self.storage else { return String::new() };
+        let Some(storage) = &self.deal.storage else { return String::new() };
         // Which tab a thing is under, by the server's kind of item.
         let tab_of = |item: &Item| match item.kind {
             0 | 2 | 11 => 0,
@@ -116,7 +116,7 @@ impl App {
         window.push_str(&button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "storage-close", ""));
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c3c3c3;border-right:1px solid #c3c3c3;box-sizing:border-box"></div>"#, at(0, 17, width, body)));
         for (index, label) in TABS.iter().enumerate() {
-            let open = if index == self.storage_tab { " open" } else { "" };
+            let open = if index == self.deal.storage_tab { " open" } else { "" };
             window.push_str(&format!(
                 r#"<button type="button" class="a side{open}" style="{}" data-click="storage-tab" data-arg="{index}"><i>{}</i></button>"#,
                 at(2, 19 + index as i32 * 34, 16, 34),
@@ -126,7 +126,7 @@ impl App {
         let lines: String = storage
             .items
             .iter()
-            .filter(|item| tab_of(item) == self.storage_tab)
+            .filter(|item| tab_of(item) == self.deal.storage_tab)
             .map(|item| {
                 let resource = data::item(item.id).map(|(_, resource)| resource);
                 let id = item.id;

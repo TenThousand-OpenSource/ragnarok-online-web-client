@@ -36,18 +36,18 @@ impl App {
         self.game = None;
         self.zone = None;
         self.dialog = None;
-        self.shop = None;
-        self.storage = None;
-        self.throwing = None;
-        self.item_info = None;
-        self.obtained = None;
-        self.dead = false;
+        self.deal.shop = None;
+        self.deal.storage = None;
+        self.bag.throwing = None;
+        self.bag.info = None;
+        self.bag.obtained = None;
+        self.hero.dead = false;
         self.esc = 0;
         self.close_taming();
-        self.sitting = false;
-        self.inventory.clear();
-        self.basket.clear();
-        self.chat.clear();
+        self.hero.sitting = false;
+        self.bag.items.clear();
+        self.deal.basket.clear();
+        self.chat.lines.clear();
         self.enter_server();
     }
 

@@ -15,7 +15,7 @@ impl App {
                 "reset" => self.reset(),
                 "create" => self.create_character(),
                 "throw" => {
-                    if let (Some((index, most)), Some(socket)) = (self.throwing.take(), &self.socket) {
+                    if let (Some((index, most)), Some(socket)) = (self.bag.throwing.take(), &self.socket) {
                         let count = field("throw-count").trim().parse::<u32>().unwrap_or(0).min(u32::from(most)) as u16;
                         if count > 0 {
                             socket.send(&items::throw(index, count));
@@ -58,34 +58,34 @@ impl App {
                     let Ok(row) = row.parse::<usize>() else { return };
                     // How many: what the line under the list says, or one bought and all of a stack sold.
                     let typed = field("shop-amount").trim().parse::<u32>().ok().filter(|amount| *amount > 0);
-                    let most = match &self.shop {
+                    let most = match &self.deal.shop {
                         Some(Shop::Buy(offers)) if row < offers.len() => 30000,
-                        Some(Shop::Sell(bids)) => bids.get(row).and_then(|(index, _)| self.inventory.iter().find(|item| item.index == *index)).map_or(0, |item| u32::from(item.amount)),
+                        Some(Shop::Sell(bids)) => bids.get(row).and_then(|(index, _)| self.bag.items.iter().find(|item| item.index == *index)).map_or(0, |item| u32::from(item.amount)),
                         _ => 0,
                     };
-                    let buying = matches!(self.shop, Some(Shop::Buy(_)));
-                    let aside = self.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount));
+                    let buying = matches!(self.deal.shop, Some(Shop::Buy(_)));
+                    let aside = self.deal.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount));
                     let amount = typed.unwrap_or(if buying { 1 } else { most }).min(most - aside.min(most)) as u16;
                     if amount > 0 {
-                        match self.basket.iter_mut().find(|(kept, _)| *kept == row) {
+                        match self.deal.basket.iter_mut().find(|(kept, _)| *kept == row) {
                             Some((_, kept)) => *kept += amount,
-                            None => self.basket.push((row, amount)),
+                            None => self.deal.basket.push((row, amount)),
                         }
                     }
                     self.refresh_trade();
                 }
                 (Some(("shop-remove", row)), _) => {
                     let row = row.parse::<usize>().ok();
-                    self.basket.retain(|(kept, _)| Some(*kept) != row);
+                    self.deal.basket.retain(|(kept, _)| Some(*kept) != row);
                     self.refresh_trade();
                 }
                 (Some(("put", index)), Some(socket)) => {
-                    if let Some(item) = index.parse().ok().and_then(|index: u16| self.inventory.iter().find(|item| item.index == index && item.worn == 0)) {
+                    if let Some(item) = index.parse().ok().and_then(|index: u16| self.bag.items.iter().find(|item| item.index == index && item.worn == 0)) {
                         socket.send(&trade::to_storage(item.index, u32::from(item.amount)));
                     }
                 }
                 (Some(("take", index)), Some(socket)) => {
-                    if let Some(item) = index.parse().ok().and_then(|index: u16| self.storage.as_ref()?.items.iter().find(|item| item.index == index)) {
+                    if let Some(item) = index.parse().ok().and_then(|index: u16| self.deal.storage.as_ref()?.items.iter().find(|item| item.index == index)) {
                         socket.send(&trade::from_storage(item.index, u32::from(item.amount)));
                     }
                 }
@@ -96,23 +96,23 @@ impl App {
                 // The first of that item carried without being worn. One is dropped at once; of more, the
                 // original asks how many.
                 let Some(id) = dragged.strip_prefix("item:").and_then(|id| id.parse::<u32>().ok()) else { return };
-                let Some(item) = self.inventory.iter().find(|item| item.id == id && item.worn == 0) else { return };
+                let Some(item) = self.bag.items.iter().find(|item| item.id == id && item.worn == 0) else { return };
                 if item.amount <= 1 {
                     if let Some(socket) = &self.socket {
                         socket.send(&items::throw(item.index, 1));
                     }
                 } else {
-                    self.throwing = Some((item.index, item.amount));
+                    self.bag.throwing = Some((item.index, item.amount));
                     self.refresh_throw();
                 }
             }
             Action::SkillInfo(id) => {
-                self.skill_info = Some(id);
+                self.skills.info = Some(id);
                 data::want_skill(id, || dispatch(Action::ItemsKnown));
                 self.refresh_items();
             }
             Action::Info(id) => {
-                self.item_info = Some(id);
+                self.bag.info = Some(id);
                 data::want_items(std::iter::once(id), || dispatch(Action::ItemsKnown));
                 self.refresh_items();
             }
@@ -158,7 +158,7 @@ impl App {
                 _ => {}
             },
             // While a monster is being tamed nothing is struck: the slot machine comes first.
-            Action::Pressed(_, true) if self.taming.is_some() => world::stand_down(),
+            Action::Pressed(_, true) if self.pets.taming.is_some() => world::stand_down(),
             Action::Pressed(id, monster) => {
                 if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
                     // A monster is fought until it or the character is down; anyone else is talked to.
@@ -166,8 +166,8 @@ impl App {
                 }
             }
             // A monster was picked to tame: the slot machine opens for it (not for players, as in the client).
-            Action::Aimed(Some(target), _) if self.aimed.is_some_and(|(skill, _)| skill == TAME) => {
-                self.aimed = None;
+            Action::Aimed(Some(target), _) if self.skills.aimed.is_some_and(|(skill, _)| skill == TAME) => {
+                self.skills.aimed = None;
                 self.close_taming();
                 // The fight, if there was one, stops for the taming.
                 world::stand_down();
@@ -178,7 +178,7 @@ impl App {
                 let tick = Closure::<dyn FnMut()>::new(|| dispatch(Action::TamingTick));
                 let timer = web_sys::window().and_then(|window| window.set_interval_with_callback_and_timeout_and_arguments_0(tick.as_ref().unchecked_ref(), 16).ok()).unwrap_or(0);
                 tick.forget();
-                self.taming = Some(Taming { target, state: 0, tick: 0, delay: 1, longest: 10000, wanted: -1, started: false, rested: None, frames: [Vec::new(), Vec::new()], shown: (usize::MAX, 0), timer });
+                self.pets.taming = Some(Taming { target, state: 0, tick: 0, delay: 1, longest: 10000, wanted: -1, started: false, rested: None, frames: [Vec::new(), Vec::new()], shown: (usize::MAX, 0), timer });
                 wasm_bindgen_futures::spawn_local(async {
                     let mut read = [Vec::new(), Vec::new()];
                     for (action, frames) in read.iter_mut().enumerate() {
@@ -197,15 +197,15 @@ impl App {
                 });
                 self.render();
             }
-            Action::Aimed(None, _) if self.aimed.is_some_and(|(skill, _)| skill == TAME) => self.aimed = None,
+            Action::Aimed(None, _) if self.skills.aimed.is_some_and(|(skill, _)| skill == TAME) => self.skills.aimed = None,
             Action::TamingRead(waiting, turning) => {
-                if let Some(taming) = &mut self.taming {
+                if let Some(taming) = &mut self.pets.taming {
                     taming.frames = [waiting, turning];
                 }
             }
             // The client's `Paint` and `OnProcess` of the window, once a moment.
             Action::TamingTick => {
-                let Some(taming) = &mut self.taming else { return };
+                let Some(taming) = &mut self.pets.taming else { return };
                 let count = taming.frames[taming.state].len() as i32;
                 if count == 0 {
                     return;
@@ -246,7 +246,7 @@ impl App {
                 }
             }
             Action::Aimed(whom, cell) => {
-                if let (Server::Map, Some(socket), Some((skill, level))) = (self.server, &self.socket, self.aimed.take()) {
+                if let (Server::Map, Some(socket), Some((skill, level))) = (self.server, &self.socket, self.skills.aimed.take()) {
                     socket.send(&match whom {
                         Some(id) => items::use_skill(level, skill, id),
                         None => crate::net::skills::use_on_ground(level, skill, cell),
@@ -306,7 +306,7 @@ impl App {
                     }
                 }
                 // A dead character arrives alive.
-                self.dead = false;
+                self.hero.dead = false;
                 self.esc = 0;
                 self.dialog = None;
                 self.refresh_values();

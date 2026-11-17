@@ -45,7 +45,7 @@ impl App {
                     Some(act) if act.kind == 1 => world::acts(act.source, own, 24, 450.0),
                     Some(act) if matches!(act.kind, 2 | 3) => {
                         if act.source == own {
-                            self.sitting = act.kind == 2;
+                            self.hero.sitting = act.kind == 2;
                         }
                         world::sat(act.source, own, act.kind == 2);
                     }

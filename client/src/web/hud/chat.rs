@@ -6,7 +6,7 @@ impl App {
     /// Redraws the chat's lines, the newest at the bottom.
     pub(in crate::web) fn refresh_chat(&self) {
         if let Some(log) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("chat-lines")) {
-            log.set_inner_html(&self.chat_lines(self.chat_rows));
+            log.set_inner_html(&self.chat_lines(self.chat.rows));
         }
     }
 
@@ -14,9 +14,9 @@ impl App {
         // Every line kept is there: the window shows the last, and scrolls back through the others. The second
         // tab keeps to what the game itself says (things picked up, deals, refusals), not what people say.
         let _ = lines;
-        self.chat
+        self.chat.lines
             .iter()
-            .filter(|(_, colour)| self.chat_tab == 0 || !matches!(colour.as_str(), "#0f0" | "#fff"))
+            .filter(|(_, colour)| self.chat.tab == 0 || !matches!(colour.as_str(), "#0f0" | "#fff"))
             .map(|(words, colour)| format!(r#"<div style="color:{colour}">{}</div>"#, escape(words)))
             .collect()
     }
@@ -33,7 +33,7 @@ impl App {
         if lines > 0 {
             let tabs = TABS.len() as i32 * TAB;
             for (index, name) in TABS.iter().enumerate() {
-                let open = index == self.chat_tab;
+                let open = index == self.chat.tab;
                 window.push_str(&format!(
                     r#"<button type="button" class="a chat-tab" style="{};background:rgba(0,0,0,{})" data-click="chat-tab" data-arg="{index}">{}</button>"#,
                     at(4 + TAB * index as i32, if open { 1 } else { 2 }, TAB - 1, if open { 16 } else { 15 }),
@@ -52,7 +52,7 @@ impl App {
                 self.chat_lines(lines)
             ));
             // From the right: the lock, then the small buttons, each 2 from the next (`ApplyHeaderLayout`).
-            let lock = if self.chat_locked { ("lock_dragwnd", 9) } else { ("unlock_dragwnd", 15) };
+            let lock = if self.chat.locked { ("lock_dragwnd", 9) } else { ("unlock_dragwnd", 15) };
             window.push_str(&format!(
                 r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" data-click="chat-lock" title="Lock the window in place"></button>"#,
                 at(600 - 20, 4, lock.1, 9),

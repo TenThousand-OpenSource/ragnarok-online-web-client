@@ -27,7 +27,7 @@ impl App {
     /// that stage it is, and its accessory; `< Command >` opens the menu of feeding, performance, taking the
     /// accessory off and going back into the egg.
     pub(in crate::web) fn pet_window(&self) -> String {
-        let Some(pet) = &self.pet else { return String::new() };
+        let Some(pet) = &self.pets.pet else { return String::new() };
         let mut window = title_bar(280, "Pet Info");
         window.push_str(&button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "pet", ""));
         window.push_str(&format!(
@@ -74,7 +74,7 @@ impl App {
             window.push_str(&art("basic_interface/gzeblue_right.bmp", 149 + filled, 105, 4, 8));
         }
         window.push_str(&text(100, 139, BLACK, tr(if pet.accessory == 0 { "Unequipped" } else { "Equipped" })));
-        if self.pet_menu {
+        if self.pets.menu {
             let rows: String = [("Feed Pet", "feed"), ("Performance", "perform"), ("Unequip Accessory", "unequip"), ("Return to Egg", "egg")]
                 .iter()
                 .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding-left:3px;cursor:default" data-click="pet-do" data-arg="{order}">{}</div>"#, escape(tr(words))))
@@ -87,9 +87,9 @@ impl App {
     /// What the pet window asks before it acts, in the client's message box (280 by 120): whether to feed the
     /// pet, or whether to give it the name typed.
     pub(in crate::web) fn pet_question(&self) -> String {
-        let words = match self.pet_asks {
+        let words = match self.pets.asks {
             1 => tr("Are you sure that you want to feed your pet?").to_owned(),
-            2 => tr("Pet name will be changed to {}, do you want to continue?").replace("{}", &self.pet_named),
+            2 => tr("Pet name will be changed to {}, do you want to continue?").replace("{}", &self.pets.named),
             _ => return String::new(),
         };
         format!(

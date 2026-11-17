@@ -7,7 +7,7 @@ impl App {
     /// line, as tall as the client's description of the skill needs at 18 pixels a line (the first line is the
     /// skill's name), with the close button in its corner. Only a text taller than the screen scrolls.
     pub(in crate::web) fn skill_info_window(&self) -> String {
-        let Some(id) = self.skill_info else { return String::new() };
+        let Some(id) = self.skills.info else { return String::new() };
         let lines = data::skill_text(id).unwrap_or_else(|| vec![data::skill(id).map_or_else(|| tr("Unknown Skill").to_owned(), |(_, name, _)| name)]);
         let height = 18 * lines.len() as i32 + 4 + 6;
         let description: String = lines.iter().map(|line| format!(r#"<div style="height:18px;line-height:18px;white-space:nowrap">{}</div>"#, coloured(line))).collect();
@@ -24,14 +24,14 @@ impl App {
     /// under the last with its number at the left; no key is written on a slot (the client names the key only
     /// when a slot is pointed at). The buttons at the right take a row away and add one.
     pub(in crate::web) fn hotkeys(&self) -> String {
-        let rows = i32::from(self.hotkey_rows) + 1;
+        let rows = i32::from(self.skills.hotkey_rows) + 1;
         let mut bar = String::new();
         for row in 0..rows {
             bar.push_str(&art("shortcut/shortcut_frame.bmp", 0, row * 33, 290, 34));
             bar.push_str(&text(6, row * 33 + 13, "rgb(74,74,47)", &(row + 1).to_string()));
             for column in 0..9 {
                 let slot = (row * 9 + column) as usize;
-                let hotkey = self.hotkeys.get(slot).copied().unwrap_or_default();
+                let hotkey = self.skills.hotkeys.get(slot).copied().unwrap_or_default();
                 let (icon, count, title) = self.hotkey_look(hotkey);
                 let key = if row == 0 { format!("F{} ", column + 1) } else { String::new() };
                 let skill = if hotkey.skill && hotkey.id != 0 { format!(r#" data-skill="{}""#, hotkey.id) } else { String::new() };
@@ -79,7 +79,7 @@ impl App {
         let (width, height) = (560, 400);
         let job = self.own_figure().job;
         let pages = data::skill_pages(job);
-        let page = self.skill_tab.min(pages.len().saturating_sub(1));
+        let page = self.skills.tab.min(pages.len().saturating_sub(1));
         let mut window = String::new();
         // The body: white between the bars, inside two rounded lines.
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c3c3c3;border-radius:4px;box-sizing:border-box"></div>"#, at(TABS, 0, width - TABS, height)));
@@ -111,7 +111,7 @@ impl App {
         for (place, id) in pages.get(page).into_iter().flatten().copied().filter(|(place, _)| *place < 42) {
             let (x, y) = (i32::from(place % 7) * 68 + 72, i32::from(place / 7) * 56);
             let known = data::skill(id);
-            let learned = self.skills.iter().find(|skill| skill.id == id);
+            let learned = self.skills.known.iter().find(|skill| skill.id == id);
             let level = learned.map_or(0, |skill| skill.level);
             let name = known.as_ref().map_or_else(|| format!("{} {id}", tr("Skill")), |(_, name, _)| name.clone());
             let most = known.as_ref().map_or(level, |(.., most)| *most);

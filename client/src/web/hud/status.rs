@@ -11,7 +11,7 @@ impl App {
         let points = self.value(parameter::STATUS_POINTS);
         for stat in 0..6u16 {
             let top = 23 + 16 * i32::from(stat);
-            let (value, bonus, cost) = (self.value(parameter::STR + stat), self.stat_bonus[usize::from(stat)], self.value(parameter::STR_COST + stat));
+            let (value, bonus, cost) = (self.value(parameter::STR + stat), self.hero.stat_bonus[usize::from(stat)], self.value(parameter::STR_COST + stat));
             window.push_str(&text(36, top, BLACK, &value.to_string()));
             if bonus != 0 {
                 window.push_str(&text(if value >= 100 { 54 } else { 49 }, top, BLACK, &format!("{bonus:+}")));

@@ -17,8 +17,8 @@ impl App {
     /// How many of a stack to drop: the original's small box (182 by 46) with the item's name, the number to
     /// type over (all of them at first) and OK.
     pub(in crate::web) fn throw_window(&self) -> String {
-        let Some((index, most)) = self.throwing else { return String::new() };
-        let name = self.inventory.iter().find(|item| item.index == index).map(Self::item_name).unwrap_or_default();
+        let Some((index, most)) = self.bag.throwing else { return String::new() };
+        let name = self.bag.items.iter().find(|item| item.index == index).map(Self::item_name).unwrap_or_default();
         format!(
             r#"{}<form data-submit="throw" class="a" style="{}">
                  <div class="a t" style="left:15px;top:6px;width:104px;overflow:hidden;white-space:nowrap">{}</div>
@@ -35,11 +35,11 @@ impl App {
 
     /// The note of a thing just picked up: its picture and "name - N obtained", fading after a moment.
     pub(in crate::web) fn obtained_note(&self) -> String {
-        let Some((id, amount)) = self.obtained else { return String::new() };
+        let Some((id, amount)) = self.bag.obtained else { return String::new() };
         let Some((name, resource)) = data::item(id) else { return String::new() };
         // It shows for five seconds from the moment the thing was picked up, however often the page is drawn
         // meanwhile: drawn anew, it goes on from where it was.
-        let shown = (js_sys::Date::now() - self.obtained_at) / 1000.0;
+        let shown = (js_sys::Date::now() - self.bag.obtained_at) / 1000.0;
         if !(0.0..5.0).contains(&shown) {
             return String::new();
         }
@@ -58,7 +58,7 @@ impl App {
     /// collection's background, the item's large picture at 10, 11, its name at 90, 10 and its description in a
     /// field of 182 by 80 at 91, 31 that scrolls.
     pub(in crate::web) fn item_info_window(&self) -> String {
-        let Some(id) = self.item_info else { return String::new() };
+        let Some(id) = self.bag.info else { return String::new() };
         let (name, resource) = data::item(id).unwrap_or_else(|| (format!("{} {id}", tr("Item")), String::new()));
         let (description, _) = data::about(id).unwrap_or_default();
         let description: String = description.iter().map(|line| format!("<div>{}</div>", coloured(line))).collect();
@@ -89,7 +89,7 @@ impl App {
 
     /// How many of an item the character carries without wearing them.
     pub(in crate::web) fn carried(&self, id: u32) -> u32 {
-        self.inventory.iter().filter(|item| item.id == id && item.worn == 0).map(|item| u32::from(item.amount)).sum()
+        self.bag.items.iter().filter(|item| item.id == id && item.worn == 0).map(|item| u32::from(item.amount)).sum()
     }
 
     /// An item's name as the game shows it: its refinement before it, its free slots after it.
@@ -108,7 +108,7 @@ impl App {
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(20, 17, 20, body), picture("basic_interface/itemwin_left.bmp")));
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(width - 20, 17, 20, body), picture("basic_interface/itemwin_right.bmp")));
         for (index, (tab, label)) in [(Tab::Usable, "Use"), (Tab::Equipment, "Eqp"), (Tab::Other, "Etc")].into_iter().enumerate() {
-            let open = if tab == self.inventory_tab { " open" } else { "" };
+            let open = if tab == self.bag.tab { " open" } else { "" };
             let letters: String = tr(label).chars().map(|letter| format!("<span>{letter}</span>")).collect();
             window.push_str(&format!(
                 r#"<button type="button" class="a tab{open}" style="{}" data-click="inventory-tab" data-arg="{index}">{letters}</button>"#,
@@ -117,7 +117,7 @@ impl App {
         }
         let mut cells = String::new();
         // What is worn is in the Equipment window, as in the original.
-        let shown: Vec<&Item> = self.inventory.iter().filter(|item| item.tab() == self.inventory_tab && item.worn == 0).collect();
+        let shown: Vec<&Item> = self.bag.items.iter().filter(|item| item.tab() == self.bag.tab && item.worn == 0).collect();
         for (place, item) in shown.iter().enumerate() {
             let (column, row) = (place as i32 % ITEM_COLUMNS, place as i32 / ITEM_COLUMNS);
             let resource = data::item(item.id).map(|(_, resource)| resource);
@@ -127,7 +127,7 @@ impl App {
                 column * 32,
                 row * 32,
                 item.id,
-                if self.storage.is_some() { "put" } else { "item" },
+                if self.deal.storage.is_some() { "put" } else { "item" },
                 item.index,
                 escape(&Self::item_name(item)),
                 item.amount,
@@ -149,7 +149,7 @@ impl App {
         window.push_str(&art("basic_interface/btnbar_left.bmp", 0, footer, 21, 21));
         window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, footer, width - 42, 21));
         window.push_str(&art("basic_interface/btnbar_right.bmp", width - 21, footer, 21, 21));
-        let kinds = self.inventory.iter().filter(|item| item.worn == 0).count();
+        let kinds = self.bag.items.iter().filter(|item| item.worn == 0).count();
         window.push_str(&text(35, footer + 5, if kinds >= 100 { "#f00" } else { "#232323" }, &format!("{kinds} / 100")));
         window
     }

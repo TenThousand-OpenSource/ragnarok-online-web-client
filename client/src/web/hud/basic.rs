@@ -113,7 +113,7 @@ impl App {
         let (base_exp, next_base) = (self.value(parameter::BASE_EXP), self.value(parameter::NEXT_BASE_EXP));
         let (job_exp, next_job) = (self.value(parameter::JOB_EXP), self.value(parameter::NEXT_JOB_EXP));
 
-        if self.basic_small {
+        if self.hero.basic_small {
             // The small form: a title bar with the name, and two lines.
             let exp = if next_base > 0 { base_exp as f64 * 100.0 / next_base as f64 } else { 0.0 };
             let low = |now: i64, most: i64| if now * 4 < most { "#f00" } else { BLACK };

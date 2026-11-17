@@ -146,41 +146,41 @@ pub(super) fn title_bar(width: i32, title: &str) -> String {
 impl App {
     fn value(&self, name: u16) -> i64 {
         // A dead character has no life left, whatever the server has already set aside for its return.
-        if self.dead && name == parameter::HP {
+        if self.hero.dead && name == parameter::HP {
             return 0;
         }
-        self.params.get(&name).copied().unwrap_or(0)
+        self.hero.params.get(&name).copied().unwrap_or(0)
     }
 
     /// Every window of the game, each in its own element. `view` is the stage's size.
     pub(super) fn hud(&self, view: (f64, f64)) -> String {
         // The client's own sum (`UINewChatWnd::ResizeRows`): the input line, the rows and three more, the tabs.
-        let chat_lines = self.chat_rows;
+        let chat_lines = self.chat.rows;
         let chat_height = if chat_lines == 0 { 24 } else { 24 + (chat_lines as i32 + 3) * 14 + 16 };
-        let hotkeys = if self.hotkeys_hidden { String::new() } else { format!(r#"<div id="hotkeys" class="a hud" style="{}">{}</div>"#, at(230, 0, 290, (i32::from(self.hotkey_rows) + 1) * 33 + 1), self.hotkeys()) };
-        let status = if self.status_open { format!(r#"<div id="status" class="a hud" style="{}">{}</div>"#, at(225, 285, 280, 141), self.status_window()) } else { String::new() };
-        let inventory = if self.inventory_open {
-            format!(r#"<div id="inventory" class="a hud" style="{}">{}</div>"#, at(if self.storage.is_some() { 515 } else { 225 }, 80, 40 + 32 * ITEM_COLUMNS + 16, 17 + 32 * ITEM_ROWS + 21), self.inventory_window())
+        let hotkeys = if self.skills.hotkeys_hidden { String::new() } else { format!(r#"<div id="hotkeys" class="a hud" style="{}">{}</div>"#, at(230, 0, 290, (i32::from(self.skills.hotkey_rows) + 1) * 33 + 1), self.hotkeys()) };
+        let status = if self.hero.status_open { format!(r#"<div id="status" class="a hud" style="{}">{}</div>"#, at(225, 285, 280, 141), self.status_window()) } else { String::new() };
+        let inventory = if self.bag.open {
+            format!(r#"<div id="inventory" class="a hud" style="{}">{}</div>"#, at(if self.deal.storage.is_some() { 515 } else { 225 }, 80, 40 + 32 * ITEM_COLUMNS + 16, 17 + 32 * ITEM_ROWS + 21), self.inventory_window())
         } else {
             String::new()
         };
-        let skills = if self.skills_open { format!(r#"<div id="skills" class="a hud" style="{}">{}</div>"#, at(230, 60, 560, 400), self.skill_window()) } else { String::new() };
+        let skills = if self.skills.open { format!(r#"<div id="skills" class="a hud" style="{}">{}</div>"#, at(230, 60, 560, 400), self.skill_window()) } else { String::new() };
         // The original puts the NPC's window a fifth of the way down the screen, in the middle, and what it asks
         // under it.
         let dialog = format!(r#"<div id="dialog" class="a hud" style="left:{}px;top:{}px;width:280px">{}</div>"#, (view.0 as i32 - 280) / 2, view.1 as i32 * 100 / 480, self.dialog_window());
         let trade = format!(r#"<div id="trade" class="a hud" style="left:{}px;top:{}px;width:280px">{}</div>"#, (view.0 as i32 - 280) / 2, view.1 as i32 * 100 / 480, self.trade_window());
         let storage = format!(r#"<div id="storage" class="a hud" style="left:225px;top:80px;width:280px">{}</div>"#, self.storage_window());
         let throw = format!(r#"<div id="throw" class="a hud" style="left:{}px;top:{}px;width:182px">{}</div>"#, (view.0 as i32 - 182) / 2, view.1 as i32 * 200 / 480, self.throw_window());
-        let equipment = if self.equipment_open { format!(r#"<div id="equipment" class="a hud" style="left:560px;top:290px;width:280px">{}</div>"#, self.equipment_window()) } else { String::new() };
+        let equipment = if self.bag.equipment_open { format!(r#"<div id="equipment" class="a hud" style="left:560px;top:290px;width:280px">{}</div>"#, self.equipment_window()) } else { String::new() };
         let info = format!(
             r#"<div id="iteminfo" class="a hud" style="left:300px;top:230px;width:280px">{}</div><div id="skillinfo" class="a hud" style="left:330px;top:110px;width:304px">{}</div>"#,
             self.item_info_window(),
             self.skill_info_window()
         );
         // The list of eggs to hatch: 200 by 200, where the client opens it.
-        let eggs = if self.eggs.is_some() { format!(r#"<div id="eggs" class="a hud" style="left:{}px;top:{}px;width:200px">{}</div>"#, (view.0 as i32 - 200) / 2, view.1 as i32 * 200 / 480, self.egg_window()) } else { String::new() };
+        let eggs = if self.pets.eggs.is_some() { format!(r#"<div id="eggs" class="a hud" style="left:{}px;top:{}px;width:200px">{}</div>"#, (view.0 as i32 - 200) / 2, view.1 as i32 * 200 / 480, self.egg_window()) } else { String::new() };
         // The pet window, where the client opens it: 185 across its 640-wide stage, 60 above 400 of 480 down.
-        let pet = if self.pet_open && self.pet.is_some() {
+        let pet = if self.pets.open && self.pets.pet.is_some() {
             format!(
                 r#"<div id="pet" class="a hud" style="left:{}px;top:{}px;width:280px">{}</div><div id="pet-asks" class="a hud" style="left:{}px;top:{}px;width:280px">{}</div>"#,
                 (view.0 as i32 - 640) / 2 + 185,
@@ -194,7 +194,7 @@ impl App {
             String::new()
         };
         // The slot machine of taming: 196 by 256 in the middle of the screen; a press on it starts the reels.
-        let taming = if self.taming.is_some() {
+        let taming = if self.pets.taming.is_some() {
             format!(
                 r#"<div id="taming" class="a" style="{};cursor:pointer;z-index:30;pointer-events:auto" data-click="taming-shoot"><img id="taming-picture" alt="" draggable="false" style="position:absolute;left:0;top:0"></div>"#,
                 at((view.0 as i32 - 196) / 2, (view.1 as i32 - 256) / 2, 196, 256)
@@ -204,12 +204,12 @@ impl App {
         };
         let obtained = format!(r#"<div id="obtained" class="a" style="left:{}px;top:{}px;width:260px;pointer-events:none">{}</div>"#, (view.0 as i32 - 260) / 2, 75, self.obtained_note());
         // The menu hangs under the basic window, a little into it.
-        let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.basic_small { 55 } else { 134 } - 4, self.menu_icons());
+        let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.hero.basic_small { 55 } else { 134 } - 4, self.menu_icons());
         format!(
             r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{pet}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,
             self.basic_info(),
-            u8::from(self.chat_locked),
+            u8::from(self.chat.locked),
             at(0, view.1 as i32 - chat_height, 600, chat_height),
             self.chat_window(chat_lines, chat_height)
         )

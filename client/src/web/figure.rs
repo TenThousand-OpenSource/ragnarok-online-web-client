@@ -69,6 +69,20 @@ pub fn picture(key: &SpriteKey) -> Option<Picture> {
                 let SpriteKey::Creature(path, action, frame) = &key else { return };
                 if let Ok(made) = creature(path, *action, *frame).await {
                     CREATURES.with_borrow_mut(|creatures| creatures.insert(key.clone(), Some(made)));
+                    // The files are here now, so the rest of this action's pictures are made at once: an
+                    // animation seen for the first time has all of them by its next picture, and does not
+                    // show some and miss others while each is waited for in its turn.
+                    let pictures = timing(path.split('#').next().unwrap_or(path), *action).map_or(0, |(pictures, _)| pictures);
+                    for other in (0..pictures).filter(|other| other != frame) {
+                        let other_key = SpriteKey::Creature(path.clone(), *action, other);
+                        if CREATURES.with_borrow(|creatures| creatures.contains_key(&other_key)) {
+                            continue;
+                        }
+                        CREATURES.with_borrow_mut(|creatures| creatures.insert(other_key.clone(), None));
+                        if let Ok(made) = creature(path, *action, other).await {
+                            CREATURES.with_borrow_mut(|creatures| creatures.insert(other_key, Some(made)));
+                        }
+                    }
                 }
             });
             None

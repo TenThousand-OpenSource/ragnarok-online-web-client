@@ -14,6 +14,8 @@ pub mod change {
     pub const INTIMACY: u8 = 1;
     pub const HUNGER: u8 = 2;
     pub const ACCESSORY: u8 = 3;
+    /// The pet does a trick: the value is which (1 to 3, and 4 for its special one).
+    pub const PERFORMANCE: u8 = 4;
     /// The pet went back into its egg when the value is 0.
     pub const EGG: u8 = 6;
 }
@@ -112,6 +114,128 @@ pub fn intimacy_word(intimacy: i32) -> (&'static str, i32) {
     (word, (intimacy - low) * 100 / (high - low))
 }
 
+/// ZC_PET_ACT: a pet shows what it feels, or says something.
+pub const ZC_PET_ACT: u16 = 0x01aa;
+
+/// What a pet's feeling or words are about (the client's `PM_*`): they pick the emotion, and the lines it may say.
+pub mod moment {
+    pub const FED: i32 = 0;
+    /// Its master is badly hurt.
+    pub const DANGER: i32 = 2;
+    /// Standing about, a while after a trick.
+    pub const IDLE: i32 = 4;
+    /// Its special trick.
+    pub const TRICK_SPECIAL: i32 = 5;
+    pub const LEVEL_UP: i32 = 6;
+    /// Its first trick; the second and third follow.
+    pub const TRICK: i32 = 7;
+}
+
+/// How hungry a pet is, as one of five states (the client's `GetPetHungryState`): 0 the hungriest, 4 stuffed.
+pub fn hunger_state(hunger: i32) -> usize {
+    match hunger {
+        91..=100 => 4,
+        76..=90 => 3,
+        26..=75 => 2,
+        11..=25 => 1,
+        _ => 0,
+    }
+}
+
+/// How close a pet is, as one of five states (the client's `GetPetFriendlyState`): 0 awkward, 4 loyal.
+pub fn intimacy_state(intimacy: i32) -> usize {
+    match intimacy {
+        ..=100 => 0,
+        101..=250 => 1,
+        251..=750 => 2,
+        751..=900 => 3,
+        _ => 4,
+    }
+}
+
+/// The emotion a pet shows, by how hungry it is, how close, and the moment (0 to 6); -1 for none. The client's
+/// table (`CSession::InitPetActionTable`), with its emotions by their numbers: 32 is the hungry one, 29 the
+/// sneer, 20 the scratch, 33 the OK and so on. The entries the client leaves unset are none here.
+const FEELINGS: [[[i16; 7]; 5]; 5] = [
+    [[32, 32, 29, 29, 6, 23, -1], [32, 32, 29, 29, 6, 6, 4], [20, 32, -1, 32, 4, 20, 9], [33, -1, -1, 9, 20, 9, 5], [18, -1, -1, 20, 33, 2, 5]],
+    [[20, 32, 29, 29, 32, 32, -1], [20, 32, -1, 32, 29, 32, 32], [33, -1, -1, 9, 20, 9, 5], [18, -1, -1, 20, 33, 2, 5], [15, -1, -1, 19, 3, 2, 21]],
+    [[32, 32, -1, 32, 29, 4, -1], [20, -1, -1, 9, 9, 9, 20], [33, -1, -1, 20, 33, 2, 5], [18, -1, -1, 19, 18, 2, 21], [15, 21, -1, 23, 14, 33, 21]],
+    [[32, -1, -1, 9, 9, 9, -1], [32, -1, -1, 20, 20, 20, 9], [20, -1, -1, 19, 21, 2, 5], [33, 21, 19, 23, 3, 33, 21], [18, 21, 26, 28, 30, 22, 18]],
+    [[23, -1, -1, 20, 20, 20, -1], [32, -1, -1, 19, 20, 0, 0], [32, 21, 19, 23, 18, 33, 21], [20, 21, 26, 28, 3, 18, 18], [20, 21, 26, 28, 30, 18, 30]],
+];
+
+/// The number the pet's owner sends for the emotion its pet shows at that moment (the client's
+/// `GetPetActionNumber`): ten times the emotion, and 2.
+pub fn feeling(hunger: i32, intimacy: i32, moment: i32) -> Option<i32> {
+    let emotion = *FEELINGS[hunger_state(hunger)][intimacy_state(intimacy)].get(usize::try_from(moment).ok()?)?;
+    (emotion >= 0).then(|| i32::from(emotion) * 10 + 2)
+}
+
+/// The number the pet's owner sends for something its pet says at that moment (the client's
+/// `GetPetEmotionNumber`): the monster, the moment, the hunger state and the owner's sex, digit after digit.
+pub fn speech(job: u16, moment: i32, hunger: i32, sex: u8) -> i32 {
+    ((i32::from(job) * 10 + moment) * 10 + hunger_state(hunger) as i32) * 10 + i32::from(sex & 1)
+}
+
+/// The client sends a pet's words only for a pet that is loyal (its `MM_PET_ACT`): intimacy from 900 on.
+pub fn speaks(intimacy: i32) -> bool {
+    intimacy / 10 >= 90
+}
+
+/// What a pet does, as ZC_PET_ACT tells it.
+#[derive(Debug, PartialEq)]
+pub enum Act {
+    /// It shows that emotion.
+    Emotion(u16),
+    /// It says a line: for that monster, at that moment, in that state of hunger.
+    Speech { job: u16, moment: i32, hunger: usize },
+}
+
+/// ZC_PET_ACT (0x01aa, 10 bytes): `u32 unit`, `i32 number`. A number ending in 2 is an emotion (the rest of
+/// it); any other is something said (the client's `ReceivePetAct`).
+pub fn acted(packet: &[u8]) -> Option<(u32, Act)> {
+    let packet = packet.get(..10)?;
+    let unit = u32::from_le_bytes(packet[2..6].try_into().ok()?);
+    let number = i32::from_le_bytes(packet[6..10].try_into().ok()?);
+    let rest = number / 10;
+    let act = if number % 10 == 2 { Act::Emotion(u16::try_from(rest).ok()?) } else { Act::Speech { job: u16::try_from(rest / 100).ok()?, moment: rest / 10 % 10, hunger: usize::try_from(rest % 10).ok()? } };
+    Some((unit, act))
+}
+
+/// CZ_PET_ACT (0x01a9): `i32 number`: the pet's owner tells what its pet shows or says.
+pub fn act(number: i32) -> Vec<u8> {
+    [&0x01a9u16.to_le_bytes()[..], &number.to_le_bytes()].concat()
+}
+
+/// The words of a pet's hunger in the client's table of what pets say (`PetTalkTable.xml`), by its state.
+pub fn hunger_tag(state: usize) -> &'static str {
+    match state {
+        1 => "bit_hungry",
+        2 => "noting",
+        3 => "full",
+        4 => "so_full",
+        _ => "hungry",
+    }
+}
+
+/// The words of a moment in that table (the client's `GetPetTalkActionName`).
+pub fn moment_tag(moment: i32) -> &'static str {
+    match moment {
+        0 => "feeding",
+        1 => "hunting",
+        2 => "danger",
+        3 => "dead",
+        4 => "stand",
+        5 => "perfor_s",
+        6 => "levelup",
+        7 => "perfor_1",
+        8 => "perfor_2",
+        9 => "perfor_3",
+        10 => "connect",
+        _ => "normal",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -149,5 +273,22 @@ mod tests {
         assert_eq!(intimacy_word(250), ("Shy", 100));
         assert_eq!(intimacy_word(500), ("Neutral", 50));
         assert_eq!(intimacy_word(1000), ("Loyal", 100));
+    }
+
+    #[test]
+    fn feelings_and_words() {
+        // Starving and awkward, fed: the hungry emotion (32). Stuffed and loyal, its master hurt: none.
+        assert_eq!(feeling(5, 50, moment::FED), Some(322));
+        assert_eq!(feeling(100, 1000, moment::DANGER), Some(262));
+        assert_eq!(feeling(50, 500, moment::DANGER), None);
+        assert_eq!(feeling(5, 50, moment::LEVEL_UP), None);
+        assert_eq!(speech(1002, moment::FED, 80, 1), 1_002_031);
+        assert!(speaks(900) && !speaks(899));
+
+        let packet = |number: i32| [&[0xaa, 0x01, 7, 0, 0, 0][..], &number.to_le_bytes()].concat();
+        assert_eq!(acted(&packet(322)), Some((7, Act::Emotion(32))));
+        assert_eq!(acted(&packet(1_002_031)), Some((7, Act::Speech { job: 1002, moment: 0, hunger: 3 })));
+        assert_eq!(act(322), [0xa9, 0x01, 0x42, 0x01, 0, 0]);
+        assert_eq!((hunger_tag(3), moment_tag(7)), ("full", "perfor_1"));
     }
 }

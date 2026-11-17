@@ -12,6 +12,7 @@ mod skills;
 mod chat;
 mod shops;
 mod pets;
+mod hotkeys;
 
 impl App {
     pub(super) fn click(&mut self, what: &str, arg: &str) {
@@ -68,7 +69,8 @@ impl App {
                     || self.skill_click(what, arg)
                     || self.chat_click(what, arg)
                     || self.trade_click(what, arg)
-                    || self.pet_click(what, arg);
+                    || self.pet_click(what, arg)
+                    || self.key_click(what, arg);
             }
         }
     }

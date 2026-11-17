@@ -27,7 +27,7 @@ pub(super) fn listen() {
                     let aimed = STATE.with_borrow_mut(|state| {
                         let ground = state.aiming.take() == Some(true);
                         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-                        let view = scene.camera.view(on_ground(&scene.gat, scene.player.at), gpu.config.width as f32 / gpu.config.height as f32);
+                        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
                         let pointer = (event.client_x() as f32, event.client_y() as f32);
                         let aimed = if ground {
                             let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
@@ -35,7 +35,10 @@ pub(super) fn listen() {
                             (None, (cell.0.max(0) as u16, cell.1.max(0) as u16))
                         } else {
                             let (id, _) = pointed_at(gpu, scene, &view, pointer)?;
-                            let unit = scene.units.get(&id)?;
+                            // On a monster or another player only: the client asks for a skill on those (its
+                            // `CGameMode::RequestPlayerAction`), and a press on an NPC, a pet or the bare ground
+                            // only ends the aiming. The character walks on as it was.
+                            let unit = scene.units.get(&id).filter(|unit| unit.lively || matches!(unit.look, Look::Character(_)))?;
                             (Some(id), (unit.cell.0.max(0) as u16, unit.cell.1.max(0) as u16))
                         };
                         // The skill is used from within its reach: the character walks there first if it must
@@ -53,8 +56,11 @@ pub(super) fn listen() {
                     // A press on someone talks to them or fights them; a press on the ground walks there.
                     let pressed = STATE.with_borrow(|state| {
                         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-                        let view = scene.camera.view(on_ground(&scene.gat, scene.player.at), gpu.config.width as f32 / gpu.config.height as f32);
-                        let (id, _) = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32))?;
+                        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+                        // Whoever the last frame drew the pointer on is who is pressed: the pointer already
+                        // shows it, and the press must not see it otherwise (a picture a moment further in its
+                        // motion, the camera a step further along), or a press on a monster becomes a walk.
+                        let id = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).map(|(id, _)| id).or(state.over.map(|(id, _)| id))?;
                         // A pet is neither fought nor talked to: a press on it is a press on the ground.
                         let unit = scene.units.get(&id).filter(|unit| matches!(unit.look, Look::Creature(_)) && !unit.companion)?;
                         // A thing lying at an NPC's feet is picked up, not the NPC talked to.
@@ -65,18 +71,21 @@ pub(super) fn listen() {
                     });
                     if let Some((press, id, monster)) = pressed {
                         // A monster is run after until it is down or the player presses somewhere else.
+                        // The blow is asked for once the character is near enough for its weapon, not before
+                        // (the client's `CPlayer::UpdatePendingAction`): the frame's code sees to it at once.
                         STATE.with_borrow_mut(|state| {
-                            state.chase = monster.then(|| (id, now(), true));
-                            state.strike_asked = now();
+                            state.chase = monster.then_some((id, 0.0, false));
                             state.reach = None;
                         });
-                        press(id, monster);
+                        if !monster {
+                            press(id, monster);
+                        }
                         return;
                     }
                     // A press on a thing lying on the ground goes to it and picks it up.
                     let lying = STATE.with_borrow(|state| {
                         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-                        let view = scene.camera.view(on_ground(&scene.gat, scene.player.at), gpu.config.width as f32 / gpu.config.height as f32);
+                        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
                         lying_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32))
                     });
                     if let Some(id) = lying {
@@ -84,6 +93,7 @@ pub(super) fn listen() {
                             state.chase = None;
                             state.fetch = Some((id, 0.0));
                         });
+                        ready_to_pick_up();
                         return;
                     }
                     STATE.with_borrow_mut(|state| {
@@ -96,8 +106,8 @@ pub(super) fn listen() {
                     let request = STATE.with_borrow(|state| {
                         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
                         let player = &scene.player;
-                        let feet = on_ground(&scene.gat, (player.cell.0 as f32, player.cell.1 as f32));
-                        let view = scene.camera.view(feet, gpu.config.width as f32 / gpu.config.height as f32);
+                        // Seen as the last frame drew it: the place pressed is the place the player saw.
+                        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
                         let picked = view.pick(&scene.gat, at)?;
                         // A press on a wall, or too far away, walks as far towards it as the way is open.
                         let goal = if scene.gat.path(player.cell, picked).is_empty() { scene.gat.reachable_towards(player.cell, picked)? } else { picked };
@@ -119,6 +129,7 @@ pub(super) fn listen() {
                     }
                     state.right_pressed = pressed;
                     state.turning = Some((event.client_x() as f32, event.client_y() as f32));
+                    state.right_at = state.turning;
                 }),
                 _ => {}
             }
@@ -163,6 +174,18 @@ pub(super) fn listen() {
             STATE.with_borrow_mut(|state| state.held = None);
         }
         if event.button() == 2 {
+            // Let go where it went down, on someone: their menu, if they have one (the client's
+            // `OpenActorMenu`, which wants the pointer not to have moved).
+            let menu = STATE.with_borrow_mut(|state| {
+                let at = state.right_at.take().filter(|at| *at == (event.client_x() as f32, event.client_y() as f32))?;
+                let (gpu, scene) = (state.gpu.as_ref()?, state.scene.as_ref()?);
+                let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+                let (id, _) = pointed_at(gpu, scene, &view, at)?;
+                state.hooks.as_ref().map(|hooks| (hooks.menu, id, at))
+            });
+            if let Some((menu, id, at)) = menu {
+                menu(id, at);
+            }
             STATE.with_borrow_mut(|state| {
                 state.turning = None;
                 if let Some(scene) = &state.scene {

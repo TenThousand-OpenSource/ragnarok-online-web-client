@@ -32,14 +32,33 @@ pub fn struck(source: u32, target: u32, own: u32, lasts: f64, delay: f64, damage
     });
 }
 
-/// Someone does something that has a motion of its own (picking a thing up): they are seen doing it.
-pub fn acts(id: u32, own: u32, action: usize, lasts: f64) {
+/// The action of a character bending down for a thing on the ground (the client's `ST_PICKUP`).
+const PICKING_UP: usize = 24;
+
+/// Someone picks a thing up (the server's notice of it, `DMG_PICKUP_ITEM`): they turn to the thing and bend down
+/// for it once, each picture for as long as the sprite says, and stand again (the client's `ST_PICKUP`). The
+/// thing itself is gone from the ground when the server says so. `own` is the player's own ID.
+pub fn picks_up(id: u32, own: u32, thing: u32) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
-            if matches!(mover.look, Look::Character(_)) {
-                mover.motion = Some((action, now(), lasts));
-            }
+        let lies = scene.drops.get(&thing).map(|(cell, ..)| *cell);
+        let Some(mover) = (if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) }) else { return };
+        let Look::Character(figure) = &mover.look else { return };
+        figure::prepare(figure, PICKING_UP);
+        let lasts = figure::body_timing(figure.job, figure.sex, PICKING_UP).map_or(450.0, |(pictures, each)| pictures as f64 * each);
+        if let Some(cell) = lies.filter(|cell| *cell != mover.cell) {
+            mover.facing = crate::map::direction(cell.0 - mover.cell.0, cell.1 - mover.cell.1);
+        }
+        mover.motion = Some((PICKING_UP, now(), lasts.max(250.0)));
+    });
+}
+
+/// The player's own character is about to pick something up: the pictures of its bending down are made ready
+/// while it walks there.
+pub fn ready_to_pick_up() {
+    STATE.with_borrow(|state| {
+        if let Some(Look::Character(figure)) = state.scene.as_ref().map(|scene| &scene.player.look) {
+            figure::prepare(figure, PICKING_UP);
         }
     });
 }
@@ -124,6 +143,12 @@ pub fn arrow(source: u32, target: u32, own: u32, delay: f64) {
         let from = along(on_ground(&scene.gat, archer.at), [0.0, 1.0, 0.0], 10.0);
         state.arrows.push((now() + (delay - ARROW_MS).max(0.0), from, target));
     });
+}
+
+/// The server says how far the character's weapon reaches, in cells (ZC_ATTACK_RANGE): it does on entering the
+/// map and whenever that changes (another weapon, a skill that lengthens a bow's reach).
+pub fn weapon_reaches(range: i32) {
+    STATE.with_borrow_mut(|state| state.strike_range = Some(range.max(1)));
 }
 
 /// The server says a blow was asked for from too far (ZC_ATTACK_FAILURE_FOR_DISTANCE), and how far the weapon

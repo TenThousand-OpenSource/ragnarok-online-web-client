@@ -83,7 +83,15 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
         Some((path, colour)) => (path, u32::from_str_radix(colour, 16).ok()),
         None => (path, None),
     };
-    let (pictures, actions) = sprite(&format!("data/sprite/{path}")).await?;
+    // A path may also name, after `@`, another file to take the actions from: a pet wearing its accessory is
+    // its own pictures put together another way (the client's `SetActionName`).
+    let (pictures, actions) = match path.split_once('@') {
+        Some((pictures, actions)) => {
+            let missing = || format!("{actions} is missing");
+            (sprite(&format!("data/sprite/{pictures}")).await?.0, sprite::parse_act(&file(&format!("data/sprite/{actions}.act")).await.ok_or_else(missing)?)?)
+        }
+        None => sprite(&format!("data/sprite/{path}")).await?,
+    };
     TIMES.with_borrow_mut(|times| {
         times.entry(path.to_owned()).or_insert_with(|| actions.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(actions.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
     });
@@ -168,6 +176,11 @@ pub fn timing(path: &str, action: usize) -> Option<(usize, f64)> {
     })
 }
 
+/// How many actions a sprite has, once it was read.
+pub fn actions_of(path: &str) -> Option<usize> {
+    TIMES.with_borrow(|times| times.get(path).map(Vec::len))
+}
+
 /// How many frames an action of a creature's sprite has, once the sprite has been read.
 pub fn frames_of(path: &str, action: usize) -> Option<usize> {
     VOICES.with_borrow(|voices| {
@@ -178,14 +191,31 @@ pub fn frames_of(path: &str, action: usize) -> Option<usize> {
 
 /// How many frames an action of a character's body has, once a figure of that job and sex has been put together.
 pub fn body_frames(job: u16, sex: u8, action: usize) -> Option<usize> {
+    body_timing(job, sex, action).map(|(frames, _)| frames)
+}
+
+/// How many frames an action of a character's body has and how long each shows (milliseconds), once a figure
+/// of that job and sex has been put together.
+pub fn body_timing(job: u16, sex: u8, action: usize) -> Option<(usize, f64)> {
     BODIES.with_borrow(|bodies| bodies.get(&(job, sex))?.get(action).copied())
+}
+
+/// Has a character's pictures of an action put together ahead of their use, seen from every side: a motion
+/// that plays once and briefly would otherwise be over before its first picture is ready.
+pub fn prepare(figure: &Figure, action: usize) {
+    let frames = body_frames(figure.job, figure.sex, action).unwrap_or(3);
+    for side in 0..8 {
+        for frame in 0..frames {
+            let _ = painted(&Figure { action: action + side, frame, ..figure.clone() });
+        }
+    }
 }
 
 thread_local! {
     /// By sprite path: for each action, how many frames it has and how long each shows.
     static TIMES: RefCell<HashMap<String, Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
-    /// By job and sex: how many frames each action of the body has.
-    static BODIES: RefCell<HashMap<(u16, u8), Vec<usize>>> = RefCell::new(HashMap::new());
+    /// By job and sex: how many frames each action of the body has, and how long each shows.
+    static BODIES: RefCell<HashMap<(u16, u8), Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
     /// By sprite path: for each action, the sound each of its frames starts.
     static VOICES: RefCell<HashMap<String, Vec<Vec<Option<String>>>>> = RefCell::new(HashMap::new());
     static CREATURES: RefCell<HashMap<SpriteKey, Option<Picture>>> = RefCell::new(HashMap::new());
@@ -300,7 +330,7 @@ async fn compose(figure: &Figure) -> Result<Canvas, String> {
     }
     let (body_sprite, body_act) = sprite(&format!("data/sprite/{race}/몸통/{sex}/{job}_{sex}")).await?;
     BODIES.with_borrow_mut(|bodies| {
-        bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().map(Vec::len).collect());
+        bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
     });
     let (head_sprite, head_act) = sprite(&format!("data/sprite/{race}/머리통/{sex}/{hair}_{sex}")).await?;
     // Colour 0 is the sprite's own; the others are palettes of their own.

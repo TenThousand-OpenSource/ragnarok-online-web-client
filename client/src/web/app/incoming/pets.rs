@@ -36,6 +36,11 @@ impl App {
             // in an egg that is being looked at; the egg's description is not shown here yet.)
             pets::ZC_PROPERTY_PET => {
                 if let Some(pet) = pets::property(packet).filter(|pet| pet.level < 10000) {
+                    // A pet close enough to talk will need its lines.
+                    if pets::speaks(pet.intimacy) {
+                        data::want_pet_talk();
+                    }
+                    self.pets.hunger_before = self.pets.pet.as_ref().map_or(pet.hunger, |before| before.hunger);
                     self.pets.pet = Some(pet);
                     self.refresh_pet();
                 }
@@ -46,8 +51,30 @@ impl App {
                 match (what, &mut self.pets.pet) {
                     (pets::change::OWN, _) => self.pets.unit = unit,
                     (pets::change::INTIMACY, Some(pet)) => pet.intimacy = value,
-                    (pets::change::HUNGER, Some(pet)) => pet.hunger = value,
-                    (pets::change::ACCESSORY, Some(pet)) if unit == self.pets.unit => pet.accessory = value as u16,
+                    (pets::change::HUNGER, Some(pet)) => (self.pets.hunger_before, pet.hunger) = (pet.hunger, value),
+                    // Anyone's pet is seen wearing it; the player's own has it noted in its window too.
+                    (pets::change::ACCESSORY, pet) => {
+                        world::dressed(unit, value as u16);
+                        if let (Some(pet), true) = (pet, unit == self.pets.unit) {
+                            pet.accessory = value as u16;
+                        }
+                    }
+                    // Anyone's pet, not only the player's own.
+                    (pets::change::PERFORMANCE, _) => {
+                        world::performs(unit, value);
+                        // The player's own pet says something of its trick (the client, as the trick starts), and
+                        // three seconds on may show how it feels (`PetIdle`).
+                        if unit == self.pets.unit {
+                            let moment = match value {
+                                2 => pets::moment::TRICK + 1,
+                                3 => pets::moment::TRICK + 2,
+                                4 => pets::moment::TRICK_SPECIAL,
+                                _ => pets::moment::TRICK,
+                            };
+                            self.pet_says(moment, None);
+                            after(3000, Action::PetIdle);
+                        }
+                    }
                     // Back in its egg: there is no pet any more, and its window closes.
                     (pets::change::EGG, _) if value == 0 => {
                         (self.pets.pet, self.pets.unit, self.pets.open, self.pets.menu, self.pets.asks) = (None, 0, false, false, 0);
@@ -61,14 +88,55 @@ impl App {
             // client's `ReceiveFeedResult`, with its colours).
             pets::ZC_FEED_PET => {
                 self.pets.fed = pets::fed(packet);
+                // Fed, the pet shows and says how it likes it, by how hungry it was (`ReceiveFeedResult`).
+                if matches!(self.pets.fed, Some((true, _))) {
+                    self.pet_feels(pets::moment::FED, Some(self.pets.hunger_before));
+                }
                 if let Some((_, food)) = self.pets.fed {
                     data::want_items(std::iter::once(food), || dispatch(Action::ItemsKnown));
                 }
                 self.tell_fed();
             }
+            // ZC_PET_ACT: a pet shows an emotion, or says one of its lines (the client's `ReceivePetAct`): the line
+            // stands over it and in the chat, as "name : words", in the client's near-white.
+            pets::ZC_PET_ACT => {
+                let (Some((unit, act)), Some(account)) = (pets::acted(packet), &self.account) else { return true };
+                let own = account.account_id;
+                match act {
+                    pets::Act::Emotion(emotion) => world::emotes(unit, own, emotion),
+                    pets::Act::Speech { job, moment, hunger } => {
+                        data::want_pet_talk();
+                        let name = world::unit_name(unit).or_else(|| self.pets.pet.as_ref().filter(|_| unit == self.pets.unit).map(|pet| pet.name.clone()));
+                        if let (Some(name), Some(line)) = (name, data::pet_line(job, hunger, moment)) {
+                            let words = format!("{name} : {line}");
+                            world::said(unit, own, &words);
+                            self.chat_line(words, "#fafafa");
+                        }
+                    }
+                }
+            }
             _ => return false,
         }
         true
+    }
+
+    /// The player's pet shows what it feels at a moment and says something of it: its owner's client picks both
+    /// and tells the server, which shows them to everyone around (the client's `MM_PET_ACT`). `hunger` is the
+    /// hunger to go by, when not the pet's own now. Words are for a loyal pet only.
+    pub(in crate::web::app) fn pet_feels(&self, moment: i32, hunger: Option<i32>) {
+        let (Some(pet), Some(socket)) = (&self.pets.pet, &self.socket) else { return };
+        self.pet_says(moment, hunger);
+        if let Some(feeling) = pets::feeling(hunger.unwrap_or(pet.hunger), pet.intimacy, moment) {
+            socket.send(&pets::act(feeling));
+        }
+    }
+
+    /// The words alone.
+    pub(in crate::web::app) fn pet_says(&self, moment: i32, hunger: Option<i32>) {
+        let (Some(pet), Some(socket), Some(account)) = (&self.pets.pet, &self.socket, &self.account) else { return };
+        if pets::speaks(pet.intimacy) {
+            socket.send(&pets::act(pets::speech(pet.job, moment, hunger.unwrap_or(pet.hunger), account.sex)));
+        }
     }
 
     /// Tells in the chat how feeding the pet went, once the food's name is known.

@@ -4,7 +4,7 @@ use super::*;
 
 impl App {
     /// A key was pressed. Returns whether it was used, so the browser does nothing else with it.
-    pub(super) fn key(&mut self, key: &str, code: &str, alt: bool) -> bool {
+    pub(super) fn key(&mut self, key: &str, code: &str, with: u16) -> bool {
         if self.message.is_some() {
             if matches!(key, "Enter" | "Escape" | " ") {
                 self.message = None;
@@ -30,7 +30,7 @@ impl App {
             };
         }
         if matches!(self.screen, Screen::Game) {
-            return self.game_key(key, code, alt);
+            return self.game_key(key, code, with);
         }
         match (&self.screen, key) {
             (Screen::CharSelect, "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown") => {
@@ -81,73 +81,86 @@ impl App {
         }
     }
 
-    /// The game's own keys, as the original client has them: Alt+V and Alt+A for the Basic Information and
-    /// Status windows, F12 for the hotkey bar, F10 for the chat's size, Enter to write.
-    pub(super) fn game_key(&mut self, key: &str, code: &str, alt: bool) -> bool {
+    /// The game's keys. What the client's tables bind (its `hotkey.lub`: Alt+V for Basic Information, Alt+E
+    /// for the inventory, F1 to F9 for the hotkey bar, Insert to sit and the rest) goes by what each entry is
+    /// bound to for this player (`bound_to`), so a key set in the Shortcut Settings window, or this client's
+    /// key for one a Mac lacks, does the same; Enter and Escape are the client's own, bound nowhere.
+    pub(super) fn game_key(&mut self, key: &str, code: &str, with: u16) -> bool {
         let chat = element("chat-input").and_then(|input| input.dyn_into::<web_sys::HtmlElement>().ok());
         let writing = chat.as_ref().is_some_and(|input| web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active == **input));
-        match (key, code, alt) {
-            (_, "KeyV", true) => self.hero.basic_small = !self.hero.basic_small,
-            (_, "KeyA", true) => self.hero.status_open = !self.hero.status_open,
-            (_, "KeyE", true) => self.bag.open = !self.bag.open,
-            (_, "KeyQ", true) => self.bag.equipment_open = !self.bag.equipment_open,
-            (_, "KeyS", true) => self.skills.open = !self.skills.open,
-            // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
-            (_, "KeyJ", true) => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
-            // F1 to F9 use the first row of the hotkey bar.
-            (_, "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9", false) => {
-                let slot = code[1..].parse::<usize>().unwrap_or(1) - 1;
+        let chord = Chord { key: hotkeys::key_of(code).unwrap_or(0), with };
+        // A row of the Shortcut Settings window is picked: the key is its new key, whatever it did before.
+        if self.keys.open && self.keys.row.is_some() {
+            self.assign_key(chord);
+            return true;
+        }
+        // Letters and digits typed into a line of text are text, not keys of the game.
+        let typing = web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT");
+        let bound = self.bound_to(chord).filter(|_| !(typing && with == 0 && !(112..=123).contains(&chord.key)));
+        match (bound, key) {
+            (Some((hotkeys::table::INTERFACE, place)), _) => match place {
+                hotkeys::interface::BASIC_INFO => self.hero.basic_small = !self.hero.basic_small,
+                hotkeys::interface::STATUS => self.hero.status_open = !self.hero.status_open,
+                hotkeys::interface::INVENTORY => self.bag.open = !self.bag.open,
+                hotkeys::interface::EQUIPMENT => self.bag.equipment_open = !self.bag.equipment_open,
+                hotkeys::interface::SKILLS => self.skills.open = !self.skills.open,
+                // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
+                hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
+                hotkeys::interface::SIT => {
+                    if let Some(socket) = &self.socket {
+                        socket.send(&units::sit(!self.hero.sitting));
+                    }
+                    return true;
+                }
+                // The bar runs through its sizes, as the client's does: a row more each time, then away, then
+                // one row again.
+                hotkeys::interface::HOTKEY_BAR => {
+                    if self.skills.hotkeys_hidden {
+                        self.skills.hotkeys_hidden = false;
+                    } else if self.skills.hotkey_rows >= 3 {
+                        (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
+                    } else {
+                        self.skills.hotkey_rows += 1;
+                    }
+                }
+                hotkeys::interface::CHAT_SIZE => self.chat_resize(),
+                // An entry of the client this client does nothing for yet.
+                _ => return false,
+            },
+            // A slot of the hotkey bar: the first table's places are the bar's slots, row after row.
+            (Some((hotkeys::table::BAR, slot)), _) => {
                 self.use_it(&format!("slot:{slot}"));
                 return true;
             }
-            ("Escape", ..) if self.bag.throwing.is_some() => {
+            (_, "Escape") if self.bag.throwing.is_some() => {
                 self.bag.throwing = None;
                 self.refresh_throw();
                 return true;
             }
-            // Insert sits down and stands up.
-            ("Insert", ..) => {
-                if let Some(socket) = &self.socket {
-                    socket.send(&units::sit(!self.hero.sitting));
-                }
-                return true;
-            }
-            // F12 runs the bar through its sizes, as the client does: a row more each time, then away, then one
-            // row again.
-            ("F12", ..) => {
-                if self.skills.hotkeys_hidden {
-                    self.skills.hotkeys_hidden = false;
-                } else if self.skills.hotkey_rows >= 3 {
-                    (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
-                } else {
-                    self.skills.hotkey_rows += 1;
-                }
-            }
-            ("F10", ..) => self.chat_resize(),
             // Enter goes to the chat's line; from there it sends (the form does that).
             // In a field of some window Enter belongs to that window.
-            ("Enter", ..) if web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT" && active.id() != "chat-input") => {
+            (_, "Enter") if web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT" && active.id() != "chat-input") => {
                 return false;
             }
-            ("Enter", ..) if !writing => {
+            (_, "Enter") if !writing => {
                 if let Some(input) = chat {
                     let _ = input.focus();
                 }
                 return true;
             }
             // Escape lets go of a skill being aimed.
-            ("Escape", ..) if world::aiming() => {
+            (_, "Escape") if world::aiming() => {
                 world::aim(None, 0);
                 self.skills.aimed = None;
                 return true;
             }
             // Escape opens the window of game options and closes it, unless an NPC is being talked to.
-            ("Escape", ..) if !writing && self.dialog.is_none() => {
+            (_, "Escape") if !writing && self.dialog.is_none() => {
                 self.esc = u8::from(self.esc == 0);
                 self.refresh_dialog();
                 return true;
             }
-            ("Escape", ..) if writing => {
+            (_, "Escape") if writing => {
                 if let Some(input) = chat {
                     let _ = input.blur();
                 }

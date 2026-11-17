@@ -33,6 +33,20 @@ thread_local! {
     static MUSIC: RefCell<HashMap<String, String>> = RefCell::new(HashMap::new());
     /// The picture of each pet in its window, by the monster's number.
     static PETS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
+    /// The client's keys: its four tables, each entry's name and the keys it starts with.
+    static HOTKEYS: RefCell<Vec<Vec<(String, crate::hotkeys::Chord)>>> = const { RefCell::new(Vec::new()) };
+    /// How the client writes each key, by the key's number.
+    static KEY_NAMES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
+    /// The client's message table, by line.
+    static MESSAGES: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+    /// The client's emotions by their number: the sprite each is in, and which of its actions it is.
+    static EMOTIONS: RefCell<HashMap<u16, (String, usize)>> = RefCell::new(HashMap::new());
+    /// What is typed after a slash to show an emotion, in small letters, and the emotion.
+    static EMOTION_NAMES: RefCell<HashMap<String, u16>> = RefCell::new(HashMap::new());
+    /// The client's table of what pets say, once asked for and read; empty while it is on its way or missing.
+    static PET_TALK: RefCell<Option<String>> = const { RefCell::new(None) };
+    /// By the accessory a pet wears: the file of the actions it is then drawn with, without its ending.
+    static PET_ACTS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The ending of a weapon's sprite files, by the client's number for the kind of weapon.
     static WEAPONS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// By job: the job it grew out of, and where its skills stand in the skill window (place to skill).
@@ -276,11 +290,68 @@ pub fn pet_picture(job: u16) -> Option<String> {
     PETS.with_borrow(|pets| pets.get(&job).cloned())
 }
 
+/// The actions a pet wearing that accessory is drawn with (the client's `GetPetAccActName`): a file among the
+/// monsters' sprites, named without its ending.
+pub fn pet_act(accessory: u16) -> Option<String> {
+    PET_ACTS.with_borrow(|acts| acts.get(&accessory).cloned())
+}
+
+/// The entries of one of the client's four tables of keys (`crate::hotkeys::table`): each one's name, and the
+/// keys the client gives it. An entry without a name is a place the client leaves empty.
+pub fn hotkeys(table: usize) -> Vec<(String, crate::hotkeys::Chord)> {
+    HOTKEYS.with_borrow(|tables| tables.get(table).cloned().unwrap_or_default())
+}
+
+/// How the client writes a key.
+pub fn key_name(key: u16) -> Option<String> {
+    KEY_NAMES.with_borrow(|names| names.get(&key).cloned())
+}
+
+/// A line of the client's message table, by the number the client's code knows it by.
+pub fn message(line: usize) -> Option<String> {
+    MESSAGES.with_borrow(|messages| messages.get(line).cloned())
+}
+
+/// The sprite an emotion is in and which of its actions it is (the client's `CashEmotionList`).
+pub fn emotion(id: u16) -> Option<(String, usize)> {
+    EMOTIONS.with_borrow(|emotions| emotions.get(&id).cloned())
+}
+
+/// The emotion a chat command shows (`/ho`, `/delight`), if it is one.
+pub fn emotion_named(command: &str) -> Option<u16> {
+    EMOTION_NAMES.with_borrow(|names| names.get(&command.to_lowercase()).copied())
+}
+
+/// Fetches the client's table of what pets say, once: wanted only by one whose pet is close enough to talk.
+pub fn want_pet_talk() {
+    if PET_TALK.with_borrow(|talk| talk.is_some()) {
+        return;
+    }
+    PET_TALK.set(Some(String::new()));
+    wasm_bindgen_futures::spawn_local(async {
+        if let Ok(bytes) = super::fetch_asset("data/pettalktable.xml").await {
+            PET_TALK.set(Some(String::from_utf8_lossy(&bytes).into_owned()));
+        }
+    });
+}
+
+/// One of the lines a pet of that kind may say at a moment, in a state of hunger; none while the table is not
+/// read, or has nothing for it. The client finds a monster's lines by a name it has for each (compiled into
+/// it); here it is the name of the monster's sprite in small letters, which is what those names are.
+pub fn pet_line(job: u16, hunger: usize, moment: i32) -> Option<String> {
+    let monster = sprite(job)?.to_lowercase();
+    PET_TALK.with_borrow(|talk| {
+        let lines = crate::talk::lines(talk.as_deref()?, &monster, crate::net::pets::hunger_tag(hunger), crate::net::pets::moment_tag(moment));
+        let pick = (js_sys::Math::random() * lines.len() as f64) as usize;
+        lines.get(pick).map(|line| (*line).to_owned())
+    })
+}
+
 /// Fetches the tables from the gateway. Until they are there, jobs have their built-in names and nobody wears
 /// headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=6").await?;
+    let tables = fetch_json("/tables.json?v=10").await?;
     let table = |name: &str| js_sys::Reflect::get(&tables, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
     let jobs = entries::<u16>(&table("jobs")).into_iter().filter_map(|(job, about)| Some((job, text_of(&about, "name")?))).collect();
     let headgear = entries::<u16>(&table("headgear")).into_iter().filter_map(|(view, name)| Some((view, name.as_string()?))).collect();
@@ -293,6 +364,38 @@ pub async fn load() -> Result<(), String> {
         .collect();
     SPRITES.set(entries::<u16>(&table("sprites")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
     PETS.set(entries::<u16>(&table("pets")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
+    PET_ACTS.set(entries::<u16>(&table("pet_acts")).into_iter().filter_map(|(item, name)| Some((item, name.as_string()?.trim_end_matches(".act").to_owned()))).collect());
+    MESSAGES.set(table("messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
+    let keys = table("hotkeys");
+    let part = |of: &wasm_bindgen::JsValue, name: &str| js_sys::Reflect::get(of, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
+    let listed = |of: wasm_bindgen::JsValue| of.dyn_into::<js_sys::Array>().map(|list| list.to_vec()).unwrap_or_default();
+    HOTKEYS.set(
+        listed(part(&keys, "tables"))
+            .into_iter()
+            .map(|entries| {
+                listed(entries)
+                    .into_iter()
+                    .map(|entry| {
+                        let chord = listed(part(&entry, "keys"));
+                        let number = |at: usize| chord.get(at).and_then(|number| number.as_f64()).unwrap_or(0.0) as u16;
+                        (text_of(&entry, "name").unwrap_or_default(), crate::hotkeys::Chord { key: number(0), with: number(1) })
+                    })
+                    .collect()
+            })
+            .collect(),
+    );
+    KEY_NAMES.set(entries::<u16>(&part(&keys, "names")).into_iter().filter_map(|(key, name)| Some((key, name.as_string()?))).collect());
+    let emotions = entries::<u16>(&table("emotions"));
+    EMOTIONS.set(emotions.iter().filter_map(|(id, about)| Some((*id, (text_of(about, "sprite")?, js_sys::Reflect::get(about, &"action".into()).ok()?.as_f64()? as usize)))).collect());
+    EMOTION_NAMES.set(
+        emotions
+            .iter()
+            .flat_map(|(id, about)| {
+                let names = js_sys::Reflect::get(about, &"names".into()).ok().and_then(|names| names.dyn_into::<js_sys::Array>().ok()).map(|names| names.to_vec()).unwrap_or_default();
+                names.into_iter().filter_map(|name| name.as_string()).map(|name| (name.to_lowercase(), *id)).collect::<Vec<_>>()
+            })
+            .collect(),
+    );
     WEAPONS.set(entries::<u16>(&table("weapons")).into_iter().filter_map(|(kind, name)| Some((kind, name.as_string()?))).collect());
     TREE.set(
         entries::<u16>(&table("tree"))

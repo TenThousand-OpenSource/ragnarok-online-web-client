@@ -33,6 +33,12 @@ impl App {
                         let to = to.trim();
                         match words {
                             "/sit" | "/stand" => socket.send(&units::sit(words == "/sit")),
+                            // An emotion by its name (`/ho`, `/delight`): the client's list of them.
+                            _ if data::emotion_named(words).is_some() => {
+                                if let Some(emotion) = data::emotion_named(words).and_then(|emotion| u8::try_from(emotion).ok()) {
+                                    socket.send(&emotions::show(emotion));
+                                }
+                            }
                             _ if !to.is_empty() => {
                                 socket.send(&npc::whisper(to, words));
                                 let line = format!("( To {to} ) : {words}");
@@ -203,6 +209,13 @@ impl App {
                     taming.frames = [waiting, turning];
                 }
             }
+            // Three seconds after its trick the pet, one time in four, shows how it feels standing about (the
+            // client's `CGameActor::ProcessState`).
+            Action::PetIdle => {
+                if js_sys::Math::random() < 0.25 {
+                    self.pet_feels(pets::moment::IDLE, None);
+                }
+            }
             // The client's `Paint` and `OnProcess` of the window, once a moment.
             Action::TamingTick => {
                 let Some(taming) = &mut self.pets.taming else { return };
@@ -253,12 +266,28 @@ impl App {
                     });
                 }
             }
+            // The right button on someone. The client has a menu for the player's own pet (its status, feeding,
+            // a trick, the accessory off, back into the egg), for a homunculus, a mercenary and other players;
+            // for a monster or an NPC it has none. Here: the pet's.
+            Action::Menu(id, at) => {
+                if id == self.pets.unit && self.pets.pet.is_some() {
+                    // The page's place, in the stage's own measure: the stage may be drawn larger or smaller.
+                    let stage = web_sys::window().and_then(|window| window.document()).and_then(|document| document.query_selector(".stage").ok().flatten());
+                    let scale = stage.as_ref().and_then(|stage| Some(stage.get_bounding_client_rect().width() / f64::from(stage.clone().dyn_into::<web_sys::HtmlElement>().ok()?.offset_width().max(1)))).filter(|scale| *scale > 0.0).unwrap_or(1.0);
+                    self.pets.menu_at = Some(((f64::from(at.0) / scale) as i32 + 1, (f64::from(at.1) / scale) as i32 + 1));
+                    self.render();
+                }
+            }
             Action::Take(id) => {
                 if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
                     socket.send(&units::pick_up(id));
                 }
             }
             Action::WalkTo(x, y) => {
+                // A press elsewhere puts the pet's menu away.
+                if self.pets.menu_at.take().is_some() {
+                    self.render();
+                }
                 if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
                     socket.send(&packets::walk_to(x, y));
                 }

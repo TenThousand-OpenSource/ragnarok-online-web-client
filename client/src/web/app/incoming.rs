@@ -10,6 +10,7 @@ mod status;
 mod inventory;
 mod shops;
 mod pets;
+mod emotions;
 
 impl App {
     pub(super) fn packet(&mut self, id: u16, packet: &[u8]) {
@@ -140,7 +141,7 @@ impl App {
 
             // The map server's packets are read by kind, each kind in a file of its own (see `incoming/`).
             (Server::Map, _) => {
-                let known = self.travel_packet(id, packet) || self.unit_packet(id, packet) || self.combat_packet(id, packet) || self.talk_packet(id, packet) || self.status_packet(id, packet) || self.item_packet(id, packet) || self.trade_packet(id, packet) || self.pet_packet(id, packet);
+                let known = self.travel_packet(id, packet) || self.unit_packet(id, packet) || self.combat_packet(id, packet) || self.talk_packet(id, packet) || self.status_packet(id, packet) || self.item_packet(id, packet) || self.trade_packet(id, packet) || self.pet_packet(id, packet) || self.emotion_packet(id, packet);
                 // Whatever is not read yet is at least counted, so that it shows there is more to do.
                 if !known {
                     if let Some(game) = &mut self.game {

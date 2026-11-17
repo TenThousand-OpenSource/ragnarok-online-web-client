@@ -42,7 +42,10 @@ impl App {
                     socket.send(&items::use_item(item.index, account.account_id));
                 } else if item.worn != 0 {
                     socket.send(&items::take_off(item.index));
-                } else if item.wearable != 0 {
+                // A pet's accessory (the server's item kind 8) goes nowhere on the character, and is asked to be
+                // worn all the same: the server puts it on the pet. The client tells such a thing by its number
+                // (its Lua `IsPetAccessory`, not read here) and sends the same request (`MM_WEAR_EQUIP`).
+                } else if item.wearable != 0 || item.kind == 8 {
                     socket.send(&items::wear(item.index, item.wearable));
                 }
             }
@@ -228,6 +231,7 @@ impl App {
             moved: |x, y| dispatch(Action::Moved(x, y)),
             ready: |outcome| dispatch(Action::WorldReady(outcome)),
             aimed: |whom, cell| dispatch(Action::Aimed(whom, cell)),
+            menu: |id, at| dispatch(Action::Menu(id, at)),
         };
         sound::map_track(data::music(&game.map));
         world::enter(game.map.clone(), (game.x, game.y), figure, hooks);

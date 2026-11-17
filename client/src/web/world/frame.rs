@@ -24,7 +24,8 @@ pub(super) fn frame() {
         let (time, yaw) = (now(), scene.camera.yaw);
         let (position, key) = scene.player.now(time, yaw);
         let feet = on_ground(&scene.gat, position);
-        let view = scene.camera.view(feet, gpu.config.width as f32 / gpu.config.height as f32);
+        let aim = scene.follow(feet, time);
+        let view = scene.camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32);
 
         // Everyone to draw: each with the picture wanted now if it is ready, else the one drawn last.
         // The blows that land now: the one struck flinches, the flash and the number show, the blow sounds.
@@ -72,6 +73,26 @@ pub(super) fn frame() {
             }
             if let Some(shown) = &mover.shown {
                 sprites.push((shown.clone(), on_ground(gat, position)));
+            }
+            // The emotion it shows: the pictures of that action, each for as long as the sprite says, once through.
+            // Until the sprite is read its length is not known: it is given four seconds to come.
+            if let Some((sprite, action, began)) = &mover.emotion {
+                let passed = time - began;
+                let picture = match figure::timing(sprite, *action) {
+                    Some((pictures, each)) => Some(((passed / each.max(1.0)) as usize, pictures)).filter(|(at, pictures)| at < pictures).map(|(at, _)| at),
+                    None => Some(0).filter(|_| passed < 4000.0),
+                };
+                match picture {
+                    Some(picture) => {
+                        let key = SpriteKey::Creature(sprite.clone(), *action, picture);
+                        // It follows the one who shows it, 20 above their feet (the client's `CMsgEffect`, for
+                        // `MET_EMOTION`); the rest of the way up is in the sprite's own pictures.
+                        if gpu.has_sprite(&key) {
+                            sprites.push((key, along(on_ground(gat, position), [0.0, 1.0, 0.0], 20.0)));
+                        }
+                    }
+                    None => mover.emotion = None,
+                }
             }
         }
         // What lies on the ground, once the item's picture is known.
@@ -448,9 +469,11 @@ pub(super) fn frame() {
                 None => state.chase = None,
                 Some(unit) if time - looked > 400.0 => {
                     let cell = scene.player.cell;
-                    // Near enough is what the server said the weapon reaches. Until it has said (it does when a
-                    // blow is asked for from too far), the character stays where it is: a bow reaches far, and
-                    // its archer is not to run up to the monster.
+                    // Near enough is what the server said the weapon reaches (it says on entering the map, when
+                    // that changes, and when a blow is asked for from too far). Until it has said, the
+                    // character stays where it is: a bow reaches far, and its archer is not to run up to the
+                    // monster. The client measures straight across (the reach and a little more); here it is
+                    // by cells, as the server does, so that the server never finds the blow asked from too far.
                     let range = state.strike_range.unwrap_or(30).max(1);
                     let far = (unit.cell.0 - cell.0).abs().max((unit.cell.1 - cell.1).abs()) > range;
                     if far {
@@ -534,10 +557,14 @@ pub(super) fn next_frame() {
     });
 }
 
-/// Who a point of the page is on: the nearest of those whose picture it touches, and where on the page their
-/// feet are.
+/// Who a point of the page is on, and where on the page their feet are. The client's way (`CGameActor::
+/// SetRenderInfo`, `CActorPickNode::Pick`): each one drawn has the rectangle of its picture on the screen, made
+/// at least 40 pixels each way (of a screen 480 high, as the rest of the client's measures here), so that a
+/// small monster is not a small thing to hit; and of those the point is in, a monster comes before an NPC or a
+/// companion, those before a player, and a pet last. Among the same kind it is the nearest.
 pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32)) -> Option<(u32, (f32, f32))> {
     let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
+    let least = 40.0 * height / 480.0;
     scene
         .units
         .iter()
@@ -549,12 +576,24 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
             let feet = on_ground(&scene.gat, unit.at);
             let corner = |x: f32, y: f32| view.project(along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE));
             let (low, high) = (corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?);
-            let inside = (low.0 * width..=high.0 * width).contains(&pointer.0) && (low.1 * height..=high.1 * height).contains(&pointer.1);
+            // The rectangle, grown evenly about its middle where it is smaller than the least.
+            let span = |low: f32, high: f32| {
+                let (low, high) = (low.min(high), low.max(high));
+                let short = (least - (high - low)).max(0.0) / 2.0;
+                low - short..=high + short
+            };
+            let inside = span(low.0 * width, high.0 * width).contains(&pointer.0) && span(low.1 * height, high.1 * height).contains(&pointer.1);
+            let rank = match (&unit.look, unit.lively, unit.companion) {
+                (_, _, true) => 50,
+                (_, true, _) => 400,
+                (Look::Creature(_), ..) => 200,
+                (Look::Character(_), ..) => 100,
+            };
             let under = view.project(feet)?;
-            inside.then(|| (dot(subtract(feet, view.eye), view.forward), *id, (under.0 * width, under.1 * height)))
+            inside.then(|| (rank, dot(subtract(feet, view.eye), view.forward), *id, (under.0 * width, under.1 * height)))
         })
-        .min_by(|a, b| a.0.total_cmp(&b.0))
-        .map(|(_, id, feet)| (id, feet))
+        .max_by(|a, b| a.0.cmp(&b.0).then(b.1.total_cmp(&a.1)))
+        .map(|(_, _, id, feet)| (id, feet))
 }
 
 /// The thing on the ground a point of the page is on.

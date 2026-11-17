@@ -15,11 +15,12 @@ use super::figure::{self, Figure};
 use super::socket::{Socket, SocketEvent};
 use super::view::{HAIR_COLOURS, SLOTS_PER_PAGE, WALLPAPER, hair_styles};
 use super::{asset_url, data, js_error, sound, world};
+use crate::hotkeys::{self, Chord};
 use crate::i18n::{Key, Lang, fill};
 use crate::net::skills;
 use crate::net::items::{self, Hotkey, Item, Skill, Tab};
 use crate::net::packets::{self, Character, LoginAccepted, ZoneServer};
-use crate::net::{npc, pets, trade, units};
+use crate::net::{emotions, npc, pets, trade, units};
 use crate::net::{Frame, Framer};
 
 mod wiring;
@@ -29,12 +30,14 @@ mod connection;
 mod actions;
 mod clicks;
 mod keys;
+mod hotkeys_set;
 mod incoming;
 mod game;
 mod screen;
 
 pub use wiring::*;
 pub(super) use page::*;
+pub(super) use hotkeys_set::PAGE;
 use account::*;
 use game::*;
 
@@ -104,10 +107,14 @@ pub(super) enum Action {
     WorldReady(Result<(), String>),
     /// The skill being aimed was pointed at someone (their ID) or at a cell.
     Aimed(Option<u32>, (u16, u16)),
+    /// The right button was pressed on someone on the map: their ID, and where on the page.
+    Menu(u32, (f32, f32)),
     /// The slot machine's pictures were read.
     TamingRead(Vec<(String, (usize, usize), (f32, f32))>, Vec<(String, (usize, usize), (f32, f32))>),
     /// A moment of the slot machine has passed.
     TamingTick,
+    /// A while after the pet's trick: it may show how it feels standing about.
+    PetIdle,
     /// The screen has gone dark for a move: the character is put at its new place (a map and a cell).
     Arrive(String, u16, u16),
     /// The account service answered: the HTTP status and, when it says to wait, for how many seconds.
@@ -321,6 +328,24 @@ pub(super) struct Deal {
     pub storage_tab: usize,
 }
 
+/// The keys: what the player has bound otherwise than the client does, and the window that shows and sets them.
+#[derive(Default)]
+pub(super) struct Keys {
+    /// The Shortcut Settings window is open; which of its tabs, which page of it, and the row picked in it.
+    pub open: bool,
+    pub tab: usize,
+    pub page: usize,
+    pub row: Option<usize>,
+    /// What the player has set, by table and place: kept in the browser.
+    pub own: HashMap<(usize, usize), Chord>,
+    /// What was set in the window since it was opened, until OK keeps it or Cancel drops it.
+    pub edited: HashMap<(usize, usize), Chord>,
+    /// The keyboard is a Mac's: some keys are missing on it, and Alt is called Option.
+    pub mac: bool,
+    /// What the window says of the last key pressed in it, when it would not take it.
+    pub notice: Option<String>,
+}
+
 /// The player's pet: catching one, hatching it, and its window.
 #[derive(Default)]
 pub(super) struct Pets {
@@ -342,6 +367,12 @@ pub(super) struct Pets {
     /// The answer to feeding the pet (whether it ate, and its food), until the chat has told of it: the food's
     /// name may arrive a moment later.
     pub fed: Option<(bool, u32)>,
+    /// The menu of the pet, opened with the right button on it: where on the stage.
+    pub menu_at: Option<(i32, i32)>,
+    /// How hungry the pet was before its hunger last changed: what it feels on being fed goes by that.
+    pub hunger_before: i32,
+    /// When the pet last told of its master's danger (milliseconds since 1970): at most once in five seconds.
+    pub warned_at: f64,
 }
 
 #[derive(Default)]
@@ -387,6 +418,7 @@ pub(super) struct App {
     pub chat: Chat,
     pub deal: Deal,
     pub pets: Pets,
+    pub keys: Keys,
     /// Which server of the list is picked.
     pub server_picked: usize,
     /// The window of game options: 0 closed, 1 open, 2 asking whether to go back to the save point.

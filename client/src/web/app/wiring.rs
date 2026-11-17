@@ -75,7 +75,7 @@ pub fn start() -> Result<(), String> {
     });
     let on_key = Closure::<dyn FnMut(KeyboardEvent)>::new(|event: KeyboardEvent| {
         let in_game = APP.with_borrow(|app| matches!(app.screen, Screen::Game) && app.message.is_none() && app.ask.is_none());
-        if APP.with_borrow_mut(|app| app.key(&event.key(), &event.code(), event.alt_key())) || (in_game && browsers_own(&event)) {
+        if APP.with_borrow_mut(|app| app.key(&event.key(), &event.code(), hotkeys::held(event.alt_key(), event.ctrl_key(), event.shift_key()))) || (in_game && browsers_own(&event)) {
             event.prevent_default();
         }
         APP.with_borrow(App::tune);
@@ -137,6 +137,7 @@ pub fn start() -> Result<(), String> {
         app.saved_id = stored("roweb.id").unwrap_or_default();
         app.save_id = !app.saved_id.is_empty();
         app.sound = stored("roweb.sound").as_deref() != Some("off");
+        app.load_keys();
         // A reset link from an e-mail: `/?reset=<token>`.
         let query = window.location().search().unwrap_or_default();
         // `/?mute` opens the page silent without changing what the player has chosen: for tests beside a player.
@@ -176,6 +177,14 @@ pub(super) fn check_music_soon() {
 
 pub(super) fn dispatch(action: Action) {
     APP.with_borrow_mut(|app| app.handle(action));
+}
+
+/// Runs an action so many milliseconds from now.
+pub(super) fn after(milliseconds: i32, action: Action) {
+    let run = Closure::once_into_js(move || dispatch(action));
+    if let Some(window) = web_sys::window() {
+        let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(run.unchecked_ref(), milliseconds);
+    }
 }
 
 /// Runs an action after the current browser callback has returned.

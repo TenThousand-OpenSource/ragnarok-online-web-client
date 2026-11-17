@@ -43,6 +43,8 @@ client/src/
   map.rs            .gat / .gnd: walkable cells, ground mesh, path finding
   model.rs          .rsw / .rsm: what stands on a map
   effect.rs         .str: the client's effect files, frame by frame
+  hotkeys.rs        the client's keys: key numbers, how a key is written, what a Mac lacks
+  talk.rs           PetTalkTable.xml: what pets say
   net/
     mod.rs          framing a byte stream into packets (lengths from packet_lengths*.txt)
     packets.rs      login and character servers, the basics of the map server
@@ -50,6 +52,7 @@ client/src/
     items.rs        inventory, equipment, skills known, hotkey bar
     skills.rs       casting and landing of skills
     pets.rs         the player's pet: its state, feeding, the commands given to it
+    emotions.rs     the emotions shown over heads
     npc.rs          NPC dialogs, whispers, restart
     trade.rs        NPC shops and storage
   web/
@@ -64,6 +67,7 @@ client/src/
       actions.rs      what each Action does (the one place everything arrives at)
       clicks.rs       what each `data-click` does; split by kind in clicks/, as incoming/ is
       keys.rs         the keyboard
+      hotkeys_set.rs  which key does what for this player; setting keys (kept in the browser)
       account.rs      login, registration, recovery
       connection.rs   login -> char -> map server, and back
       incoming.rs     packets from the servers; the map server's are split by kind in incoming/

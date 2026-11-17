@@ -57,6 +57,31 @@ impl Camera {
     }
 }
 
+/// One frame of the client, which moves its camera a tenth of the way to the character each: taken as a
+/// sixtieth of a second (the client's own pace is not in what was read of it).
+const CAMERA_FRAME_MS: f64 = 1000.0 / 60.0;
+
+impl Scene {
+    /// Where the camera looks now: at the character's feet until it has started to follow them.
+    pub(super) fn looked_at(&self) -> Vector {
+        self.aim.map_or_else(|| on_ground(&self.gat, self.player.at), |(aim, _)| aim)
+    }
+
+    /// Moves the camera's aim towards the character's feet, as far as the time since it was last moved allows
+    /// (the client's `CameraState::Smooth`: a tenth of what is left, each frame).
+    pub(super) fn follow(&mut self, feet: Vector, time: f64) -> Vector {
+        let aim = match self.aim {
+            Some((aim, moved)) => {
+                let share = 1.0 - 0.9f64.powf(((time - moved) / CAMERA_FRAME_MS).clamp(0.0, 600.0));
+                [0, 1, 2].map(|axis| aim[axis] + (feet[axis] - aim[axis]) * share as f32)
+            }
+            None => feet,
+        };
+        self.aim = Some((aim, time));
+        aim
+    }
+}
+
 impl View {
     /// The direction from the eye through a point of the screen (0 to 1 on each axis, y down).
     pub(super) fn ray(&self, screen: (f32, f32)) -> Vector {

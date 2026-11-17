@@ -1,6 +1,7 @@
 //! What the character is: its numbers (life, stats, experience) and the skills it knows.
 
 use super::*;
+use crate::net::pets;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
@@ -11,6 +12,7 @@ impl App {
                 let own = self.account.as_ref().map(|account| account.account_id);
                 if npc::npc(id, packet) == own {
                     sound::effect("levelup.wav", 1.0);
+                    self.pet_feels(pets::moment::LEVEL_UP, None);
                 }
             }
             packets::ZC_PAR_CHANGE | packets::ZC_LONGPAR_CHANGE => {
@@ -20,6 +22,14 @@ impl App {
                     }
                     self.hero.params.insert(name, i64::from(value));
                     self.refresh_values();
+                    // Under a quarter of its life left, the player's pet may tell of it: half the time, and
+                    // not more than once in five seconds (the client, on `SP_HP`).
+                    let most = self.hero.params.get(&packets::parameter::MAX_HP).copied().unwrap_or(0);
+                    let time = js_sys::Date::now();
+                    if name == packets::parameter::HP && most > 0 && i64::from(value) * 100 / most < 25 && self.pets.pet.is_some() && js_sys::Math::random() < 0.5 && time - self.pets.warned_at >= 5000.0 {
+                        self.pets.warned_at = time;
+                        self.pet_feels(pets::moment::DANGER, None);
+                    }
                 }
             }
             packets::ZC_LONGLONGPAR_CHANGE => {

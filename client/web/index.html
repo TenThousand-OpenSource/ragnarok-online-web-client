@@ -61,7 +61,9 @@
         font: 12px/1.25 Tahoma, Arial, sans-serif; color: #000; user-select: none; }
   #ui * { box-sizing: border-box; }
   /* In the game the world shows through, and takes the mouse wherever no window is. */
-  #ui.ingame { background: none !important; pointer-events: none; }
+  /* The windows lie over what is drawn in the world: the bars (4), names and numbers (5); the fade (8) and the
+     loading screen (9) lie over the windows. */
+  #ui.ingame { background: none !important; pointer-events: none; z-index: 6; }
   #ui.ingame .hud, #ui.ingame .lang, #ui.ingame .minimap, #ui.ingame .w, #ui.ingame .veil, #ui.ingame #narrow { pointer-events: auto; }
   #narrow { position: absolute; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px;
             background: rgba(20, 28, 66, .94); }

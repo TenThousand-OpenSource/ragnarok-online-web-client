@@ -4,6 +4,7 @@
 //! Protocol facts come from rAthena's source (`src/common/packets.hpp`, `src/char/char_clif.cpp`,
 //! `src/map/clif.cpp`) at PACKETVER 20260219.
 
+pub mod emotions;
 pub mod items;
 pub mod npc;
 pub mod packets;

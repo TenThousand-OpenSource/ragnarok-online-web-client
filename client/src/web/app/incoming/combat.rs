@@ -42,7 +42,7 @@ impl App {
                         world::arrow(act.source, act.target, own, f64::from(act.delay));
                     }
                     // Someone bends down for a thing on the ground.
-                    Some(act) if act.kind == 1 => world::acts(act.source, own, 24, 450.0),
+                    Some(act) if act.kind == 1 => world::picks_up(act.source, own, act.target),
                     Some(act) if matches!(act.kind, 2 | 3) => {
                         if act.source == own {
                             self.hero.sitting = act.kind == 2;
@@ -129,7 +129,22 @@ impl App {
                     }
                 }
             }
-            skills::ZC_ACK_TOUSESKILL => self.chat_line(crate::i18n::tr("Skill has failed.").to_owned(), "#ff8484"),
+            // A skill could not be used: the client says why in the chat, in red, with the line of its message
+            // table for the cause (`ReceiveSkillFailure`). A cause this has no line for says the plain one.
+            skills::ZC_ACK_TOUSESKILL => {
+                if let Some((skill, value, worked, cause)) = skills::failed(packet).filter(|(_, _, worked, _)| !worked) {
+                    let _ = worked;
+                    let line = skills::failure(skill, value, cause).and_then(data::message).unwrap_or_else(|| "Skill has failed.".to_owned());
+                    let named = data::skill(skill).map(|(_, name, _)| name).unwrap_or_default();
+                    self.chat_line(crate::i18n::tr(&line).replace("%s", &named), "#ff0000");
+                }
+            }
+            // ZC_ATTACK_RANGE (0x013a): `u16 range`: how far the weapon reaches.
+            0x013a => {
+                if packet.len() >= 4 {
+                    world::weapon_reaches(i32::from(u16::from_le_bytes([packet[2], packet[3]])));
+                }
+            }
             // ZC_ATTACK_FAILURE_FOR_DISTANCE (0x0139): `u32 target, i16 x, i16 y, i16 own x, i16 own y, i16 range`.
             // The blow was asked for from too far: the character goes nearer and strikes from there.
             0x0139 => {

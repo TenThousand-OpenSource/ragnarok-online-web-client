@@ -41,7 +41,7 @@ pub(super) fn on_ground(gat: &Gat, (x, y): (f32, f32)) -> Vector {
 
 impl Mover {
     pub(super) fn new(look: Look, cell: (i32, i32)) -> Self {
-        Self { look, name: String::new(), lively: false, companion: false, cell, at: (cell.0 as f32, cell.1 as f32), facing: 0, walk: None, speed: DEFAULT_SPEED, shown: None, sitting: false, dead: false, dying: None, says: None, life: None, heard: None, motion: None, casting: None }
+        Self { look, name: String::new(), lively: false, companion: false, cell, at: (cell.0 as f32, cell.1 as f32), facing: 0, walk: None, speed: DEFAULT_SPEED, shown: None, sitting: false, dead: false, dying: None, says: None, emotion: None, life: None, heard: None, motion: None, casting: None }
     }
 
     /// Starts a walk from one cell to another, along the path this map gives.

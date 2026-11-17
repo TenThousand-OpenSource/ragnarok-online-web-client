@@ -28,12 +28,19 @@ impl App {
     /// accessory off and going back into the egg.
     pub(in crate::web) fn pet_window(&self) -> String {
         let Some(pet) = &self.pets.pet else { return String::new() };
-        let mut window = title_bar(280, "Pet Info");
+        // `UIPetInfoWnd::Paint`: the title bar with nothing written in it, and the title 5 in and 2 down; under
+        // it the panel every plain window has (`UIWindow::DrawPanelBackground`): the skin's colours 14,6 around
+        // and 2,2 inside (grey 200 and white in the client's `colorchip.bmp`), the outline rounded at the bottom,
+        // where the two corner pieces lie over it.
+        let mut window = title_bar(280, "");
+        window.push_str(&text(5, 2, BLACK, tr("Pet Info")));
         window.push_str(&button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "pet", ""));
         window.push_str(&format!(
             r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;border-radius:0 0 3px 3px;box-sizing:border-box"></div>"#,
             at(0, 17, 280, 163)
         ));
+        window.push_str(&art("sysboxs_ld.bmp", 0, 173, 7, 7));
+        window.push_str(&art("sysboxs_rd.bmp", 273, 173, 7, 7));
         if let Some(file) = data::pet_picture(pet.job) {
             window.push_str(&format!(r#"<img class="a" alt="" draggable="false" style="left:5px;top:21px" src="{}">"#, picture(&format!("illust/{file}"))));
         }
@@ -41,13 +48,15 @@ impl App {
             window.push_str(&text(100, y, BLACK, tr(label)));
         }
         window.push_str(&format!(
-            r#"<input id="pet-name" class="a in" style="{};background:#e8e8e8;box-sizing:border-box" type="text" maxlength="23" autocomplete="off" value="{}">"#,
+            r#"<input id="pet-name" class="a in" style="{};background:#e8e8e8;box-sizing:border-box" type="text" maxlength="50" autocomplete="off" value="{}">"#,
             at(135, 24, 80, 16),
             escape(&pet.name)
         ));
         window.push_str(&picture_button(230, 21, "btn_rewrite", "pet-rename"));
         window.push_str(&text(135, 44, BLACK, &pet.level.to_string()));
-        // The box that opens the menu, and the arrow at its right end.
+        // The box that opens the menu, and the arrow at its right end; the client's unseen button over it starts
+        // 10 further left (120 by 18 at 150, 44).
+        window.push_str(&format!(r#"<div class="a" style="{}" data-click="pet-menu"></div>"#, at(150, 44, 10, 18)));
         window.push_str(&format!(
             r#"<div class="a t" style="{};background:#e6e6fa;text-align:center;line-height:18px;cursor:default" data-click="pet-menu">&lt; Command &gt;</div>"#,
             at(160, 44, 92, 18)
@@ -82,6 +91,15 @@ impl App {
             window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:content-box;z-index:2">{rows}</div>"#, at(160, 44, 110, 64)));
         }
         window
+    }
+
+    /// The menu the right button opens on the player's own pet (the client's `OpenActorMenu`): its status,
+    /// feeding, a trick, the accessory off, back into the egg; each a row 16 high, as the pet window's own.
+    pub(in crate::web) fn pet_menu(&self) -> String {
+        [("Check Pet Status", "info"), ("Feed Pet", "feed"), ("Performance", "perform"), ("Unequip Accessory", "unequip"), ("Return to Egg", "egg")]
+            .iter()
+            .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default;white-space:nowrap" data-click="pet-do" data-arg="{order}">{}</div>"#, escape(tr(words))))
+            .collect()
     }
 
     /// What the pet window asks before it acts, in the client's message box (280 by 120): whether to feed the

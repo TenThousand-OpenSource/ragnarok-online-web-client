@@ -228,6 +228,15 @@ pub fn tr(english: &str) -> &str {
 
 /// The phrases of the game's windows, in English and in Russian.
 const PHRASES: &[(&str, &str)] = &[
+    ("Check Pet Status", "Сведения о питомце"),
+    ("Shortcut Settings", "Настройка клавиш"),
+    ("Hotkey Bar", "Панель"),
+    ("Hotkey Bar 2", "Панель 2"),
+    ("Interface", "Интерфейс"),
+    ("Macros", "Макросы"),
+    ("Not Assigned", "Не назначено"),
+    ("Press a key to assign. Pressing 'ESC' will remove the assigned key.", "Нажмите клавишу, чтобы назначить её. ESC снимает назначение."),
+    ("This keyboard does not have that key.", "На этой клавиатуре нет такой клавиши."),
     ("Basic Information", "Основная информация"),
     ("Game Options", "Настройки игры"),
     ("Equipment", "Экипировка"),

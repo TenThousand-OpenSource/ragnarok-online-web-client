@@ -104,10 +104,7 @@ pub fn walk(from: (u16, u16), to: (u16, u16)) {
 /// The weapon the player's own character holds, as its item ID (0 for none): it is drawn in hand.
 pub fn own_weapon(weapon: u32) {
     STATE.with_borrow_mut(|state| {
-        // Another weapon reaches another way: the server will say how far.
-        if state.weapon != weapon {
-            state.strike_range = None;
-        }
+        // Another weapon reaches another way: the server says how far itself (`combat::weapon_reaches`).
         state.weapon = weapon;
         if let Some(Look::Character(figure)) = state.scene.as_mut().map(|scene| &mut scene.player.look) {
             figure.weapon = weapon;
@@ -155,6 +152,7 @@ pub fn jump(cell: (u16, u16)) {
         scene.player.walk = None;
         scene.player.motion = None;
         scene.player.dead = false;
+        scene.aim = None;
         scene.units.clear();
         scene.drops.clear();
         scene.falls.clear();

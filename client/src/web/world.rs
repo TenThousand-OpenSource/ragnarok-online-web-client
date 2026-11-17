@@ -207,6 +207,8 @@ struct Mover {
     dying: Option<f64>,
     /// What it said last, and when: shown over its head for a while.
     says: Option<(String, f64)>,
+    /// The emotion it shows: the sprite it is in, which of its actions, and when it began.
+    emotion: Option<(String, usize, f64)>,
     /// What is left of its life and how much it has, once the server has said (monsters being fought).
     life: Option<(i32, i32)>,
     /// The action and frame last drawn: a frame's sound plays when the frame comes, not while it stays.
@@ -298,6 +300,10 @@ struct Scene {
     drops: HashMap<u32, ((i32, i32), u32, (f32, f32))>,
     /// When each thing that fell out of a monster began to fall.
     falls: HashMap<u32, f64>,
+    /// Where the camera looks, and when it was last moved: it follows the character a tenth of the way each of
+    /// the client's frames (`CameraState::Smooth`), so a step the server corrects does not jolt the view. None
+    /// until the first frame, and after the character is put somewhere else: then it looks straight at it.
+    aim: Option<(Vector, f64)>,
     /// The portals in sight, by the server's ID: the cells they are on.
     portals: HashMap<u32, (i32, i32)>,
     camera: Camera,
@@ -319,6 +325,8 @@ pub struct Hooks {
     pub ready: fn(Result<(), String>),
     /// The skill being aimed was pointed at someone (their ID) or at a cell.
     pub aimed: fn(Option<u32>, (u16, u16)),
+    /// The right button was pressed and let go on someone without moving: their ID, and where on the page.
+    pub menu: fn(u32, (f32, f32)),
 }
 
 #[derive(Default)]
@@ -332,6 +340,8 @@ struct State {
     turning: Option<(f32, f32)>,
     /// When the right button was last pressed: twice in a moment puts the camera back.
     right_pressed: f64,
+    /// Where the right button went down, until it comes up.
+    right_at: Option<(f32, f32)>,
     listening: bool,
     /// Those the server showed while the map was still being read: put on it once it is there.
     early: Vec<Unit>,

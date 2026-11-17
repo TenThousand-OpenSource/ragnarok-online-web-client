@@ -32,7 +32,12 @@ pub fn unit_shown(unit: &Unit) {
             }),
             // Monsters and NPCs are one sprite each, in folders of their own.
             kind => match data::sprite(unit.job) {
-                Some(name) => Look::Creature(format!("{}/{name}", if kind == Kind::Npc { "npc" } else { "몬스터" })),
+                // A pet that comes into sight wearing its accessory (what would be a player's lower headgear) is
+                // drawn with the actions for that, as when it puts it on (`dressed`).
+                Some(name) => match Some(unit.headgear[0]).filter(|worn| kind == Kind::Companion && *worn != 0).and_then(data::pet_act) {
+                    Some(actions) => Look::Creature(format!("몬스터/{name}@몬스터/{actions}")),
+                    None => Look::Creature(format!("{}/{name}", if kind == Kind::Npc { "npc" } else { "몬스터" })),
+                },
                 None => return,
             },
         };
@@ -160,6 +165,24 @@ pub fn said(id: u32, own: u32, words: &str) {
     });
 }
 
+/// What a monster, an NPC or a pet on the map is called, if the server has said.
+pub fn unit_name(id: u32) -> Option<String> {
+    STATE.with_borrow(|state| state.scene.as_ref()?.units.get(&id).map(|unit| unit.name.clone()).filter(|name| !name.is_empty()))
+}
+
+/// Someone shows an emotion (the client's `AM_CASH_EMOTION`): its picture plays once at them, where the sprite
+/// itself puts it, over the head. An emotion the client's list does not have shows nothing. `own` is the
+/// player's own ID.
+pub fn emotes(id: u32, own: u32, emotion: u16) {
+    let Some((sprite, action)) = data::emotion(emotion) else { return };
+    STATE.with_borrow_mut(|state| {
+        let Some(scene) = &mut state.scene else { return };
+        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
+            mover.emotion = Some((sprite, action, now()));
+        }
+    });
+}
+
 /// Someone sits down or stands up. `own` is the player's own ID.
 pub fn sat(id: u32, own: u32, down: bool) {
     STATE.with_borrow_mut(|state| {
@@ -199,6 +222,47 @@ pub fn unit_stand(id: u32, cell: (u16, u16)) {
         if let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)) {
             unit.walk = None;
             unit.cell = (i32::from(cell.0), i32::from(cell.1));
+        }
+    });
+}
+
+/// A pet does a trick (the client's `CHANGESTATEPET_PERFORMANCE`, played when the pet next stands): the first
+/// trick is the sprite's actions from 40, the second from 48, the third from 56 and the special one from 64; it
+/// plays once, each picture for as long as the sprite says, and the pet stands again. A sprite without those
+/// actions shows nothing.
+pub fn performs(id: u32, trick: i32) {
+    STATE.with_borrow_mut(|state| {
+        let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)) else { return };
+        let Look::Creature(path) = &unit.look else { return };
+        let action = match trick {
+            2 => 48,
+            3 => 56,
+            4 => 64,
+            _ => 40,
+        };
+        if figure::actions_of(path).is_some_and(|actions| action >= actions) {
+            return;
+        }
+        let lasts = figure::timing(path, action).map_or(1000.0, |(pictures, each)| pictures as f64 * each);
+        unit.motion = Some((action, now(), lasts.max(250.0)));
+    });
+}
+
+/// A pet puts its accessory on or takes it off (0): it is drawn with the actions the client has for it wearing
+/// that (`GetPetAccActName`), or with its own again. An accessory the client has no actions for changes nothing.
+pub fn dressed(id: u32, accessory: u16) {
+    STATE.with_borrow_mut(|state| {
+        let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)) else { return };
+        let Look::Creature(path) = &unit.look else { return };
+        let own = path.split('@').next().unwrap_or(path).to_owned();
+        let look = match (accessory, data::pet_act(accessory)) {
+            (0, _) => own,
+            (_, Some(actions)) => format!("{own}@몬스터/{actions}"),
+            (_, None) => return,
+        };
+        if *path != look {
+            unit.look = Look::Creature(look);
+            unit.shown = None;
         }
     });
 }

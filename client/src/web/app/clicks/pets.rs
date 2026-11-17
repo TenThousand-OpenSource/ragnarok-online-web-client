@@ -39,6 +39,17 @@ impl App {
             // The menu of the pet window: feeding is asked about first, the rest is sent as it is.
             "pet-do" => {
                 self.pets.menu = false;
+                // From the menu on the pet itself: the menu goes, and its first row opens the pet window.
+                if self.pets.menu_at.take().is_some() {
+                    // Feeding is asked about first, in the box that belongs to the pet window.
+                    if matches!(arg, "info" | "feed") {
+                        self.pets.open = true;
+                    }
+                    self.render();
+                    if arg == "info" {
+                        return true;
+                    }
+                }
                 let order = match arg {
                     "feed" => {
                         self.pets.asks = 1;
@@ -57,7 +68,9 @@ impl App {
             "pet-rename" => {
                 let name = field("pet-name").trim().to_owned();
                 if name.len() >= 24 {
-                    self.chat_line(crate::i18n::tr("Your pet name must be 23 characters or less.").to_owned(), "#ff8484");
+                    // The client says so in a message box (`MSI_PETNAME_IN23`).
+                    self.message = Some(crate::i18n::tr("Your pet name must be 23 characters or less.").to_owned());
+                    self.render();
                 } else if !name.is_empty() {
                     (self.pets.asks, self.pets.named) = (2, name);
                     self.refresh_pet();

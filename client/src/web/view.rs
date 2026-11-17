@@ -103,6 +103,7 @@ impl App {
             Screen::Register => self.register_window(view),
             Screen::Recover => self.recover_window(view),
             Screen::Reset(_) => self.reset_window(view),
+            Screen::ServerSelect => self.server_select_window(view),
             Screen::CharSelect => self.char_select_window(view),
             Screen::CharCreate(_) => self.char_create_window(view),
             Screen::Game => self.game_window(view),
@@ -112,7 +113,7 @@ impl App {
             .map(|lang| format!(r#"<button type="button" class="{}" {}>{}</button>"#, if lang == self.lang { "on" } else { "" }, click("lang", lang.code()), lang.code().to_uppercase()))
             .collect();
         // The server's name stands over the login picture; the larger windows cover that place.
-        let titled = matches!(self.screen, Screen::Login | Screen::Register | Screen::Recover | Screen::Reset(_));
+        let titled = matches!(self.screen, Screen::Login | Screen::ServerSelect | Screen::Register | Screen::Recover | Screen::Reset(_));
         let title = if titled { format!(r#"<div class="title">{}</div>"#, escape(SERVER_NAME)) } else { String::new() };
         let speaker = format!(
             r#"<button type="button" class="{}" title="{}" aria-label="{}" {}>{}</button>"#,
@@ -248,6 +249,36 @@ impl App {
         self.characters.iter().find(|character| character.slot == slot)
     }
 
+    /// The servers to play on, each with how many are playing there now: the original's window (280 by 200, its
+    /// list 12 in and 22 down, OK and Cancel in the corner).
+    fn server_select_window(&self, view: (f64, f64)) -> String {
+        let servers = self.account.as_ref().map(|account| &account.char_servers[..]).unwrap_or_default();
+        let lines: String = servers
+            .iter()
+            .enumerate()
+            .map(|(index, server)| {
+                let picked = if index == self.server_picked { "background:#c6d6f7;" } else { "" };
+                format!(
+                    r#"<div style="{picked}height:16px;line-height:16px;padding:0 4px;cursor:default;white-space:nowrap" {} data-open-server="{index}">{} ({})</div>"#,
+                    click("server", index),
+                    escape(&server.name),
+                    server.users
+                )
+            })
+            .collect();
+        let inner = format!(
+            r#"{}<div class="a" style="{};background:#fff;border:1px solid #c3c3c3;border-top:0;box-sizing:border-box"></div>
+               <div class="a" style="{};background:#f0f0f0;overflow-y:auto;font:12px Tahoma,Arial,sans-serif;color:#000">{lines}</div>{}{}"#,
+            super::hud::title_bar(280, self.text(Key::SelectServer)),
+            at(0, 17, 280, 183),
+            at(12, 22, 256, 145),
+            button(&at(189, 176, 42, 20), &states_ab("btn_ok"), &format!("{} autofocus", click("server-ok", "")), ""),
+            button(&at(234, 176, 42, 20), &states_ab("btn_cancel"), &click("server-cancel", ""), ""),
+        );
+        let place = (((view.0 - 640.0) / 2.0 + 185.0).floor(), (view.1 * 300.0 / 480.0 - 80.0).floor());
+        window(view, (280, 200), place, "", "", &inner)
+    }
+
     fn char_select_window(&self, view: (f64, f64)) -> String {
         let mut inner = String::new();
         for slot in 0..SLOTS_PER_PAGE {
@@ -262,7 +293,12 @@ impl App {
             inner.push_str(&button(&at(x, y, 157, 195), &states_of(base), &format!(r#"{} data-open="{slot}""#, click("slot", slot)), ""));
             match (character, selected) {
                 // The frame around a chosen character runs through eight pictures.
-                (Some(_), true) => inner.push_str(&format!(r#"<div class="a chosen" style="{}"></div>"#, at(x - 2, y - 1, 161, 197))),
+                (Some(_), true) => {
+                    // All eight lie on one another and show in turn: a picture swapped in its place would blink
+                    // while the browser makes it ready.
+                    let frames: String = (0..8).map(|frame| format!(r#"<i style="background-image:url('{}')"></i>"#, chosen_frame(frame))).collect();
+                    inner.push_str(&format!(r#"<div class="a chosen" style="{}">{frames}</div>"#, at(x - 2, y - 1, 161, 197)));
+                }
                 (None, true) => inner.push_str(&format!(r#"<div class="a pass" style="{};{}"></div>"#, at(x, y, 157, 195), background("select_character_ver3/img_slot2_select.bmp"))),
                 _ => {}
             }
@@ -427,15 +463,21 @@ impl App {
         window(view, size, (place.0, place.1 - 70.0), "", &format!("{folder}/bg_makebg.bmp"), &inner)
     }
 
-    /// In the game: the game's own windows over the world, and the minimap in its corner with the map's name
-    /// and the character's place under it.
+    /// In the game: the game's own windows over the world, and the minimap in its corner with the character's
+    /// place under it.
     fn game_window(&self, view: (f64, f64)) -> String {
         let Some(game) = &self.game else { return String::new() };
         // A map name goes into a URL: only what map names are made of passes.
         let map: String = game.map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
+        // Under the minimap, as the original has it: the character's cell, and the minimap's buttons (which do
+        // nothing yet).
+        let buttons: String = [("object", 1), ("plus", 73), ("minus", 87), ("mini", 101), ("viewon", 115)]
+            .iter()
+            .map(|(name, x)| format!(r#"<img src="{}" alt="" style="position:absolute;left:{x}px;top:0" onerror="this.remove()">"#, picture(&format!("minimap/i_{name}_1.bmp"))))
+            .collect();
         format!(
             r#"<div class="minimap"><img src="{}" alt="" onerror="this.remove()"><i id="marker" style="{}"></i></div>
-               <div class="mapname">{map} (<span id="position">{}, {}</span>)</div>{}"#,
+               <div class="mapname"><span id="position"> {}  {}</span>{buttons}</div>{}"#,
             picture(&format!("map/{map}.bmp")),
             minimap_place(game).unwrap_or_else(|| "display:none".to_owned()),
             game.x,

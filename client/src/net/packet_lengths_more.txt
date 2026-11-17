@@ -1,0 +1,11 @@
+# Packets rathena declares where the generator of packet_lengths.txt does not find them: added by hand, in its form.
+0x0086 16
+0x0092 28
+0x0098 3
+0x00E7 3
+0x0137 6
+0x013D 6
+0x016D 14
+0x0194 30
+0x07DB 8
+0x08FF 24

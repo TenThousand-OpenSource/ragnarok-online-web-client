@@ -1,0 +1,1775 @@
+{
+ "901": {
+  "name": "Daenggie",
+  "description": [
+   "A braided pigtail that has been cut from the head of a young girl.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "902": {
+  "name": "Tree Root",
+  "description": [
+   "Some roots from trees can be used as medicine, but most of them are fibrous enough to be used as rope.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "903": {
+  "name": "Reptile Tongue",
+  "description": [
+   "Merely a severed reptile's tongue.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "904": {
+  "name": "Scorpion Tail",
+  "description": [
+   "A tail severed from a scorpion.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "905": {
+  "name": "Stem",
+  "description": [
+   "Some stems from plants can be used to in making certain medicines.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "906": {
+  "name": "Pointed Scale",
+  "description": [
+   "A single scale from a Worm Tail monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "907": {
+  "name": "Resin",
+  "description": [
+   "A viscous plant substance used in the production of certain types of goods.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "908": {
+  "name": "Spawn",
+  "description": [
+   "Frog eggs.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "909": {
+  "name": "Jellopy",
+  "description": [
+   "A small crystallization created by some monsters.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "910": {
+  "name": "Garlet",
+  "description": [
+   "A small crystallization created by some monsters.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "911": {
+  "name": "Scell",
+  "description": [
+   "A small crystallization created by some monsters.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "912": {
+  "name": "Zargon",
+  "description": [
+   "A small crystallization created by some monsters.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "913": {
+  "name": "Tooth of Bat",
+  "description": [
+   "Farmiliar's sharpened tooth.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "914": {
+  "name": "Fluff",
+  "description": [
+   "A clump of monster fur and fuzz that can be used to make thread and fabric.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "915": {
+  "name": "Chrysalis",
+  "description": [
+   "Skin from a larva that has been shed or peeled off.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "916": {
+  "name": "Feather of Birds",
+  "description": [
+   "A bird's feather that can be used in decor or in fabric creation.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "917": {
+  "name": "Talon",
+  "description": [
+   "A sharp talon from a bird's foot.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "918": {
+  "name": "Sticky Webfoot",
+  "description": [
+   "A webbed foot cut from a monster's hind leg.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "919": {
+  "name": "Animal Skin",
+  "description": [
+   "Animal hide that can be used in making clothes, coverings or beddings.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "920": {
+  "name": "Wolf Claw",
+  "description": [
+   "A claw severed from a wolf's paw.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "921": {
+  "name": "Mushroom Spore",
+  "description": [
+   "A spore discharged from a mushroom.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "922": {
+  "name": "Orc's Fang",
+  "description": [
+   "A cuspid wrenched out of from a gruesome Orc's jaw.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "923": {
+  "name": "Evil Horn",
+  "description": [
+   "Baphomet's horn is a symbol representing evil.",
+   "Can be traded for an ^990099Antler^000000 if You bring 20 of this to <NAVI>Cherokee<INFO>122,53,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "924": {
+  "name": "Powder of Butterfly",
+  "description": [
+   "Butterfly wing powder that sparkles with the power of fantasy.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "925": {
+  "name": "Bill of Birds",
+  "description": [
+   "A bird's beak. Waste not want not.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "926": {
+  "name": "Snake Scale",
+  "description": [
+   "Scales from a snake that can be used to make some rather flamboyant clothes.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "928": {
+  "name": "Insect Feeler",
+  "description": [
+   "Antennae that serve as sense organs for insects.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "929": {
+  "name": "Immortal Heart",
+  "description": [
+   "A heart which will never stop beating. It contains some sort of dreadful power.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "930": {
+  "name": "Rotten Bandage",
+  "description": [
+   "Old, dirty bandage that's so soiled, it's almost worthless.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "931": {
+  "name": "Orc Warrior's Token",
+  "description": [
+   "A small sculpture that serves as the token for every true Orc Warrior.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "932": {
+  "name": "Skel-Bone",
+  "description": [
+   "A bone taken from an Undead skeleton.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "934": {
+  "name": "Memento",
+  "description": [
+   "A box that is buried with the dead. It contains gems and someone's mementos...",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "935": {
+  "name": "Shell",
+  "description": [
+   "A hard shell that used to protect a monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "936": {
+  "name": "Scale Shell",
+  "description": [
+   "A shell-like piece of tough monster skin that is covered with hard scales.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "937": {
+  "name": "Venom Canine",
+  "description": [
+   "A sharp, poisonous fang from a monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "938": {
+  "name": "Sticky Mucus",
+  "description": [
+   "Mysteriously sticky liquid.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "939": {
+  "name": "Bee Sting",
+  "description": [
+   "A stinger from a hornet or bee.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "940": {
+  "name": "Grasshopper's Leg",
+  "description": [
+   "A Rocker's hind leg.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "941": {
+  "name": "Nose Ring",
+  "description": [
+   "A ring placed in a cow's nose so that it can be steered more easily.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "942": {
+  "name": "Yoyo Tail",
+  "description": [
+   "A prehensile tail from a Yoyo.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "943": {
+  "name": "Solid Shell",
+  "description": [
+   "A solid, durable shell taken from a monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "944": {
+  "name": "Horseshoe",
+  "description": [
+   "A \"U\" shaped piece of iron fitted on a horse's hoof for its protection.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "945": {
+  "name": "Raccoon Leaf",
+  "description": [
+   "A leaf that gives Smokies the power to change form and become invisible.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "946": {
+  "name": "Snail's Shell",
+  "description": [
+   "A hard, spiral shaped shell used by Snails.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "947": {
+  "name": "Horn",
+  "description": [
+   "Hard and sharp horn from a monster's head.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "948": {
+  "name": "Bear's Footskin",
+  "description": [
+   "A lazy bear's foot that supposedly has a unique flavor and the power to restore male vigor.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "949": {
+  "name": "Feather",
+  "description": [
+   "A feather that boasts full, lustrous barbs used for making clothes of the highest quality.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "950": {
+  "name": "Heart of Mermaid",
+  "description": [
+   "The heart of a mermaid.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "951": {
+  "name": "Fin",
+  "description": [
+   "A fish monster's fin.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "952": {
+  "name": "Cactus Needle",
+  "description": [
+   "A sharp needle from a Muka cactus monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "953": {
+  "name": "Stone Heart",
+  "description": [
+   "A heart constructed entirely out of stone.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "954": {
+  "name": "Shining Scale",
+  "description": [
+   "A shimmering, reflective scale.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "955": {
+  "name": "Worm Peeling",
+  "description": [
+   "Shed skin from worms and insects.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "956": {
+  "name": "Gill",
+  "description": [
+   "Part of a fish's breathing apparatus.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "957": {
+  "name": "Decayed Nail",
+  "description": [
+   "A putrid, incredibly pungent corpse's nail.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "958": {
+  "name": "Horrendous Mouth",
+  "description": [
+   "A complete set of corpse's teeth. Well, as complete as it can get.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "959": {
+  "name": "Stinky Scale",
+  "description": [
+   "A nasty scale with a horribly offensive odor.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "960": {
+  "name": "Nipper",
+  "description": [
+   "A crustacean's claw.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "961": {
+  "name": "Conch",
+  "description": [
+   "The shell of a marine mollusk.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "962": {
+  "name": "Tentacle",
+  "description": [
+   "A flexible, prehensile and boneless appendage.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "963": {
+  "name": "Sharp Scale",
+  "description": [
+   "A scale that is much sharper than a razor.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "964": {
+  "name": "Crab Shell",
+  "description": [
+   "A hard crab shell that smells horrible.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "965": {
+  "name": "Clam Shell",
+  "description": [
+   "A hard shell taken from a dead clam.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "966": {
+  "name": "Clam Flesh",
+  "description": [
+   "Muscular and fatty clam tissue that can be cooked in all sorts of ways.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "967": {
+  "name": "Turtle Shell",
+  "description": [
+   "A hard shell that obviously failed to protect a turtle.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "968": {
+  "name": "Orc Hero's Token",
+  "description": [
+   "An emblem given to an Orc Warrior that is proof of his heroism.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "969": {
+  "name": "Gold",
+  "description": [
+   "Hard and stable metal that emits shines like sun. Undoubtedly, it is more precious than other metal due its rareness, can be sold to Merchants in town.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "970": {
+  "name": "Alcohol",
+  "description": [
+   "Liquid that has a unique flavor that has to be kept in a sealed container to prevent it from being evaporated.",
+   "It's easy to catch fire and can dissolve the materials that can't be dissolved by water.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "971": {
+  "name": "Detrimindexta",
+  "description": [
+   "A rare liquid that can't mix with water, usually used to make neutralizer.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "972": {
+  "name": "Karvodailnirol",
+  "description": [
+   "The short form for Karvodailnirol. A rare liquid that can't mix with water,usually used to make admixture.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "973": {
+  "name": "Counteragent",
+  "description": [
+   "Used to dye fabric or hair.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "974": {
+  "name": "Mixture",
+  "description": [
+   "Used to dye fabric or hair.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "975": {
+  "name": "Scarlet Dyestuffs",
+  "description": [
+   "Made of Red Herb,can be used to dye the fabric or hair Red.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "976": {
+  "name": "Lemon Dyestuffs",
+  "description": [
+   "Made of Yellow Herb,can be used to dye the fabric or hair Yellow.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "978": {
+  "name": "Cobaltblue Dyestuffs",
+  "description": [
+   "Made of Blue Herb,can be used to dye the fabric or hair Blue.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "979": {
+  "name": "Darkgreen Dyestuffs",
+  "description": [
+   "Made of Green Herb,can be used to dye the fabric or hair Green.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "980": {
+  "name": "Orange Dyestuffs",
+  "description": [
+   "Made of Red and Yellow Herb,can be used to dye the fabric or hair Orange.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "981": {
+  "name": "Violet Dyestuffs",
+  "description": [
+   "Made of Red and Blue Herb,can be used to dye the fabric or hair Purple.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "982": {
+  "name": "White Dyestuffs",
+  "description": [
+   "Made of White Herb,can be used to dye the fabric or hair White.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "983": {
+  "name": "Black Dyestuffs",
+  "description": [
+   "Made of many kinds of Herbs,can be used to dye the fabric or hair Black.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "984": {
+  "name": "Oridecon",
+  "description": [
+   "Mysterious Metal known as the Metal of Gods. It is harder than anything and can cause great destruction when made into weapons.",
+   "Used to strengthen ^000088Level 3^000000 and ^000088Level 4 weapons^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "985": {
+  "name": "Elunium",
+  "description": [
+   "A very light, non-toxic metal used for refining and toughening ^000088Armor^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "986": {
+  "name": "Anvil",
+  "description": [
+   "A smithing tool on which heated metals are placed so that they can be shaped by hammering. Used in the making of common products.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 50"
+  ]
+ },
+ "987": {
+  "name": "Oridecon Anvil",
+  "description": [
+   "An anvil, made of pure Oridecon, that's used to make quality goods.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 70"
+  ]
+ },
+ "988": {
+  "name": "Golden Anvil",
+  "description": [
+   "An anvil, made of pure Gold, that's used in the manufacture of high quality products.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 90"
+  ]
+ },
+ "989": {
+  "name": "Emperium Anvil",
+  "description": [
+   "An anvil, made of pure Emperium, that's used to manufacture products of the highest quality.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 100"
+  ]
+ },
+ "990": {
+  "name": "Red Blood",
+  "description": [
+   "A vivid red ore that glows from inside with an orange yellow light.",
+   "Possesses ^FF0000Fire^000000 attribute and can form the enchanted stone, ^FF0000Flame Heart^000000, when Refined.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "991": {
+  "name": "Crystal Blue",
+  "description": [
+   "A sky colored ore that glows with the light of the deep ocean depths.",
+   "Possesses the ^0000BBWater^000000 attribute and forms the enchanted stone, ^0000BBMystic Frozen^000000, when Refined.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "992": {
+  "name": "Wind of Verdure",
+  "description": [
+   "A lemon colored ore that contains a pale, greenish light.",
+   "Possesses the ^33CC00Wind^000000 attribute and forms the enchanted stone, ^33CC00Rough Wind^000000, when Refined.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "993": {
+  "name": "Green Live",
+  "description": [
+   "A blue-green ore imbued with a faint, mesmerizing light.",
+   "Possesses the ^CC5500Earth^000000 attribute and forms the enchanted stone, ^CC5500Great Nature^000000, when Refined.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "994": {
+  "name": "Flame Heart",
+  "description": [
+   "A dark red, heart shaped stone enchanted with the Fire attribute.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "995": {
+  "name": "Mystic Frozen",
+  "description": [
+   "A light blue, crystal stone enchanted with the Water attribute.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "996": {
+  "name": "Rough Wind",
+  "description": [
+   "A pale green, Lightning Bolt shaped stone imbued with the Wind attribute.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "997": {
+  "name": "Great Nature",
+  "description": [
+   "A citrus colored, bud shaped stone enchanted with the earth attribute.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "998": {
+  "name": "Iron",
+  "description": [
+   "Malleable, silver-white metal that's very light weight and easy to temper. Commonly used to create arms and other goods.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "999": {
+  "name": "Steel",
+  "description": [
+   "An iron and carbon alloy known for its structural durability and usually used in the crafting of high-quality arms.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "1000": {
+  "name": "Star Crumb",
+  "description": [
+   "A small stellar crystal, fallen from the heavens, which can be used to craft strengthened weapons.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "1001": {
+  "name": "Star Dust",
+  "description": [
+   "Stardust which can form a Star Crumb after being Refined.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1002": {
+  "name": "Iron Ore",
+  "description": [
+   "An impure ore that forms Iron after being Refined.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "1003": {
+  "name": "Coal",
+  "description": [
+   "A black mineral substance that can form Steel once it is combined with Iron.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "1004": {
+  "name": "Chivalry Emblem",
+  "description": [
+   "A token which shows a knight's loyalty to his lord.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "1005": {
+  "name": "Hammer of Blacksmith",
+  "description": [
+   "A hammer for the Blacksmith class that is used for refining.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 80"
+  ]
+ },
+ "1006": {
+  "name": "Old Magic Book",
+  "description": [
+   "A spell book containing powerful, ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1007": {
+  "name": "Necklace of Wisdom",
+  "description": [
+   "A mysterious necklace that is rumored to possess the power of clairvoyance.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "1008": {
+  "name": "Necklace of Oblivion",
+  "description": [
+   "A necklace given from a master once one earns the honor of joining the Assassin Guild.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "1009": {
+  "name": "Hand of God",
+  "description": [
+   "A figure of a hand that contains great religious symbolism.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "1010": {
+  "name": "Phracon",
+  "description": [
+   "A metal that can be used to strengthen and Refine Level 1 Weapons.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "1011": {
+  "name": "Emveretarcon",
+  "description": [
+   "A metal that can be used to strengthen and Refine Level 2 Weapons.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "1012": {
+  "name": "Frill",
+  "description": [
+   "Some skin from the neck of a lizard which lives in the desert.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1013": {
+  "name": "Rainbow Shell",
+  "description": [
+   "A bug shell that reflects the colors of the rainbow.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1014": {
+  "name": "Ant Jaw",
+  "description": [
+   "A tough, sharp jaw from an ant.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1015": {
+  "name": "Tongue",
+  "description": [
+   "A tongue cut from a Monster.",
+   "It has a disgusting coating of sticky saliva.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1016": {
+  "name": "Rat Tail",
+  "description": [
+   "A thin rat's tail.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1017": {
+  "name": "Mole Whiskers",
+  "description": [
+   "Whiskers from a mole.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1018": {
+  "name": "Mole Claw",
+  "description": [
+   "A mole's claw that is sturdy enough to dig into the ground.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1019": {
+  "name": "Trunk",
+  "description": [
+   "A woody stem from a tree that's useful for lumber.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1020": {
+  "name": "Black Hair",
+  "description": [
+   "Lustrous, well brushed hair cut from some virgin.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1021": {
+  "name": "Dokkaebi Horn",
+  "description": [
+   "Horns from a Dokkaebi which are rumored to bring great fortune to their owner.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1022": {
+  "name": "Nine Tails",
+  "description": [
+   "A set of tails that used to belong to a Nine Tail fox. But not anymore, apparently.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1023": {
+  "name": "Fish Tail",
+  "description": [
+   "A tail severed from a fish monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1024": {
+  "name": "Squid Ink",
+  "description": [
+   "Bottled black fluid from Marse the squid that seems to have failed its purpose of providing self defense.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1025": {
+  "name": "Cobweb",
+  "description": [
+   "A sticky spider's web made of surprisingly strong threadlike fibers.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1026": {
+  "name": "Acorn",
+  "description": [
+   "A tough, woody shelled nut from an oak tree.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1027": {
+  "name": "Porcupine Quill",
+  "description": [
+   "Sharp, hollow quills which used to cover and protect some porcupine.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1028": {
+  "name": "Mane",
+  "description": [
+   "Bristly, tough hair cut from a wild boar.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1029": {
+  "name": "Tiger Skin",
+  "description": [
+   "A tiger's hide that's soft, furry, nice and feral.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1030": {
+  "name": "Tiger's Footskin",
+  "description": [
+   "A tiger's paw that's widely known to the elderly as the King of Invigorators.",
+   "Can be traded for a ^990099Boy's Cap^000000 if You bring 10 of this to an <NAVI>old man<INFO>alberta_in,28,145,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1031": {
+  "name": "Mantis Scythe",
+  "description": [
+   "A sharp, front limb severed from a Mantis.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1032": {
+  "name": "Maneater Blossom",
+  "description": [
+   "A carnivorous flower with a digestive system very much like the humans.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1033": {
+  "name": "Maneater Root",
+  "description": [
+   "Roots, which resemble human legs, that almost look capable of walking.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1034": {
+  "name": "Blue Hair",
+  "description": [
+   "Hair cut from a Kobold that appears bristly but is actually downy soft.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1035": {
+  "name": "Dragon Canine",
+  "description": [
+   "A dragon's cuspid that is sharp enough to pierce through dragon scales.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1036": {
+  "name": "Dragon Scale",
+  "description": [
+   "An iridescent dragon's scale that is tough enough to protect from weather and most forms of harm.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1037": {
+  "name": "Dragon Tail",
+  "description": [
+   "A tail cut off from a dragon that, sadly, will never grow back.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1038": {
+  "name": "Little Evil Horn",
+  "description": [
+   "Horns sliced off the head of a little demon.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1039": {
+  "name": "Little Evil Wing",
+  "description": [
+   "Wings from a little demon which look like those of a small bat.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1040": {
+  "name": "Elder Pixie's Moustache",
+  "description": [
+   "A moustache shaved off an old dwarf that has somehow maintained its entire shape and form.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1041": {
+  "name": "Lantern",
+  "description": [
+   "A carriable case with glass panes that allow some contained light to illuminate dark areas.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1042": {
+  "name": "Bug Leg",
+  "description": [
+   "A hind leg that has been cut from a bug.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1043": {
+  "name": "Orc Claw",
+  "description": [
+   "A thick, sharpened fingernail from an Orc.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1044": {
+  "name": "Zenorc's Fang",
+  "description": [
+   "A cuspid pulled out of a cursed Orc's mouth.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1045": {
+  "name": "Cultish Mask",
+  "description": [
+   "A ceremonial mask used by an ancient shaman.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1046": {
+  "name": "Scorpion Nipper",
+  "description": [
+   "A sharp forelimb claw removed from a scorpion.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1047": {
+  "name": "Dead Medusa",
+  "description": [
+   "A Medusa's head that, naturally, looks pretty sad and depressed.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1048": {
+  "name": "Horrendous Hair",
+  "description": [
+   "Some of Medusa's hair, which is essentially just a bunch of snakes.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1049": {
+  "name": "Skirt of Virgin",
+  "description": [
+   "A traditional skirt that symbolizes virginity.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1050": {
+  "name": "Tendon",
+  "description": [
+   "A bunch of tough, strong tendons.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1051": {
+  "name": "Detonator",
+  "description": [
+   "A weird organic clump that seems to be the brain for a Marine Sphere monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1052": {
+  "name": "Single Cell",
+  "description": [
+   "A single, functioning cell taken from some monster.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1053": {
+  "name": "Ancient Tooth",
+  "description": [
+   "A sharp, serrated tooth pulled from the mouth of a giant deep sea fish.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1054": {
+  "name": "Ancient Lips",
+  "description": [
+   "A set of fat lips cut from a giant deep sea fish.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1055": {
+  "name": "Earthworm Peeling",
+  "description": [
+   "A shed skin peeling from an Earthworm.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1056": {
+  "name": "Grit",
+  "description": [
+   "A cubic grain of sand that brightly sparkles.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1057": {
+  "name": "Moth Dust",
+  "description": [
+   "Bottled powder from the wings of a moth.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1058": {
+  "name": "Moth Wings",
+  "description": [
+   "A set of wings cut from a moth.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1059": {
+  "name": "Fabric",
+  "description": [
+   "A piece of nearly transparent fabric.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1060": {
+  "name": "Golden Hair",
+  "description": [
+   "A beautiful lock of golden human hair.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1061": {
+  "name": "Witch Starsand",
+  "description": [
+   "A bottle of sand that sparkles like the stars and is usually found in witch broom bristles.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1062": {
+  "name": "Jack o' Pumpkin",
+  "description": [
+   "A pumpkin with a carved, spooky face.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1063": {
+  "name": "Fang",
+  "description": [
+   "A sharp cuspid yanked from some monster's mouth.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1064": {
+  "name": "Reins",
+  "description": [
+   "Ring placed into a horse's pierced nose to help steer it in a certain direction.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1065": {
+  "name": "Trap",
+  "description": [
+   "Necessary item for Trap related skills.",
+   "_______________________",
+   "^0000CCType:^000000 Skill necessity",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1066": {
+  "name": "Fine-grained Trunk",
+  "description": [
+   "A tree trunk of wood with an excellent grain.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1067": {
+  "name": "Solid Trunk",
+  "description": [
+   "A tree trunk of wood that is nice and solid.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1068": {
+  "name": "Barren Trunk",
+  "description": [
+   "A tree trunk of wood that is pretty low quality.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1069": {
+  "name": "Orange Net Mushroom",
+  "description": [
+   "A sticky, smelly and poisonous mushroom that's commonly used in medicinal purposes.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1070": {
+  "name": "Orange Gooey Mushroom",
+  "description": [
+   "A rubbery scented, gooey mushroom commonly used in medicinal purposes.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1071": {
+  "name": "Unknown Test Tube",
+  "description": [
+   "A test tube that contains some sort of unidentified fluid.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1072": {
+  "name": "Delivery Message",
+  "description": [
+   "It's a personal letter written by Mahnsoo, chief of the Merchant Guild.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1073": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 2485741",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1074": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 2328137",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1075": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 2989396",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1076": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 2191737",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1077": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 3012685",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1078": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 3487372",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1079": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 3318702",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1080": {
+  "name": "Voucher",
+  "description": [
+   "A delivery voucher with the serial number: 3543625",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1081": {
+  "name": "Delivery Box",
+  "description": [
+   "A small, wooden box marked with the word \"Fragile\".",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 120"
+  ]
+ },
+ "1082": {
+  "name": "Delivery Box",
+  "description": [
+   "A small, wooden box marked with the word \"Fragile\".",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 120"
+  ]
+ },
+ "1083": {
+  "name": "Delivery Box",
+  "description": [
+   "A small, wooden box marked with the word \"Fragile\".",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 120"
+  ]
+ },
+ "1084": {
+  "name": "Kafra Pass",
+  "description": [
+   "A special, one-time use ticket that allows you to use any one of the Kafra Services free of charge.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1085": {
+  "name": "Unknown Test Tube",
+  "description": [
+   "A test tube that contains an unidentified substance.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1086": {
+  "name": "Unknown Test Tube",
+  "description": [
+   "A test tube that contains an unidentified substance.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1087": {
+  "name": "Unknown Test Tube",
+  "description": [
+   "A test tube that contains an unidentified substance.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1088": {
+  "name": "Morocc Solution",
+  "description": [
+   "A test tube that contains Morocc solution.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1089": {
+  "name": "Payon Solution",
+  "description": [
+   "A test tube that contains Payon solution.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1090": {
+  "name": "Unknown Test Tube",
+  "description": [
+   "A test tube that contains an unidentified substance.",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "1091": {
+  "name": "Delivery Box",
+  "description": [
+   "A small, wooden box marked with the word \"Fragile\".",
+   "_______________________",
+   "^0000CCType:^000000 Quest",
+   "^0000CCWeight:^000000 120"
+  ]
+ },
+ "1092": {
+  "name": "Empty Test Tube",
+  "description": [
+   "An empty test tube that can be used to contain some kind of solution.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "1093": {
+  "name": "Empty Potion Bottle",
+  "description": [
+   "An empty bottle that can be used to contain potions.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1094": {
+  "name": "Short Daenggie",
+  "description": [
+   "A short lock of braided hair.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1095": {
+  "name": "Needle of Alarm",
+  "description": [
+   "A set of hands taken from the face of a clock.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1096": {
+  "name": "Round Shell",
+  "description": [
+   "A round shell that looks like it has been rolled up.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1097": {
+  "name": "Worn Out Page",
+  "description": [
+   "A worn, tattered page torn from an old book.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1098": {
+  "name": "Manacles",
+  "description": [
+   "Wrist restraints that are usually used on prisoners.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "1099": {
+  "name": "Worn-out Prison Uniform",
+  "description": [
+   "An old, used prison uniform.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ }
+}

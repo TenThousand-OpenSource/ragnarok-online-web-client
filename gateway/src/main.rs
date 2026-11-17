@@ -36,6 +36,10 @@ struct App {
     /// The client's tables for the browser, as JSON.
     tables: String,
     items: tables::Items,
+    /// What the client says of each skill, by skill ID.
+    skill_texts: std::collections::HashMap<u32, Vec<String>>,
+    /// The skills' names and descriptions in Russian, from the translation files.
+    skills_russian: tables::Translated,
 }
 
 fn config() -> Result<(Config, Option<String>), String> {
@@ -113,7 +117,7 @@ async fn main() {
         } else if filter == "tables:" {
             println!("{}", tables::for_client(&grf));
         } else if let Some(ids) = filter.strip_prefix("items:") {
-            println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).json(ids.split(',').filter_map(|id| id.parse().ok())));
+            println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
         } else if let Some(files) = filter.strip_prefix("lua:") {
             let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
             tables::describe(&lua).iter().for_each(|line| println!("{line}"));
@@ -132,7 +136,7 @@ async fn main() {
 
     // The first port is the login server's.
     let login_guard = Arc::new(bridge::LoginGuard::new(config.server_ports.first().copied().unwrap_or(6900)));
-    let items = tables::Items::load(&grf).with_server_names(&config.item_database);
+    let items = tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).with_russian(std::path::Path::new("translations/ru"));
     eprintln!("tables: {} items", items.len());
     let accounts = accounts::router(config.accounts, accounts::Limits::default(), Some(login_guard.clone())).unwrap_or_else(|error| {
         eprintln!("{error}");
@@ -143,11 +147,22 @@ async fn main() {
         .route("/image/{*path}", get(image))
         .route("/tables.json", get(client_tables))
         .route("/tables/items/{ids}", get(client_items))
-        .with_state(Arc::new(App { tables: tables::for_client(&grf).to_string(), items, grf }))
+        .route("/tables/skills/{ids}", get(client_skills))
+        .route("/tables/ru/items/{ids}", get(client_items_russian))
+        .route("/tables/ru/skills/{ids}", get(client_skills_russian))
+        .route("/tables/ru/skill-names.json", get(client_skill_names_russian))
+        .route("/tables/items.ko/{ids}", get(client_items_korean))
+        .with_state(Arc::new(App { tables: tables::for_client(&grf).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), grf }))
         .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60 }))
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
-        .fallback_service(ServeDir::new(&config.web_dir));
+        // The client itself is asked for anew each time: a browser keeping an older build would run it against
+        // a newer page.
+        .fallback_service(tower_http::set_header::SetResponseHeader::overriding(
+            ServeDir::new(&config.web_dir),
+            header::CACHE_CONTROL,
+            axum::http::HeaderValue::from_static("no-cache"),
+        ));
 
     let listener = tokio::net::TcpListener::bind(config.listen).await.unwrap_or_else(|error| {
         eprintln!("{}: {error}", config.listen);
@@ -191,6 +206,43 @@ async fn image(State(app): State<Arc<App>>, Path(path): Path<String>) -> Respons
 async fn client_tables(State(app): State<Arc<App>>) -> Response {
     // Asked for anew every time: the tables change with the gateway, and a stale copy would hide what was added.
     ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.tables.clone()).into_response()
+}
+
+/// `GET /tables/items.ko/<id>,<id>,…`: the Korean names and descriptions of those items (the client's own table),
+/// kept apart from the English shown.
+async fn client_items_korean(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
+    let ids = ids.split(',').take(400).filter_map(|id| id.parse().ok());
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.items.korean_json(ids).to_string()).into_response()
+}
+
+/// `GET /tables/ru/items/<id>,<id>,…`: those items in Russian (see `Items::russian_json`).
+async fn client_items_russian(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
+    let ids = ids.split(',').take(400).filter_map(|id| id.parse().ok());
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.items.russian_json(ids).to_string()).into_response()
+}
+
+/// `GET /tables/ru/skills/<id>,…`: the Russian descriptions of those skills; a skill with none gets the client's.
+async fn client_skills_russian(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
+    let found: serde_json::Map<String, serde_json::Value> = ids
+        .split(',')
+        .take(100)
+        .filter_map(|id| id.parse::<u32>().ok())
+        .filter_map(|id| app.skills_russian.get(&id).map(|(_, lines)| lines).filter(|lines| !lines.is_empty()).or_else(|| app.skill_texts.get(&id)).map(|lines| (id.to_string(), serde_json::json!(lines))))
+        .collect();
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], serde_json::Value::from(found).to_string()).into_response()
+}
+
+/// `GET /tables/ru/skill-names.json`: what the translated skills are called in Russian, by ID.
+async fn client_skill_names_russian(State(app): State<Arc<App>>) -> Response {
+    let names: serde_json::Map<String, serde_json::Value> = app.skills_russian.iter().filter(|(_, (name, _))| !name.is_empty()).map(|(id, (name, _))| (id.to_string(), name.as_str().into())).collect();
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], serde_json::Value::from(names).to_string()).into_response()
+}
+
+/// `GET /tables/skills/<id>,<id>,…`: the client's descriptions of those skills, line by line.
+async fn client_skills(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
+    let found: serde_json::Map<String, serde_json::Value> =
+        ids.split(',').take(100).filter_map(|id| id.parse::<u32>().ok()).filter_map(|id| app.skill_texts.get(&id).map(|lines| (id.to_string(), serde_json::json!(lines)))).collect();
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], serde_json::Value::from(found).to_string()).into_response()
 }
 
 /// `GET /tables/items/<id>,<id>,…`: the names and pictures of those items.

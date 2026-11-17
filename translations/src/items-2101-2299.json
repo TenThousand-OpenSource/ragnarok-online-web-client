@@ -1,0 +1,3571 @@
+{
+ "2101": {
+  "name": "Guard",
+  "description": [
+   "A square shield that is small, yet effective in combat.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2102": {
+  "name": "Guard",
+  "description": [
+   "A square shield that is small, yet effective in combat.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2103": {
+  "name": "Buckler",
+  "description": [
+   "A rounded shield that readily absorbs impact from attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Acolyte, Merchant, Thief, Bard and Dancer"
+  ]
+ },
+ "2104": {
+  "name": "Buckler",
+  "description": [
+   "A rounded shield that readily absorbs impact from attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Acolyte, Merchant, Thief, Bard and Dancer"
+  ]
+ },
+ "2105": {
+  "name": "Shield",
+  "description": [
+   "A well crafted shield which most kinds of attack cannot penetrate.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 60",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "2106": {
+  "name": "Shield",
+  "description": [
+   "A well crafted shield which most kinds of attack cannot penetrate.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 60",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "2107": {
+  "name": "Mirror Shield",
+  "description": [
+   "A shield with a surface constructed of mirror that might reflect harmful magic.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman and Star Gladiator"
+  ]
+ },
+ "2108": {
+  "name": "Mirror Shield",
+  "description": [
+   "A shield with a surface constructed of mirror that might reflect harmful magic.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman and Star Gladiator"
+  ]
+ },
+ "2109": {
+  "name": "Memory Book",
+  "description": [
+   "A magic book filled with long, impractical spells that is so large, it can actually be used just like a shield.",
+   "_______________________",
+   "INT +1",
+   "MDEF +2",
+   "_______________________",
+   "When equipped with ^990099Pocket Watch^000000 & ^990099Monocle^000000:",
+   "MATK +7%",
+   "Increases HP and SP Recovery Rate by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2110": {
+  "name": "Holy Guard",
+  "description": [
+   "A blessed guard with God's symbol engraved on it.",
+   "_______________________",
+   "VIT +2",
+   "MDEF +2",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 110",
+   "^0000CCWeight:^000000 140",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 68",
+   "Crusader"
+  ]
+ },
+ "2111": {
+  "name": "Herald of God",
+  "description": [
+   "A symbolic shield, rumored to have been given from God to his messenger.",
+   "_______________________",
+   "INT +2, VIT +3",
+   "MDEF +3",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 120",
+   "^0000CCWeight:^000000 160",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 83",
+   "Crusader"
+  ]
+ },
+ "2112": {
+  "name": "Novice Guard",
+  "description": [
+   "An exclusive shield for new adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "2113": {
+  "name": "Novice Shield",
+  "description": [
+   "A cute shield made out of a special metal for the Novice class.",
+   "_______________________",
+   "Decreases damage taken from all elemental attacks, except ^777777Neutral^000000 element, by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Novice"
+  ]
+ },
+ "2114": {
+  "name": "Stone Buckler",
+  "description": [
+   "A stone shield which Thor obtained by killing Hrungnir, king of giants.",
+   "It possesses the powers of giants which rival the might of the gods.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Large^000000 size by 5%.",
+   "_______________________",
+   "When equipped with ^990099Magni's Cap^000000 and ^990099Odin's Blessing^000000:",
+   "STR +2",
+   "DEF +5",
+   "MDEF +5",
+   "When equipped by ^0033CCSwordman^000000 classes:",
+   "DEF +6",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2115": {
+  "name": "Valkyrie Shield",
+  "description": [
+   "A shield used by Gna, messenger of Freya, when she served as a Valkyrie.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000, ^FF0000Fire^000000, ^777777Undead^000000 and ^777777Shadow^000000 elemental attacks by 20%.",
+   "_______________________",
+   "When equipped with ^990099Fricca's Circlet^000000 and ^990099Odin's Blessing^000000:",
+   "DEF +2",
+   "MDEF +5",
+   "All Refine Levels of the Shield and Circlet adds to MDEF ^770000Instead^000000 of DEF.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 80",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2116": {
+  "name": "Angelic Guard",
+  "description": [
+   "Super Novice Guardian Angel's shield which contains holy power that can nullify evil.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Angel's Kiss^000000, ^990099Angelic Protection^000000, ^990099Angelic Cardigan^000000 and ^990099Angel's Reincarnation^000000:",
+   "MaxHP +900",
+   "MaxSP +100",
+   "Random chance to auto-cast Level 1 ^009900Assumptio^000000 when receiving physical attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 30",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "Novice"
+  ]
+ },
+ "2117": {
+  "name": "Arm Guard",
+  "description": [
+   "A wrist protector, designed exclusively for the Ninja class, that is padded with a steel plate for increased defense and durability.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "Ninja"
+  ]
+ },
+ "2118": {
+  "name": "Arm Guard",
+  "description": [
+   "A wrist protector, designed exclusively for the Ninja class, that is padded with a steel plate for increased defense and durability.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "Ninja"
+  ]
+ },
+ "2119": {
+  "name": "Advanced Arm Guard",
+  "description": [
+   "A wrist protector, designed exclusively for the Ninja class, that has been enhanced with high Magic Defense by a gifted artisan.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Ninja"
+  ]
+ },
+ "2120": {
+  "name": "Advanced Arm Guard",
+  "description": [
+   "A wrist protector, designed exclusively for the Ninja class, that has been enhanced with high Magic Defense by a gifted artisan.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Ninja"
+  ]
+ },
+ "2121": {
+  "name": "Memory Book",
+  "description": [
+   "A spellbook that is impractically huge and more useful as a shield than as a spell reference.",
+   "_______________________",
+   "INT +1",
+   "MDEF +2",
+   "_______________________",
+   "When equipped with ^990099Pocket Watch^000000 & ^990099Monocle^000000:",
+   "MATK +7%",
+   "Increases HP and SP Recovery Rate by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2122": {
+  "name": "Platinum Shield",
+  "description": [
+   "A magnificent platinum shield that is rumored to be able to reflect harmul magic.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Medium^000000 and ^FF0000Large^000000 size by 15%.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Undead^000000 race by 10%.",
+   "_______________________",
+   "Adds 40% chance of reflecting magical attacks for 2 seconds when wielder receive magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 95",
+   "^0000CCWeight:^000000 120",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 68",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2123": {
+  "name": "Orlean's Server",
+  "description": [
+   "A shiny, round steel plate used for serving food.",
+   "_______________________",
+   "MDEF +2",
+   "_______________________",
+   "Adds 5% chance of reflecting magical attack.",
+   "_______________________",
+   "When equipped with ^990099Orlean's Glove^000000:",
+   "Decreases Variable Casting Time by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 75",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2124": {
+  "name": "Thorny Buckler",
+  "description": [
+   "A rough shield covered in spikes that deters rushing enemies.",
+   "_______________________",
+   "MDEF +2",
+   "_______________________",
+   "When equipped with ^990099Bison Horn^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "Reflect melee physical attack by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 85",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2125": {
+  "name": "Strong Shield",
+  "description": [
+   "A massive shield that can withstand any attack, but it lacks shock absorption.",
+   "_______________________",
+   "Prevents knock-back effect.",
+   "_______________________",
+   "Increases damage taken from Physical and Magical attacks by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 90",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Transcendent Swordman, Merchant and Thief"
+  ]
+ },
+ "2126": {
+  "name": "Old Shield",
+  "description": [
+   "An ivory shield with mysterious aura.",
+   "_______________________",
+   "MDEF +2",
+   "_______________________",
+   "Reflects 5% melee physical attacks.",
+   "_______________________",
+   "Adds 2% chance of reflecting magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 3",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All except Novice"
+  ]
+ },
+ "2127": {
+  "name": "Lion's Slipper",
+  "description": [
+   "Shield provided by Adventurer Guild for Brave adventurer.",
+   "_______________________",
+   "Decreases damage taken by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All except Novice"
+  ]
+ },
+ "2128": {
+  "name": "Herald of God",
+  "description": [
+   "A symbolic shield, rumored to have been given from God to his messenger.",
+   "_______________________",
+   "INT +2, VIT +3",
+   "MDEF +3",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 120",
+   "^0000CCWeight:^000000 160",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 83",
+   "Crusader"
+  ]
+ },
+ "2129": {
+  "name": "Exorcism Bible",
+  "description": [
+   "A thick book that contains basic skills for the clergy.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "Increases HP and SP Recovery Rate by 3%.",
+   "_______________________",
+   "When equipped with ^990099Holy Stick^000000:",
+   "Increases damage of ^009900Magnus Exorcismus^000000 by 20%.",
+   "Random chance to auto-cast Level 1 ^009900Turn Undead^000000 on attacker when wielder receive physical attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 80",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Priest and Monk classes"
+  ]
+ },
+ "2130": {
+  "name": "Cross Shield",
+  "description": [
+   "A big and thick cross-shaped shield.",
+   "_______________________",
+   "STR +1",
+   "_______________________",
+   "Increases SP Consumption by 10%.",
+   "_______________________",
+   "Increases damage of ^009900Shield Chain^000000 and ^009900Shield Boomerang^000000 by 30%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 130",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Crusader"
+  ]
+ },
+ "2131": {
+  "name": "Magic Bible Vol.1",
+  "description": [
+   "A thick book which is full of unknown words. It seems to be published in series.",
+   "_______________________",
+   "INT +2",
+   "MDEF +3",
+   "_______________________",
+   "Random chance to inflict ^663399Stun^000000 status on attacker when wielder receive physical attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent Magician and Soul Linker"
+  ]
+ },
+ "2132": {
+  "name": "Shelter Resistance",
+  "description": [
+   "^000088Rental Item^000000",
+   "A Magical Shield that has a strong resistance against every attack that an opponent tries to deal you.",
+   "_______________________",
+   "Decreases damage taken from all monsters by 20%.",
+   "_______________________",
+   "Reflects 1% of melee physical attacks.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 140",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2133": {
+  "name": "Tournament Shield",
+  "description": [
+   "A Shield that a lance can be placed on top of.",
+   "Very efficient to defend oneself while attacking with a lance.",
+   "_______________________",
+   "ATK +1%.",
+   "_______________________",
+   "When equipped with ^990099Long Horn, Battle Hook^000000 or ^990099Hunting Spear^000000:",
+   "ATK +4%",
+   "_______________________",
+   "When equipped by ^0033CCLord Knight^000000 classes:",
+   "Increases After Attack Delay by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 105",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "2134": {
+  "name": "Shield of Naga",
+  "description": [
+   "A hard, firm-looking shield made from the scales of Naga. The scales are as sharp as blades.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "Adds a chance of reflecting Melee Physical Damage for 5 secs, when wielder receive physical attacks.",
+   "The rate of reflecting increases by 3% with each Refine Level up to +10",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Reflective duration increases by 1 sec for every 2 Refine Level.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 35",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2135": {
+  "name": "Shadow Guard",
+  "description": [
+   "A small-sized black shield you can wear on your arm.",
+   "_______________________",
+   "When equipped with ^990099Shadow Walk^000000:",
+   "Random chance to increase FLEE by 20 for 10 seconds when wielder receiving physical attack.",
+   "Random chance to inflict ^663399Blind^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 52",
+   "^0000CCWeight:^000000 80",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Stalker"
+  ]
+ },
+ "2136": {
+  "name": "Cracked Buckler",
+  "description": [
+   "A cracked buckler.",
+   "_______________________",
+   "AGI +2",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "Random chance to auto-cast Kyrie Eleison when wielder receiving physical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 55",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2137": {
+  "name": "Neo Valkyrie Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "A shield used by Gna, the messanger of Freya while she served as a Valkyrie.",
+   "_______________________",
+   "MaxHP +5%",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 30%.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 and ^009900Water^000000 elemental attacks by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 110",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "All Jobs except Novice"
+  ]
+ },
+ "2138": {
+  "name": "Bradium Shield",
+  "description": [
+   "A heavy and strong shield made out of Bradium.",
+   "_______________________",
+   "AGI -1",
+   "MaxHP +500",
+   "_______________________",
+   "Increases damage of ^009900Shield Boomerang^000000 by 60%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 98",
+   "^0000CCWeight:^000000 180",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2139": {
+  "name": "Flame Thrower",
+  "description": [
+   "It sends out a hot flames that it burns enemies out in a short time.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 60",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2140": {
+  "name": "Energy Rune Guard",
+  "description": [
+   "A wing-shaped guard nailed with a luxurious bluish energy rune. A clear energy comes out that stimulates spirit.",
+   "_______________________",
+   "MaxSP +2%",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 70",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Swordman classes"
+  ]
+ },
+ "2141": {
+  "name": "Freya's Spiritual Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual shield granted by Freya. It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Medium^000000 size by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2142": {
+  "name": "Freya's Spiritual Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual shield granted by Freya. It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Medium^000000 size by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2143": {
+  "name": "Freya's Spiritual Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual shield granted by Freya. It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Medium^000000 size by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2144": {
+  "name": "Freya's Spiritual Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual shield granted by Freya.",
+   "It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Medium^000000 size by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2145": {
+  "name": "Time Keeper Shield",
+  "description": [
+   "Shield, which was used by Keeper of Time.",
+   "It is slightly frayed, but still easy to use.",
+   "_______________________",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2146": {
+  "name": "Silver Guard",
+  "description": [
+   "A shield which is a guard covered with thin layer of mixed silver and steel. It looks good when it reflects light.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 60",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 22"
+  ]
+ },
+ "2147": {
+  "name": "Round Buckler",
+  "description": [
+   "A round-shape shield that is used generally.",
+   "It has heightened a defense power by adding elunium thick at the round part.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 90",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 22",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2148": {
+  "name": "Rosa Shield",
+  "description": [
+   "A shield made by crafting the metal from the Ash Vacuum.",
+   "It looks like a bloomed flower due to the metal pieces rounded on it.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 130",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight and Royal Guard"
+  ]
+ },
+ "2149": {
+  "name": "Upgrade Guard",
+  "description": [
+   "A Guard molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2150": {
+  "name": "Upgrade Buckler",
+  "description": [
+   "A Buckler molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Acolyte, Thief, Bard and Dancer"
+  ]
+ },
+ "2151": {
+  "name": "Upgrade Shield",
+  "description": [
+   "A Shield molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 65",
+   "^0000CCWeight:^000000 65",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "2152": {
+  "name": "Anti Demon Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "Decreases damage taken from ^FF0000Demon^000000 and ^FF0000Demi-Human^000000 race by 25%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Decreases damage taken from demons and ^FF0000Demi-Human^000000 race by 5%.",
+   "MaxHP +400",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2153": {
+  "name": "Imperial Guard",
+  "description": [
+   "A beautiful shield engraved with the patterns of the Rune Kingdom.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Increases damage of ^009900Shield Press^000000 by 20%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+6^000000:",
+   "Increases damage of ^009900Shield Press^000000 by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 120",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 102",
+   "Royal Guard"
+  ]
+ },
+ "2154": {
+  "name": "Toy Shield",
+  "description": [
+   "Shield made of plastic. Do not underestimate this toy!",
+   "_______________________",
+   "Perfect Dodge +2",
+   "_______________________",
+   "^CC6600Base Level^000000 less than ^0000FF80^000000:",
+   "FLEE +5",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2156": {
+  "name": "Bible of Promise Vol.1",
+  "description": [
+   "An ancient book of sacred songs handed down in the cathedral.",
+   "It is said to have sold like hotcakes, published as one of a series.",
+   "_______________________",
+   "MDEF +2",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFOdin's Power^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "Archbishop"
+  ]
+ },
+ "2157": {
+  "name": "Insecticide",
+  "description": [
+   "A pesticide spray. Use it on pest's nest, Summer essentials!",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Insect^000000 race by 10%.",
+   "_______________________",
+   "When equipped with ^990099Ultra-Strong Ora Ora^000000:",
+   "Decreases damage taken from ^FF0000Insect^000000 race by 10%.",
+   " ",
+   "^0000FFRefine Level +8^000000:",
+   "Increases Magical Damage against monsters of ^FF0000Insect^000000 race by 4%.",
+   "Decreases damage taken from ^FF0000Insect^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2158": {
+  "name": "L'Amour Shield",
+  "description": [
+   "A magic shield with elemental resistance.",
+   "_______________________",
+   "Decreases damage taken from ^777777Undead^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Increases experience gained from defeating monsters by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2159": {
+  "name": "Sharel Shield",
+  "description": [
+   "A magic shield with elemental resistance.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demon^000000 race by 5%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Increases experience gained from defeating monsters by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2160": {
+  "name": "Giant Shield",
+  "description": [
+   "Made similar to a Giant's shield that was an Ancient Temple guardian.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Large^000000 size by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Decreases damage taken from ^FF0000Large^000000 size by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 130",
+   "^0000CCWeight:^000000 280",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight and Royal Guard"
+  ]
+ },
+ "2161": {
+  "name": "Geffenia Water Book",
+  "description": [
+   "One of Geffenia's secret treasures. There are not many people who can use this shield's magic.",
+   "_______________________",
+   "INT +1",
+   "MDEF +2",
+   "_______________________",
+   "Base ^CC6600INT^000000 at least ^0000FF120^000000:",
+   "MATK +10",
+   "MaxHP +800",
+   "_______________________",
+   "When equipped with ^990099Lacryma Stick^000000:",
+   "Decreases Variable Casting Time of ^009900Jack Frost^000000, ^009900Frost Misty^000000 and ^009900Storm Gust^000000 by (4*Shield Refine Level)%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 30",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2162": {
+  "name": "Bible of Promise Vol.2",
+  "description": [
+   "An ancient book of sacred songs handed down in the cathedral.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Enables the use of Level 2 ^0000FFOdin's Power^000000.",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 140",
+   "Archbishop"
+  ]
+ },
+ "2163": {
+  "name": "Froid Shield",
+  "description": [
+   "A magic shield with elemental resistance.",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Brute^000000 race by 5%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Increases experience gained from defeating monsters by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2164": {
+  "name": "Sombre Shield",
+  "description": [
+   "A magic shield with elemental resistance.",
+   "_______________________",
+   "Decreases damage taken from ^777777Shadow^000000 elemental by 5.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Undead^000000 race by 5%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Increases experience gained from defeating monsters by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2165": {
+  "name": "Sol Shield",
+  "description": [
+   "A magical Earth elemental shield.",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Plant^000000 race by 5%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Increases experience gained from defeating monsters by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2166": {
+  "name": "Devil's Bible",
+  "description": [
+   "A must-read book for priests.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "Increases HP Recovery Rate by 3%.",
+   "Increases SP Recovery Rate by 3%.",
+   "_______________________",
+   "When equipped with ^990099Holy Stick^000000:",
+   "Increases damage of ^009900Magnus Exorcismus^000000 by 20%.",
+   "Physical attacks have a certain chance to auto-cast Level 1 ^009900Turn Undead^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 80",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Priest and Monk classes"
+  ]
+ },
+ "2167": {
+  "name": "Poison Shield",
+  "description": [
+   "A magic shield with elemental resistance.",
+   "_______________________",
+   "Decreases damage from ^663399Poison^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage from ^FF0000Plant^000000 race by 5%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Increases experience gained from defeating monsters by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2168": {
+  "name": "Immune Shield",
+  "description": [
+   "Very unique, square formed shield with a special jewel on it which protects from physical power.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+5^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 1%.",
+   "(The increase is limited to Refine Level 12)",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Decreases damage taken from ^FF0000Fire^000000, ^CC5500Earth^000000, ^009900Water^000000 and ^33CC00Wind^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 55",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2169": {
+  "name": "Kalasag",
+  "description": [
+   "Sturdy yet light, practical shield made from rattan.",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Decreases damage taken from ^FF0000Boss^000000 class by 1%.",
+   "_______________________",
+   "When equipped with ^990099Buwaya Sack Cloth^000000, ^990099Bakonawa Scale Armor^000000 and ^990099Bangungot Boots of Nightmare^000000:",
+   "MaxHP +20%",
+   "MaxSP +10%",
+   "Decreases damage taken from all monsters within Philippine localizing by 30%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2170": {
+  "name": "Kalasag(Bayani)",
+  "description": [
+   "Sturdy yet light, practical shield made from rattan.",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Decreases damage taken from ^FF0000Boss^000000 class by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2171": {
+  "name": "Fox Armguard",
+  "description": [
+   "Armguard with a charming fox drawing. You feel swift when wearing this.",
+   "_______________________",
+   "FLEE +5",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Kagerou and Oboro"
+  ]
+ },
+ "2172": {
+  "name": "Wolf Armguard",
+  "description": [
+   "Armguard with a threatening wolf drawing. You feel indiscriminating wild instincts when wearing this.",
+   "_______________________",
+   "Random chance to increase ATK by 100 and reducing FLEE by 50 for 5 seconds when attacking enemy.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 70",
+   "^0000CCWeight:^000000 25",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Artisan Tene<INFO>que_ng,75,20,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Kagerou and Oboro"
+  ]
+ },
+ "2173": {
+  "name": "Crescent Armguard",
+  "description": [
+   "Armguard with a glowing crescent moon drawing. You feel a sense of mystical fullness when wearing this.",
+   "_______________________",
+   "For each Refine Level:",
+   "Decreases After Skill Delay by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 25",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Artisan Tene<INFO>que_ng,75,20,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Kagerou and Oboro"
+  ]
+ },
+ "2174": {
+  "name": "Lumiere Shield",
+  "description": [
+   "Holy spiritual magical shield.",
+   "_______________________",
+   "Decreases damage taken from ^777777Holy^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Dragon^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2175": {
+  "name": "Esprit Shield",
+  "description": [
+   "A shield refined by applying special magic to Bradium.",
+   "It reduces the attacks from certain monsters.",
+   "_______________________",
+   "Decreases damage taken from ^777777Ghost^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Angel^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Esprit Manteau^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099Esprit Manteau^000000:",
+   "Decreases damage taken from ^FF0000Angel^000000 race by additional 1%.",
+   " ",
+   "^0000FFFor each Refine Level^000000 of ^990099Esprit Shield^000000:",
+   "Increases Physical Damage against enemies of ^777777Ghost^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Esprit Shoes^000000:",
+   "Decreases damage taken from ^777777Ghost^000000 elemental by additional 5%.",
+   " ",
+   "^0000FFFor each Refine Level^000000 of ^990099Esprit Shield^000000:",
+   "Decreases damage from ^777777Ghost^000000 elemental attacks by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2176": {
+  "name": "Dark Book",
+  "description": [
+   "The horrible curse book will be scared to death.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Random chance to inflict abnormal statuses to enemies in 5*5 cells when wielder receive physical attacks.",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases the rate of inflicting abnormal statuses.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases the rate of inflicting abnormal statuses.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 80",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2177": {
+  "name": "Shield of Death",
+  "description": [
+   "The Shield of the Lord of Death.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Boss^000000 class by 2%.",
+   "_______________________",
+   "Increases Physical Damage taken from ^FF0000Normal^000000 class by 10%.",
+   "_______________________",
+   "When equipped with ^990099Lord of Death Helm^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Boss^000000 class by 5%.",
+   " ",
+   "^0000FFRefine Level^000000 of ^990099Shield of Death^000000 is ^0000FF+7 or higher^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Boss^000000 class by additional 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 150",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90"
+  ]
+ },
+ "2178": {
+  "name": "TE WoE Buckler",
+  "description": [
+   "^000088Rental Item^000000",
+   "MDEF +15",
+   "_______________________",
+   "*Effects in WoE TE area",
+   "MaxHP +100, MaxSP +100",
+   "Decreases damage taken from ^FF0000Players^000000 by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40"
+  ]
+ },
+ "2179": {
+  "name": "TE WoE Shield",
+  "description": [
+   "^000088Rental Item^000000",
+   "MDEF +5",
+   "_______________________",
+   "*Effects in WoE TE area",
+   "MaxHP +200.",
+   "Decreases damage taken from ^FF0000Players^000000 by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2180": {
+  "name": "TE WoE Magic Guard",
+  "description": [
+   "^000088Rental Item^000000",
+   "MDEF +25",
+   "_______________________",
+   "*Effects in WoE TE area",
+   "MaxSP +200",
+   "Decreases damage taken from ^FF0000Players^000000 by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Novice, Magician, Acolyte and Soul Linker"
+  ]
+ },
+ "2181": {
+  "name": "Hervor",
+  "description": [
+   "A shield named after Hervor, the valkyrie who ensures victory for her warriors.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from all monsters by 30%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 100",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90"
+  ]
+ },
+ "2182": {
+  "name": "Hervor Alvitr",
+  "description": [
+   "A shield named after Hervor, the valkyrie who ensures victory for her warriors. It's now endowed with greater power.",
+   "_______________________",
+   "VIT +20",
+   "MDEF +10",
+   "_______________________",
+   "Decreases damage taken from all monsters by 30%.",
+   "_______________________",
+   "When you receive Melee Physical damage, this shield creates a chance of casting Protective Light for 60 seconds.",
+   "Protective Light immediately cancels:",
+   "Stun, ^663399Sleep^000000, ^663399Curse^000000, Stone ^663399Curse^000000, Poison, Blind, ^663399Silence^000000, Bleeding, Confuse and Frost then protects the user against such effects for a set duration.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 150",
+   "^0000CCWeight:^000000 300",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "3rd Classes"
+  ]
+ },
+ "2183": {
+  "name": "Modified Angelic Guard",
+  "description": [
+   "Angel's Shield for Super Novice. Contains sacred demon resistance power.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 race by 5%.",
+   "_______________________",
+   "Decreases damage taken from all elemental attacks, except ^777777Neutral^000000 element, by 5%.",
+   "_______________________",
+   "When equipped with ^990099Modified Angelic Protection^000000:",
+   "All Basic Stats +2",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 30",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Novice"
+  ]
+ },
+ "2184": {
+  "name": "Bunker shield",
+  "description": [
+   "A shield equipped with a huge iron skewer which can be triggered by using gunpowder.",
+   "You will become sluggish because it's so heavy.",
+   "Once owned by Blue Knight.",
+   "_______________________",
+   "ATK +4%",
+   "_______________________",
+   "For each Refine Level above +5 or higher^000000:",
+   "ATK +1%.",
+   "_______________________",
+   "Increases After Attack Delay by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 90",
+   "^0000CCWeight:^000000 350",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50"
+  ]
+ },
+ "2185": {
+  "name": "Magic Reflector",
+  "description": [
+   "This anti-magic shield effectively reflects magic.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "Adds 3% chance of reflecting magical attack",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases reflect chance by 3%",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases reflect chance by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99"
+  ]
+ },
+ "2186": {
+  "name": "Revised Encyclopedia",
+  "description": [
+   "A revised edition of an encyclopedia that is printed by a Prontera publisher. Thick and sharp-edged, this book is popularly used as a shield.",
+   "_______________________",
+   "INT +3, DEX +2",
+   "MATK +5",
+   "Critical +3",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Critical +2",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "MATK +5",
+   "_______________________",
+   "When equipped with ^990099Encyclopedia[2]^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099Encyclopedia[2]^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 1%).",
+   "_______________________",
+   "When equipped with ^990099Rental Encyclopedia^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 15%).",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Priest, Sage and Star Gladiator"
+  ]
+ },
+ "2187": {
+  "name": "Gray Shield",
+  "description": [
+   "Shield surrounded by dark aura. Has the ability to resist divine power.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "Decreases damage taken from ^777777Holy^000000 elemental attacks by 30%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Decreases damage taken from ^777777Holy^000000 elemental attacks by 1%.",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Increases MDEF by 1.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 75",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "3rd Classes"
+  ]
+ },
+ "2188": {
+  "name": "Svalinn",
+  "description": [
+   "The name of this shield surrounded by chilling cold energy means \"freeze\"",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "MaxHP +1%",
+   "Decreases damage taken from ^0000BBWater^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 80",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2189": {
+  "name": "Mad Bunny",
+  "description": [
+   "A rag doll that Piamette use for both attack and defense? It looks so real and alive!",
+   "_______________________",
+   "DEX +1",
+   "MDEF +6",
+   "_______________________",
+   "Decreases damage taken from all elemental attacks by 5%.",
+   "_______________________",
+   "When equipped with ^990099Piamette's Ribbon^000000:",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+6^000000:",
+   "Decreases damage taken from all elemental attacks by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2190": {
+  "name": "Ancient Shield Of Aeon",
+  "description": [
+   "A shield made in honor of the fallen warrior of Asgard.",
+   "_______________________",
+   "MaxHP +500",
+   "MaxSP +50",
+   "_______________________",
+   "Decreases damage taken from all elemental attacks by 10%.",
+   "_______________________",
+   "^0000FFRefine Level +14^000000:",
+   "Enables the use of Level 5 ^0000FFStone Curse^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "3rd Classes"
+  ]
+ },
+ "2191": {
+  "name": "Solomon Magic Book",
+  "description": [
+   "A large magic book that describe the mystery of King Solomon.",
+   "_______________________",
+   "INT +2",
+   "MATK +5",
+   "MDEF +5",
+   "_______________________",
+   "Base ^CC6600INT^000000 at least ^0000FF120^000000:",
+   "MATK +25",
+   "_______________________",
+   "When equipped with ^990099Ring of the Ancient Wise King^000000:",
+   "Decreases SP Consumption by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 2",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2192": {
+  "name": "Rose of Eden",
+  "description": [
+   "A shield made from flower that only bloomed in heaven. It amplify the healing power.",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 10%.",
+   "_______________________",
+   "When equipped with ^990099Angelic Ring^000000:",
+   "Increases ^009900Healing^000000 skills effectiveness by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 70",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70"
+  ]
+ },
+ "2193": {
+  "name": "Shield of Fallen Angel",
+  "description": [
+   "A shield of Angel that has been expelled from heaven.",
+   "_______________________",
+   "Random chance to Reduces After Skill Delay by 10% for 5 seconds when dealing magical damage",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Random chance to Reduces After Skill Delay by 5% for 5 seconds when dealing magical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 100",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60"
+  ]
+ },
+ "2194": {
+  "name": "Levain Shield",
+  "description": [
+   "A shield made from purified bradium.",
+   "_______________________",
+   "Decreases damage taken from ^33CC00Wind^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Insect^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Levain Manteau^000000:",
+   "^0000FFFor each Refine Level^000000 of manteau:",
+   "Decreases damage taken from ^FF0000Insect^000000 race by 1%.",
+   "_______________________",
+   "When equipped with ^990099Levain Shoes^000000:",
+   "Decreases damage taken from ^33CC00Wind^000000 elemental by 5%, every Refine Level of Shield Decreases damage taken from ^33CC00Wind^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Levain Manteau^000000 and ^990099Levain Shoes^000000:",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Physical Damage against enemies of ^33CC00Wind^000000 elemental by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2195": {
+  "name": "Lien Shield",
+  "description": [
+   "A shield made from purified bradium.",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from ^777777Ghost^000000 elemental by 5%.",
+   "_______________________",
+   "When equipped with ^990099Lien Manteau^000000:",
+   "^0000FFFor each Refine Level^000000 of manteau:",
+   "Decreases damage taken from ^777777Ghost^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Lien Shoes^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental by 5%.",
+   "^0000FFFor each Refine Level^000000 of Shield Decreases damage taken from ^777777Neutral^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Lien Manteau^000000 and ^990099Lien Shoes^000000:",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Physical Damage against enemies of ^777777Neutral^000000 elemental by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 130",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2196": {
+  "name": "White Gold Shield",
+  "description": [
+   "A shield coated with White Gold and Bronze.",
+   "_______________________",
+   "Adds 20% chance of reflecting magic damage for 2 seconds when wielder receive magical attack.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 140",
+   "^0000CCWeight:^000000 180",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100"
+  ]
+ },
+ "2197": {
+  "name": "Iron Shield",
+  "description": [
+   "A very large and heavy shield made of Iron.",
+   "_______________________",
+   "^0000FFRefine Level +8^000000:",
+   "ATK -3%",
+   "Prevents knock-back effect.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 80",
+   "^0000CCWeight:^000000 280",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90"
+  ]
+ },
+ "2198": {
+  "name": "Lapine Shield",
+  "description": [
+   "A shield of Lapine tribe that hold mysterious power.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "MATK +20",
+   "_______________________",
+   "^0000CCType:^000000 Shield",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "3rd Classes"
+  ]
+ },
+ "2199": {
+  "name": "Ahura Mazdah",
+  "description": [
+   "\"^339999The Shield of all Shields^000000\""
+  ]
+ },
+ "2201": {
+  "name": "Sunglasses",
+  "description": [
+   "Glasses with special, darkened lenses that block ultraviolet light.",
+   "_______________________",
+   "Increases resistance against ^663399Blind^000000 status by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2202": {
+  "name": "Sunglasses",
+  "description": [
+   "Glasses with special, darkened lenses that block ultraviolet light.",
+   "_______________________",
+   "Increases resistance against ^663399Blind^000000 status by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2203": {
+  "name": "Glasses",
+  "description": [
+   "Prescription glasses worn to compensate for defects in vision.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2204": {
+  "name": "Glasses",
+  "description": [
+   "Prescription glasses worn to compensate for defects in vision.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2205": {
+  "name": "Diver Goggles",
+  "description": [
+   "Sturdy goggles worn by ocean divers.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2206": {
+  "name": "Wedding Veil",
+  "description": [
+   "A transparent veil worn by brides on the day of their wedding.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Female Only;"
+  ]
+ },
+ "2207": {
+  "name": "Fancy Flower",
+  "description": [
+   "A floral decoration used to adorn the head.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Plant^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2208": {
+  "name": "Ribbon",
+  "description": [
+   "A hairpin made from indigo blue satin that wards off harmful magic.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2209": {
+  "name": "Ribbon",
+  "description": [
+   "A hairpin made from indigo blue satin that wards off harmful magic.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2210": {
+  "name": "Hairband",
+  "description": [
+   "A simple hairband that holds hair in place quite neatly.",
+   "It's a very cute look for girls, but dudes, on the other hand...",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2211": {
+  "name": "Bandana",
+  "description": [
+   "A common, ivory colored bandana.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2212": {
+  "name": "Eye Patch",
+  "description": [
+   "A patch used to cover one eye.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2213": {
+  "name": "Kitty Band",
+  "description": [
+   "A hairband that gives one the appearance of having ears like a cat.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 3",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2214": {
+  "name": "Bunny Band",
+  "description": [
+   "A hairband that gives one the appearance of having rabbit ears, a lasting symbol of extremely good luck.",
+   "_______________________",
+   "LUK +2",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 3",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2215": {
+  "name": "Flower Band",
+  "description": [
+   "A fragrant hairband crafted from only the daintiest of flowers.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2216": {
+  "name": "Biretta",
+  "description": [
+   "A stiff, squarish formal hat usually worn by clerics.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 8",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte"
+  ]
+ },
+ "2217": {
+  "name": "Biretta",
+  "description": [
+   "A stiff, squarish formal hat usually worn by clerics.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 8",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte"
+  ]
+ },
+ "2218": {
+  "name": "Flu Mask",
+  "description": [
+   "A mask that is worn by people with the flu to prevent spreading sickness to others.",
+   "_______________________",
+   "Increases resistance against ^663399Silence^000000 status by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2219": {
+  "name": "Flu Mask",
+  "description": [
+   "A mask that is worn by people with the flu to prevent spreading sickness to others.",
+   "_______________________",
+   "Increases resistance against ^663399Silence^000000 status by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2220": {
+  "name": "Hat",
+  "description": [
+   "A simple, pink hat.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2221": {
+  "name": "Hat",
+  "description": [
+   "A simple, pink hat.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2222": {
+  "name": "Turban",
+  "description": [
+   "A small, tight fitting headdress made of fine silk.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2223": {
+  "name": "Turban",
+  "description": [
+   "A small, tight fitting headdress made of fine silk.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2224": {
+  "name": "Goggles",
+  "description": [
+   "A pair of Goggles especially created for pilots to Reduces impaired vision while riding at high speeds.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper, Middle",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Archer, Merchant and Thief"
+  ]
+ },
+ "2225": {
+  "name": "Goggles",
+  "description": [
+   "A pair of Goggles especially created for pilots to Reduces impaired vision while riding at high speeds.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper, Middle",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Archer, Merchant and Thief"
+  ]
+ },
+ "2226": {
+  "name": "Cap",
+  "description": [
+   "A brimless hat that offers very little in the way of fashion, but does provide decent defense.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 7",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Archer, Merchant and Thief"
+  ]
+ },
+ "2227": {
+  "name": "Cap",
+  "description": [
+   "A brimless hat that offers very little in the way of fashion, but does provide decent defense.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 7",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Archer, Merchant and Thief"
+  ]
+ },
+ "2228": {
+  "name": "Helm",
+  "description": [
+   "This steel helmet, made in the style worn by roman soldiers, offers great protection, covering most of the head.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 13",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "2229": {
+  "name": "Helm",
+  "description": [
+   "This steel helmet, made in the style worn by roman soldiers, offers great protection, covering most of the head.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 13",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "2230": {
+  "name": "Gemmed Sallet",
+  "description": [
+   "A jeweled headdress that wards off harmful magic.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 8",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2231": {
+  "name": "Gemmed Sallet",
+  "description": [
+   "A jeweled headdress that wards off harmful magic.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 8",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2232": {
+  "name": "Circlet",
+  "description": [
+   "A jeweled, metal band worn on the head that wards off the effects of harmful magic.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 6",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician, Acolyte and Soul Linker"
+  ]
+ },
+ "2233": {
+  "name": "Circlet",
+  "description": [
+   "A jeweled, metal band worn on the head that wards off the effects of harmful magic.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 6",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician, Acolyte and Soul Linker"
+  ]
+ },
+ "2234": {
+  "name": "Tiara",
+  "description": [
+   "A jeweled coronet said to grant the wisdom of an ancient queen that had worn it.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 7",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Female Only",
+   "All Jobs except Novice"
+  ]
+ },
+ "2235": {
+  "name": "Crown",
+  "description": [
+   "A crown adorned with gorgeous jewels that is said to be worn by a wise, ancient king who will grant his wisdom to the wearer.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 7",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Male Only,",
+   "All Jobs except Novice"
+  ]
+ },
+ "2236": {
+  "name": "Santa Hat",
+  "description": [
+   "A red, pompom topped cap that is associated with Santa Claus's legend.",
+   "It brings luck and magic protection to whoever wears it.",
+   "_______________________",
+   "LUK +1",
+   "MDEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2237": {
+  "name": "Bandit Beard",
+  "description": [
+   "Legendary beard.",
+   "When attached it,you look cool than before.",
+   "If you want to be seem like a grown-up person, attach it right now.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2238": {
+  "name": "Moustache",
+  "description": [
+   "Moustache",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2239": {
+  "name": "Monocle",
+  "description": [
+   "An aristrocratically stylish lense that is worn for only one eye.",
+   "_______________________",
+   "When equipped with ^990099Pocket Watch^000000 and ^990099Memory Book^000000:",
+   "MATK +7%",
+   "Increases HP and SP Recovery Rate by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2240": {
+  "name": "Beard",
+  "description": [
+   "A beard.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2241": {
+  "name": "Grampa Beard",
+  "description": [
+   "A white colored moustache, symbol of experience and well aged sophistication.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2242": {
+  "name": "Purple Glasses",
+  "description": [
+   "High quality sunglasses that effectively block glare from the sun.",
+   "_______________________",
+   "Increases resistance against ^663399Blind^000000 status by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2243": {
+  "name": "Geek Glasses",
+  "description": [
+   "A pair of glasses that make the wearer's eyes look like they're spinning without focus.",
+   "_______________________",
+   "Increases resistance against ^663399Blind^000000 status by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2244": {
+  "name": "Big Ribbon",
+  "description": [
+   "An over-sized red ribbon that contains hidden magical power.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 3",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2245": {
+  "name": "Sweet Gent",
+  "description": [
+   "A dark colored and very stylish hat that was popularized by smooth crooners.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2246": {
+  "name": "Golden Gear",
+  "description": [
+   "A helmet forged from pure gold which blocks attacks effectively, but is also unaffordable.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 9",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 90",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "All Jobs except Novice"
+  ]
+ },
+ "2247": {
+  "name": "Romantic Gent",
+  "description": [
+   "An ivory hat worn by classy men during classy occasions.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2248": {
+  "name": "Western Grace",
+  "description": [
+   "A broad brimmed casual hat, usually worn by cowboys and ranchers, that is rustically stylish.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2249": {
+  "name": "Coronet",
+  "description": [
+   "A small decorative crown, fashioned out of pure gold, worn by members of nobility.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2250": {
+  "name": "Cute Ribbon",
+  "description": [
+   "A small, decorative ribbon for the head.",
+   "_______________________",
+   "MaxSP +20",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2251": {
+  "name": "Monk Hat",
+  "description": [
+   "A ceremonial hat worn by monks that contains a sacred force which offers protection from evil.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 10",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte"
+  ]
+ },
+ "2252": {
+  "name": "Wizard Hat",
+  "description": [
+   "A mystic hat, made specifically for wizards, which amplifies pyschic power.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 7",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2253": {
+  "name": "Sunflower",
+  "description": [
+   "Peculiar headgear designed to look like a sunflower.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Insect^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2254": {
+  "name": "Angel Wings",
+  "description": [
+   "A headband adorned with what appears to be the wings of an angel.",
+   "It contains holiness that blesses the wearer's soul and offers protection from dark forces.",
+   "_______________________",
+   "AGI +1, LUK +1",
+   "MDEF +3",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 race monsters by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2255": {
+  "name": "Evil Wings",
+  "description": [
+   "A headgear that look like the wings of a Demon.",
+   "Demonic power increase the wearer's strength and offers protection from sacred powers.",
+   "_______________________",
+   "STR +1",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Angel^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 6",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2256": {
+  "name": "Majestic Goat",
+  "description": [
+   "A helmet, made to look like mighty goat horns, that can increase the strength of its wearer.",
+   "_______________________",
+   "STR +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 9",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 80",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2257": {
+  "name": "Unicorn Horn",
+  "description": [
+   "A pristinely white horn worn on the forehead that makes one look like a unicorn.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2258": {
+  "name": "Spiky Band",
+  "description": [
+   "A fashionable headband with two dangerous spikes.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 12",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Swordsman, Acolyte, Merchant, Thief, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2259": {
+  "name": "Mini Propeller",
+  "description": [
+   "A headgear topped with a fashionably experimental propeller.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2260": {
+  "name": "Mini Glasses",
+  "description": [
+   "Glasses worn by true sophisticates.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2261": {
+  "name": "Army Cap",
+  "description": [
+   "A squad cap issued by the Prontera Military.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 8",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2262": {
+  "name": "Clown Nose",
+  "description": [
+   "A fashion accessory used in clown or town drunk disguises.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2263": {
+  "name": "Zorro Mask",
+  "description": [
+   "A mask patterned after the one worn by a fencer of legendary repute who always kept his identity as a wealthy don secret.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2264": {
+  "name": "Munak Hat",
+  "description": [
+   "An exact replica of the turban worn by Munak, complete with a queue and talisman.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Undead^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper, Middle, Lower",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2265": {
+  "name": "Gangster Mask",
+  "description": [
+   "This mask marked with an \"X\" is a popular fashion item for bonafide street toughs.",
+   "_______________________",
+   "Increases resistance against ^663399Silence^000000 status by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2266": {
+  "name": "Iron Cain",
+  "description": [
+   "Specialized face armor that protects the jaw and teeth in battle.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Swordman classes"
+  ]
+ },
+ "2267": {
+  "name": "Cigarette",
+  "description": [
+   "A narrow, short roll of finely cut tobacco wrapped in thin paper.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Insect^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2268": {
+  "name": "Pipe",
+  "description": [
+   "A Refined, wooden pipe used for smoking high quality tobacco.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Insect^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All classes except except Novice"
+  ]
+ },
+ "2269": {
+  "name": "Romantic Flower",
+  "description": [
+   "A delicate flower that is placed in the mouth for romantic seduction.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Plant^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2270": {
+  "name": "Romantic Leaf",
+  "description": [
+   "A slender leaf that is placed in the mouth for a seductive look.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Plant^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2271": {
+  "name": "Jack be Dandy",
+  "description": [
+   "A pair of glasses that are worn on the head for a more charming appearance, instead of vision related purposes.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2272": {
+  "name": "Stop Post",
+  "description": [
+   "A signpost that declares its wearer's desire that people should stop whatever they are doing.",
+   "Causes catastrophes during wedding ceremonies.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2273": {
+  "name": "Doctor Band",
+  "description": [
+   "A headband worn by doctors in the past during medical examinations.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 5",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2274": {
+  "name": "Ghost Bandana",
+  "description": [
+   "A traditional Japanese headpiece associated with the afterlife.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "Decreases damage taken from ^777777Ghost^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2275": {
+  "name": "Red Bandana",
+  "description": [
+   "A boldly red bandana that was possibly left over from the 80's.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2276": {
+  "name": "Eagle Eyes",
+  "description": [
+   "A pair of glasses with lenses that are angled up and outward.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2277": {
+  "name": "Nurse Cap",
+  "description": [
+   "A cap worn by nurses both great and small.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte"
+  ]
+ },
+ "2278": {
+  "name": "Mr. Smile",
+  "description": [
+   "A simple mask with a smile carved into it.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Middle, Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2279": {
+  "name": "Bomb Wick",
+  "description": [
+   "A wick-like ornament worn on top of the head for a dangerous look.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2280": {
+  "name": "Sakkat",
+  "description": [
+   "A rustic hat knit from rough reeds and bamboos that shields against the rain and the glare of the sun.",
+   "Ssaurabi, the ancient Korean warrior, was known to wear one of these.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2281": {
+  "name": "Opera Mask",
+  "description": [
+   "A mysterious mask traditionally worn by opera phantoms.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle, Lower",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2282": {
+  "name": "Halo",
+  "description": [
+   "A spiritual symbol that typically appears over the heads of those who are holy.",
+   "_______________________",
+   "Decreases damage taken from ^777777Holy^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2283": {
+  "name": "Ear Muffs",
+  "description": [
+   "Ear coverings, linked by a headband, that protect the wearer's ears from the cold.",
+   "_______________________",
+   "Decreases damage taken from ^663399Curse^000000 status by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2284": {
+  "name": "Antlers",
+  "description": [
+   "A set of deer antlers that humans, finally, can proudly wear.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 8",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2285": {
+  "name": "Apple of Archer",
+  "description": [
+   "A headgear made in the honor of the legendary archer who shot an apple, on top of a friend's head, from a long distance.",
+   "_______________________",
+   "DEX +3",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "All Jobs except Novice"
+  ]
+ },
+ "2286": {
+  "name": "Elven Ears",
+  "description": [
+   "A fashion accessory that gives ears that vaunted, elvish look.",
+   "For some, it is an incredible turn-on.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "All Jobs except Novice"
+  ]
+ },
+ "2287": {
+  "name": "Pirate Bandana",
+  "description": [
+   "A bandana that is the mark of the lawless pirates of the oceans.",
+   "_______________________",
+   "STR +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 4",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2288": {
+  "name": "Mr. Scream",
+  "description": [
+   "A mask that expresses anguish and despair borne of insanity.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Middle, Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2289": {
+  "name": "Poo Poo Hat",
+  "description": [
+   "A hat which looks just like fecal matter that is guaranteed to end a date on a tragic note.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2290": {
+  "name": "Funeral Hat",
+  "description": [
+   "Traditional Korean headdress worn during funeral ceremonies by the bereaved family and close friends.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2291": {
+  "name": "Butterfly Mask",
+  "description": [
+   "A black leather mask, shaped like butterfly wings.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2292": {
+  "name": "Welding Mask",
+  "description": [
+   "A durable mask made from a fat metal plate that is usually worn by welders and Blacksmiths.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle, Lower",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Merchant"
+  ]
+ },
+ "2293": {
+  "name": "Pretend Murdered",
+  "description": [
+   "A stage prop that creates the illusion that the wearer has a knife sticking out of his head.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2294": {
+  "name": "Stellar",
+  "description": [
+   "A small, star shaped hairclip that makes a great present for ladies.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2295": {
+  "name": "Blinkers",
+  "description": [
+   "A face mask that is worn by those who have trouble sleeping.",
+   "_______________________",
+   "Prevents ^663399Blind^000000 status.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2296": {
+  "name": "Binoculars",
+  "description": [
+   "A special optical tool that enables one to observe objects from a great distance.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Archer"
+  ]
+ },
+ "2297": {
+  "name": "Goblin Mask",
+  "description": [
+   "A mask worn by Goblins to scare and intimidate unsuspecting enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 1",
+   "^0000CCPosition:^000000 Middle, Lower",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2298": {
+  "name": "Green Feeler",
+  "description": [
+   "Large insect antennae that humans can wear.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 3",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2299": {
+  "name": "Orc Helm",
+  "description": [
+   "A hardy helmet that was crafted by the most expert of Orcish smiths.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 9",
+   "^0000CCPosition:^000000 Upper",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ }
+}

@@ -1,0 +1,3376 @@
+{
+ "2700": {
+  "name": "Red Silk Seal",
+  "description": [
+   "Red silk that a female saint could use to seal evil.",
+   "_______________________",
+   "When equipped with ^990099Spectral Spear^000000:",
+   "Increases resistance against ^663399Confuse^000000 status.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "2701": {
+  "name": "Orlean's Glove",
+  "description": [
+   "A glove that were once worn by a palace chef.",
+   "Wearing these make you feel as if you could draw upon the dexterity that chef used in cooking.",
+   "_______________________",
+   "DEX +2",
+   "MATK +3%",
+   "_______________________",
+   "When equipped with ^990099Orlean's Server^000000:",
+   "Decreases Variable Casting Time by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2702": {
+  "name": "Bison Horn",
+  "description": [
+   "An ornament made from wild bison horns.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "When equipped with ^990099Thorny Buckler^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "Reflects melee physical attack by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2703": {
+  "name": "Expert Ring",
+  "description": [
+   "Beings that obtained ultimate power found a way to maximize their abilities by attaining a deep understanding of themselves, knowing that power always has its cost.",
+   "_______________________",
+   "Decreases After Skill Delay by 5%.",
+   "_______________________",
+   "Increases SP Consumption by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2704": {
+  "name": "Golden Accessory",
+  "description": [
+   "A special Accessory made of a pure gold mixture. According to legend you will gain magical strength whilst wearing this.",
+   "_______________________",
+   "MDEF +4",
+   "DEF +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2705": {
+  "name": "Golden Accessory",
+  "description": [
+   "A special Accessory made of a pure gold mixture. According to legend you will gain magical strength whilst wearing this.",
+   "_______________________",
+   "Random chance a defeated monster will drop ^0033CCFire Cracker^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2706": {
+  "name": "Arrest Handcuffs",
+  "description": [
+   "^000088Cash Items^000000",
+   "Arrest handcuffs. It will not be able to destroy very hardly. The hazard which binds the people who is dangerous it is used.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "2707": {
+  "name": "Gusli",
+  "description": [
+   "This musical instrument that came from a myterious aged man. It sounds very beautiful.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2708": {
+  "name": "Chinese Handicraft",
+  "description": [
+   "Random chance to auto-cast Level 5 ^009900Fire Bolt^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2709": {
+  "name": "G10 Anniversary Coin",
+  "description": [
+   "Gravity's 10th anniversary celebration coin.",
+   "_______________________",
+   "ATK +10",
+   "MATK +10",
+   "Critical +10",
+   "_______________________",
+   "Random chance to increase ASPD by 3 for 5 sec on each physical attack.",
+   "_______________________",
+   "Random chance to decreases Variable Casting Time by 50% for 5 sec when dealing magical damage.",
+   "_______________________",
+   "Random chance to increase Healing skills by 20% for 5 sec on when using Healing skills.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2710": {
+  "name": "Bloody Iron Ball",
+  "description": [
+   "^000088Rental Item^000000",
+   "A leg iron, long time ago, it used to make don't move of panther prisoner. However, the prisoner used his leg iron as his weapon.",
+   "_______________________",
+   "ATK +30",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2711": {
+  "name": "Spiritual Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "Beautiful ring that contains the power of the spirit. If the item is fit and fastened with decompensated represents a remarkable amplification effect.",
+   "_______________________",
+   "INT +2",
+   "DEX +2",
+   "_______________________",
+   "When equipped with ^990099Wizardry Staff^000000 or ^990099Soul Staff^000000:",
+   "DEX +2",
+   "MATK +6%",
+   "Decreases Variable Casting Time by a percentage according to the Staff's Refine Level.",
+   "_______________________",
+   "When equipped with ^990099Clip or Rosary^000000:",
+   "Increases damage of ^009900Magnus Exorcismus^000000 by 30%.",
+   "Increases ^009900Heal^000000 damage on ^FF0000Undead^000000 race by 50%.",
+   "Increases SP Recovery Rate by 9%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2712": {
+  "name": "Ragnarok Limited Edition",
+  "description": [
+   "Collectible comics Ragnarok. There is someone's autograph written in it.",
+   "_______________________",
+   "DEX +3",
+   "VIT +3",
+   "LUK +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2713": {
+  "name": "Certificate",
+  "description": [
+   "If you carry a sign on assignments, get the job again will not be. Written on paper, crumbling with time.",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "2714": {
+  "name": "Mysterious Pendant",
+  "description": [
+   "Mysterious pendant filled with the heart of monsters.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Undead^000000 race by 2%.",
+   "Decreases damage taken from ^FF0000Demi-Human^000000, ^FF0000Brute^000000 and ^FF0000Fish^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2715": {
+  "name": "Skull Ring",
+  "description": [
+   "A weird ring adorned with a skull in which the words, \"^CC0000Forever, until death...^000000\" are engraved.",
+   "Giving this as a gift might send a mixed message.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Undead^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2716": {
+  "name": "Librarian Glove",
+  "description": [
+   "A glove which is a favorite item among librarians.",
+   "_______________________",
+   "MaxSP +20",
+   "_______________________",
+   "When equipped with ^990099Pocket Watch^000000 & ^990099Ancient Magic^000000 or ^990099Principles of Magic^000000:",
+   "INT +5",
+   "MaxHP +700",
+   "Increases Attack Speed (decreases After Attack Delay by 5%).",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Wizard, Sage and Soul Linker classes"
+  ]
+ },
+ "2717": {
+  "name": "Pocket Watch",
+  "description": [
+   "A silver-colored watch with connecting chain.",
+   "_______________________",
+   "When equipped with ^990099Monocle^000000 & ^990099Memory Book^000000:",
+   "MATK +7%",
+   "Increases HP and SP Recovery Rate by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2718": {
+  "name": "Lunatic Brooch",
+  "description": [
+   "A crescent-shaped golden shining brooch.",
+   "_______________________",
+   "When equipped with ^990099Luna Bow^000000:",
+   "DEX +1",
+   "MaxSP +50",
+   "Increases SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Archer"
+  ]
+ },
+ "2719": {
+  "name": "Iron Wrist",
+  "description": [
+   "A strong steel wrist protector.",
+   "_______________________",
+   "DEF +1",
+   "_______________________",
+   "Increases damage of ^009900Bash^000000 and ^009900Mammonite^000000 by 6%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2720": {
+  "name": "Medal of Honor",
+  "description": [
+   "A medal rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +500",
+   "MaxSP +50",
+   "MATK +5%",
+   "HIT +10",
+   "DEF +1",
+   "ATK +5%",
+   "_______________________",
+   "Random chance to inflict ^663399Stun^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Swordsman and Star Gladiator"
+  ]
+ },
+ "2721": {
+  "name": "Medal of Honor",
+  "description": [
+   "A medal rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +300",
+   "MaxSP +80",
+   "MATK +5%",
+   "FLEE +10",
+   "DEF +1",
+   "ATK +5%",
+   "_______________________",
+   "Random chance to inflict ^663399Poison^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Thief and Ninja"
+  ]
+ },
+ "2722": {
+  "name": "Medal of Honor",
+  "description": [
+   "A medal rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +600",
+   "MATK +5%",
+   "DEF +1",
+   "MDEF +6",
+   "ATK +5%",
+   "_______________________",
+   "Random chance to inflict ^663399Silence^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Acolyte"
+  ]
+ },
+ "2723": {
+  "name": "Medal of Honor",
+  "description": [
+   "A medal rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +600",
+   "MATK +5%",
+   "DEF +1",
+   "MDEF +6",
+   "ATK +5%",
+   "_______________________",
+   "Random chance to inflict ^663399Stone Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2724": {
+  "name": "Medal of Honor",
+  "description": [
+   "A medal rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +300",
+   "MaxSP +80",
+   "MATK +5%",
+   "DEF +1",
+   "Critical +10",
+   "ATK +5%",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Archer Classes"
+  ]
+ },
+ "2725": {
+  "name": "Medal of Honor",
+  "description": [
+   "A medal rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +500",
+   "MaxSP +50",
+   "MATK +5%",
+   "DEF +1",
+   "ATK +5%",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Merchant"
+  ]
+ },
+ "2726": {
+  "name": "Wing of Icarus",
+  "description": [
+   "A brooch shaped like beautiful white wings for the Icarus members.",
+   "_______________________",
+   "DEX +3",
+   "MaxSP +50",
+   "_______________________",
+   "When equipped with ^990099Sniper Scarf^000000:",
+   "Decreases SP Consumption by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Sniper"
+  ]
+ },
+ "2727": {
+  "name": "Bowman Scarf",
+  "description": [
+   "A nice arm-wrapping red scarf.",
+   "_______________________",
+   "DEX +3",
+   "MaxSP +50",
+   "_______________________",
+   "When equipped with ^990099Wing of Icarus^000000:",
+   "Decreases SP Consumption by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Sniper"
+  ]
+ },
+ "2728": {
+  "name": "Cursed Hand",
+  "description": [
+   "A dried bone hand. It releases a mysterious aura.",
+   "_______________________",
+   "HIT +10",
+   "_______________________",
+   "Increases HP Recovery Rate by 20%.",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^663399Critical Wound^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "All Jobs except Novice"
+  ]
+ },
+ "2729": {
+  "name": "Diabolus Ring",
+  "description": [
+   "A ring with mysterious letters carved into it. It is so beautiful, it fascinates all people.",
+   "_______________________",
+   "MaxHP +100",
+   "MaxSP +100",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 5%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of Satan Morocc by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2730": {
+  "name": "Seal of Continental Guard",
+  "description": [
+   "A royal gift to a member of the Continental Guard.",
+   "_______________________",
+   "MaxHP +50",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "All Jobs except Novice"
+  ]
+ },
+ "2731": {
+  "name": "Rune Spellstone",
+  "description": [
+   "One of the royal gifts which are given to the members of the Morocc Dispatch.",
+   "_______________________",
+   "MaxSP +50",
+   "_______________________",
+   "Decreases Variable Casting Time by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "All Jobs except Novice"
+  ]
+ },
+ "2732": {
+  "name": "Death Loop",
+  "description": [
+   "One of the royal gifts which are given to the members of the Morocc Dispatch.",
+   "_______________________",
+   "Critical +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "All Jobs except Novice"
+  ]
+ },
+ "2733": {
+  "name": "Sheriff Badge",
+  "description": [
+   "A badge rewarded to honorable warriors.",
+   "_______________________",
+   "MaxHP +300",
+   "MaxSP +80",
+   "MATK +5%",
+   "DEF +1",
+   "Critical +10",
+   "ATK +5%",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status when dealing Ranged Physical Damages.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Gunslinger"
+  ]
+ },
+ "2734": {
+  "name": "Directive",
+  "description": [
+   "A directive letter about the mission from the canyon battle.",
+   "^FF0000It will disappear after 1 hour.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "2735": {
+  "name": "Directive",
+  "description": [
+   "A directive letter about the mission from the arena battle.",
+   "^FF0000It will disappear after 1 hour.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "2736": {
+  "name": "Navel Ring",
+  "description": [
+   "A navel ring, one of popular body piercing jewelry among females.",
+   "_______________________",
+   "DEX +3",
+   "Luk +3",
+   "MDEF +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "All Jobs except Novice"
+  ]
+ },
+ "2737": {
+  "name": "Anklet",
+  "description": [
+   "A necessity for elegant woman!",
+   "_______________________",
+   "VIT +3",
+   "_______________________",
+   "Increases HP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "All Jobs except Novice"
+  ]
+ },
+ "2738": {
+  "name": "Shiny Commemorative coin",
+  "description": [
+   "A shiny coin used to celebrate some events.",
+   "_______________________",
+   "MATK +6%",
+   "ATK +6%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2739": {
+  "name": "Japan Commemorative Coin",
+  "description": [
+   "A shiny coin used to celebrate some events.",
+   "_______________________",
+   "MATK +5%",
+   "ATK +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2740": {
+  "name": "Rusty Commemorative Coin",
+  "description": [
+   "A rusty coin used to celebrate some events.",
+   "_______________________",
+   "MATK +3%",
+   "ATK +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2741": {
+  "name": "All in One Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A Jewelry Ring that contains a 3 Seal Magic Spell.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFHeal^000000.",
+   "Enables the use of Level 1 ^0000FFTeleport^000000.",
+   "_______________________",
+   "Skill casting cannot be interrupted.",
+   "_______________________",
+   "Increases Variable Casting Time by 10%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2742": {
+  "name": "Lucky Clip",
+  "description": [
+   "^000088Rental Item^000000",
+   "A legendary clip used as a lucky charm!",
+   "_______________________",
+   "Increases item drop rate by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2743": {
+  "name": "Angelic Ring",
+  "description": [
+   "A ring which bears holy powers that responds to certain abilities and strenthens their potency.",
+   "_______________________",
+   "DEX +1",
+   "INT +2",
+   "MDEF +2",
+   "_______________________",
+   "Adds 10% of increase ^009900Healing^000000 skills by 20% for 3 seconds when using ^009900Heal^000000, ^009900Potion Pitcher^000000 or ^0000FFSanctuary^000000 skills.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2744": {
+  "name": "Sprint Ring",
+  "description": [
+   "A ring that gives you a feeling of flying like a rocket through the wind.",
+   "_______________________",
+   "Decreases Variable Casting Time by 10%.",
+   "_______________________",
+   "Increases After Skill Delay by 5%.",
+   "_______________________",
+   "When equipped with ^990099Sprint Mail^000000 and ^990099Sprint Shoes^000000:",
+   "MaxHP +7%",
+   "MaxSP +7%",
+   "Decreases Variable Casting Time by 3%.",
+   "Decreases After Skill Delay by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2745": {
+  "name": "Pinguicula Corsage",
+  "description": [
+   "A small Corsge that looks like Pinguicula.",
+   "_______________________",
+   "MaxSP +25",
+   "MDEF +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2746": {
+  "name": "Cold Heart",
+  "description": [
+   "A little something that Assassins should have. There're a number of rumors regarding the blood stain at the end of the blade.",
+   "_______________________",
+   "AGI +3",
+   "DEF +1",
+   "_______________________",
+   "When equipped with ^990099Rogue's Treasure^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "Increases Physical Damage against enemies of ^FF0000Medium^000000 size by 8%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Assassin Cross"
+  ]
+ },
+ "2747": {
+  "name": "Black Cat",
+  "description": [
+   "A pendant which symbolizes a well-known Rogue Guild among people in dark side.",
+   "_______________________",
+   "DEX +3",
+   "DEF +1",
+   "_______________________",
+   "When equipped with ^990099Rogue's Treasure^000000:",
+   "HIT +3",
+   "Decreases Variable Casting Time by 3%.",
+   "Increases Physical Damage against enemies of ^FF0000Large^000000 size by 8%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Stalker"
+  ]
+ },
+ "2748": {
+  "name": "Cursed Star",
+  "description": [
+   "A mechanic who was born under the cursed star made this necklace to protect himself. It is enchanted with magic to harness the power of curses.",
+   "_______________________",
+   "DEX +2",
+   "LUK -1",
+   "MDEF +3",
+   "_______________________",
+   "Drains 50 HP every 10 seconds.",
+   "Drains 300 HP when unequiped.",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status when dealing Ranged Physical Damages.",
+   "_______________________",
+   "When equipped with ^990099Cursed Lyre^000000:",
+   "ATK +25",
+   "Additional 2% chance of curse.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 84",
+   "Transcendent Archer"
+  ]
+ },
+ "2749": {
+  "name": "Linen Glove",
+  "description": [
+   "A glove made of material you've never seen before.",
+   "Amazingly light and suitable for use with just about any weapon.",
+   "_______________________",
+   "DEX +1",
+   "AGI +2",
+   "DEF +1",
+   "MDEF +1",
+   "_______________________",
+   "When equipped with ^990099Improved Tights^000000:",
+   "Perfect Dodge +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 12",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2750": {
+  "name": "Summer Night Dream",
+  "description": [
+   "Music box made in the form of a carousel.",
+   "_______________________",
+   "Allows you to use skill Summer Night Dream.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2751": {
+  "name": "Academy Badge",
+  "description": [
+   "A badge which can get when they graduate the probationary period of magical school with high grade.",
+   "Just a symbolic meaning only for probationer magicians?",
+   "_______________________",
+   "INT +2",
+   "MATK +3%",
+   "MaxHP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2752": {
+  "name": "Fraxinus",
+  "description": [
+   "Ring created from leaves of grass, which emanates from a mysterious force. It is said that it was created from the shoots of Yggdrasil.",
+   "_______________________",
+   "MATK +5%",
+   "ATK +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2753": {
+  "name": "Beholder Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Formless^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2754": {
+  "name": "Hallow Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Undead^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2755": {
+  "name": "Clamorous Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Brute^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2756": {
+  "name": "Chemical Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Plant^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2757": {
+  "name": "Insecticide Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Insect^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2758": {
+  "name": "Fisher Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Fish^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2759": {
+  "name": "Decussate Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Demon^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2760": {
+  "name": "Bloody Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Demi-Human^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2761": {
+  "name": "Satanic Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Angel^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2762": {
+  "name": "Dragon Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring that has special power ineach shape.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Dragon^000000 race monsters by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2763": {
+  "name": "Neo Skull Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A weird ring adorned with a skull in which the words, ^CC0000Forever, until death...^000000 are engraved.",
+   "_______________________",
+   "MaxHP +5%",
+   "ATK +5%",
+   "MATK +5%",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 5%.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFSight^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "All Jobs except Novice"
+  ]
+ },
+ "2764": {
+  "name": "Small Fishing Rod",
+  "description": [
+   "A small sized fishing rod.",
+   "_______________________",
+   "Decreases fishing cast time by 3 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 25^000000",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2765": {
+  "name": "Novice Figure",
+  "description": [
+   "A fine figure of a Novice. A mere glance at it makes you feel like you have more strength.",
+   "_______________________",
+   "MaxHP +70",
+   "_______________________",
+   "When equipped by ^0033CCNovice^000000 classes:",
+   "MaxHP +30",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2766": {
+  "name": "Swordman Figure",
+  "description": [
+   "A fine figure of a Swordman. It exudes the honor of the class it represents.",
+   "_______________________",
+   "VIT +1",
+   "_______________________",
+   "When equipped by ^0033CCSwordman^000000 classes:",
+   "DEF +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2767": {
+  "name": "Acolyte Figure",
+  "description": [
+   "A fine figure of an Acolyte, radiating intellectual power.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "When equipped by ^0033CCAcolyte^000000 classes:",
+   "MaxSP +50",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2768": {
+  "name": "Magician Figure",
+  "description": [
+   "A fine figure of a Magician, radiating wisdom and mystical power.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "When equipped by ^0033CCMage^000000 classes:",
+   "Increases SP Recovery Rate by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2769": {
+  "name": "Archer Figure",
+  "description": [
+   "A fine figure of an Archer that makes its bearer feel like he/she can see better.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "When equipped by ^0033CCArcher^000000 classes:",
+   "ATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2770": {
+  "name": "Thief Figure",
+  "description": [
+   "A fine figure of a Thief, which has a mischievous smile on it.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "When equipped by ^0033CCThief^000000 classes:",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2771": {
+  "name": "Merchant Figure",
+  "description": [
+   "A fine figure of a Merchant that makes its bearer feel strengthened.",
+   "_______________________",
+   "STR +1",
+   "_______________________",
+   "When equipped by ^0033CCMerchant^000000 classes:",
+   "Critical +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2772": {
+  "name": "Glorious Ring",
+  "description": [
+   "A ring that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +300",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 5%).",
+   "Decreases damage taken from ^0000BBWater^000000, ^33CC00Wind^000000, ^CC5500Earth^000000 and ^FF0000Fire^000000 elementals attack by 10%.",
+   "Decreases Variable Casting Time by 3%.",
+   "Increases ^009900Healing^000000 skills effectiveness by 5%.",
+   "_______________________",
+   "When equipped with ^990099Medal of Honor^000000:",
+   "ATK +5%",
+   "MATK +3%",
+   "Increases ^009900Healing^000000 skills effectiveness by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 81",
+   "All Jobs except Novice"
+  ]
+ },
+ "2773": {
+  "name": "Glorious Popularized Ring",
+  "description": [
+   "A ring that only a champion of battlefield can wear.",
+   "_______________________",
+   "All Basic Stats +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 61",
+   "All Jobs except Novice"
+  ]
+ },
+ "2774": {
+  "name": "Glorious Mass-Production Ring",
+  "description": [
+   "A ring that only a champion of battlefield can wear.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2775": {
+  "name": "Lure",
+  "description": [
+   "Artificially made fishing lure.",
+   "_______________________",
+   "Decreases the fishing casting time by 1 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2776": {
+  "name": "Adventurer's Trusty Towel",
+  "description": [
+   "This trusty towel truly is the sidearm of an experienced adventurer.",
+   "Allowing one to remain cool in the face of adversity.",
+   "_______________________",
+   "^FF0000Warning: Do not wear towel when in battle; it is only to be used in relaxed situations.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "2777": {
+  "name": "Shaman Ring",
+  "description": [
+   "A ring worn only by those belonging to the Shaman order.",
+   "It can teleport its wearer in Glast Heim with the help of Sapphires.",
+   "Sapphires can be found at the Entrance to Glast Heim, Chivalry, St. Abbey and Culvert.",
+   "_______________________",
+   "MaxHP +50",
+   "_______________________",
+   "Increases SP Recovery Rate by 3%.",
+   "_______________________",
+   "When equipped with ^990099Shaman's Hair Ornament^000000 and ^990099Shaman Earring^000000:",
+   "MaxHP +300",
+   "MATK +5%",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2778": {
+  "name": "Shaman Earrings",
+  "description": [
+   "INT +2",
+   "_______________________",
+   "When equipped with ^990099Shaman Ring^000000 and ^990099Shaman's Hair Ornament^000000:",
+   "MaxHP +300",
+   "MATK +5%",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2779": {
+  "name": "Dark Knight Belt",
+  "description": [
+   "A belt once worn by a Knight shrouded in darkness that gives strength to those who wear it.",
+   "_______________________",
+   "AGI +1",
+   "STR +2",
+   "DEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80"
+  ]
+ },
+ "2780": {
+  "name": "Dark Knight Glove",
+  "description": [
+   "A glove worn by a cursed Dark Knight.",
+   "_______________________",
+   "DEF +1",
+   "_______________________",
+   "Random chance to Reduces After Attack Delay by 2% for 10 seconds when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80"
+  ]
+ },
+ "2781": {
+  "name": "Aumdura's Benefit",
+  "description": [
+   "Hidden within this monster's tooth is the ability to extract energy.",
+   "_______________________",
+   "Increases experience gained from defeating monsters by 5%.",
+   "_______________________",
+   "Increases damage taken from normal attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2782": {
+  "name": "Ring of the Ancient Wise King",
+  "description": [
+   "A ring imitating the legendary ring of the Ancient Wise King who used to communicate with animals.",
+   "Rune-Midgard's Magical Power, Schwartzvald's technology and Arunafeltz's linguistic ability are put together in this ring.",
+   "_______________________",
+   "By equipping this ring, you can communicate with the people of Ash Vacuum.",
+   "_______________________",
+   "MaxHP +50",
+   "MaxSP +20",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2783": {
+  "name": "Eye Stone Ring",
+  "description": [
+   "A ring with a small bead set in. It feels like the bead is watching you.",
+   "_______________________",
+   "MaxSP +25",
+   "Critical +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "All Jobs except Novice"
+  ]
+ },
+ "2784": {
+  "name": "Christmas Music Box",
+  "description": [
+   "A cute music box which contains a Singing Crystal in it. Listen carefully and you can hear Christmas carols.",
+   "_______________________",
+   "Enables Level 1 ^009900Christmas Carol^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2785": {
+  "name": "Orlean's Glove",
+  "description": [
+   "A glove that was once used by a palace chef.",
+   "It feels like you can immitate the chef's way of using hand with this glove equipped on.",
+   "_______________________",
+   "DEX +2",
+   "MATK +3%",
+   "_______________________",
+   "When equipped with ^990099Orlean's Server^000000:",
+   "Decreases Variable Casting Time by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Transcendent classes except High Novice"
+  ]
+ },
+ "2786": {
+  "name": "Spiritual Ring",
+  "description": [
+   "A beautiful ring which contains the spirits of the deceased.",
+   "It is said to be able to amplify magic if it comes in contact with spiritual power.",
+   "_______________________",
+   "DEX +1",
+   "INT +2",
+   "_______________________",
+   "When equipped with ^990099Wizardry Staff^000000 or ^990099Soul Staff^000000:",
+   "DEX +2",
+   "MATK +6%",
+   "Decreases Variable Casting Time by Refine Level.",
+   "_______________________",
+   "When equipped with ^990099Clip^000000 or ^990099Rosary^000000:",
+   "Increases damage of ^009900Magnus Exorcismus^000000 by 30%.",
+   "Inflicts 50% more damage against ^FF0000Undead^000000 monster with Heal.",
+   "Increases SP Recovery Rate by 9%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2787": {
+  "name": "Waterdrop Brooch",
+  "description": [
+   "A brooch made out of tear drops of the Aqua Elemental.",
+   "_______________________",
+   "MaxHP +1%",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2788": {
+  "name": "Bradium Earring",
+  "description": [
+   "A strangely warm Earring made out of Bradium Ore.",
+   "_______________________",
+   "INT +1",
+   "DEX +1",
+   "MATK +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2789": {
+  "name": "Bradium Ring",
+  "description": [
+   "A very tough ring made out of Bradium Ore.",
+   "_______________________",
+   "STR +1",
+   "VIT +1",
+   "ATK +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2790": {
+  "name": "Bradium Brooch",
+  "description": [
+   "A brooch made out of Bradium Ore.",
+   "_______________________",
+   "AGI +1",
+   "FLEE +4",
+   "_______________________",
+   "Base ^CC6600AGI^000000 at least ^0000FF120^000000:",
+   "Critical +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2791": {
+  "name": "Fresh Fish",
+  "description": [
+   "A fresh fish, he's still moving!",
+   "_______________________",
+   "HIT +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2792": {
+  "name": "Ring of Flame Lord",
+  "description": [
+   "The power of a fire spirit king resides in this ring. The power of the spirit flows through you when you equip this ring.",
+   "It can be paired with the Ring of Resonance.",
+   "_______________________",
+   "STR +2",
+   "VIT +1",
+   "ATK +15",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 10%.",
+   "_______________________",
+   "Random chance of auto casting ^0000FFAll kind of Skills^000000 when attacking.",
+   "_______________________",
+   "When equipped with ^990099Ring of Resonance^000000:",
+   "The chance of auto casting increases.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2793": {
+  "name": "Ring of Resonance",
+  "description": [
+   "The pair to the Ring of Flame Lord. The two rings resonate togeather and its said that their abilities are strengthened.",
+   "_______________________",
+   "AGI +2",
+   "VIT +1",
+   "DEF +2",
+   "MDEF +2",
+   "_______________________",
+   "Random chance of auto casting ^0000FFAll kind of Skills^000000 when attacking.",
+   "_______________________",
+   "When equipped with ^990099Ring of Flame Lord^000000:",
+   "The chance of auto casting increases.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2794": {
+  "name": "Magic Stone Ring",
+  "description": [
+   "A bluish ring engraved with a mysterious rune. You can feel a mysterious energy from the sparkling rune.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "2795": {
+  "name": "Green Apple Ring",
+  "description": [
+   "A Green Apple ring for those who have ascended to their third classes.",
+   "_______________________",
+   "All Basic Stats +6 at job Level 1.",
+   "Stat bonus decreases by 1 for every 5 job Levels attained.",
+   "At job Level 30 stat bonus is cancelled.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "3rd classes"
+  ]
+ },
+ "2796": {
+  "name": "Magical Stone",
+  "description": [
+   "A stone with enormous latent magic power.",
+   "_______________________",
+   "Increases Magic attack against Naga monsters by 10%.",
+   "_______________________",
+   "Wearing this will give you a chance of receiving a Glittering Crystal while hunting Naga monster.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Magician"
+  ]
+ },
+ "2797": {
+  "name": "Magical Stone",
+  "description": [
+   "A stone with enormous latent magic power.",
+   "_______________________",
+   "Increases Magic attack against Bradium Golems by 10%.",
+   "_______________________",
+   "Wearing this will give you a chance of receiving a Giant Bradium Fragment while hunting Bradium Golems.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Magician"
+  ]
+ },
+ "2798": {
+  "name": "Will of Exhausted Warrior",
+  "description": [
+   "A necklace with holy but rough energy.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Priest and Monk classes"
+  ]
+ },
+ "2799": {
+  "name": "Ring of Protection",
+  "description": [
+   "Developed by scientist after years of research. It contain the magic power from Guardian Wing of Valkyrie.",
+   "_______________________",
+   "MaxHP +150",
+   "MaxSP +30",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Call Spirits^000000 when using Level 10 ^009900Blessing^000000.",
+   "_______________________",
+   "Random chance to auto-cast Level 10 ^009900Endure^000000 or Level ^0000FF10 Angelus^000000 when receiving physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2800": {
+  "name": "Accelerator",
+  "description": [
+   "A part used for the Mechanic Mado Gear skill, Acceleration.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2801": {
+  "name": "Hovering Booster",
+  "description": [
+   "A required component for mechanic's mado gear skill, Hovering.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2802": {
+  "name": "Self-destruct Device",
+  "description": [
+   "A required component for mechanic's mado gear skill, Self Destruction.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2803": {
+  "name": "Shape Shifter",
+  "description": [
+   "An accessory item to use the Mechanic Mado Gear Skill, Shape Shift.",
+   "_______________________",
+   "INT +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2804": {
+  "name": "Cooling Device",
+  "description": [
+   "A required component for mechanic's mado gear skill, Emergency Cool.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2805": {
+  "name": "Magnetic Field Generator",
+  "description": [
+   "A required component for mechanic's mado gear skill, Magnetic Field.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 600",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2806": {
+  "name": "Barrier Generator",
+  "description": [
+   "A required component for mechanic's mado gear skill, Neutral Barrier.",
+   "_______________________",
+   "DEX +1",
+   "DEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 800",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2807": {
+  "name": "Repair Kit",
+  "description": [
+   "A required component for mechanic's mado gear skill, Repair.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2808": {
+  "name": "Camouflage Generator",
+  "description": [
+   "A required component for mechanic's mado gear skill, Stealth Field.",
+   "_______________________",
+   "AGI +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2809": {
+  "name": "High Quality Cooler",
+  "description": [
+   "A required component for mechanic's mado gear skill, Emergency Cool.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2810": {
+  "name": "Special Cooler",
+  "description": [
+   "A required component for mechanic's mado gear skill, Emergency Cool.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Mechanic"
+  ]
+ },
+ "2811": {
+  "name": "Freya's Spiritual Bracelet",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual bracelet granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "All Basic Stats +1",
+   "DEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2812": {
+  "name": "Freya's Spiritual Bracelet",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual bracelet granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "All Basic Stats +1",
+   "DEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2813": {
+  "name": "Freya's Spiritual Bracelet",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual bracelet granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "All Basic Stats +1",
+   "DEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2814": {
+  "name": "Freya's Spiritual Bracelet",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual bracelet granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "All Basic Stats +1",
+   "DEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2815": {
+  "name": "Ring of Water",
+  "description": [
+   "A ring blessed with the power of water.",
+   "_______________________",
+   "All Basic Stats +2",
+   "MDEF +2",
+   "MaxSP +20",
+   "_______________________",
+   "^CC6600Base Level^000000 is below ^0000FF41^000000:",
+   "Increases potion restoration by 50%, this effect reduced as the base Level increased.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 1",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2816": {
+  "name": "Radar Ring",
+  "description": [
+   "A radar used to look for something.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2817": {
+  "name": "Radar Ring",
+  "description": [
+   "A radar used to look for something.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2818": {
+  "name": "Radar Ring",
+  "description": [
+   "A radar used to look for something.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2819": {
+  "name": "Swordman Manual",
+  "description": [
+   "A guidebook that enables one to experience basic Swordman skills.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 12",
+   "Novice"
+  ]
+ },
+ "2820": {
+  "name": "Thief Manual",
+  "description": [
+   "A guidebook that enables one to experience basic Thief skills.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 12",
+   "Novice"
+  ]
+ },
+ "2821": {
+  "name": "Acolyte Manual",
+  "description": [
+   "A guidebook that enables one to experience basic Acolyte skills.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 12",
+   "Novice"
+  ]
+ },
+ "2822": {
+  "name": "Archer Manual",
+  "description": [
+   "A guidebook that enables one to experience basic Archer skills.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 12",
+   "Novice"
+  ]
+ },
+ "2823": {
+  "name": "Merchant Manual",
+  "description": [
+   "A guidebook that enables one to experience basic Merchant skills.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 12",
+   "Novice"
+  ]
+ },
+ "2824": {
+  "name": "Magician Manual",
+  "description": [
+   "A guidebook that enables to experience basic Magician skills.",
+   "_______________________",
+   "MaxSP +100",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 12",
+   "Novice"
+  ]
+ },
+ "2825": {
+  "name": "Shaman Earrings",
+  "description": [
+   "INT +2",
+   "_______________________",
+   "When equipped with ^990099Shaman Ring^000000, ^990099Shaman's Hair Ornament^000000 and ^990099Shaman Earring^000000:",
+   "MaxHP +300",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "Skill casting cannot be interrupted.",
+   "Increases Variable Casting Time by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2826": {
+  "name": "Dark Knight Belt",
+  "description": [
+   "A belt once worn by a Knight shrouded in darkness that gives dexterity to those who wear it.",
+   "_______________________",
+   "AGI +1",
+   "DEX +2",
+   "DEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80"
+  ]
+ },
+ "2827": {
+  "name": "Dark Knight Glove",
+  "description": [
+   "A glove worn by a cursed Dark Knight.",
+   "_______________________",
+   "DEF +1",
+   "_______________________",
+   "Random chance to increase MaxHP by 10% for 10 seconds when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80"
+  ]
+ },
+ "2828": {
+  "name": "Upgrade Clip",
+  "description": [
+   "A Clip molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "MaxSP +30",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2829": {
+  "name": "Greed Clip",
+  "description": [
+   "Enables the use of Level 1 ^0000FFGreed^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10",
+   "All Jobs except Novice"
+  ]
+ },
+ "2830": {
+  "name": "Ephemeral Megingjord",
+  "description": [
+   "A reproduction of the girdle of might that Thor wore to enhance his prodigious strength.",
+   "_______________________",
+   "STR +40",
+   "DEF +2",
+   "MDEF +7",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2831": {
+  "name": "Ephemeral Brisingamen",
+  "description": [
+   "An imitation of the necklace worn by the beautiful goddess Freya.",
+   "_______________________",
+   "STR +6, AGI +6, INT +6",
+   "VIT +6, LUK +10",
+   "DEF +1",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2832": {
+  "name": "Freya Ring R",
+  "description": [
+   "^000088Rental Item^000000",
+   "A ring decorated with a beautiful ruby.",
+   "_______________________",
+   "Enables use of",
+   "Level 1 ^009900Heal^000000",
+   "Level 1 ^009900Teleport^000000",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2833": {
+  "name": "Odin Recall R",
+  "description": [
+   "^000088Rental Item^000000",
+   "An awesome ring that is only given to the members of the Order of Odin.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "Enables use of ^009900Odin's Recall^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2834": {
+  "name": "All In One Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A Jewelry Ring that contains a 3 Seal Magic Spell.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFHeal^000000.",
+   "Enables the use of Level 1 ^0000FFTeleport^000000.",
+   "_______________________",
+   "Skill casting cannot be interrupted.",
+   "_______________________",
+   "Increases Variable Casting Time by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2835": {
+  "name": "Rental Critical Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "An esoteric ring that enables its wearer into amplify his hidden powers.",
+   "_______________________",
+   "Critical +10",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2836": {
+  "name": "Rental Glove",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient glove.",
+   "_______________________",
+   "DEX +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2837": {
+  "name": "Rental Safety Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A strange ring that curiously raises its wearer's defenses.",
+   "_______________________",
+   "DEF +5",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2838": {
+  "name": "Rental Necklace",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient necklace.",
+   "_______________________",
+   "VIT +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2839": {
+  "name": "Rental Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient ring.",
+   "_______________________",
+   "STR +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2840": {
+  "name": "Rental Rosary",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient rosary.",
+   "_______________________",
+   "LUK +4",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2841": {
+  "name": "Caracas Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "Enables the use of ^0000FFTeleport^000000 and ^0000FFHeal^000000.",
+   "Skill casting cannot be interrupted.",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "Decreases Variable Casting Time by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Star Emperor, Soul Reaper"
+  ]
+ },
+ "2842": {
+  "name": "Earring",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient earring.",
+   "_______________________",
+   "INT +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2843": {
+  "name": "Golden Bell",
+  "description": [
+   "It has a message inscribed - An accessory hung over a beast's neck to show dignity.",
+   "_______________________",
+   "MaxSP +50",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75"
+  ]
+ },
+ "2844": {
+  "name": "Light of El Dicastes",
+  "description": [
+   "A brooch made to resemble the El Dicastes Diel.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFReturn to El Dicastes^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80"
+  ]
+ },
+ "2845": {
+  "name": "NoFear Belt",
+  "description": [
+   "Strap this on and shut them up!",
+   "_______________________",
+   "ATK +5%",
+   "MATK +5%",
+   "MDEF +2",
+   "_______________________",
+   "When equipped with ^990099NoFear Shoes^000000 and ^990099NoFear Underwear^000000:",
+   "Prevents ^663399Frozen^000000 status.",
+   "Increases experience gained from defeating monsters by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 2",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2853": {
+  "name": "Telekinetic Orb",
+  "description": [
+   "An orb filled with liquid of unknown powers.",
+   "_______________________",
+   "INT +3",
+   "MaxSP +30",
+   "DEF +2",
+   "MDEF +1",
+   "_______________________",
+   "Increases damage of ^009900Soul Expansion^000000 and ^009900Psychic Wave^000000 by 10%,",
+   "Increases SP Consumption of ^009900Soul Expansion^000000 and ^009900Psychic Wave^000000 by 50.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "3rd Classes"
+  ]
+ },
+ "2854": {
+  "name": "Alchemy Glove",
+  "description": [
+   "A white glove made especially for fire magic. Gives off a faint burnt smell.",
+   "_______________________",
+   "INT +1",
+   "DEF +1",
+   "MDEF +2",
+   "_______________________",
+   "Increases Magical Damage with ^FF0000Fire^000000 element by 10%.",
+   "_______________________",
+   "Decreases Magical Damage with ^0000BBWater^000000 element by 20%.",
+   "_______________________",
+   "Increases damage taken from ^0000BBWater^000000 elemental attacks by 30%.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Fire Ball^000000 when dealing physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 125",
+   "3rd Classes"
+  ]
+ },
+ "2855": {
+  "name": "Whikebain's Black Tail",
+  "description": [
+   "Morocc town Hyuke's black tail style. It doesn't seem to be moving.",
+   "_______________________",
+   "Critical +7",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "When equipped with Whikebain's Black Ears:",
+   "Increases Critical Damage by 10%.",
+   "When Refine Level of Whikebain's Black Ears +7 or higher^000000:",
+   "Critical +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45"
+  ]
+ },
+ "2856": {
+  "name": "Half Megingjord",
+  "description": [
+   "^000088Rental Item^000000",
+   "A legendary belt rumored to be owned by Thor, the god of thunder. Increases its wearer's strength.",
+   "_______________________",
+   "STR +20",
+   "MDEF +3",
+   "_______________________",
+   "Increases STR bonus based on character's base Level",
+   "_______________________",
+   "^CC6600Base Level^000000 at least ^0000FF120^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Boss^000000 class by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 47"
+  ]
+ },
+ "2857": {
+  "name": "Half Brisingamen",
+  "description": [
+   "^000088Rental Item^000000",
+   "A legendary necklace worn by Freija, the goddess of beauty.",
+   "_______________________",
+   "STR, AGI, DEX, VIT +3,",
+   "INT, LUK +5",
+   "MDEF +2",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 47"
+  ]
+ },
+ "2858": {
+  "name": "Pendant of Guardian",
+  "description": [
+   "A pendant with black wings. It possesses mysterious power.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFGuardian Recall^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70"
+  ]
+ },
+ "2859": {
+  "name": "Goldenrod Orb",
+  "description": [
+   "A golden crystal ball imbued with power of wind.",
+   "_______________________",
+   "INT +1",
+   "DEF +2",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^33CC00Wind^000000 elemental attacks by 15%.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Jupitel Thunder^000000 when wearer attacked by physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2860": {
+  "name": "Aqua Orb",
+  "description": [
+   "A sea-blue crystal ball imbued with power of water.",
+   "_______________________",
+   "INT +1",
+   "DEF +2",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental attacks by 15%.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Frost Nova^000000 when wearer attacked by physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2861": {
+  "name": "Crimson Orb",
+  "description": [
+   "A bloody crystal ball imbued with power of fire.",
+   "_______________________",
+   "INT +1",
+   "DEF +2",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 15%.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Sightrasher^000000 when wearer attacked by physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2862": {
+  "name": "Forest Orb",
+  "description": [
+   "A green crystal ball imbued with power of Earth.",
+   "_______________________",
+   "INT +1",
+   "DEF +2",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 elemental attacks by 15%.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Quagmire^000000 when wearer attacked by physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2863": {
+  "name": "Valkyrie Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "Beautiful ring, which is considered to shield the world.",
+   "_______________________",
+   "DEF +2",
+   "_______________________",
+   "Increases experience gained and drop rate by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2864": {
+  "name": "Light of Cure",
+  "description": [
+   "An old but shiny gold ring entwined with rings. It is rumored to be a relic of a saint.",
+   "_______________________",
+   "VIT +2",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "Archbishop"
+  ]
+ },
+ "2865": {
+  "name": "Seal of Basilica",
+  "description": [
+   "A thick ring mounted with a purple stone, given to a trainee priest.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "Archbishop"
+  ]
+ },
+ "2866": {
+  "name": "Ring of Archbishop",
+  "description": [
+   "A ring mounted with clear mysterious stone. It is rumored to be a relic of a religious leader.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "Archbishop"
+  ]
+ },
+ "2870": {
+  "name": "Test",
+  "description": [
+   "Test"
+  ]
+ },
+ "2871": {
+  "name": "Brazil Badge",
+  "description": [
+   "A beautiful accessory created especially in honor of Brazil.",
+   "_______________________",
+   "ATK +3%, MATK +3%",
+   "MaxHP +50, MaxSP +20",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60"
+  ]
+ },
+ "2872": {
+  "name": "Cat Gamer Token",
+  "description": [
+   "A cat gamer token given to honourable member. It has ability to record game information.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2873": {
+  "name": "Cat Hand Glove",
+  "description": [
+   "A souvenir from Malangdo, just by equpping it will give you a happy mood.",
+   "_______________________",
+   "VIT +1, AGI +1",
+   "DEX +1, LUK +1",
+   "DEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2874": {
+  "name": "Buffalo Horns",
+  "description": [
+   "An ornament made from horns of wild buffalo. It holds the power of buffalo.",
+   "_______________________",
+   "ASPD +1",
+   "_______________________",
+   "When equipped with ^990099Bison Horn^000000:",
+   "ASPD +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2875": {
+  "name": "Grate Ring",
+  "description": [
+   "Ring given as a token of gratitude for the payment of the subscription game.",
+   "_______________________",
+   "MATK +5%",
+   "ATK +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2876": {
+  "name": "Spica Necklace",
+  "description": [
+   "A shiny necklace that resemble the start of Spica.",
+   "_______________________",
+   "DEF +1",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2877": {
+  "name": "Sabik Glove",
+  "description": [
+   "A glove that resemble the star of Sabik.",
+   "_______________________",
+   "DEF +1",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2878": {
+  "name": "Bracelet of Alna and Airi",
+  "description": [
+   "A bracelet that resemble the star of Alna and Airi.",
+   "_______________________",
+   "DEF +1",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2879": {
+  "name": "Algol Badge",
+  "description": [
+   "A badge that resemble the star of Algol.",
+   "_______________________",
+   "DEF +1",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^33CC00Wind^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2880": {
+  "name": "Rfak Ring",
+  "description": [
+   "A badge that resemble the star of Rfak.",
+   "_______________________",
+   "MaxHP +100",
+   "MaxSP +50",
+   "DEF +1",
+   "MDEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2881": {
+  "name": "Orlean's Necklace",
+  "description": [
+   "A necklace for implmenting best of royal palace food.",
+   "_______________________",
+   "DEX +2",
+   "MATK +20",
+   "_______________________",
+   "When equipped with ^990099Orlean's Glove^000000:",
+   "MATK +20",
+   "_______________________",
+   "When equipped with ^990099Orlean's Gown^000000:",
+   "Decreases Variable Casting Time by 15%.",
+   "_______________________",
+   "When equipped with ^990099Orlean's Server^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099Orlean's Server^000000:",
+   "MATK +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2882": {
+  "name": "ECOxRO Card Sleeve",
+  "description": [
+   "A card sleeve made to celebrate ECOxRO.",
+   "_______________________",
+   "VIT +1",
+   "LUK +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2883": {
+  "name": "Ur Seal",
+  "description": [
+   "A seal created by refining an Ur Runestone.",
+   "_______________________",
+   "MaxHP +2%",
+   "DEF +4",
+   "_______________________",
+   "Decreases SP Consumption of ^009900Spiral Pierce^000000 and ^009900Hundred Spears^000000 by 5.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "2884": {
+  "name": "Peuz Seal",
+  "description": [
+   "A seal created by refining a Peuz Runestone.",
+   "_______________________",
+   "ATK +20",
+   "MaxSP +20",
+   "DEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "2885": {
+  "name": "Mother's Heart",
+  "description": [
+   "^000088Rental Item^000000",
+   "Ring that keeps the desire of all novice travelers.",
+   "_______________________",
+   "ATK +30",
+   "MATK +30",
+   "_______________________",
+   "Increases experience gained from defeating monsters by 15%.",
+   "_______________________",
+   "Enables use of",
+   "Level 3 ^009900Auto Guard^000000",
+   "Level 1 ^009900Cure^000000",
+   "_______________________",
+   "Increases movement speed.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Maximum Base Level 120"
+  ]
+ },
+ "2886": {
+  "name": "Sapha's Ring",
+  "description": [
+   "A ring that has long been known to be from the world of darkness.",
+   "_______________________",
+   "Critical +3",
+   "_______________________",
+   "Decreases SP Consumption of ^009900Dark Illusion^000000 by 5.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2887": {
+  "name": "Nab's Ring",
+  "description": [
+   "A famous historical assassin relic.",
+   "_______________________",
+   "ATK +10",
+   "MATK +20",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2888": {
+  "name": "School Back",
+  "description": [
+   "An essential bag for school students.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "Decreases variables cast time by 3%.",
+   "_______________________",
+   "^CC6600Base Level^000000 below ^0000FF80^000000:",
+   "MaxHP +200",
+   "MaxSP +100",
+   "_______________________",
+   "When equipped with ^990099Academy Badge^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "Decreases variables cast time by 3%.",
+   "_______________________",
+   "When equipped with ^990099Azure Smock^000000:",
+   "ATK +3%",
+   "MATK +3%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2889": {
+  "name": "Ring of Endurance",
+  "description": [
+   "A ring wore by person who has endured many difficulties in his life.",
+   "_______________________",
+   "MaxHP +300",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60"
+  ]
+ },
+ "2890": {
+  "name": "White Wing Brooch",
+  "description": [
+   "An accessory that belonged to Icarus, a famous archer from archer guild.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases Ranged Physical Damage by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger"
+  ]
+ },
+ "2891": {
+  "name": "Black Wing Brooch",
+  "description": [
+   "Black wings to help maintain clear mental focus.",
+   "_______________________",
+   "INT +2",
+   "Perfect Dodge +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger"
+  ]
+ },
+ "2892": {
+  "name": "Assassin's Handcuffs",
+  "description": [
+   "A glove designed to defend and attack at the same time.",
+   "_______________________",
+   "MaxSP +20",
+   "DEF +3",
+   "Critical +3",
+   "_______________________",
+   "When equipped with ^990099Krishna^000000:",
+   "ATK +50",
+   "FLEE -30",
+   "Increases damage of ^009900Sonic Blow^000000 by 50%.",
+   "_______________________",
+   "When equipped with ^990099Cakram^000000:",
+   "MaxHP -10%",
+   "Critical +4",
+   "Increases Critical Damage by 40%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2893": {
+  "name": "Cursed Heart",
+  "description": [
+   "A shaman's heart whom made contract with demon.",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 5",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80"
+  ]
+ },
+ "2894": {
+  "name": "Sura Glove",
+  "description": [
+   "A flaming red glove symbolize of destruction.",
+   "_______________________",
+   "STR +5",
+   "MaxSP +6%",
+   "MaxHP -6%",
+   "DEF +1",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF120^000000:",
+   "ATK +30",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Sura"
+  ]
+ },
+ "2895": {
+  "name": "Medal of Valor 1",
+  "description": [
+   "A special accessories which there are magic. It could enhance the ability of the wearer.",
+   "_______________________",
+   "DEF +4",
+   "_______________________",
+   "Decreases Variable Casting Time by 2%.",
+   "_______________________",
+   "Valor set bonus: MaxHP +500, MaxSP +300, Def +10, ATK +10.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2896": {
+  "name": "Medal of Valor 2",
+  "description": [
+   "A special accessories which there are magic. It could enhance the ability of the wearer.",
+   "_______________________",
+   "DEF +4",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "Valor set bonus: MaxHP +500, MaxSP +300, Def +10, ATK +10.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2897": {
+  "name": "RWC Necklace",
+  "description": [
+   "Gold medallion, made on the evenst of RWC.",
+   "_______________________",
+   "MATK +5%",
+   "ATK +5%",
+   "_______________________",
+   "Increases experience gained from defeating monsters by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2898": {
+  "name": "Black Rosary",
+  "description": [
+   "A black rosary made from a rare black purified ore.",
+   "_______________________",
+   "MDEF +15",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90"
+  ]
+ },
+ "2899": {
+  "name": "Sound Amplifier",
+  "description": [
+   "A small magical tuning fork that quickly increases all sounds.",
+   "_______________________",
+   "Increases damage of ^009900Metallic Sound^000000 by 150%.",
+   "_______________________",
+   "Increases SP Consumption of ^009900Metallic Sound^000000 by 60.",
+   "_______________________",
+   "Decreases Variable Casting Time by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "Hunter, Bard and Dancer"
+  ]
+ }
+}

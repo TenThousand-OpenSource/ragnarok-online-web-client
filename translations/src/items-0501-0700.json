@@ -1,0 +1,1984 @@
+{
+ "501": {
+  "name": "Red Potion",
+  "description": [
+   "A bottle of potion made from ground Red Herbs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 45 ~ 65 HP",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "502": {
+  "name": "Orange Potion",
+  "description": [
+   "A bottle of potion made from ground Red and Yellow Herbs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "503": {
+  "name": "Yellow Potion",
+  "description": [
+   "A bottle of potion made from ground Yellow Herbs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 175 ~ 235 HP",
+   "^0000CCWeight:^000000 13"
+  ]
+ },
+ "504": {
+  "name": "White Potion",
+  "description": [
+   "A bottle of potion made from ground White Herbs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "505": {
+  "name": "Blue Potion",
+  "description": [
+   "A bottle of potion made from ground Blue Herbs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 40 ~ 60 SP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "506": {
+  "name": "Green Potion",
+  "description": [
+   "A bottle of potion made from ground Green Herbs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Hallucination",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "507": {
+  "name": "Red Herb",
+  "description": [
+   "A weak medicinal herb which heals wounds.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 18 ~ 28 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "508": {
+  "name": "Yellow Herb",
+  "description": [
+   "A valuable medicinal herb which efficiently heals wounds.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 38 ~ 58 HP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "509": {
+  "name": "White Herb",
+  "description": [
+   "A valuable medicinal herb which greatly heals wounds.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 75 ~ 115 HP",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "510": {
+  "name": "Blue Herb",
+  "description": [
+   "A very valuable medicinal herb whose unique aroma gratifies one's spirit.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 15 ~ 30 SP",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "511": {
+  "name": "Green Herb",
+  "description": [
+   "A precious medicinal herb that counteracts all poisons.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCCure:^000000 Poison",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "512": {
+  "name": "Apple",
+  "description": [
+   "A round, edible fruit that, when eaten once a day, keeps the doctor away.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 16 ~ 22 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "513": {
+  "name": "Banana",
+  "description": [
+   "A sweet tasting tropical fruit made famous by its use in slapstick comedy and practical jokes.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 17 ~ 21 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "514": {
+  "name": "Grape",
+  "description": [
+   "Clustered berries with smooth skin that can be fermented to make wine.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 10 ~ 15 SP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "515": {
+  "name": "Carrot",
+  "description": [
+   "An orange root that is supposedly good for your vision. Despite the Beta Carotene, kids don't care much for it.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 18 ~ 20 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "516": {
+  "name": "Potato",
+  "description": [
+   "A tuber that can be fried, baked, boiled mashed, even eaten.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 15 ~ 23 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "517": {
+  "name": "Meat",
+  "description": [
+   "A leg of meat that's been cooked to near perfection.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 70 ~ 100 HP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "518": {
+  "name": "Honey",
+  "description": [
+   "A sweet product made by bees that is endowed with yummy flavor and medicinal uses.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "70 ~ 100 HP",
+   "20 ~ 40 SP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "519": {
+  "name": "Milk",
+  "description": [
+   "Pasteurized and bottled cow milk that is chock full of bovine goodness.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 27 ~ 37 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "520": {
+  "name": "Hinalle Leaflet",
+  "description": [
+   "Leaf cut from a Hinalle Plant which has a cool, fresh scent. It can ease pain and reinvigorate.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 175 ~ 235 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "521": {
+  "name": "Aloe Leaflet",
+  "description": [
+   "Leaf cut from an Aloe plant.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "522": {
+  "name": "Mastela Fruit",
+  "description": [
+   "A shiny, purple fruit picked from the boughs of the Mastela tree.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 400 ~ 600 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "523": {
+  "name": "Holy Water",
+  "description": [
+   "Blessed water used in sacred ceremonies.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCCure:^000000 Curse",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "525": {
+  "name": "Panacea",
+  "description": [
+   "A mystic remedy for all illnesses.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCCure:^000000 Poison, Curse, Silence, Confuse, Blind, Hallucination",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "526": {
+  "name": "Royal Jelly",
+  "description": [
+   "Highly nutritious jelly secreted from honeybees that they only feed to larvas and future queens.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Curse, Silence, Confuse, Blind",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "528": {
+  "name": "Monster's Feed",
+  "description": [
+   "Processed food that is normally fed to monsters.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 72 ~ 108 HP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "529": {
+  "name": "Candy",
+  "description": [
+   "A confection of sugar, chocolate and other flavorings. Kids love it!",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 45 ~ 65 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "530": {
+  "name": "Candy Cane",
+  "description": [
+   "A striped cane of peppermint candy. Sugar daddies love it!",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "531": {
+  "name": "Apple Juice",
+  "description": [
+   "Bottled apple juice that's easy to digest.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 25 ~ 35 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "532": {
+  "name": "Banana Juice",
+  "description": [
+   "Bottled banana juice that's easy to digest.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 26 ~ 34 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "533": {
+  "name": "Grape Juice",
+  "description": [
+   "Bottled grape juice that's easy to digest.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 15 ~ 25 SP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "534": {
+  "name": "Carrot Juice",
+  "description": [
+   "Bottled carrot juice that's easy to digest.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 27 ~ 33 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "535": {
+  "name": "Pumpkin",
+  "description": [
+   "A large orange fruit grown from a vine that's used in baking pies and a few other dishes.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 19 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "536": {
+  "name": "Ice Cream",
+  "description": [
+   "Deliciously frosty ice cream that can cause brain freeze if you eat too much too quickly.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 8"
+  ]
+ },
+ "537": {
+  "name": "Pet Food",
+  "description": [
+   "Sterilized food that has been fortified with vitamins and minerals. Some Cute Pets will feed on this.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 50 ~ 90 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "538": {
+  "name": "Well Baked Cookie",
+  "description": [
+   "A warm, scrumptious cookie.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 160 ~ 200 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "539": {
+  "name": "Piece of Cake",
+  "description": [
+   "A sweet slice of cake covered in icing and topped with a cherry.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 270 ~ 330 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "540": {
+  "name": "Falcon Food",
+  "description": [
+   "Food intended for Falcons, but it's actually tasty enough for humans to eat.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 185 ~ 225 HP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "541": {
+  "name": "PecoPeco Food",
+  "description": [
+   "Food manufactured to feed Peco Pecos, but will suffice for desperately hungry humans as well.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "542": {
+  "name": "Festive Cookie",
+  "description": [
+   "A sweet and crunchy snack usually available during certain times in Japan.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "543": {
+  "name": "Festive Rainbow Cake",
+  "description": [
+   "Cake made of rice decorated in 3 colors, red, white and green.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 7"
+  ]
+ },
+ "544": {
+  "name": "Raw Fish",
+  "description": [
+   "A raw, fresh fish.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 25 ~ 60 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "545": {
+  "name": "Red Slim Potion",
+  "description": [
+   "A condensed Red Potion that weighs significantly less.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 45 ~ 65 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "546": {
+  "name": "Yellow Slim Potion",
+  "description": [
+   "A condensed yellow potion that weighs significantly less.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 175 ~ 235 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "547": {
+  "name": "White Slim Potion",
+  "description": [
+   "A condensed white potion that weighs significantly less.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "548": {
+  "name": "Cheese",
+  "description": [
+   "A palatable food with a unique scent.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 10 ~ 15 SP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "549": {
+  "name": "Yam",
+  "description": [
+   "A kind of plant root used as food. It's advised to eat this slowly with water, or to bake it beforehand.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 50 ~ 100 HP",
+   "^0000CCWeight:^000000 8"
+  ]
+ },
+ "550": {
+  "name": "Rice Cake",
+  "description": [
+   "A snack made out of rice that doesn't contain any fat. Some women love having this snack.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 10 ~ 15 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "551": {
+  "name": "Sushi",
+  "description": [
+   "An eastern delicacy, in which various types of raw fish is placed on top of rice.",
+   "The rice is marinated in vinegar then wrapped in dried seaweed.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 50 ~ 60 HP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "552": {
+  "name": "Ketupat",
+  "description": [
+   "A type of food that is usually eaten by people in a country after their abstinence ceremony.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "70 ~ 90 HP",
+   "20 ~ 30 SP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "553": {
+  "name": "Bao",
+  "description": [
+   "A type of dough that is filled with ground meat, usually served hot.",
+   "People living in eastern countries have enjoyed eating this food for a long time.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 35 ~ 70 HP",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "554": {
+  "name": "Mochi",
+  "description": [
+   "A tasty rice cake made for celebrating the Lunar New Year.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 8"
+  ]
+ },
+ "555": {
+  "name": "Traditional Rice Cake",
+  "description": [
+   "A type of food made of rice powder. There are many recipes to make this food, all of them absolutely delicious.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "556": {
+  "name": "Rice Cake Stick",
+  "description": [
+   "A thin stick of rice cake which is moist and sticky.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 20 ~ 25 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "557": {
+  "name": "Neatly Sliced Rice Cake",
+  "description": [
+   "A bag of sliced rice cake. Can be cooked in various ways.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 25 ~ 30 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "558": {
+  "name": "Chocolate",
+  "description": [
+   "Fried and ground Cacao that is solidified with Milk and cacao paste. Delicious and bittersweet.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "1 HP",
+   "1 SP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "559": {
+  "name": "Hand-made Chocolate",
+  "description": [
+   "A collection of chocolates that are gathered and arranged to make a beautiful item. This is often used in courtship and sometimes even used effectively.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "50 HP",
+   "50 SP",
+   "^0000CCWeight:^000000 8"
+  ]
+ },
+ "560": {
+  "name": "Handmade White Chocolate",
+  "description": [
+   "White chocolate which is used to propose to a girl by a boy during White Day.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "50 HP",
+   "50 SP",
+   "^0000CCWeight:^000000 8"
+  ]
+ },
+ "561": {
+  "name": "White Chocolate",
+  "description": [
+   "White chocolate which is used to propose to a girl by a boy during White Day.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "50 HP",
+   "50 SP",
+   "^0000CCWeight:^000000 8"
+  ]
+ },
+ "562": {
+  "name": "Doublecrust Swiss Fondue",
+  "description": [
+   "A cheese that was put in between bread with sauces and other stuff before it was added with sweet potatoes and butter to be make into Domino Swiss Pizza.",
+   "It taste soft and sweet as if it melted in your mouth. This is the double layered Pizza made by Domino, the high quality pizza maker.",
+   "(To be sent)",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 70 ~ 100 HP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "563": {
+  "name": "Doublecrust Swiss Fondue",
+  "description": [
+   "A cheese that was put in between bread with sauces and other stuff before it was added with sweet potatoes and butter to be make into Domino Swiss Pizza.",
+   "It taste soft and sweet as if it melted in your mouth. This is the double layered Pizza made by Domino, the high quality pizza maker.",
+   "(To be sent)",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 375 ~ 445 HP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "564": {
+  "name": "Rice Ball",
+  "description": [
+   "A lump of rice which can be eaten for lunch.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 200 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "565": {
+  "name": "Vita500",
+  "description": [
+   "A delicious multi-vitamin drink. It is without caffeine and good for your health.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 142 ~ 274 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "566": {
+  "name": "Tom Yum Goong",
+  "description": [
+   "A type of soup which is regarded as one of the three famous soups in the world.",
+   "It has a spicy, sweet and sour taste with shrimps, lemons and chilies.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "244 ~ 350 HP",
+   "10 ~ 30 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "567": {
+  "name": "Shrimp",
+  "description": [
+   "A shellfish which has a long tail and many legs.",
+   "When cooked, the color of body changes into red and its flesh is very tasty with a unique scent.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 117 ~ 192 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "568": {
+  "name": "Lemon",
+  "description": [
+   "A bright yellow fruit with very sour juice and a fresh scent.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 10 ~ 20 SP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "569": {
+  "name": "Novice Potion",
+  "description": [
+   "An exclusive red potion for Novices!",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 44 ~ 66 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "570": {
+  "name": "Lucky Candy",
+  "description": [
+   "A candy which is rumored to bring luck to whomever eats it.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 45 ~ 65 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "571": {
+  "name": "Lucky Candy Cane",
+  "description": [
+   "A candy cane which is rumored to bring luck to whomever eats it.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "572": {
+  "name": "Lucky Cookie",
+  "description": [
+   "A cookie which is rumored to bring luck to whomever eats it.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 165 ~ 200 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "573": {
+  "name": "Chocolate Drink",
+  "description": [
+   "A kind of drink made from chocolate and milk from one of the Royal Court Dessert Specialist's recipes.",
+   "Although the Dessert Chef wishes for people to drink this treat elegantly, it's usually gulped down, enjoyed with hand sloppily placed on the waist.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "330 ~ 410 HP",
+   "45 ~ 65 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "574": {
+  "name": "Egg",
+  "description": [
+   "An egg from a bird. It's full of nutrition, making it an ideal food for growing children.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 33 ~ 42 HP",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "575": {
+  "name": "2nd Anniversary Cake",
+  "description": [
+   "A piece of sweet cake with icing and a cherry on top. Made in celebration of Ragnarok's second anniversary.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 270 ~ 330 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "576": {
+  "name": "Prickly Fruit",
+  "description": [
+   "A freshly scented, thorny fruit from a tree.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "150 ~ 300 HP",
+   "20 ~ 30 SP",
+   "^0000CCWeight:^000000 6"
+  ]
+ },
+ "577": {
+  "name": "Bag of Grain",
+  "description": [
+   "Dried grains that are commonly used in the cuisines of many countries.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 60 ~ 70 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "578": {
+  "name": "Strawberry",
+  "description": [
+   "A red berry that is renown for its slightly sweet and sour taste and is best eaten fresh.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 16 ~ 28 SP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "579": {
+  "name": "Fresh Fish",
+  "description": [
+   "A fresh fish that can be cooked in a variety of ways.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 100 ~ 150 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "580": {
+  "name": "Bread",
+  "description": [
+   "Freshly leavened bread that gives off a wholesome scent.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 50 ~ 90 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "581": {
+  "name": "Edible Mushroom",
+  "description": [
+   "An edible mushroom that can be eaten raw or cooked.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 20 ~ 30 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "582": {
+  "name": "Orange",
+  "description": [
+   "A sweet citrus fruit that can be eaten raw, juiced, or cooked as a jam.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "10 ~ 20 HP",
+   "10 ~ 20 SP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "583": {
+  "name": "Ketupat Sayur",
+  "description": [
+   "Food eaten Slowly to replenish your body from rituals of fasting Replenish the Weakened body and give energy to protect the body.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "584": {
+  "name": "Fish Cake Soup",
+  "description": [
+   "A bowl filled with hot, hearty fish broth and a generous helping of fish cake.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 40 ~ 70 HP",
+   "^0000CCWeight:^000000 6"
+  ]
+ },
+ "585": {
+  "name": "Brusti",
+  "description": [
+   "A sausage with delicious smell and taste. Tastes even better if you eat it with some wheat beer.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 15 ~ 20 HP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "586": {
+  "name": "Mother's Cake",
+  "description": [
+   "A piece of cake filled with mother's love.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 325 ~ 405 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "587": {
+  "name": "Red Prickly Fruit",
+  "description": [
+   "A freshly scented, thorny fruit from a tree.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "270 ~ 330 HP",
+   "20 ~ 30 SP",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "588": {
+  "name": "Spaghetti",
+  "description": [
+   "A noodle dish from a far nation, made from water and flour. Many tastes can be achieved using various sauces.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 40 ~ 70 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "589": {
+  "name": "Piece of Pizza",
+  "description": [
+   "A delicious snack food that is a favorite of Teenagers everywhere.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 375 ~ 445 HP",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "590": {
+  "name": "Pretzel",
+  "description": [
+   "Looks so yummy that you will feel like to have a bite instantly.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 50 ~ 90 HP",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "591": {
+  "name": "Caviar Pancake",
+  "description": [
+   "A pancake topped with caviar. Average people have trouble telling the difference between fine caviar and common frog spawn eggs.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "592": {
+  "name": "Jam Pancake",
+  "description": [
+   "A pancake topped with strawberry jam. This looks much more delicious than plain strawberries alone.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "593": {
+  "name": "Honey Pancake",
+  "description": [
+   "A very sweet pancake topped with honey.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "594": {
+  "name": "Sour-Cream Pancake",
+  "description": [
+   "A pancake in which sour cream is one of the main ingredients. Biting into just once will make your eyes water.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "595": {
+  "name": "Mushroom Pancake",
+  "description": [
+   "A pancake made with mushrooms that has a light taste that everyone seems to like.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000",
+   "325 ~ 405 HP",
+   "40 ~ 60 SP",
+   "^0000CCCure:^000000 Poison, Silence, Blind, Confuse, Curse, Hallucination",
+   "^0000CCWeight:^000000 15"
+  ]
+ },
+ "596": {
+  "name": "Cute Strawberry-Choco",
+  "description": [
+   "A strawberry that is supposed to be covered in a smooth layer of chocolate, but whoever made this botched it up.",
+   "It's not perfect, but this was made with love, if not skill.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 1 ~ 100 SP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "597": {
+  "name": "Lovely Choco-Tart",
+  "description": [
+   "A tart covered in a smooth layer of rich chocolate that is the perfect dessert for romantic dinners.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 10 ~ 400 HP",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "598": {
+  "name": "Light Red Potion",
+  "description": [
+   "A red potion that has been condensed to Reduces its weight and Increases its effectiveness.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 45 ~ 65 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "599": {
+  "name": "Light Orange Potion",
+  "description": [
+   "An orange potion that has been condensed to Reduces its weight and Increases its effectiveness.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 105 ~ 145 HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "600": {
+  "name": "Witch Skill Card",
+  "description": [
+   "One of the seven magic tools owned by Zilant.",
+   "Inside the worn-out case are countless allegorical paintings.",
+   "It contains cards, but it is said that the number of cards contained varies each time it is counted.",
+   "According to the desire of the person who opens the box, her card pops out as if she had a will of her own.",
+   "_______________________",
+   "Consumes 5% of your MaxSP when used to activate skills according to your ability.",
+   "Can be activated once.",
+   "However, this effect will not work if her skill cannot be activated.",
+   "Does not activate in certain states or maps.",
+   "_______________________",
+   "^0000CCCooldown:^000000 1 second",
+   "_______________________",
+   "^FF0000[Witch Skill Card] will not be consumed when used.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 22",
+   "^0000CCRequirement:^000000",
+   "Base Level 100"
+  ]
+ },
+ "601": {
+  "name": "Fly Wing",
+  "description": [
+   "The wings cut from fly to be made into enchanted item.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCEffect:^000000 Teleport to random cell",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "602": {
+  "name": "Butterfly Wing",
+  "description": [
+   "An enchanted butterfly's wing that instantly sends its user to his Save Point when waved in the air.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCEffect:^000000 Teleport user to Save Point",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "603": {
+  "name": "Old Blue Box",
+  "description": [
+   "A mysterious blue box that seems to hold something inside, but you'll have to open it to find out.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "604": {
+  "name": "Dead Branch",
+  "description": [
+   "A twig which contains the mysterious power of eternity. It can summon a living creature...",
+   "_______________________",
+   "^0000CCType:^000000 Usable",
+   "^0000CCEffect:^000000 Summons 1 random monster",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "605": {
+  "name": "Anodyne",
+  "description": [
+   "A medicine made from ground Mint that is used to ease pain and relax muscle tension. It's a popular painkiller because of its potency.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCEffect:^000000 Casts Endure effect on user",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "606": {
+  "name": "Aloevera",
+  "description": [
+   "A basic herbal emollient made from Aloe extract. Despite its stench and sour taste, it's addictive if regularly eaten.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCEffect:^000000 Casts Provoke effect on user",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "607": {
+  "name": "Yggdrasil Berry",
+  "description": [
+   "Fruit from the Yggdrasil tree which brings life to our world. Its fantastic taste is full of life.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 100% HP, 100% SP",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "608": {
+  "name": "Yggdrasil Seed",
+  "description": [
+   "Seed from the Yggdrasil tree which holds our world together. It has a weird, energizing pungence.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 50% HP, 50% SP",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "609": {
+  "name": "Amulet",
+  "description": [
+   "A forbidden talisman that can reanimate the dead, resulting in a walking corpse or undead zombie.",
+   "_______________________",
+   "^0000CCType:^000000 Usable",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "610": {
+  "name": "Yggdrasil Leaf",
+  "description": [
+   "Leaf from the Yggdrasil tree which maintains the mortal coil.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCEffect:^000000 Revive KO'ed character",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "611": {
+  "name": "Magnifier",
+  "description": [
+   "A magnifying glass used for appraises unidentified items and equipment. Use [Ctrl +Right Click] directly on an unknown item to identify it.",
+   "_______________________",
+   "^0000CCType:^000000 Tool",
+   "^0000CCEffect:^000000 Identifies unknown item",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "612": {
+  "name": "Mini Furnace",
+  "description": [
+   "A disposable, miniature blast furnace that can be easily carried. Used to manufacture metals.",
+   "^FF0000note: Only Blacksmith classes can use this.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Tool",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "613": {
+  "name": "Iron Hammer",
+  "description": [
+   "A disposable hammer made out of well-tempered steel.",
+   "^FF0000note: Only Blacksmith classes can use this.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Tool",
+   "^0000CCEffect:^000000 Forges Level 1 weapon",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "614": {
+  "name": "Golden Hammer",
+  "description": [
+   "A disposable hammer made out of pure gold.",
+   "^FF0000note: Only Blacksmith classes can use this.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Tool",
+   "^0000CCEffect:^000000 Forges Level 2 weapon",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "615": {
+  "name": "Oridecon Hammer",
+  "description": [
+   "A disposable hammer made out of Oridecon.",
+   "^FF0000note: Only Blacksmith classes can use this.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Tool",
+   "^0000CCEffect:^000000 Forges Level 3 weapon",
+   "^0000CCWeight:^000000 40"
+  ]
+ },
+ "616": {
+  "name": "Old Card Album",
+  "description": [
+   "An antique album in which the power of a mysterious Card item is contained...",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random card",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "617": {
+  "name": "Old Purple Box",
+  "description": [
+   "An old purple box holding contents that are a mystery until it is opened.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "618": {
+  "name": "Worn Out Scroll",
+  "description": [
+   "A rolled up piece of parchment, now brittle with age, on which faded text can scarcely be read.",
+   "_______________________",
+   "^0000CCType:^000000 Usable",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "619": {
+  "name": "Unripe Apple",
+  "description": [
+   "An apple that isn't ripe enough for humans to eat.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Poring",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "620": {
+  "name": "Orange Juice",
+  "description": [
+   "A small bottle of orange juice.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Drops",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "621": {
+  "name": "Bitter Herb",
+  "description": [
+   "A herb that is too bitter for the human palate.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Poporing",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "622": {
+  "name": "Rainbow Carrot",
+  "description": [
+   "A fragrant carrot colored with all the hues of the rainbow.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Lunatic",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "623": {
+  "name": "Earthworm the Dude",
+  "description": [
+   "A rather suave looking Earthworm gifted with womanizing debonairness.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Picky",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "624": {
+  "name": "Rotten Fish",
+  "description": [
+   "A rotting, dirty fish that attracts flies.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Chonchon",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "625": {
+  "name": "Rusty Iron",
+  "description": [
+   "A rusty piece of iron that would only interest scavengers and vermin.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Steel Chonchon",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "626": {
+  "name": "Monster Juice",
+  "description": [
+   "A fetid drink made of monster blood.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Hunter Fly",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "627": {
+  "name": "Sweet Milk",
+  "description": [
+   "Sweet, luscious, full bodied milk.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Savage Bebe",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "628": {
+  "name": "Well-Dried Bone",
+  "description": [
+   "A tough, chewy bone that has been dried in the sun.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Baby Desert Wolf",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "629": {
+  "name": "Singing Flower",
+  "description": [
+   "A flower that has been miraculously blessed with the gift of song.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Rocker",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "630": {
+  "name": "Dew Laden Moss",
+  "description": [
+   "A dewy, green moss that grows in cool places.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Spore",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "631": {
+  "name": "Deadly Noxious Herb",
+  "description": [
+   "A plant that contains poisons that would harm most living creatures.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Poison Spore",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "632": {
+  "name": "Fatty Chubby Earthworm",
+  "description": [
+   "An Earthworm that stopped caring about its figure years ago.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Pecopeco",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "633": {
+  "name": "Sweet Potato",
+  "description": [
+   "A baked sweet potato with an appetizing scent.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Smokie",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "634": {
+  "name": "Tropical Banana",
+  "description": [
+   "A premium quality banana grown in the tropics.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Yoyo",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "635": {
+  "name": "Orc Trophy",
+  "description": [
+   "A trophy awarded to the bravest of Orcs.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Orc Warrior",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "636": {
+  "name": "No Recipient",
+  "description": [
+   "An old, heartfelt letter that has never been delivered since it has no recipient.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Munak",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "637": {
+  "name": "Old Broom",
+  "description": [
+   "A generations old broom that is handed down within a family.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Dokkaebi",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "638": {
+  "name": "Silver Knife of Chastity",
+  "description": [
+   "A silver knife that is a symbol of a virgin's chastity.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Sohee",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "639": {
+  "name": "Armlet of Obedience",
+  "description": [
+   "A fancy, intricately decorated bracelet.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Isis",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "640": {
+  "name": "Shining Stone",
+  "description": [
+   "A stone that softly glimmers with faint light.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Petite",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "641": {
+  "name": "Contract in Shadow",
+  "description": [
+   "A contract made with the realm of Darkness.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Deviruchi",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "642": {
+  "name": "Book of the Devil",
+  "description": [
+   "A forbidden book in which the secret for summoning high Level demons is detailed.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Baphomet Jr.",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "643": {
+  "name": "Pet Incubator",
+  "description": [
+   "A portable incubator that is used to hatch Cute Pet monster eggs.",
+   "_______________________",
+   "^0000CCType:^000000 Tool",
+   "^0000CCEffect:^000000 Hatch monster egg",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "644": {
+  "name": "Gift Box",
+  "description": [
+   "A box that contains some sort of present.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "645": {
+  "name": "Concentration Potion",
+  "description": [
+   "Potion that stimulates concentration. Affects the attack speed of its consumer.",
+   "_______________________",
+   "^0000CCType:^000000 Stat booster",
+   "^0000CCEffect:^000000 Increases attack speed",
+   "^0000CCDuration:^000000 30 minutes",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "646": {
+  "name": "King Melon Bread",
+  "description": [
+   "The finest melon bread made with plenty of juice from the king of melons.",
+   "The double structure of the crunchy biscuit dough that covers the whole bread and the fluffy dough inside has created many addicts.",
+   "It seems that there are sinful lovers who prefer to eat only the skin (biscuit dough).",
+   "_______________________",
+   "Recovers 5% of HP and SP.",
+   "_______________________",
+   "^FF0000[King Melon Bread] can only be sold to NPCs or moved to the storage.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "647": {
+  "name": "Peco Peco Reins",
+  "description": [
+   "A certain Peco Peco reins.",
+   "It will lead you to it's master.",
+   "_______________________",
+   "Use it to move to Yuno.",
+   "_______________________",
+   "^0000CCCooldown:^000000 5 seconds",
+   "_______________________",
+   "^FF0000[Peco Peco Reins] will not be consumed when used^000000",
+   "_______________________",
+   "^FF0000[Peco Peco Reins] can only be sold to NPCs or moved to the storage.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "656": {
+  "name": "Awakening Potion",
+  "description": [
+   "Potion that possesses the effect of awakening. It is a mysterious medicine that helps to increase the character's attack speed.",
+   "_______________________",
+   "^0000CCType:^000000 Stat booster",
+   "^0000CCEffect:^000000 Increases attack speed",
+   "^0000CCDuration:^000000 30 minutes",
+   "^0000CCWeight:^000000 15",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "All classes except Acolyte, Priest, Bard and Dancer"
+  ]
+ },
+ "657": {
+  "name": "Berserk Potion",
+  "description": [
+   "A very special potion that enrages the character and turns him into a berserker and increases the character's attack speed.",
+   "_______________________",
+   "^0000CCType:^000000 Stat booster",
+   "^0000CCEffect:^000000 Increases attack speed",
+   "^0000CCDuration:^000000 30 minutes",
+   "^0000CCWeight:^000000 20",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 85",
+   "Swordsman, Merchant and Wizard classes; Rogue and Magician"
+  ]
+ },
+ "658": {
+  "name": "Union of Tribe",
+  "description": [
+   "A symbol of solidarity that evokes a feeling of nobility to those who see it.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCEffect:^000000 Gives EXP to guild",
+   "^0000CCWeight:^000000 50"
+  ]
+ },
+ "659": {
+  "name": "Her Heart",
+  "description": [
+   "An old book rumored to be enchanted by a girl whose name has been forgotten with time.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Bongun",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "660": {
+  "name": "Forbidden Red Candle",
+  "description": [
+   "A candle that may have a mysterious purpose.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Zherlthsh",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "661": {
+  "name": "Soft Apron",
+  "description": [
+   "A soft apron that is double stitched for better quality.",
+   "_______________________",
+   "^0000CCType:^000000 Taming Item",
+   "^0000CCMonster:^000000 Alice",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "662": {
+  "name": "Authoritative Badge",
+  "description": [
+   "A badge made out of bronze that was used in an ancient asian country.",
+   "It was given to government officials who went on business trips and they could use this badge to rent horses anywhere.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCEffect:^000000 Increases movement speed",
+   "^0000CCDuration:^000000 3 minutes",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "663": {
+  "name": "Korean Rice Cake",
+  "description": [
+   "This is a popular food in traditional Korean festivals.",
+   "It's made by filling a woven straw, cone shaped container with rice and then pine needles are used to cover it.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 10% HP",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "664": {
+  "name": "Gift Box",
+  "description": [
+   "A box which contains a gift.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "665": {
+  "name": "Gift Box",
+  "description": [
+   "A box which contains a gift.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "666": {
+  "name": "Gift Box",
+  "description": [
+   "A box which contains a gift.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "667": {
+  "name": "Gift Box",
+  "description": [
+   "A box which contains a gift.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives 1 random item",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "668": {
+  "name": "New Year's Red Envelope",
+  "description": [
+   "A small red packet, seemingly containing some exciting gift, that is given by adults to children.",
+   "_______________________",
+   "^0000CCType:^000000 Container",
+   "^0000CCEffect:^000000 Gives some zeny",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "669": {
+  "name": "Tempting Rice-Cake Soup",
+  "description": [
+   "A soup made with pieces of rice cake.",
+   "It is said that having a bowl of this soup on New Year's Day will make you one year older.",
+   "Young children would abuse this custom to reach legal driving age until the law was changed.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "670": {
+  "name": "Bag of Gold Coins",
+  "description": [
+   "A bag filled with gold coins.",
+   "_______________________",
+   "^0000CCWeight:^000000 40"
+  ]
+ },
+ "671": {
+  "name": "Roulette Gold Coin",
+  "description": [
+   "A coin made of gold.",
+   "When used, adds 1 gold point to roulette game.",
+   "If 10 gold points is used, Roulette will start at 3rd line.",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "672": {
+  "name": "Bag of Bronze Coins",
+  "description": [
+   "A bag filled with bronze coins.",
+   "_______________________",
+   "^0000CCWeight:^000000 40"
+  ]
+ },
+ "673": {
+  "name": "Bronze Coin",
+  "description": [
+   "A coin made of bronze.",
+   "_______________________",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "674": {
+  "name": "Mythril Coin",
+  "description": [
+   "A coin made of mythril.",
+   "_______________________",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "675": {
+  "name": "Roulette Silver Coin",
+  "description": [
+   "A coin made of silver.",
+   "When used, add 1 silver points to roulette games.",
+   "If 10 silver points is used, Roulette will start at 5th line.",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "676": {
+  "name": "Bag of Silver Coins",
+  "description": [
+   "A bag filled with silver coins.",
+   "_______________________",
+   "^0000CCWeight:^000000 40"
+  ]
+ },
+ "677": {
+  "name": "Platinum Coin",
+  "description": [
+   "A coin made of platinum.",
+   "_______________________",
+   "^0000CCWeight:^000000 4"
+  ]
+ },
+ "678": {
+  "name": "Poison Bottle",
+  "description": [
+   "A skeleton shaped bottle which contains deadly poison.",
+   "^FF0000note: Only Assassin Cross job can use this.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Skill necessity",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "679": {
+  "name": "Gold Pill",
+  "description": [
+   "A herbal medicine from an old eastern country that is rumored able to cure every illness.",
+   "_______________________",
+   "^0000CCType:^000000 Usable",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "680": {
+  "name": "Magic Carnation",
+  "description": [
+   "A carnation which is given to parents or teachers on special occassions.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 20% SP",
+   "^0000CCWeight:^000000 100"
+  ]
+ },
+ "681": {
+  "name": "Sweet Memory of Marriage",
+  "description": [
+   "A picture album of memories of the wedding ceremony or honeymoon.",
+   "(Married people only)",
+   "_______________________",
+   "^0000CCType:^000000 Usable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "682": {
+  "name": "Distilled Fighting Spirit",
+  "description": [
+   "A magical drink which increases attack strength when it is taken.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "683": {
+  "name": "Herb of Incantation",
+  "description": [
+   "An enchanted herb which Increases Magical Damage strength when eaten.",
+   "_______________________",
+   "^0000CCType:^000000 Supportive",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "684": {
+  "name": "Durian",
+  "description": [
+   "A tropical delicacy known as the king of fruits. It's big, green and heavy and is covered in thorns.",
+   "Its odor may offend some people, but it tastes delicious.",
+   "_______________________",
+   "^0000CCType:^000000 Stat booster",
+   "^0000CCEffect:^000000 ATK +10, MATK +10",
+   "^0000CCDuration:^000000 10 minutes",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "685": {
+  "name": "Ramadan",
+  "description": [
+   "A word which means \"September\" in a desert country and a month of holy moon.",
+   "During this period, everyone goes on a fast and lead an acentic life.",
+   "_______________________",
+   "^0000CCType:^000000 Restorative",
+   "^0000CCHeal:^000000 100% HP, 50% SP",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "686": {
+  "name": "Level 3 Earth Spike Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 3 Earth Spike",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "687": {
+  "name": "Level 5 Earth Spike Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Earth Spike",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "688": {
+  "name": "Level 3 Cold Bolt Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 3 Cold Bolt",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "689": {
+  "name": "Level 5 Cold Bolt Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Cold Bolt",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "690": {
+  "name": "Level 3 Fire Bolt Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 3 Fire Bolt",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "691": {
+  "name": "Level 5 Fire Bolt Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Fire Bolt",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "692": {
+  "name": "Level 3 Lightning Bolt Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 3 Lightning Bolt",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "693": {
+  "name": "Level 5 Lightning Bolt Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Lightning Bolt",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "694": {
+  "name": "Level 3 Soul Strike Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 3 Soul Strike",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "695": {
+  "name": "Level 5 Soul Strike Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Soul Strike",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "696": {
+  "name": "Level 1 Fire Ball Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 1 Fire Ball",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "697": {
+  "name": "Level 5 Fire Ball Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Fire Ball",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "698": {
+  "name": "Level 1 Fire Wall Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 1 Fire Wall",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "699": {
+  "name": "Level 5 Fire Wall Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 5 Fire Wall",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "700": {
+  "name": "Level 1 Frost Diver Scroll",
+  "description": [
+   "A spell scroll which was made by the essence of ancient magic.",
+   "_______________________",
+   "^0000CCType:^000000 Magic scroll",
+   "^0000CCCast:^000000 Level 1 Frost Diver",
+   "^0000CCWeight:^000000 1"
+  ]
+ }
+}

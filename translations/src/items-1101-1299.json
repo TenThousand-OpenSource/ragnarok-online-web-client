@@ -1,0 +1,3587 @@
+{
+ "1101": {
+  "name": "Sword",
+  "description": [
+   "A basic one-handed sword.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 25",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1102": {
+  "name": "Sword",
+  "description": [
+   "A basic one-handed sword.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 25",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1103": {
+  "name": "Sword",
+  "description": [
+   "A basic one-handed sword.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 25",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1104": {
+  "name": "Falchion",
+  "description": [
+   "A one-handed sword with a rounded blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 39",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1105": {
+  "name": "Falchion",
+  "description": [
+   "A one-handed sword with a rounded blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 39",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1106": {
+  "name": "Falchion",
+  "description": [
+   "A one-handed sword with a rounded blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 39",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1107": {
+  "name": "Blade",
+  "description": [
+   "A one-handed sword with a thick, flat blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 53",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1108": {
+  "name": "Blade",
+  "description": [
+   "A one-handed sword with a thick, flat blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 53",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1109": {
+  "name": "Blade",
+  "description": [
+   "A one-handed sword with a thick, flat blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 53",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1110": {
+  "name": "Rapier",
+  "description": [
+   "A one-handed sword with an elegant blade and crossguard.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1111": {
+  "name": "Rapier",
+  "description": [
+   "A one-handed sword with an elegant blade and crossguard.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1112": {
+  "name": "Rapier",
+  "description": [
+   "A one-handed sword with an elegant blade and crossguard.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1113": {
+  "name": "Scimitar",
+  "description": [
+   "A strong, swift one-handed sword with a curved blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 85",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1114": {
+  "name": "Scimitar",
+  "description": [
+   "A strong, swift one-handed sword with a curved blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 85",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1115": {
+  "name": "Scimitar",
+  "description": [
+   "A strong, swift one-handed sword with a curved blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 85",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1116": {
+  "name": "Katana",
+  "description": [
+   "A straight bladed sword that the Japanese samurai depended on during battle.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 60",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Swordman classes"
+  ]
+ },
+ "1117": {
+  "name": "Katana",
+  "description": [
+   "A straight bladed sword that the Japanese samurai depended on during battle.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 60",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Swordman classes"
+  ]
+ },
+ "1118": {
+  "name": "Katana",
+  "description": [
+   "A straight bladed sword that the Japanese samurai depended on during battle.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 60",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Swordman classes"
+  ]
+ },
+ "1119": {
+  "name": "Tsurugi",
+  "description": [
+   "One of the most powerful one-handed swords, the Tsurugi was favored by the Japanese samurai.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1120": {
+  "name": "Tsurugi",
+  "description": [
+   "One of the most powerful one-handed swords, the Tsurugi was favored by the Japanese samurai.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1121": {
+  "name": "Tsurugi",
+  "description": [
+   "One of the most powerful one-handed swords, the Tsurugi was favored by the Japanese samurai.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1122": {
+  "name": "Ring Pommel Saber",
+  "description": [
+   "A one-handed sword with an elaborately designed hilt.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1123": {
+  "name": "Haedong Gum",
+  "description": [
+   "A one-handed sword from far-eastern country that known has been used not just for eliminating, but also for training.",
+   "_______________________",
+   "INT +3",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1124": {
+  "name": "Orcish Sword",
+  "description": [
+   "Crafted by Orcish smiths and used by Orc Warriors, this one-handed sword is symbolic to the Orc tribe.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 5",
+   "Novice, Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1125": {
+  "name": "Ring Pommel Saber",
+  "description": [
+   "A one-handed sword with an elaborately designed hilt.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1126": {
+  "name": "Saber",
+  "description": [
+   "A heavy one-handed cavalry sword with a slightly curved blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1127": {
+  "name": "Saber",
+  "description": [
+   "A heavy one-handed cavalry sword with a slightly curved blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1128": {
+  "name": "Haedong Gum",
+  "description": [
+   "A one-handed sword from far-eastern country that known has been used not just for eliminating, but also for training.",
+   "_______________________",
+   "INT +3",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1129": {
+  "name": "Flamberge",
+  "description": [
+   "A powerful one-handed sword with a decoratively wavy, flame-like blade.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Knight and Crusader classes"
+  ]
+ },
+ "1130": {
+  "name": "Nagan",
+  "description": [
+   "A one-handed sword topped with several extra edges for making wounds deeper and more unsightly.",
+   "_______________________",
+   "Enables Level 5 ^009900Double Attack^000000.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1131": {
+  "name": "Ice Falchion",
+  "description": [
+   "A one-handed, formal dress sword imbued with the water element.",
+   "_______________________",
+   "Enables the use of Level 3 ^0000FFCold Bolt^000000.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Cold Bolt^000000 when dealing physical damage.",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status on wielder when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 60",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1132": {
+  "name": "Edge",
+  "description": [
+   "A one-handed sword with an extremely sharp blade.",
+   "_______________________",
+   "1% chance to inflict ^663399Coma^000000 on Normal monster when dealing physical damage.",
+   "_______________________",
+   "3% chance to inflict ^663399Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1133": {
+  "name": "Fire Brand",
+  "description": [
+   "A one-handed, formal dress sword imbued with the fire element.",
+   "_______________________",
+   "Enables the use of Level 3 ^0000FFFire Bolt^000000.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Fire Bolt^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 50",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1134": {
+  "name": "Scissor Sword",
+  "description": [
+   "A one-handed sword which looks just like a pair of scissors.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Plant^000000 race by 100%.",
+   "Increases Physical Damage against enemies of ^FF0000Plant^000000 race by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1135": {
+  "name": "Cutlus",
+  "description": [
+   "A one-handed sword popularized by its use by sea adventurers.",
+   "_______________________",
+   "STR +2",
+   "DEF +1",
+   "_______________________",
+   "Enables the use of Level 5 ^0000FFBash^000000.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1136": {
+  "name": "Solar Sword",
+  "description": [
+   "A one-handed sword adorned with an engraving of the sun, symbolizing battle spirit and vigor.",
+   "_______________________",
+   "Drains 1% of damage against its target as HP with each attack.",
+   "_______________________",
+   "Drains 15 SP from its wielder every 10 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 85",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1137": {
+  "name": "Excalibur",
+  "description": [
+   "The one-handed sword of Arthurian legend, it supposedly selects its owner by its own will to wield its holy powers.",
+   "_______________________",
+   "INT +5",
+   "LUK +10",
+   "DEX -1",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1138": {
+  "name": "Mysteltainn",
+  "description": [
+   "A sword inspired by the legendary twig said to have killed Baldur, god of light.",
+   "_______________________",
+   "DEX +3",
+   "_______________________",
+   "Random chance to inflict ^663399Stone Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Stone Curse^000000 on the target when dealing physical damage.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^777777Ghost^000000 elemental by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 100",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1139": {
+  "name": "Tirfing",
+  "description": [
+   "A one-handed sword said to bring a horrific fate to whoever wields it.",
+   "_______________________",
+   "Drains 35 HP from wielder every 10 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 100",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1140": {
+  "name": "Byeollungum",
+  "description": [
+   "A giant one-handed sword used by ancient Korean war generals.",
+   "_______________________",
+   "All Basic Stats +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Boss^000000 class by 50%.",
+   "_______________________",
+   "Increases Physical Damage taken from ^FF0000Normal^000000 class by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1141": {
+  "name": "Immaterial Sword",
+  "description": [
+   "A one-handed, formless sword imbued with the ghost element that can derange the enemy's mind.",
+   "_______________________",
+   "Random chance to drain 30% of target's SP when dealing physical damage.",
+   "_______________________",
+   "Drains 1 SP when dealing physical damage.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 90",
+   "^0000CCElement:^777777 Ghost",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1142": {
+  "name": "Jewel Sword",
+  "description": [
+   "A sword that has a beautiful, transparent blade and a hilt adorned with a princely jewel.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 104",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 68",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1143": {
+  "name": "Gaia Sword",
+  "description": [
+   "An enchanted sword that draws ore out from fallen monsters.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 250",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 74",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1144": {
+  "name": "Sashimi",
+  "description": [
+   "An extremely sharp, thin bladed sword that is very efficient when slicing fish to make Japanese cuisine.",
+   "_______________________",
+   "40% chance a defeated ^FF0000Fish^000000 monster will drop ^0033CCSushi^000000.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 75",
+   "^0000CCWeight:^000000 140",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "1145": {
+  "name": "Holy Avenger",
+  "description": [
+   "A sword that symbolizes the Lord's holy retribution.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 135",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Crusader"
+  ]
+ },
+ "1146": {
+  "name": "Town Sword",
+  "description": [
+   "A common, humbly made sword that is intended for the use of those without any special sword expertise.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Novice"
+  ]
+ },
+ "1147": {
+  "name": "Town Sword",
+  "description": [
+   "A common, humbly made sword that is intended for the use of those without any special sword expertise.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Novice"
+  ]
+ },
+ "1148": {
+  "name": "Star Dust Blade",
+  "description": [
+   "A spectacular sword with a blade forged out of meteorite that shines with starlight during the night.",
+   "_______________________",
+   "5% chance to inflict ^663399Stun^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Novice"
+  ]
+ },
+ "1149": {
+  "name": "Flamberge",
+  "description": [
+   "A beautiful, wavy bladed dagger that inflicts especially excruciating pain.",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Knight and Crusader classes"
+  ]
+ },
+ "1151": {
+  "name": "Slayer",
+  "description": [
+   "A fearsome sword that has slain many a warrior in battle.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Swordman classes"
+  ]
+ },
+ "1152": {
+  "name": "Slayer",
+  "description": [
+   "A fearsome sword that has slain many a warrior in battle.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Swordman classes"
+  ]
+ },
+ "1153": {
+  "name": "Slayer",
+  "description": [
+   "A fearsome sword that has slain many a warrior in battle.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Swordman classes"
+  ]
+ },
+ "1154": {
+  "name": "Bastard Sword",
+  "description": [
+   "A straight bladed sword that can be brutally swung just like a baseball bat.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 160",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Swordman classes"
+  ]
+ },
+ "1155": {
+  "name": "Bastard Sword",
+  "description": [
+   "A straight bladed sword that can be brutally swung just like a baseball bat.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 160",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Swordman classes"
+  ]
+ },
+ "1156": {
+  "name": "Bastard Sword",
+  "description": [
+   "A straight bladed sword that can be brutally swung just like a baseball bat.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 160",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Swordman classes"
+  ]
+ },
+ "1157": {
+  "name": "Two-Handed Sword",
+  "description": [
+   "A heavy Two-handed sword that can knockdown many enemies in single swing.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Swordman classes"
+  ]
+ },
+ "1158": {
+  "name": "Two-Handed Sword",
+  "description": [
+   "A heavy Two-handed sword that can knockdown many enemies in single swing.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Swordman classes"
+  ]
+ },
+ "1159": {
+  "name": "Two-Handed Sword",
+  "description": [
+   "A heavy Two-handed sword that can knockdown many enemies in single swing.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Swordman classes"
+  ]
+ },
+ "1160": {
+  "name": "Broad Sword",
+  "description": [
+   "A sword with a wide, double sided blade.",
+   "_______________________",
+   "DEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Swordman classes"
+  ]
+ },
+ "1161": {
+  "name": "Balmung",
+  "description": [
+   "A gigantic Two-Handed Sword used by a legendary hero, Siegfried.",
+   "_______________________",
+   "INT +20",
+   "LUK +20",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 250",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48"
+  ]
+ },
+ "1162": {
+  "name": "Broad Sword",
+  "description": [
+   "A sword with a wide, double sided blade.",
+   "_______________________",
+   "DEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Swordman classes"
+  ]
+ },
+ "1163": {
+  "name": "Claymore",
+  "description": [
+   "Large, double-edged broad sword that was used by the Scottish highlanders.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 250",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Knight and Crusader classes"
+  ]
+ },
+ "1164": {
+  "name": "Muramasa",
+  "description": [
+   "An oriental sword named after a legendary Japanese swordsmith.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 8%).",
+   "_______________________",
+   "Critical +30",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on wielder when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 155",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1165": {
+  "name": "Masamune",
+  "description": [
+   "An oriental sword that is the masterpiece of an ancient Japanese smith.",
+   "_______________________",
+   "STR -5",
+   "ASPD +2",
+   "FLEE +30",
+   "DEF -66%",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1166": {
+  "name": "Dragon Slayer",
+  "description": [
+   "A giant sword, rumored to be made from a dragon's tooth, that can easily cut through dragon scales.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Dragon^000000 race by 100%.",
+   "Increases Physical Damage against enemies of ^FF0000Dragon^000000 race by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1167": {
+  "name": "Schweizersabel",
+  "description": [
+   "A Two-Handed, formal dress sword imbued with the wind element.",
+   "_______________________",
+   "DEF +1",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Lightning Bolt^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 160",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1168": {
+  "name": "Zweihander",
+  "description": [
+   "An enormous, Two-Handed Sword.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1169": {
+  "name": "Executioner",
+  "description": [
+   "A gruesome sword used to behead criminals judged with the death penalty.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 20%.",
+   "Increases Physical Damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 155",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1170": {
+  "name": "Katzbalger",
+  "description": [
+   "A sword with a unique, \"S\" shaped hilt.",
+   "_______________________",
+   "VIT +5",
+   "DEF +10",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 175",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1171": {
+  "name": "Zweihander",
+  "description": [
+   "An enormous sword that can only be swung using both hands.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1172": {
+  "name": "Claymore",
+  "description": [
+   "A simple, Two-Handed Sword adorned with a cross shaped hilt.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 250",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Knight and Crusader classes"
+  ]
+ },
+ "1173": {
+  "name": "Muramasa",
+  "description": [
+   "^000088Rental Item^000000",
+   "An oriental sword named after a legendary Japanese swordsmith.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 8%).",
+   "_______________________",
+   "Critical +30",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on wielder when dealing physical damage.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 204",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "1174": {
+  "name": "Executioner",
+  "description": [
+   "^000088Rental Item^000000",
+   "A gruesome sword used to behead criminals judged with the death penalty.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 20%",
+   "Increases damage taken from monsters of ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 190",
+   "^0000CCWeight:^000000 0",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "1175": {
+  "name": "Atroce Weapon",
+  "description": [
+   "A massive sword wielded by Atroce that is much too large to be handled by ordinary warriors.",
+   "_______________________",
+   "Critical +10",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF80:^000000",
+   "Random chance to destroy targets's armor when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 350",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1176": {
+  "name": "Muscle Cutter",
+  "description": [
+   "A weapon that is designed to easily slice the muscles of monsters.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Decrease Agi^000000 on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1177": {
+  "name": "Muramash",
+  "description": [
+   "Item For Brave Guild Adventurers.",
+   "_______________________",
+   "ATK +50%",
+   "_______________________",
+   "^0000CCType:^000000 One-Handed Sword",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "1178": {
+  "name": "Schweizersabel",
+  "description": [
+   "A Two-Handed, formal dress sword imbued with the wind element.",
+   "_______________________",
+   "DEF +1",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Lightning Bolt^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 160",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1179": {
+  "name": "Executioner",
+  "description": [
+   "A gruesome sword used to behead criminals judged with the death penalty.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 20%.",
+   "Increases damage taken from monsters of ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 155",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1180": {
+  "name": "Dragon Slayer",
+  "description": [
+   "A giant sword, rumored to be made from a dragon's tooth, that can easily cut through dragon scales.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Dragon^000000 race by 100%.",
+   "Increases Physical Damage against enemies of ^FF0000Dragon^000000 race by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Swordman classes"
+  ]
+ },
+ "1181": {
+  "name": "Tae Goo Lyeon",
+  "description": [
+   "This is known as the sword of a brave man from the orient.",
+   "_______________________",
+   "Perfect Dodge +10",
+   "_______________________",
+   "^CC6600Job Level^000000 at least ^0000FF70^000000 (50 if 3rd jobs):",
+   "Random chance to increase ATK by 50 for 10 seconds when dealing physical damage.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Decreases SP Consumption by 20%.",
+   "Decreases After Skill Delay by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 250",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1182": {
+  "name": "Bloody Eater",
+  "description": [
+   "A magical sword which releases a dismal black aura.",
+   "_______________________",
+   "Random chance to increase Critical by 100 and ATK by 50 for 5 seconds when dealing physical damage.",
+   "_______________________",
+   "Recover 100 HP when defeating an enemy.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^777777 Ghost",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1183": {
+  "name": "Brave Assaulter's Katzbalger",
+  "description": [
+   "A Two-Handed Sword made to rush at the enemy's position, especially designed for battles against Demihuman.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 55%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordman classes"
+  ]
+ },
+ "1184": {
+  "name": "Valorous Assaulter's Katzbalger",
+  "description": [
+   "A Two-Handed Sword made to rush at the enemy's position, especially designed for battles against Demihuman.",
+   "_______________________",
+   "Critical +20",
+   "_______________________",
+   "Increases Critical Damage by 20%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 55%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordman classes"
+  ]
+ },
+ "1185": {
+  "name": "Violet Fear",
+  "description": [
+   "A huge violet Two-Handed Sword that's made from the Twin Swords of Naght Sieger.",
+   "_______________________",
+   "Random chance to pierce physical defense of ^FF0000Normal^000000 class by 100% for 5 seconds when dealing physical damage.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Meteor Storm^000000 on the target when dealing physical damage.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Frost Nova^000000 on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 275",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1186": {
+  "name": "Death Guidance",
+  "description": [
+   "A cursed weapon exists only for the destruction of all living being. The curse of this sword even affects the wielder that leads the person to misery.",
+   "_______________________",
+   "STR +5",
+   "AGI +2",
+   "Perfect Dodge +20",
+   "_______________________",
+   "Random chance to inflict Hell Power on the user or target when dealing physical damage.",
+   "_______________________",
+   "Random chance to inflict damage to all targets within 11x11 cells around wielder and recovers 100% of HP.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Exerts the power to monsters within 15x15 cells and gives 200% damage while it recovers HP.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1187": {
+  "name": "Glorious Claymore",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 70%.",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 25%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000[Slaughter]^000000 Lv 2 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Random chance to auto-cast Level 1 ^009900Concentration^000000 or Level 1 ^009900Aura Blade^000000 when dealing physical damage.",
+   "*If a higher Level of either spell has been learned, the corresponding Level is activated.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 220",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordman classes"
+  ]
+ },
+ "1188": {
+  "name": "Veteran Sword",
+  "description": [
+   "A sword that only a swordmaster can wield.",
+   "_______________________",
+   "STR +1",
+   "DEX +1",
+   "_______________________",
+   "When ^009900Bash^000000 is mastered:",
+   "Increases damage of ^009900Bash^000000 by 50%.",
+   "_______________________",
+   "When ^009900Bowling Bash^000000 is mastered:",
+   "Increases damage of ^009900Bowling Bash^000000 by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordman classes"
+  ]
+ },
+ "1189": {
+  "name": "Krasnaya",
+  "description": [
+   "A strong-looking sword which resembles the shape of a Claymore. Its handgrip is decorated with red color from the High Class Knights.",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF95^000000:",
+   "ATK +20",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 380",
+   "^0000CCWeapon Level:^000000 2",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "1190": {
+  "name": "Claymore",
+  "description": [
+   "^000088Rental Item^000000",
+   "Large, double-edged broad sword that was used by the Scottish highlanders.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Small^000000, ^FF0000Medium^000000 and ^FF0000Large^000000 size by 40%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 220",
+   "^0000CCWeight:^000000 0",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Knight and Crusader classes"
+  ]
+ },
+ "1191": {
+  "name": "Alca Bringer",
+  "description": [
+   "A reddish wide Two-Handed Sword.",
+   "_______________________",
+   "^0000FFFor each 2 Refine Levels^000000:",
+   "ASPD +1",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 280",
+   "^0000CCWeight:^000000 340",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "1192": {
+  "name": "Eden Slayer I",
+  "description": [
+   "A Two-Handed Sword made by the Eden Group for a beginner Swordman.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 162",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 2",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 26",
+   "Swordman classes"
+  ]
+ },
+ "1193": {
+  "name": "Eden Slayer II",
+  "description": [
+   "A Two-Handed Sword made by the Eden Group. It is suitable for intermediates who have more experience handling Two-Handed Swords.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 185",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 2",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordman classes"
+  ]
+ },
+ "1194": {
+  "name": "Rental Executioner",
+  "description": [
+   "^000088Rental Item^000000",
+   "A gruesome sword used to behead criminals judged with the death penalty.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "Increases Physical Damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 190",
+   "^0000CCWeight:^000000 0",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordman classes"
+  ]
+ },
+ "1196": {
+  "name": "Chrome Metal Two-Handed Sword",
+  "description": [
+   "A cold etched sword made with Refined Bradium, a mineral from the Other World.",
+   "_______________________",
+   "AGI +3",
+   "MaxHP -10%",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 280",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "Rune Knight and Royal Guard"
+  ]
+ },
+ "1197": {
+  "name": "Eden Slayer III",
+  "description": [
+   "A Two-Handed Sword made by the Eden Group. It is suitable for those who have more advanced experience handling Two-Handed Swords.",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Weapons Expert BK]<INFO>moc_para01,112,79,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Swordman classes"
+  ]
+ },
+ "1198": {
+  "name": "Hairtail",
+  "description": [
+   "^000088Rental Item^000000",
+   "A fish used as a cutlass for its long knife-like shape. It is cold to the touch.",
+   "_______________________",
+   "Critical +20",
+   "_______________________",
+   "Increases Critical Damage by 50%.",
+   "_______________________",
+   "Random chance to inflict ^663399Crystallization^000000 status for 3 seconds on the target when dealing physical damage.",
+   "_______________________",
+   "^CC6600Base Level^000000 at least ^0000FF100^000000:",
+   "ATK +50",
+   "_______________________",
+   "^0000CCType:^000000 Two-Handed Sword",
+   "^0000CCAttack:^000000 220",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Swordman classes"
+  ]
+ },
+ "1201": {
+  "name": "Knife",
+  "description": [
+   "A simple knife.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 17",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1202": {
+  "name": "Knife",
+  "description": [
+   "A simple knife.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 17",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1203": {
+  "name": "Knife",
+  "description": [
+   "A simple knife.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 17",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1204": {
+  "name": "Cutter",
+  "description": [
+   "A knife used for cutting enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1205": {
+  "name": "Cutter",
+  "description": [
+   "A knife used for cutting enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1206": {
+  "name": "Cutter",
+  "description": [
+   "A knife used for cutting enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1207": {
+  "name": "Main Gauche",
+  "description": [
+   "A French dagger that is usually held in the left hand to parry attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 43",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1208": {
+  "name": "Main Gauche",
+  "description": [
+   "A French dagger that is usually held in the left hand to parry attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 43",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1209": {
+  "name": "Main Gauche",
+  "description": [
+   "A French dagger that is usually held in the left hand to parry attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 43",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1210": {
+  "name": "Dirk",
+  "description": [
+   "An ancient knife used by highlanders in Scotland.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 59",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1211": {
+  "name": "Dirk",
+  "description": [
+   "An ancient knife used by highlanders in Scotland.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 59",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1212": {
+  "name": "Dirk",
+  "description": [
+   "An ancient knife used by highlanders in Scotland.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 59",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1213": {
+  "name": "Dagger",
+  "description": [
+   "Knife used for stabbing.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 73",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1214": {
+  "name": "Dagger",
+  "description": [
+   "Knife used for stabbing.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 73",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1215": {
+  "name": "Dagger",
+  "description": [
+   "Knife used for stabbing.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 73",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1216": {
+  "name": "Stiletto",
+  "description": [
+   "A long, thin blade that is known to be used as a concealed weapon by Assassins.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 87",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1217": {
+  "name": "Stiletto",
+  "description": [
+   "A long, thin blade that is known to be used as a concealed weapon by Assassins.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 87",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1218": {
+  "name": "Stiletto",
+  "description": [
+   "A long, thin blade that is known to be used as a concealed weapon by Assassins.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 87",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1219": {
+  "name": "Gladius",
+  "description": [
+   "A strong dagger that is usually crafted by traditional artisans.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1220": {
+  "name": "Gladius",
+  "description": [
+   "A strong dagger that is usually crafted by traditional artisans.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1221": {
+  "name": "Gladius",
+  "description": [
+   "A strong dagger that is usually crafted by traditional artisans.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1222": {
+  "name": "Damascus",
+  "description": [
+   "A lethal knife made of a special metal that can easily cut straight into the heart of an enemy.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 118",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1223": {
+  "name": "Fortune Sword",
+  "description": [
+   "A knife with a gold handle that is said to bring great fortune to whoever holds it.",
+   "_______________________",
+   "LUK +5",
+   "Perfect Dodge +20",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1224": {
+  "name": "Swordbreaker",
+  "description": [
+   "A powerful dagger that is specially constructed to destroy the enemy's weapon by a low chance.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1225": {
+  "name": "Mailbreaker",
+  "description": [
+   "An incredibly sharp dagger built to puncture and destroy an enemy's armor by a low chance.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1226": {
+  "name": "Damascus",
+  "description": [
+   "A lethal knife made of a special metal that can easily cut straight into the heart of an enemy.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 118",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1227": {
+  "name": "Weeder Knife",
+  "description": [
+   "A blade created to cut down stubborn weeds.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Plant^000000 race by 100%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Plant^000000 race by 15%.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Plant^000000 race by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1228": {
+  "name": "Combat Knife",
+  "description": [
+   "Military combat knife made for battles against ^FF0000Demi-Human^000000 race.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demon^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1229": {
+  "name": "Kitchen Knife",
+  "description": [
+   "A domestic knife used for cooking by housewives.",
+   "_______________________",
+   "Critical +30",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 3%.",
+   "_______________________",
+   "Random chance a defeated ^FF0000Brute^000000 monster will drop ^0033CCMeat^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 75",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1230": {
+  "name": "Ice pick",
+  "description": [
+   "An ice pick that's usually used for piercing solid ice or wood.",
+   "_______________________",
+   "Deals more damage depending on the target's Defense.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1231": {
+  "name": "Bazerald",
+  "description": [
+   "A formal dress dagger, engraved with luxurious emblems, that's usually worn on special occasions.",
+   "_______________________",
+   "INT +5",
+   "MATK +105",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 50",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1232": {
+  "name": "Assassin Dagger",
+  "description": [
+   "A dagger commonly used by Assassins.",
+   "_______________________",
+   "MaxHP +20%",
+   "MaxSP +15%",
+   "Increases Attack Speed (decreases After Attack Delay by 2%).",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 60",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Assassin classes"
+  ]
+ },
+ "1233": {
+  "name": "Exorciser",
+  "description": [
+   "A ceremonial dagger that possesses the power to defeat evil and is used in performing exorcisms.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demon^000000 race monsters by 100%.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 race monsters by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1234": {
+  "name": "Moonlight Sword",
+  "description": [
+   "A sword imbued with lunar spirit and the power to drain an enemy's soul.",
+   "_______________________",
+   "MaxSP +10%",
+   "_______________________",
+   "Restores 3 SP when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1235": {
+  "name": "Azoth",
+  "description": [
+   "A dagger that symbolizes the potential of Alchemy.",
+   "_______________________",
+   "Random chance to transform Normal monster into another monster when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Alchemist"
+  ]
+ },
+ "1236": {
+  "name": "Sucsamad",
+  "description": [
+   "A specialty dagger made by a small, mysterious, desert dwelling tribe.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^CC5500Earth^000000 and ^33CC00Wind^000000 elemental by 10%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1237": {
+  "name": "Grimtooth",
+  "description": [
+   "A cursed dagger forged out of monster tooth that is known to cause insanity to whoever may wield it.",
+   "_______________________",
+   "DEF -50%",
+   "FLEE +10",
+   "Perfect Dodge +5",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1238": {
+  "name": "Zeny Knife",
+  "description": [
+   "A dagger that steals zeny from monsters upon their defeat.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 64",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1239": {
+  "name": "Poison Knife",
+  "description": [
+   "A dreadful dagger whose blade has been soaked in toxin.",
+   "_______________________",
+   "Random chance to inflict ^663399Poison^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 64",
+   "^0000CCWeight:^000000 80",
+   "^0000CCElement:^663399 Poison",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1240": {
+  "name": "Princess Knife",
+  "description": [
+   "A beautiful dagger that is rumored to have been used by an ancient princess to protect herself.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 84",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Archer, Merchant, Thief, Soul Linker and Ninja classes"
+  ]
+ },
+ "1241": {
+  "name": "Cursed Dagger",
+  "description": [
+   "A dagger possessed by evil and given power by hatred and malice.",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 55",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 85",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "1242": {
+  "name": "Dagger of Counter",
+  "description": [
+   "A dagger that has a high chance to do critical damage to a target.",
+   "_______________________",
+   "Critical +90",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 55",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "1243": {
+  "name": "Novice Main-Gauche",
+  "description": [
+   "An exclusive Main Gauche for new adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 63",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCWeapon Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "1244": {
+  "name": "Holy Dagger",
+  "description": [
+   "A dagger blessed with holy water that can be effective in combat against evil demonic forces.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 80",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Thief and Ninja"
+  ]
+ },
+ "1245": {
+  "name": "Cinquedea",
+  "description": [
+   "A wide bladed short sword that was crafted in a western country.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Novice"
+  ]
+ },
+ "1246": {
+  "name": "Cinquedea",
+  "description": [
+   "A wide bladed short sword that was crafted in a western country.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Novice"
+  ]
+ },
+ "1247": {
+  "name": "Kindle Dagger",
+  "description": [
+   "A dagger that can be effectively used to start a fire.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 39",
+   "^0000CCWeight:^000000 60",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All classes except Acolyte"
+  ]
+ },
+ "1248": {
+  "name": "Obsidian Dagger",
+  "description": [
+   "An extremely sharp dagger made from pure obsidian glass that shines eerily.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 39",
+   "^0000CCWeight:^000000 60",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All classes except Acolyte"
+  ]
+ },
+ "1249": {
+  "name": "Fisherman's Dagger",
+  "description": [
+   "A dagger used by fishermen to catch shellfish and oysters from the ocean.",
+   "_______________________",
+   "^0000CCType:^000000 Dagger",
+   "^0000CCAttack:^000000 39",
+   "^0000CCWeight:^000000 60",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All classes except Acolyte"
+  ]
+ },
+ "1250": {
+  "name": "Jur",
+  "description": [
+   "A set of Arabian style blades that are worn on the back of both hands or on the forearms.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Assassin classes"
+  ]
+ },
+ "1251": {
+  "name": "Jur",
+  "description": [
+   "A set of Arabian style blades that are worn on the back of both hands or on the forearms.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Assassin classes"
+  ]
+ },
+ "1252": {
+  "name": "Katar",
+  "description": [
+   "A set of daggers in which the blades are positioned above the knuckles for use in close range combat.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 148",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Assassin classes"
+  ]
+ },
+ "1253": {
+  "name": "Katar",
+  "description": [
+   "A set of daggers in which the blades are positioned above the knuckles for use in close range combat.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 148",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Assassin classes"
+  ]
+ },
+ "1254": {
+  "name": "Jamadhar",
+  "description": [
+   "A specially made Katar with two blades that move like scissors to reveal a third blade from within.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 165",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Assassin classes"
+  ]
+ },
+ "1255": {
+  "name": "Jamadhar",
+  "description": [
+   "A specially made Katar with two blades that move like scissors to reveal a third blade from within.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 165",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Assassin classes"
+  ]
+ },
+ "1256": {
+  "name": "Katar of Cold Icicle",
+  "description": [
+   "A katar fashioned from a cold, sharp icicle.",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1257": {
+  "name": "Katar of Dusty Thornbush",
+  "description": [
+   "A katar sculpted from Earth.",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1258": {
+  "name": "Katar of Raging Blaze",
+  "description": [
+   "A katar molded from an inferno.",
+   "_______________________",
+   "Random chance to inflict ^663399Silence^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1259": {
+  "name": "Katar of Piercing Wind",
+  "description": [
+   "A katar forged with the power of stormy winds.",
+   "_______________________",
+   "Random chance to inflict ^663399Sleep^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1260": {
+  "name": "Sharpened Leg Bone of Ghoul",
+  "description": [
+   "A katar crafted from a ghoul's femur that still radiates a dark, deathly aura.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 170",
+   "^0000CCElement:^777777 Undead",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Assassin classes"
+  ]
+ },
+ "1261": {
+  "name": "Infiltrator",
+  "description": [
+   "A lethal Katar that has been perfectly designed to carry out quick assasinations.",
+   "_______________________",
+   "DEF +3",
+   "FLEE +5",
+   "Perfect Dodge +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Assassin classes"
+  ]
+ },
+ "1262": {
+  "name": "Loki's Nail",
+  "description": [
+   "A double bladed katar that inflicts incurable wounds.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1263": {
+  "name": "Unholy Touch",
+  "description": [
+   "A katar said to be purely forged out of the resentment of the dead.",
+   "_______________________",
+   "Critical -1",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 151",
+   "^0000CCWeight:^000000 125",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Assassin classes"
+  ]
+ },
+ "1264": {
+  "name": "Various Jur",
+  "description": [
+   "Although this katar has an increased number of slots, this weapon is hard to handle and is known to cause injury to those who wield it.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status on wielder when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1265": {
+  "name": "Bloody Roar",
+  "description": [
+   "This katar, known for being effective against humans, is rumored to give a beastial roar when drenched in blood, hence its name.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "_______________________",
+   "Decreases FLEE and Perfect Dodge.",
+   "_______________________",
+   "Disables HP and SP Recovery Rate.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Assassin classes"
+  ]
+ },
+ "1266": {
+  "name": "Infiltrator",
+  "description": [
+   "A lethal Katar that has been designed for quick assassinations.",
+   "_______________________",
+   "DEF +3",
+   "FLEE +5",
+   "Perfect Dodge +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Assassin classes"
+  ]
+ },
+ "1267": {
+  "name": "Infiltrator",
+  "description": [
+   "^000088Rental Item^000000",
+   "A lethal Katar that has been perfectly designed to carry out quick assassinations.",
+   "_______________________",
+   "DEF +3",
+   "FLEE +5",
+   "Perfect Dodge +2",
+   "Increases Attack Speed (decreases After Attack Delay by 5%).",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 70%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 189",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1268": {
+  "name": "Wild Beast Claw",
+  "description": [
+   "A katar crafted from the body of a huge beast and the wounds it inflicts are very difficult to heal.",
+   "_______________________",
+   "Random chance to inflict Level 1 ^663399Critical Wound^000000 status to enemy when dealing physical damage.",
+   "_______________________",
+   "^663399Critical Wound^000000 reduces the effect of Heal, Sanctuary, Potion Pitcher and other recovery items by 20%",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Decreases healing effects by 40% instead.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 145",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin Cross"
+  ]
+ },
+ "1269": {
+  "name": "Inverse Scale",
+  "description": [
+   "A katar made from a dragon's scale.",
+   "_______________________",
+   "Random chance to inflict abnormal statuses on 5x5 cells when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 150",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin Cross"
+  ]
+ },
+ "1270": {
+  "name": "Drill Katar",
+  "description": [
+   "A katar fitted with spinning drills instead of blades, making it ideal for destroying armor.",
+   "_______________________",
+   "HIT +30",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Full Strip^000000 on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 140",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin Cross"
+  ]
+ },
+ "1271": {
+  "name": "Bloody Tears",
+  "description": [
+   "A katar that can attack at longer ranges with fearsome power.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status to all enemies in a 5*5 cell area.",
+   "This range increases to a 11*11 cell area if weapon Refined to +9 or greater.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 170",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin Cross"
+  ]
+ },
+ "1272": {
+  "name": "Scratcher",
+  "description": [
+   "Katar from Guild of Brave Adventurers.",
+   "_______________________",
+   "ATK +50%",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1273": {
+  "name": "Bloody Roar",
+  "description": [
+   "^000088Rental Item^000000",
+   "This katar, known for being effective against humans, is rumored to give a bestial roar when drenched in blood, hence its name.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "_______________________",
+   "Restores HP by 3 every 5 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 148",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1274": {
+  "name": "Unholy Touch",
+  "description": [
+   "^000088Rental Item^000000",
+   "A katar said to be purely forged out of the resentment of the dead.",
+   "_______________________",
+   "Critical -1",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 179",
+   "^0000CCWeight:^000000 0",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1275": {
+  "name": "Katar of Cold Icicle",
+  "description": [
+   "A katar fashioned from a cold, sharp icicle.",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1276": {
+  "name": "Katar of Dusty Thornbush",
+  "description": [
+   "A katar sculpted from Earth.",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1277": {
+  "name": "Katar of Raging Blaze",
+  "description": [
+   "A katar molded from an inferno.",
+   "_______________________",
+   "Random chance to inflict ^663399Silence^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1278": {
+  "name": "Katar of Piercing Wind",
+  "description": [
+   "A katar forged with the power of stormy winds.",
+   "_______________________",
+   "Random chance to inflict ^663399Sleep^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin classes"
+  ]
+ },
+ "1279": {
+  "name": "Brave Carnage Katar",
+  "description": [
+   "A particularly modified Katar created for battles against Demihuman. It makes for a battlefield full of blood and terrible crimes if equipped by a Master Assassin.",
+   "_______________________",
+   "STR +1",
+   "DEX +1",
+   "LUK +1",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 70%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Assassin classes"
+  ]
+ },
+ "1280": {
+  "name": "Valorous Carnage Katar",
+  "description": [
+   "A particularly modified Katar created for battles against Demihuman. It can be used for terrible crimes if equipped by a Master Assassin.",
+   "_______________________",
+   "STR +1",
+   "DEX +1",
+   "LUK +1",
+   "Increases Attack Speed (decreases After Attack Delay by 5%).",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 70%.",
+   "_______________________",
+   "Increases Critical Damage by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Assassin classes"
+  ]
+ },
+ "1281": {
+  "name": "Glorious Bloody Roar",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 70%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000[Slaughter]^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Random chance to decreases After Attack Delay by 100% for 3 seconds when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Assassin classes"
+  ]
+ },
+ "1282": {
+  "name": "Glorious Jamadhar",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 70%.",
+   "_______________________",
+   "Increases Critical Damage by 20%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Increases Critical Damage against ^FF0000Demi-Human^000000 race by 5%.",
+   "^FF0000[Slaughter]^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Random chance to decreases After Attack Delay by 100% for 3 seconds when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Assassin classes"
+  ]
+ },
+ "1283": {
+  "name": "Katar of Speed",
+  "description": [
+   "^000088Rental Item^000000",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "Increases damage of ^009900Sonic Blow^000000 by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Assassin classes"
+  ]
+ },
+ "1284": {
+  "name": "Krishna",
+  "description": [
+   "A katar decorated in black. It requires huge strength just to wave it.",
+   "_______________________",
+   "Increases damage of ^009900Grim Tooth^000000 by 10%.",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Sonic Blow^000000 when dealing physical damage.",
+   "(Player's learned Level of skill will be activated.)",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Assassin Cross"
+  ]
+ },
+ "1285": {
+  "name": "Chakram",
+  "description": [
+   "A rare design for a katar, its design has the meaning of \"transmigration\".",
+   "_______________________",
+   "When ^009900Katar Mastery^000000 skill is mastered:",
+   "HIT +10",
+   "Increases damage of skill ^009900Meteor Assault^000000 by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Assassin Cross"
+  ]
+ },
+ "1286": {
+  "name": "Jamadhar",
+  "description": [
+   "^000088Rental Item^000000",
+   "A specially made katar with two blades that move like scissors to reveal a third blade from within.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Small^000000, ^FF0000Medium^000000 and ^FF0000Large^000000 size by 40%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 0",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1287": {
+  "name": "Durga",
+  "description": [
+   "A katar that is specially designed for high-speed attack.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 190",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "1288": {
+  "name": "Bloody Fear",
+  "description": [
+   "^000088Rental Item^000000",
+   "An excellent katar that specially made to eliminate ^FF0000Demi-Human^000000 race.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 100%.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "Restore 1 SP when killing enemy",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 145",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1289": {
+  "name": "Eden Katar I",
+  "description": [
+   "A katar made by the Eden Group. It is suitable for those who have more advanced experience handling katars.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 155",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Weapons Expert BK]<INFO>moc_para01,112,79,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Assassin classes"
+  ]
+ },
+ "1290": {
+  "name": "Agent Katar",
+  "description": [
+   "The Katar used by an assassin who never lose targets in any situation used. He even used his luck to focus on the target.",
+   "_______________________",
+   "Increases HIT by 1 for every 2 LUK.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "1291": {
+  "name": "Guillotine Katar",
+  "description": [
+   "Long ago, a Guillotine Cross used this to kill his betrayer.",
+   "_______________________",
+   "DEX +2",
+   "FLEE -30",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 50%.",
+   "_______________________",
+   "Increases damage of ^009900Cross Impact^000000 by 30%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 140",
+   "Guillotine Cross"
+  ]
+ },
+ "1292": {
+  "name": "Upgrade Katar",
+  "description": [
+   "A katar that is coated with elunium and gold.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "ATK +10",
+   "Increases Critical Damage by 2%.",
+   "_______________________",
+   "For each ^0000FF10 ^CC6600Base Level^000000 above ^0000FF70^000000:",
+   "ATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin classes"
+  ]
+ },
+ "1293": {
+  "name": "Bellum Jamadhar",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "Decreases the target's DEF and MDEF to 1 on each physical attack. (This effect does not work with skills)",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 1%).",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "Assassin classes"
+  ]
+ },
+ "1294": {
+  "name": "Bellum Scale",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "Decreases the target's SP by 10% on each physical attack. (This effect does not work with skills.)",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "Assassin classes"
+  ]
+ },
+ "1295": {
+  "name": "Bloody Tears",
+  "description": [
+   "A katar with blade shaped like shredder. Leaves deep wound on its target.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status on 5x5 cells when dealing physical damage",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "the area of effect increased to 11x11 cells.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 170",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin Cross"
+  ]
+ },
+ "1296": {
+  "name": "Metal Katar",
+  "description": [
+   "Katar made up of Metal.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "ATK +5",
+   "Increases Critical Damage by 1%.",
+   "_______________________",
+   "^CC6600Base Level^000000 at least ^0000FF20^000000:",
+   "For each ^0000FF10 ^CC6600Base Level^000000:",
+   "ATK +5 (Up to Base Level 120)",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 75",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Assassin Corss"
+  ]
+ },
+ "1297": {
+  "name": "Inverse Scale",
+  "description": [
+   "A katar made from a dragon's scale.",
+   "_______________________",
+   "Random chance to inflict abnormal statuses on 5x5 cells when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 150",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Assassin Cross"
+  ]
+ },
+ "1298": {
+  "name": "Katar of Shiver",
+  "description": [
+   "Katar that has killed many victims, its shape makes enemy shiver.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Critical +1",
+   "_______________________",
+   "When equipped with ^990099Mobster Card^000000:",
+   "Increases Critical Damage by 5%.",
+   "_______________________",
+   "When equipped with ^990099Sedora Card^000000:",
+   "Increases Critical Damage by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 270",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 105",
+   "Guillotine Cross"
+  ]
+ },
+ "1299": {
+  "name": "TE WoE Katar",
+  "description": [
+   "^000088Rental Item^000000",
+   "*Effects in WoE TE area",
+   "Increases Physical Damage against ^FF0000Players^000000 by 40%.",
+   "Random chance to inflict ^663399Bleeding^000000 status when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Katar",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Assassin classes"
+  ]
+ }
+}

@@ -99,7 +99,7 @@ pub fn names(lua: &Lua, table: &str) -> BTreeMap<i64, String> {
 /// `{"jobs": {"<id>": {"name": …}}, "headgear": {"<view id>": …}, "skills": {…}}`: what each job is called, the
 /// name each headgear's sprite files end in, and the skills (see `skills`).
 pub fn for_client(grf: &Grf) -> serde_json::Value {
-    let lua = run(grf, &["jobidentity", "npcidentity", "pcjobnamegender_f", "accessoryid", "accname"]);
+    let lua = run(grf, &["jobidentity", "npcidentity", "jobname", "pcjobnamegender_f", "accessoryid", "accname"]);
     // The translated job names are keyed by `JOBID.<identifier>`, which the files above know under other tables.
     // An identifier none of them has gets a key of its own, so the file still runs to its end.
     let prepared = lua
@@ -124,7 +124,13 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
     }
 
     let headgear: serde_json::Map<String, serde_json::Value> = names(&lua, "AccNameTable").into_iter().map(|(id, name)| (id.to_string(), name.into())).collect();
-    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf) })
+    // The sprite files of NPCs and monsters, by the number the server shows them under.
+    let sprites: serde_json::Map<String, serde_json::Value> =
+        names(&lua, "JobNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    // The ending of a weapon's sprite files by the kind of weapon (`_단검` for daggers), from `weapontable.lub`.
+    let weapons: serde_json::Map<String, serde_json::Value> =
+        names(&run(grf, &["weapontable"]), "WeaponNameTable").into_iter().filter(|(id, _)| *id > 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf) })
 }
 
 /// Runs more files in a state that already holds others' tables.
@@ -134,7 +140,122 @@ fn run_more<'lua>(lua: &'lua Lua, grf: &Grf, files: &[&str]) -> &'lua Lua {
 }
 
 /// What an item is called and which pictures are its, by item ID: from the client's `iteminfo.lub`.
-pub struct Items(std::collections::HashMap<u32, (String, String)>);
+pub struct Items(std::collections::HashMap<u32, (String, String)>, std::collections::HashMap<u32, About>, Korean, Translated);
+
+/// A translation of names and descriptions (of items or of skills) kept in files of its own: by ID, the name and
+/// the description's lines.
+pub type Translated = std::collections::HashMap<u32, (String, Vec<String>)>;
+
+/// Reads the translation files of a folder whose names start with `prefix` (`translations/ru/items-*.json`):
+/// each `{"<id>": {"name": …, "description": […]}}`.
+pub fn translated(folder: &std::path::Path, prefix: &str) -> Translated {
+    let mut all = Translated::new();
+    let Ok(files) = std::fs::read_dir(folder) else { return all };
+    for file in files.flatten() {
+        let name = file.file_name().to_string_lossy().into_owned();
+        if !name.starts_with(prefix) || !name.ends_with(".json") {
+            continue;
+        }
+        let parsed = std::fs::read_to_string(file.path()).map_err(|error| error.to_string()).and_then(|text| serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&text).map_err(|error| error.to_string()));
+        match parsed {
+            Ok(entries) => {
+                for (id, entry) in entries {
+                    let Ok(id) = id.parse::<u32>() else { continue };
+                    let name = entry.get("name").and_then(|name| name.as_str()).unwrap_or_default().to_owned();
+                    let description = entry.get("description").and_then(|lines| lines.as_array()).map(|lines| lines.iter().filter_map(|line| line.as_str().map(str::to_owned)).collect()).unwrap_or_default();
+                    all.insert(id, (name, description));
+                }
+            }
+            Err(error) => eprintln!("tables: {}: {error}", file.path().display()),
+        }
+    }
+    all
+}
+
+/// The words the English item descriptions are built of, in Russian: an item with no translation of its own is
+/// shown with at least these translated.
+const RUSSIAN_LABELS: &[(&str, &str)] = &[
+    ("Weapon Level:", "Уровень оружия:"),
+    ("Armor Level:", "Уровень брони:"),
+    ("Base Level:", "Базовый уровень:"),
+    ("Requirement:", "Требования:"),
+    ("Refineable:", "Заточка:"),
+    ("Refinable:", "Заточка:"),
+    ("Position:", "Место:"),
+    ("Location:", "Место:"),
+    ("Property:", "Стихия:"),
+    ("Element:", "Стихия:"),
+    ("Defense:", "Защита:"),
+    ("Attack:", "Атака:"),
+    ("Weight:", "Вес:"),
+    ("Type:", "Тип:"),
+    ("Class:", "Класс:"),
+    ("Heal:", "Лечение:"),
+    ("Jobs:", "Профессии:"),
+    ("Item ID:", "ID предмета:"),
+    ("Restorative", "Восстанавливающий"),
+    ("Collectible", "Трофей"),
+    ("Headgear", "Головной убор"),
+    ("Garment", "Накидка"),
+    ("Accessory", "Аксессуар"),
+    ("Footgear", "Обувь"),
+    ("Shield", "Щит"),
+    ("Armor", "Броня"),
+    ("Dagger", "Кинжал"),
+    ("One-Handed Sword", "Одноручный меч"),
+    ("Two-Handed Sword", "Двуручный меч"),
+    ("Bow", "Лук"),
+    ("Staff", "Посох"),
+    ("Mace", "Булава"),
+    ("Spear", "Копьё"),
+    ("Axe", "Топор"),
+    ("Arrow", "Стрела"),
+    ("Card", "Карта"),
+    ("Upper", "Верх"),
+    ("Middle", "Середина"),
+    ("Lower", "Низ"),
+    ("None", "Нет"),
+    ("Yes", "Да"),
+    ("No", "Нет"),
+    ("All Jobs", "Все профессии"),
+    ("All classes", "Все профессии"),
+    ("Novice", "Новичок"),
+    ("Swordsman", "Мечник"),
+    ("Magician", "Маг"),
+    ("Archer", "Лучник"),
+    ("Merchant", "Торговец"),
+    ("Thief", "Вор"),
+    ("Acolyte", "Послушник"),
+    ("Soul Linker", "Медиум"),
+    ("Ninja", "Ниндзя"),
+    ("Gunslinger", "Стрелок"),
+    ("Taekwon", "Тхэквондист"),
+    ("classes", "классы"),
+    (" and ", " и "),
+];
+
+/// An English description line with its labels and common words put into Russian.
+fn russian_line(line: &str) -> String {
+    let mut line = line.to_owned();
+    for (english, russian) in RUSSIAN_LABELS {
+        if line.contains(english) {
+            line = line.replace(english, russian);
+        }
+    }
+    line
+}
+
+/// What the client's own (Korean) table calls each item and says of it, kept apart from what is shown: the name
+/// and the description's lines, by item ID.
+type Korean = std::collections::HashMap<u32, (String, Vec<String>)>;
+
+/// What more is told of an item when it is looked at: the client's own description of it (line by line), and
+/// what the server's database says of it (`Type`, `Weight` and the like, as it names them).
+#[derive(Default)]
+pub struct About {
+    description: Vec<String>,
+    facts: Vec<(String, String)>,
+}
 
 impl Items {
     /// Takes the items' names from the server's item database instead (rAthena's `db/re` or `db/pre-re` folder):
@@ -146,10 +267,23 @@ impl Items {
             let Ok(text) = std::fs::read_to_string(database.join(file)) else { continue };
             // Entries are `- Id: <id>` followed, a few lines on, by `Name: <name>`.
             let mut id = None;
+            let mut last = None;
             for line in text.lines() {
                 let line = line.trim_start();
+                // What the database says of the item last named, as far as a player wants to know.
+                if let (Some(item), Some((key, value))) = (last, line.split_once(':')) {
+                    if matches!(key, "Type" | "SubType" | "Buy" | "Sell" | "Weight" | "Attack" | "MagicAttack" | "Defense" | "Range" | "Slots" | "WeaponLevel" | "ArmorLevel" | "EquipLevelMin")
+                        && !value.trim().is_empty()
+                    {
+                        let value = value.trim();
+                        // Weight is kept in tenths.
+                        let value = if key == "Weight" { value.parse::<f64>().map_or(value.to_owned(), |weight| format!("{}", weight / 10.0)) } else { value.to_owned() };
+                        self.1.entry(item).or_default().facts.push((key.to_owned(), value));
+                    }
+                }
                 if let Some(value) = line.strip_prefix("- Id:") {
                     id = value.trim().parse::<u32>().ok();
+                    last = id;
                 } else if let Some(name) = line.strip_prefix("Name:") {
                     // The first name after an ID is the item's; later ones belong to other things in the entry.
                     let Some(item) = id.take() else { continue };
@@ -168,6 +302,7 @@ impl Items {
     pub fn load(grf: &Grf) -> Self {
         let lua = run(grf, &["iteminfo"]);
         let mut items = std::collections::HashMap::new();
+        let mut about = std::collections::HashMap::new();
         if let Ok(table) = lua.globals().get::<Table>("tbl") {
             for (id, item) in table.pairs::<i64, Table>().flatten() {
                 let field = |name: &str| match item.get::<Value>(name) {
@@ -176,10 +311,100 @@ impl Items {
                 };
                 if let Ok(id) = u32::try_from(id) {
                     items.insert(id, (field("identifiedDisplayName"), field("identifiedResourceName")));
+                    if let Ok(lines) = item.get::<Table>("identifiedDescriptionName") {
+                        let description: Vec<String> = lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect();
+                        about.insert(id, About { description, facts: Vec::new() });
+                    }
                 }
             }
         }
-        Self(items)
+        Self(items, about, Korean::new(), Translated::new())
+    }
+
+    /// Takes the items' names and descriptions from the English table that comes with the client
+    /// (`SystemEN/LuaFiles514/itemInfo.lua`, the ROenglishRE translation: the same table as the client's own,
+    /// in English). What the client's own table said is kept aside as the Korean translation. Items the English
+    /// table lacks keep what they had.
+    pub fn with_english(mut self, client: &std::path::Path) -> Self {
+        let path = client.join("SystemEN/LuaFiles514/itemInfo.lua");
+        let Ok(bytes) = std::fs::read(&path) else {
+            eprintln!("tables: no English item table at {}", path.display());
+            return self;
+        };
+        let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+        if let Err(error) = lua.load(bytes).set_mode(mlua::ChunkMode::Text).set_name("itemInfo").exec() {
+            eprintln!("tables: {}: {error}", path.display());
+            return self;
+        }
+        // The translation is plain text; the few bytes beyond ASCII in it are Latin letters and signs.
+        let english = |bytes: &[u8]| match std::str::from_utf8(bytes) {
+            Ok(text) => text.to_owned(),
+            Err(_) => encoding_rs::WINDOWS_1252.decode_without_bom_handling(bytes).0.into_owned(),
+        };
+        let mut translated = 0;
+        if let Ok(table) = lua.globals().get::<Table>("tbl") {
+            for (id, item) in table.pairs::<i64, Table>().flatten() {
+                let Ok(id) = u32::try_from(id) else { continue };
+                let name = match item.get::<Value>("identifiedDisplayName") {
+                    Ok(Value::String(text)) => english(&text.as_bytes()),
+                    _ => String::new(),
+                };
+                let description: Vec<String> = item.get::<Table>("identifiedDescriptionName").map(|lines| lines.sequence_values::<mlua::String>().flatten().map(|line| english(&line.as_bytes())).collect()).unwrap_or_default();
+                if name.is_empty() && description.is_empty() {
+                    continue;
+                }
+                let entry = self.0.entry(id).or_default();
+                let about = self.1.entry(id).or_default();
+                self.2.insert(id, (entry.0.clone(), about.description.clone()));
+                if !name.is_empty() {
+                    entry.0 = name;
+                }
+                // An item the client's own table lacks takes its pictures' name from this one.
+                if entry.1.is_empty() {
+                    if let Ok(Value::String(resource)) = item.get::<Value>("identifiedResourceName") {
+                        entry.1 = korean(&resource.as_bytes());
+                    }
+                }
+                if !description.is_empty() {
+                    about.description = description;
+                }
+                translated += 1;
+            }
+        }
+        eprintln!("tables: {translated} items in English from {}", path.display());
+        self
+    }
+
+    /// Takes the Russian names and descriptions from the translation files (`items-*.json` of the folder).
+    pub fn with_russian(mut self, folder: &std::path::Path) -> Self {
+        self.3 = translated(folder, "items");
+        eprintln!("tables: {} items in Russian from {}", self.3.len(), folder.display());
+        self
+    }
+
+    /// The items with these IDs in Russian, as `json` gives them in English: an item with a translation of its
+    /// own is shown by it; any other keeps its English name, with the labels of its description in Russian.
+    pub fn russian_json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
+        let found: serde_json::Map<String, serde_json::Value> = ids
+            .filter_map(|id| {
+                let (name, resource) = self.0.get(&id)?;
+                let (description, facts) = self.1.get(&id).map_or((&[][..], &[][..]), |about| (&about.description[..], &about.facts[..]));
+                let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
+                let (name, description) = match self.3.get(&id) {
+                    Some((russian, lines)) => (if russian.is_empty() { name.clone() } else { russian.clone() }, if lines.is_empty() { description.iter().map(|line| russian_line(line)).collect() } else { lines.clone() }),
+                    None => (name.clone(), description.iter().map(|line| russian_line(line)).collect()),
+                };
+                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts })))
+            })
+            .collect();
+        found.into()
+    }
+
+    /// The Korean names and descriptions of the items with these IDs, as JSON: `{"<id>": {"name": …,
+    /// "description": […]}}`.
+    pub fn korean_json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
+        let found: serde_json::Map<String, serde_json::Value> = ids.filter_map(|id| self.2.get(&id).map(|(name, description)| (id.to_string(), serde_json::json!({ "name": name, "description": description })))).collect();
+        found.into()
     }
 
     pub fn len(&self) -> usize {
@@ -194,9 +419,42 @@ impl Items {
     /// out.
     pub fn json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
         let found: serde_json::Map<String, serde_json::Value> =
-            ids.filter_map(|id| self.0.get(&id).map(|(name, resource)| (id.to_string(), serde_json::json!({ "name": name, "resource": resource })))).collect();
+            ids.filter_map(|id| {
+                let (name, resource) = self.0.get(&id)?;
+                let (description, facts) = self.1.get(&id).map_or((&[][..], &[][..]), |about| (&about.description[..], &about.facts[..]));
+                let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
+                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts })))
+            })
+            .collect();
         found.into()
     }
+}
+
+/// Where each job's skills stand in the skill window (the client's `skilltreeview.lub`), and which job each job
+/// grew out of (`jobinheritlist.lub`): `{"<job>": {"from": <job or null>, "slots": {"<place>": <skill>}}}`. A
+/// place counts the window's cells row by row, seven to a row.
+fn skill_tree(grf: &Grf) -> serde_json::Map<String, serde_json::Value> {
+    let lua = run(grf, &["skillinfoz\\jobinheritlist", "skillinfoz\\skillid", "skillinfoz\\skilltreeview"]);
+    let mut tree = serde_json::Map::new();
+    let Ok(views) = lua.globals().get::<Table>("SKILL_TREEVIEW_FOR_JOB") else { return tree };
+    let inherits = lua.globals().get::<Table>("JOB_INHERIT_LIST").ok();
+    for (job, slots) in views.pairs::<i64, Table>().flatten() {
+        let slots: serde_json::Map<String, serde_json::Value> = slots.pairs::<i64, i64>().flatten().map(|(place, skill)| (place.to_string(), skill.into())).collect();
+        let from = inherits.as_ref().and_then(|inherits| inherits.get::<i64>(job).ok());
+        tree.insert(job.to_string(), serde_json::json!({ "from": from, "slots": slots }));
+    }
+    tree
+}
+
+/// What the client says of each skill when it is looked at (its `skilldescript.lub`): the lines, by skill ID.
+pub fn skill_texts(grf: &Grf) -> std::collections::HashMap<u32, Vec<String>> {
+    let lua = run(grf, &["skillinfoz\\skillid", "skillinfoz\\skilldescript"]);
+    let Ok(table) = lua.globals().get::<Table>("SKILL_DESCRIPT") else { return Default::default() };
+    table
+        .pairs::<i64, Table>()
+        .flatten()
+        .filter_map(|(id, lines)| Some((u32::try_from(id).ok()?, lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect())))
+        .collect()
 }
 
 /// The skills, by ID: `{"<id>": {"resource": "NV_BASIC", "name": "Basic Skill", "max": 9}}`. The resource names a

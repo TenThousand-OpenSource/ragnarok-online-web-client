@@ -1,6 +1,7 @@
 //! roweb: a Ragnarok Online client for the browser.
 
 pub mod bmp;
+pub mod effect;
 pub mod i18n;
 pub mod map;
 pub mod model;

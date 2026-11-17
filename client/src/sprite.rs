@@ -135,12 +135,18 @@ pub struct Frame {
     pub layers: Vec<Layer>,
     /// The point other sprites attach by: a head is moved so that its anchor lies on the body's.
     pub anchor: Option<(i32, i32)>,
+    /// Which of the file's sounds starts with this frame.
+    pub sound: Option<usize>,
 }
 
 /// The frames of each action. A character's actions come in eights, one per direction, south first and then
 /// clockwise: standing is 0-7, sitting 16-23.
 pub struct Act {
     pub actions: Vec<Vec<Frame>>,
+    /// The names of the sound files the frames name by number.
+    pub sounds: Vec<String>,
+    /// How long a frame of each action shows, in units of 25 milliseconds (4 where the file does not say).
+    pub delays: Vec<f32>,
 }
 
 pub fn parse_act(bytes: &[u8]) -> Result<Act, String> {
@@ -178,10 +184,10 @@ pub fn parse_act(bytes: &[u8]) -> Result<Act, String> {
                 }
                 layers.push(layer);
             }
-            let mut frame = Frame { layers, anchor: None };
+            let mut frame = Frame { layers, anchor: None, sound: None };
             if version >= 0x200 {
-                // The frame's sound event.
-                reader.i32()?;
+                // The frame's sound event: -1 for none.
+                frame.sound = usize::try_from(reader.i32()?).ok();
             }
             if version >= 0x203 {
                 for index in 0..reader.count(16)? {
@@ -197,7 +203,25 @@ pub fn parse_act(bytes: &[u8]) -> Result<Act, String> {
         }
         actions.push(frames);
     }
-    Ok(Act { actions })
+    // The sounds' names, 40 bytes each. A file cut short here still has its pictures.
+    let mut sounds = Vec::new();
+    if version >= 0x201 {
+        if let Ok(count) = reader.count(40) {
+            for _ in 0..count {
+                let Ok(name) = reader.take(40) else { break };
+                let end = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
+                sounds.push(String::from_utf8_lossy(&name[..end]).into_owned());
+            }
+        }
+    }
+    let mut delays = Vec::new();
+    if version >= 0x202 {
+        for _ in 0..actions.len() {
+            let Ok(delay) = reader.f32() else { break };
+            delays.push(delay);
+        }
+    }
+    Ok(Act { actions, sounds, delays })
 }
 
 /// An RGBA picture to draw into.
@@ -417,8 +441,8 @@ mod tests {
 
     #[test]
     fn a_head_follows_the_bodys_anchor() {
-        let body = Frame { layers: Vec::new(), anchor: Some((2, -40)) };
-        let head = Frame { layers: Vec::new(), anchor: Some((-1, -10)) };
+        let body = Frame { layers: Vec::new(), sound: None, anchor: Some((2, -40)) };
+        let head = Frame { layers: Vec::new(), sound: None, anchor: Some((-1, -10)) };
         assert_eq!(head_offset(&body, &head), (3, -30));
         assert_eq!(head_offset(&body, &Frame::default()), (0, 0));
     }

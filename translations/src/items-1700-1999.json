@@ -1,0 +1,4391 @@
+{
+ "1701": {
+  "name": "Bow",
+  "description": [
+   "A common bow.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 15",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1702": {
+  "name": "Bow",
+  "description": [
+   "A common bow.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 15",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1703": {
+  "name": "Bow",
+  "description": [
+   "A common bow.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 15",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1704": {
+  "name": "Composite Bow",
+  "description": [
+   "An average bow that is mostly used for small game hunting.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 29",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1705": {
+  "name": "Composite Bow",
+  "description": [
+   "An average bow that is mostly used for small game hunting.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 29",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1706": {
+  "name": "Composite Bow",
+  "description": [
+   "An average bow that is mostly used for small game hunting.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 29",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1707": {
+  "name": "Great Bow",
+  "description": [
+   "A simply constructed bow that offers well balanced performance.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1708": {
+  "name": "Great Bow",
+  "description": [
+   "A simply constructed bow that offers well balanced performance.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1709": {
+  "name": "Great Bow",
+  "description": [
+   "A simply constructed bow that offers well balanced performance.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1710": {
+  "name": "Cross Bow",
+  "description": [
+   "A specially made bow that uses a firing mechanism to launch arrows at enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 65",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1711": {
+  "name": "Cross Bow",
+  "description": [
+   "A specially made bow that uses a firing mechanism to launch arrows at enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 65",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1712": {
+  "name": "Cross Bow",
+  "description": [
+   "A specially made bow that uses a firing mechanism to launch arrows at enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 65",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 18",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1713": {
+  "name": "Arbalest",
+  "description": [
+   "A powerful siege weapon that is, in essense, a huge crossbow.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1714": {
+  "name": "Gakkung",
+  "description": [
+   "A potent bow used by Goongsoo, the ancient Korean archer, who used its great strength to knock down the greatest of enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 110",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1715": {
+  "name": "Arbalest",
+  "description": [
+   "A powerful siege weapon that is, in essense, a huge crossbow.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1716": {
+  "name": "Gakkung",
+  "description": [
+   "A potent bow used by Goongsoo, the ancient Korean archer, who used its great strength to knock down the greatest of enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 110",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1718": {
+  "name": "Hunter Bow",
+  "description": [
+   "A mighty bow that can only be effectively used by Hunters and Snipers.",
+   "_______________________",
+   "When equipped with ^990099Hunting Arrow^000000:",
+   "Increases Ranged Physical Damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 110",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Hunter"
+  ]
+ },
+ "1719": {
+  "name": "Roguemaster's Bow",
+  "description": [
+   "A bow, created just for Thieves, that has great attacking range.",
+   "_______________________",
+   "Weapon range: 11 cells",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 75",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Thief and Rogue"
+  ]
+ },
+ "1720": {
+  "name": "Rudra Bow",
+  "description": [
+   "A bow imbued with the sacred essense of Rudra, one of the ancient gods.",
+   "_______________________",
+   "INT +5",
+   "_______________________",
+   "Enable use of Level 1 ^009900Heal^000000 and Level 1 ^009900Cure^000000.",
+   "_______________________",
+   "Adds 50% tolerance to the ^663399Poison^000000, ^663399Curse^000000, ^663399Silence^000000, ^663399Confuse^000000 and ^663399Blind^000000 statuses.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 120",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "Archer and Rogue"
+  ]
+ },
+ "1721": {
+  "name": "Repeating Crossbow",
+  "description": [
+   "A rapid fire crossbow that can shoot many arrows in a short span of time.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 95",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Thief, Hunter and Rogue"
+  ]
+ },
+ "1722": {
+  "name": "Ballista",
+  "description": [
+   "A huge bow whose designed was inspired by the giant siege weapons used to raze entire castles.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 145",
+   "^0000CCWeight:^000000 350",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 77",
+   "Hunter, Bard and Dancer"
+  ]
+ },
+ "1723": {
+  "name": "Luna Bow",
+  "description": [
+   "A bow crafted out of moonstone with an attached blade that allows its user to block and counter enemy attacks.",
+   "The drawback is that this bow is quite heavy.",
+   "_______________________",
+   "DEF +2",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "DEF +1",
+   "^0000FFRefine Level +9^000000:",
+   "DEF +2",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Hunter"
+  ]
+ },
+ "1724": {
+  "name": "Dragon Wing",
+  "description": [
+   "A bow constructed out of dragon bone and made to look like dragon wings.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Dragon^000000 race by 100%.",
+   "_______________________",
+   "Random chance a defeated ^FF0000Dragon^000000 monster will drop ^0033CCOridecon Arrow^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1725": {
+  "name": "Minstrel Bow",
+  "description": [
+   "A musicial instrument that has been modified into a bow.",
+   "_______________________",
+   "INT +2",
+   "Increases SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 170",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Hunter, Bard and Dancer"
+  ]
+ },
+ "1726": {
+  "name": "Hunter Bow",
+  "description": [
+   "A mighty bow that can only be effectively used by Hunter and Sniper.",
+   "_______________________",
+   "When equipped with ^990099Hunting Arrow^000000:",
+   "Increases Ranged Physical Damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "Hunter"
+  ]
+ },
+ "1727": {
+  "name": "Ballista",
+  "description": [
+   "A huge bow whose designed was inspired by the giant siege weapons used to raze entire castles.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 145",
+   "^0000CCWeight:^000000 350",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 77",
+   "Hunter, Bard and Dancer"
+  ]
+ },
+ "1728": {
+  "name": "Ballista",
+  "description": [
+   "^000088Rental Item^000000",
+   "A giant bow used in ancient battles.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 20%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 194",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Hunter, Bard and Dancer"
+  ]
+ },
+ "1729": {
+  "name": "Rudra Bow",
+  "description": [
+   "^000088Rental Item^000000",
+   "A bow imbued with the sacred essense of Rudra, one of the ancient gods.",
+   "_______________________",
+   "INT +5",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFHeal^000000 and Level 1 ^0000FFCure^000000.",
+   "_______________________",
+   "Adds 50% tolerance to the ^663399Poison^000000, ^663399Curse^000000, ^663399Silence^000000, ^663399Confuse^000000 and ^663399Blind^000000 statuses.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 185",
+   "^0000CCWeight:^000000 0",
+   "^0000CCElement:^777777 Holy",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Archer and Rogue"
+  ]
+ },
+ "1730": {
+  "name": "Burning Bow",
+  "description": [
+   "A flaming bow that seems dangerous to grasp.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 10%.",
+   "_______________________",
+   "When equipped with ^990099Fire Arrow^000000:",
+   "Increases Ranged Physical Damage by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 95",
+   "^0000CCWeight:^000000 140",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Archer and Rogue"
+  ]
+ },
+ "1731": {
+  "name": "Frozen Bow",
+  "description": [
+   "A frozen bow whose drawstring seems too solid to be pulled.",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status to target when dealing Ranged Physical Damages.",
+   "_______________________",
+   "When equipped with ^990099Crystal Arrow^000000:",
+   "Increases Ranged Physical Damage by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 140",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Archer and Rogue"
+  ]
+ },
+ "1732": {
+  "name": "Earth Bow",
+  "description": [
+   "A bow that is perfectly balanced in every aspect.",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status to target attacking.",
+   "_______________________",
+   "When equipped with ^990099Stone Arrow^000000:",
+   "Increases Ranged Physical Damage by 25%.",
+   "Random chance to inflict ^663399Stone Curse^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 140",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Archer and Rogue"
+  ]
+ },
+ "1733": {
+  "name": "Gust Bow",
+  "description": [
+   "A light bow that has been enhanced with the power of whirlwinds.",
+   "_______________________",
+   "When equipped with ^990099Arrow of Wind^000000:",
+   "Increases Ranged Physical Damage by 25%.",
+   "Random chance to auto-cast Level 5 ^009900Wind Blade^000000 when dealing Physical Damage,",
+   "this chance is increased when the wearer's INT is 40 or greater.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 95",
+   "^0000CCWeight:^000000 140",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Archer and Rogue"
+  ]
+ },
+ "1734": {
+  "name": "Orc Archer Bow",
+  "description": [
+   "A large, powerful bow used by Orc Archers.",
+   "_______________________",
+   "Random chance a defeated monster will drop ^0033CCSteel Arrow^000000.",
+   "_______________________",
+   "When equipped with ^990099Steel Arrow^000000:",
+   "Increases Ranged Physical Damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 160",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Archer and Rogue"
+  ]
+ },
+ "1735": {
+  "name": "Kkakkung",
+  "description": [
+   "A bow provided by Adaventurer guild for brave adventurer.",
+   "_______________________",
+   "Increases damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1736": {
+  "name": "Double Bound",
+  "description": [
+   "A slim and smooth bow specialized for double attacks.",
+   "_______________________",
+   "Random chance to auto-cast learned Level of ^FF0000Double Strafe^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 70",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Sniper"
+  ]
+ },
+ "1737": {
+  "name": "Ixion Wings",
+  "description": [
+   "A beautiful bow shaped as a pair of pure white wings.",
+   "_______________________",
+   "Has a chance of reducing After Attack Delay by 7% for 7 seconds with low probability when attacking.",
+   "Activation probability increases according to Refine Level.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 135",
+   "^0000CCWeight:^000000 30",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Sniper"
+  ]
+ },
+ "1738": {
+  "name": "Valorous Battle Crossbow",
+  "description": [
+   "A Crossbow that has been designed to deal more damage to ^FF0000Demi-Human^000000 race.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 55%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Thief and Archer"
+  ]
+ },
+ "1739": {
+  "name": "Brave Battle Crossbow",
+  "description": [
+   "A Crossbow that has been designed to deal more damage to ^FF0000Demi-Human^000000 race.",
+   "_______________________",
+   "DEX +2, INT +10",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 55%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Thief and Archer"
+  ]
+ },
+ "1740": {
+  "name": "Nepenthes Bow",
+  "description": [
+   "A very flexible bow made of Nepenthes' tough tentacles.",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Arrow Repel^000000 when using ^009900Double Strafe^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Sniper"
+  ]
+ },
+ "1741": {
+  "name": "Cursed Lyre",
+  "description": [
+   "A cursed bow that once killed a hero of an ancient nation long ago.",
+   "The curse of the bow takes luck away from its user.",
+   "_______________________",
+   "LUK -2",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing Ranged Physical Damages.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 125",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Transcendent Archer"
+  ]
+ },
+ "1742": {
+  "name": "Novice Composite Bow",
+  "description": [
+   "An average bow that is mostly used for small game hunting.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 49",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Almond J<INFO>izlude,108,139,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 4",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1743": {
+  "name": "Glorious Hunter Bow",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 55%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Critical +1",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Pierces physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000[Slaughter]^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Double Strafe^000000 by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1744": {
+  "name": "Bow of Evil",
+  "description": [
+   "^000088Rental Item^000000",
+   "The devil's bow.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases damage of ^009900Double Strafe^000000 by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1745": {
+  "name": "Falken Blitz",
+  "description": [
+   "An elegant and beautiful Red bow that looks like a flying falcon.",
+   "_______________________",
+   "Increases damage of ^009900Focused Arrow Strike^008800, ^0000FFDouble Strafe^000000 and ^009900Arrow Repel^000000 by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Sniper"
+  ]
+ },
+ "1746": {
+  "name": "Elven Bow",
+  "description": [
+   "It's made after a bow of ancient forest watching tribe.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "When equipped with ^990099Elven Arrow^000000:",
+   "Increases Ranged Physical Damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger, Minstrel and Wanderer"
+  ]
+ },
+ "1747": {
+  "name": "Eden Bow I",
+  "description": [
+   "A bow made by the Eden Group. It's been remodeled for beginner Archers.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 82",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 2",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 26",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1748": {
+  "name": "Eden Bow II",
+  "description": [
+   "A rich bow made by the Eden Group. It is suitable for intermediates who have handled a bow before.",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 2",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1749": {
+  "name": "Traveler's Bow",
+  "description": [
+   "A bow used by traveler.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "^0000CCType:^000000 Bow",
+   "^0000CCAttack:^000000 40",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Archer, Thief and Rogue"
+  ]
+ },
+ "1750": {
+  "name": "Arrow",
+  "description": [
+   "A common arrow.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 25",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1751": {
+  "name": "Silver Arrow",
+  "description": [
+   "An arrow tipped with a silver point enchanted with the power of holiness.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^777777 Holy"
+  ]
+ },
+ "1752": {
+  "name": "Fire Arrow",
+  "description": [
+   "A flaming arrow that will inflict ^FF0000Fire^000000 element damage.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^FF0000 Fire"
+  ]
+ },
+ "1753": {
+  "name": "Steel Arrow",
+  "description": [
+   "An arrow constructed from hardened steel.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 40",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1754": {
+  "name": "Crystal Arrow",
+  "description": [
+   "An arrow made of blue crystal imbued with the power of Water.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^0000BB Water"
+  ]
+ },
+ "1755": {
+  "name": "Arrow of Wind",
+  "description": [
+   "An arrow enchanted by the power of the Wind.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^33CC00 Wind"
+  ]
+ },
+ "1756": {
+  "name": "Stone Arrow",
+  "description": [
+   "An arrow made of stone imbued with the power of Earth.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^CC5500 Earth"
+  ]
+ },
+ "1757": {
+  "name": "Immaterial Arrow",
+  "description": [
+   "A shining arrow that doesn't have a discernable shape.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Ghost"
+  ]
+ },
+ "1758": {
+  "name": "Stun Arrow",
+  "description": [
+   "A thick, heavy arrow.",
+   "_______________________",
+   "Random chance to inflict ^663399Stun^000000 status on the target when dealing Ranged Physical Damages.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1759": {
+  "name": "Frozen Arrow",
+  "description": [
+   "An arrow enchanted with the power of ice.",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status on the target when dealing Ranged Physical Damages.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^0000BB Water"
+  ]
+ },
+ "1760": {
+  "name": "Flash Arrow",
+  "description": [
+   "An arrow that explodes with a flash of light upon impact.",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status on the target when dealing Ranged Physical Damages.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1761": {
+  "name": "Cursed Arrow",
+  "description": [
+   "An arrow enchanted with curse magic.",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on the target when dealing Ranged Physical Damages.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1762": {
+  "name": "Rusty Arrow",
+  "description": [
+   "An old, rusty arrow.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^663399 Poison"
+  ]
+ },
+ "1763": {
+  "name": "Poison Arrow",
+  "description": [
+   "An arrow whose tip has been dipped in lethal poison.",
+   "_______________________",
+   "Random chance to inflict ^663399Poison^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^663399 Poison"
+  ]
+ },
+ "1764": {
+  "name": "Sharp Arrow",
+  "description": [
+   "An arrow with topped with a serrated blade.",
+   "_______________________",
+   "Long range critical rate +20.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 10",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1765": {
+  "name": "Oridecon Arrow",
+  "description": [
+   "A very powerful arrow made out of Oridecon.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1766": {
+  "name": "Arrow of Counter Evil",
+  "description": [
+   "An arrow that is said to have the might to counter evil.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Holy"
+  ]
+ },
+ "1767": {
+  "name": "Arrow of Shadow",
+  "description": [
+   "An arrow imbued with the power of darkness.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^777777 Shadow"
+  ]
+ },
+ "1768": {
+  "name": "Sleep Arrow",
+  "description": [
+   "An arrow that can render targets unconscious.",
+   "_______________________",
+   "Random chance to inflict ^663399Sleep^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1769": {
+  "name": "Silence Arrow",
+  "description": [
+   "An arrow coated with a chemical that will paralyze a target's mouth.",
+   "_______________________",
+   "Random chance to inflict ^663399Silence^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 1",
+   "^0000CCWeight:^000000 0.3",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1770": {
+  "name": "Iron Arrow",
+  "description": [
+   "Forged out of iron, this arrow will inflict more damage than one crafted of wood.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1771": {
+  "name": "Venom Knife",
+  "description": [
+   "A throwing knife laced with toxin that can inflict the Poison effect to enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Throwing Dagger",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.5",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1772": {
+  "name": "Holy Arrow",
+  "description": [
+   "A metal arrow blessed with holy water.",
+   "_______________________",
+   "Increases Physical Damage against monsters of ^FF0000Demon^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0.2",
+   "^0000CCElement:^777777 Holy"
+  ]
+ },
+ "1773": {
+  "name": "Elven Arrow",
+  "description": [
+   "Arrows once used by the ancient elves guarding the forest.",
+   "_______________________",
+   "When equipped with ^990099Elven Bow^000000:",
+   "Increases Ranged Physical Damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 45",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Neutral",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100"
+  ]
+ },
+ "1774": {
+  "name": "Hunting Arrow",
+  "description": [
+   "Strong and rough arrows ideal for hunting large animals.",
+   "_______________________",
+   "When equipped with ^990099Hunter Bow^000000:",
+   "Increases Ranged Physical Damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 35",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Neutral"
+  ]
+ },
+ "1775": {
+  "name": "Siege Arrow S",
+  "description": [
+   "A mass produced arrows for War of Emperium.",
+   "_______________________",
+   "*Effects in WoE & PVP area",
+   "When used with ^990099Bellum Crossbow^000000:",
+   "Increases Ranged Physical Damage by 70%.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 45",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Neutral",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130"
+  ]
+ },
+ "1776": {
+  "name": "Siege Arrow A",
+  "description": [
+   "Mass produced arrows for War of Emperium.",
+   "_______________________",
+   "*Effects in WoE & PVP area",
+   "When used with ^990099Bellum Crossbow^000000:",
+   "Increases Ranged Physical Damage by 40%.",
+   "_______________________",
+   "^0000CCType:^000000 Arrow",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCElement:^777777 Neutral",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95"
+  ]
+ },
+ "1800": {
+  "name": "Vicious Mind Fist",
+  "description": [
+   "Fist imbued with Vicious Mind.",
+   "_______________________",
+   "Increases ATK by (Refinelv*Refinelv).",
+   "(up to +15 Refine Level)",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 160",
+   "Priest and Monk classes"
+  ]
+ },
+ "1801": {
+  "name": "Waghnak",
+  "description": [
+   "A common, yet effective claw that's also known as the \"Tiger Fang\".",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Priest and Monk classes"
+  ]
+ },
+ "1802": {
+  "name": "Waghnak",
+  "description": [
+   "A common, yet effective claw that's also known as the \"Tiger Fang\".",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Priest and Monk classes"
+  ]
+ },
+ "1803": {
+  "name": "Knuckle Dusters",
+  "description": [
+   "A protective covering that shields the back of the hand and forearm and has raised studs for offensive purposes.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 45",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Priest and Monk classes"
+  ]
+ },
+ "1804": {
+  "name": "Knuckle Dusters",
+  "description": [
+   "A protective covering that shields the back of the hand and forearm and has raised studs for offensive purposes.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 45",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Priest and Monk classes"
+  ]
+ },
+ "1805": {
+  "name": "Studded Knuckles",
+  "description": [
+   "Silver, spiked knuckles with diamond studs that are usually worn by the best fighters in a tribe.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 65",
+   "^0000CCWeight:^000000 45",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Priest and Monk classes"
+  ]
+ },
+ "1806": {
+  "name": "Studded Knuckles",
+  "description": [
+   "Silver, spiked knuckles with diamond studs that are usually worn by the best fighters in a tribe.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 65",
+   "^0000CCWeight:^000000 45",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12",
+   "Priest and Monk classes"
+  ]
+ },
+ "1807": {
+  "name": "Fist",
+  "description": [
+   "A weapon made in the form of a human fist which effectively inflicts damage on enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Priest and Monk classes"
+  ]
+ },
+ "1808": {
+  "name": "Fist",
+  "description": [
+   "A weapon made in the form of a human fist which effectively inflicts damage on enemies.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Priest and Monk classes"
+  ]
+ },
+ "1809": {
+  "name": "Claw",
+  "description": [
+   "A weapon with three long steel claws that have proven effective in close combat.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 86",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Priest and Monk classes"
+  ]
+ },
+ "1810": {
+  "name": "Claw",
+  "description": [
+   "A weapon with three long steel claws that have proven effective in close combat.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 86",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Priest and Monk classes"
+  ]
+ },
+ "1811": {
+  "name": "Finger",
+  "description": [
+   "Claws shaped like human fingers with long, sharp nails.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 97",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Priest and Monk classes"
+  ]
+ },
+ "1812": {
+  "name": "Finger",
+  "description": [
+   "Claws shaped like human fingers with long, sharp nails.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 97",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 24",
+   "Priest and Monk classes"
+  ]
+ },
+ "1813": {
+  "name": "Kaiser Knuckle",
+  "description": [
+   "A claw blessed by Zephyrus, god of the west wind.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Undead^000000 race by 5%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^CC5500Earth^000000, ^0000BBWater^000000, ^FF0000Fire^000000 and ^33CC00Wind^000000 elemental by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 45",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Priest and Monk classes"
+  ]
+ },
+ "1814": {
+  "name": "Berserk",
+  "description": [
+   "A claw imbued with the essense of madness.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 12%).",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Priest and Monk classes"
+  ]
+ },
+ "1815": {
+  "name": "Hatii Claw",
+  "description": [
+   "A blood stained weapon created from the claws of Hatii, keeper to the door the netherworld.",
+   "_______________________",
+   "MaxHP -2%",
+   "_______________________",
+   "Adds a low chance of inflicting ^663399Bleeding^000000 status to target when attacking.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 152",
+   "^0000CCWeight:^000000 55",
+   "^0000CCElement:^777777 Shadow",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Priest and Monk classes"
+  ]
+ },
+ "1816": {
+  "name": "Berserk",
+  "description": [
+   "A pair of fierce claws that possesses its wearer, compelling him to draw fresh blood.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 12%).",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 36",
+   "Priest and Monk classes"
+  ]
+ },
+ "1817": {
+  "name": "Kaiser Knuckle",
+  "description": [
+   "^000088Rental Item^000000",
+   "A claw blessed by Zephyrus, god of the west wind.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Undead^000000 race by 5%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^CC5500Earth^000000, ^0000BBWater^000000, ^FF0000Fire^000000 and ^33CC00Wind^000000 elemental by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 159",
+   "^0000CCWeight:^000000 0",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Priest and Monk classes"
+  ]
+ },
+ "1818": {
+  "name": "Magma Fist",
+  "description": [
+   "A knuckle made of superheated lava that has a special lining so that it can be worn.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Flame Launcher^000000 on wearer when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Priest and Monk classes"
+  ]
+ },
+ "1819": {
+  "name": "Icicle Fist",
+  "description": [
+   "A knuckle made of extremely cold ice that has a special lining so that it can be worn.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Frost Weapon^000000 on wearer when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Priest and Monk classes"
+  ]
+ },
+ "1820": {
+  "name": "Electric Fist",
+  "description": [
+   "A knuckle imbued with the power of lightning that occasionally shocks enemies.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Lightning Loader^000000 on wearer when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Priest and Monk classes"
+  ]
+ },
+ "1821": {
+  "name": "Seismic Fist",
+  "description": [
+   "A knuckle imbued with the power of Mother Earth that can be used to crush your enemies.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Seismic Weapon^000000 on wearer when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Priest and Monk classes"
+  ]
+ },
+ "1822": {
+  "name": "Combo Battle Gloves",
+  "description": [
+   "The magic words engraved on these gloves can grant incredible power to the Monk that wears them.",
+   "_______________________",
+   "Increases damage of ^009900Triple Attack^000000, ^009900Chain Combo^000000 and ^009900Combo Finish^000000 by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Priest and Monk classes"
+  ]
+ },
+ "1823": {
+  "name": "Valorous Battle Fist",
+  "description": [
+   "Battle Gloves used by combatants in the field of battle. Its wearer is never exhausted because it brings unlimited power once worn.",
+   "_______________________",
+   "STR +2, AGI +1",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "Each physical attack adds the chance of auto casting ^FF0000Dangerous Soul Collect^000000 skill.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Priest and Monk classes"
+  ]
+ },
+ "1824": {
+  "name": "Brave Battle Fist",
+  "description": [
+   "Battle Gloves used by combatants in the field of battle. Its wearer is never exhausted because it brings unlimited power once worn.",
+   "_______________________",
+   "STR +2, INT +1",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Decreases ^0000FFAsura Strike^000000 casting time by 25%.",
+   "_______________________",
+   "When attacking and weapon awakening in consistent probability,",
+   "Has a chance of negating ^0000FFAsura Strike^000000 Variable Casting Time by 100% for 6 secs.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Priest and Monk classes"
+  ]
+ },
+ "1825": {
+  "name": "Horn of Hillslion",
+  "description": [
+   "A knuckle made from 3 of Hillslion's horns.",
+   "_______________________",
+   "Random chance to inflict Level 1 Critical Wound when attacking.",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Investigate^000000 when using Palm Strike.",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Call Spirits^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 95",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Champion"
+  ]
+ },
+ "1826": {
+  "name": "Glorious Claw",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 25%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Pierces physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000[Slaughter]^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Random chance to auto-cast Level 5 ^0000FFInvestigate^000000 & Level 1 ^0000FFDecrease Agi^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Priest and Monk classes"
+  ]
+ },
+ "1827": {
+  "name": "Glorious Fist",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Pierces physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000[Slaughter]^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Using ^009900Explosion Spirits^000000 auto-casts Level 1 ^009900Dangerous Soul Collect^000000.",
+   "Decreases Variable Casting Time of ^009900Asura Strike^000000 by 100%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 30",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Priest and Monk classes"
+  ]
+ },
+ "1828": {
+  "name": "Monk Knuckle",
+  "description": [
+   "^000088Rental Item^000000",
+   "Knuckle of monk.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "Increases damage of ^009900Finger Offensive^000000 by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Priest and Monk classes"
+  ]
+ },
+ "1829": {
+  "name": "Fist",
+  "description": [
+   "^000088Rental Item^000000",
+   "A weapon made in the form of a human fist which effectively inflicts damage on enemies.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Small^000000, ^FF0000Medium^000000 and ^FF0000Large^000000 size by 40%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 0",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Priest and Monk classes"
+  ]
+ },
+ "1830": {
+  "name": "Sura's Rampage",
+  "description": [
+   "A knuckle engraved with splendid patterns of a bronze dragon.",
+   "_______________________",
+   "Increases damage of ^009900Earth Shaker^000000 and ^009900Sky Net Blow^000000 by 20%.",
+   "_______________________",
+   "Increases SP Consumption by 5%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+6^000000:",
+   "Decreases SP Consumption by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 142",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 102",
+   "Sura"
+  ]
+ },
+ "1831": {
+  "name": "Eden Knuckle I",
+  "description": [
+   "A knuckle made by the Eden Group. It is suitable for those who have more advanced experience as Champions.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Weapons Expert BK]<INFO>moc_para01,112,79,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Priest and Monk classes"
+  ]
+ },
+ "1832": {
+  "name": "Bellum Claw",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "Increases Physical Damage against ^FF0000Players^000000 by 100%.",
+   "_______________________",
+   "^0000FFRefine Level +8^000000:",
+   "Increases Physical Damage against ^FF0000Players^000000 by additional 20%.",
+   "_______________________",
+   "^0000FFRefine Level +10^000000:",
+   "Random chance to auto-cast ^0000FFDangerous Soul Collect^000000 when using ^009900Explosion Spirits^000000 skill.",
+   "Removes Casting Time of ^009900Asura Strike^000000.",
+   "Drains 500 HP every 3 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 65",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "Priest and Monk classes"
+  ]
+ },
+ "1833": {
+  "name": "Claw of Flash",
+  "description": [
+   "A claw that leave beautiful wounds.",
+   "_______________________",
+   "ASPD +1",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 1%).",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Medium^000000 size by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 105",
+   "Priest and Monk classes"
+  ]
+ },
+ "1834": {
+  "name": "TE WoE Fist",
+  "description": [
+   "^000088Rental Item^000000",
+   "*Effects in WoE TE area",
+   "Increases Physical Damage against ^FF0000Players^000000 by 40%.",
+   "Random chance to inflict ^663399Freezing^000000 status when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Priest and Monk classes"
+  ]
+ },
+ "1835": {
+  "name": "Spartacus",
+  "description": [
+   "A knuckle of legendary gladiator.",
+   "_______________________",
+   "For each Refine Level:",
+   "ATK +1%.",
+   "_______________________",
+   "^0000FFRefine Level +10^000000:",
+   "Nullifies reduction in damage against monsters resulting from monster's size.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Priest and Monk classes"
+  ]
+ },
+ "1836": {
+  "name": "Thanos Knuckle",
+  "description": [
+   "A knuckle sculpted from Gray Shard to counter Magic Sword Tartanos.",
+   "It offers incredible power and magic at a great cost.",
+   "_______________________",
+   "INT +6",
+   "VIT +6",
+   "LUK -6",
+   "_______________________",
+   "MATK +100",
+   "_______________________",
+   "Low chance to drain 5% of attack into HP and SP.",
+   "_______________________",
+   "Drains 100 HP every 10 seconds.",
+   "_______________________",
+   "Drains 1000 HP when unequipping.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "Sura"
+  ]
+ },
+ "1837": {
+  "name": "Iron Nail",
+  "description": [
+   "An arm-length gauntlet with giant claws attached to it. The claws can penetrate even the thickest gloves.",
+   "_______________________",
+   "Ignores physical defense of target by 100%.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 5%).",
+   "_______________________",
+   "^0000FFFor each 2 Refine Levels^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by additional 1%).",
+   "_______________________",
+   "Learned Level 5 ^009900Chain Combo^000000:",
+   "ATK +20",
+   "_______________________",
+   "Learned Level 5 ^009900Combo Finish^000000:",
+   "ATK +20",
+   "_______________________",
+   "Learned Level 5 ^009900Tiger Fist^000000:",
+   "ATK +20",
+   "_______________________",
+   "Learned Level 5 ^009900Chain Crush Combo^000000:",
+   "ATK 40",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Priest and Monk classes"
+  ]
+ },
+ "1839": {
+  "name": "Crimson Knuckle",
+  "description": [
+   "Knuckle that emitting red aura.",
+   "_______________________",
+   "ATK increased by (RefineLv*RefineLv), up to +15 Refine Level.",
+   "For each ^0000FF10 ^CC6600Base Level^000000 above ^0000FF70^000000:",
+   "ATK +5",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Priest and Monk classes"
+  ]
+ },
+ "1840": {
+  "name": "Requiem Knuckle",
+  "description": [
+   "A knuckle given by the king.",
+   "It seems to have the effect of calming the soul of the dead.",
+   "_______________________",
+   "MATK +100",
+   "_______________________",
+   "Increases Magical Damage against monsters in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by 40%.",
+   "_______________________",
+   "^0000FFRefine Level +5^000000:",
+   "Increases Magical Damage against monsters in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by additional 20%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+6^000000:",
+   "Increases Magical Damage against monsters in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by additional 15%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Monk and Priest"
+  ]
+ },
+ "1841": {
+  "name": "Claw of Flash",
+  "description": [
+   "A claw that leave beautiful wounds.",
+   "_______________________",
+   "ASPD +1",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 1%).",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Medium^000000 size by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 105",
+   "Priest and Monk classes"
+  ]
+ },
+ "1842": {
+  "name": "Diva Claw",
+  "description": [
+   "A weapon of unknown origin that contains the magic of the labyrinth.",
+   "It is unclear what kind of material it is made of, and the same weapons have different performances.",
+   "_______________________",
+   "MATK +100",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "ATK +30, HIT +5",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "ATK +30, HIT +5",
+   "_______________________",
+   "When compounded with ^990099Labyrinth Baphomet Card^000000:",
+   "ATK +10%",
+   "Normal attacks inflicts splash damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 150",
+   "3rd Acolyte classes"
+  ]
+ },
+ "1843": {
+  "name": "Mirage Claw",
+  "description": [
+   "A Diva Claw that has mutated under the influence of the power of the labyrinth.",
+   "It is unclear what kind of material it is made of, and it is said that similar weapons have different performances.",
+   "_______________________",
+   "Attack Range: 5 cells",
+   "_______________________",
+   "MATK +100",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "ATK +30, HIT +5",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "ATK +30, HIT +5",
+   "_______________________",
+   "When compounded with ^990099Labyrinth Dracula Card^000000:",
+   "Physical attacks have a certain chance to absorb 5% of the inflicted damage as SP.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 150",
+   "3rd Acolyte classes"
+  ]
+ },
+ "1844": {
+  "name": "Vicious Mind Fist",
+  "description": [
+   "A fist with evil spirit dwelling inside.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "ATK +1",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Archbishop and Sura"
+  ]
+ },
+ "1845": {
+  "name": "Trial Sura's Knuckle",
+  "description": [
+   "A knuckle for sura whose mastered at using a knuckle.",
+   "When equipped with Enhanced Time Keeper Armor, will makes wearer's body more agile.",
+   "_______________________",
+   "Increases damage of ^009900Tiger Cannon^000000 by 20%.",
+   "_______________________",
+   "For each ^FF000010 ^CC6600Base Level^000000:",
+   "ATK +6 (up to Base Level 160).",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "For each Level of ^009900Triple Attack^000000:",
+   "ATK +3",
+   "_______________________",
+   "When equipped with ^009900Enhanced Time Keeper Hat^000000, ^009900Enhanced Time Keeper Robe^000000, ^00900Enhanced Time Keeper Manteau^000000, ^009900Enhanced Time Keeper Boots^000000:",
+   "ASPD +2,",
+   "MaxHP and MaxSP +10%",
+   " ",
+   "For each ^CC660010^000000 Base ^CC6600VIT^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 3%.",
+   "(up to Base VIT 100)",
+   " ",
+   "For each ^CC660010^000000 Base ^CC6600AGI^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 2%).",
+   "(up to Base AGI 100)",
+   " ",
+   "For each ^CC660010^000000 Base ^CC6600DEX^000000:",
+   "HIT +3",
+   "(up to Base DEX 100)",
+   " ",
+   "For each ^CC660010^000000 Base ^CC6600LUK^000000:",
+   "Critical +3",
+   "(up to Base LUK 100)",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Sura"
+  ]
+ },
+ "1846": {
+  "name": "Illusion Combo Battle Gloves",
+  "description": [
+   "The magic words engraved on these gloves can grant incredible power to the Monk that wears them.",
+   "_______________________",
+   "Increases damage of ^009900Sky Net Blow^000000 by 10%.",
+   "Increases damage of ^009900Dragon Combo^000000 by 10%.",
+   "_______________________",
+   "^0000FFFor each 2 Refine Levels^000000:",
+   "Increases damage of ^009900Sky Net Blow^000000 and ^009900Dragon Combo^000000 by additional 5%.",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Increases damage of ^009900Tiger Cannon^000000 by 5%.",
+   "_______________________",
+   "When equipped with ^990099Illusion Muffler^000000:",
+   "ATK +40",
+   "_______________________",
+   "^0000FFRefine Level^000000 of ^990099Illusion Combo Battle Gloves^000000 and ^990099Illusion Muffler^000000 each is ^0000FF+7 or higher^000000:",
+   "Increases damage of ^009900Tiger Cannon^000000 by 20%.",
+   "_______________________",
+   "^0000FFTotal Refine Level of entire set^000000 at least ^0000FF+18^000000:",
+   "Decreases ^009900Flash Combo^000000 After Skill Delay by 1 second.",
+   "_______________________",
+   "^0000FFTotal Refine Level of entire set^000000 at least ^0000FF+22^000000:",
+   "Increases damage of ^009900Tiger Cannon^000000 by additional 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 250",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "Sura"
+  ]
+ },
+ "1847": {
+  "name": "Iron Nail",
+  "description": [
+   "A knuckle once worn by ancient hero. It resonates with Ancient Hero's Boots.",
+   "_______________________",
+   "^0000FFFor each 2 Refine Levels^000000:",
+   "ATK +10",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Increases Ranged Physical Damage by 4%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Rampage Blast^000000 by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Decreases ^009900Rampage Blast^000000 skill cooldown by 1 second.",
+   "_______________________",
+   "When equipped with ^990099Ancient Hero's Boots^000000:",
+   "Random chance to increase STR by 20 and ATK by 15% for 7 sec when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Sura"
+  ]
+ },
+ "1848": {
+  "name": "Beginner Sura's Knuckle",
+  "description": [
+   "Knuckles specially made for beginner suras.",
+   "It will show it's true ability when equipped together with Beginner Armor set.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Tiger Cannon^000000 by 15%.",
+   "_______________________",
+   "When equipped with ^990099Beginner's Hat^000000, ^990099Beginner's Suit^000000, ^990099Beginner's Manteau^000000, ^990099Beginner's Boots^000000 and ^990099Beginner's Ring^000000:",
+   "For each ^0000FF10 ^CC6600Base Level^000000:",
+   "ATK +3 (up to Base Level 150)",
+   "ASPD +1",
+   "ATK +5%",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Sura"
+  ]
+ },
+ "1861": {
+  "name": "Abyss Claw",
+  "description": [
+   "A weapon mutated by the magical power of a stranger.",
+   "Even if they look the same, their performance is different.",
+   "_______________________",
+   "MATK +100",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "ATK +5%",
+   "Decreases damage taken from ^FF0000Players^000000 by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "ATK +5%",
+   "Decreases damage taken from ^FF0000Players^000000 by additional 5%.",
+   "_______________________",
+   "When compounded with ^990099Labyrinth Doppelganger Card^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "ATK +10%",
+   "_______________________",
+   "When equipped with ^990099Heavenly Order^000000:",
+   "Decreases damage taken from ^FF0000Players^000000 by additional 3%.",
+   "Increases Damage against monsters of all elements by 15%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 165",
+   "3rd Acolyte classes"
+  ]
+ },
+ "1862": {
+  "name": "Burning Knuckle-OS",
+  "description": [
+   "A purple knuckle with something boiling.",
+   "When hit, it causes burning pain on the target.",
+   "_______________________",
+   "ATK +3%",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 7%).",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Rampage Blaster^000000 by 15%.",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Increases Damage against monsters of ^FF0000Medium^000000 and ^FF0000Large^000000 size by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 175",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Sura"
+  ]
+ },
+ "1864": {
+  "name": "Sealed Iron Nail",
+  "description": [
+   "°í´ë ¿µ¿õÀÌ »ç¿ëÇß´Ù°í ÇÏ´Â ³ÊÅ¬.",
+   "±âÁ¸ ³ÊÅ¬°ú ±¸Á¶°¡ ´Ù¸¥ °Í °°Áö¸¸ ÀûÀ» ´Ü¼û¿¡ Á¦¾ÐÇÏ´Âµ¥ Æ¯È­µÇ¾î ÀÖ´Ù.",
+   "^0000FFFor each 2 Refine Levels^000000:",
+   "ATK +10.",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Long Range Physical °ø°Ý·Â 4% by increase",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Æø±â»êÅº damage 10% increase",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Æø±â»êÅº skill Cooldown 1 sec decreases.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 99",
+   "Sura"
+  ]
+ },
+ "1865": {
+  "name": "Raging Dragon Fist",
+  "description": [
+   "It can deals fierce attack.",
+   "_______________________",
+   "Increases damage of ^009900Chain Combo^000000 by 30%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "ATK +4",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Combo Finish^000000 by 50%.",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Increases damage of ^009900Chain Crush Combo^000000 by 30%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 210",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 170",
+   "Sura"
+  ]
+ },
+ "1866": {
+  "name": "Fighting God's Bandage",
+  "description": [
+   "Bandages tied to hands that engulfed with black lights.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 10%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "ATK +4",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Knuckle Arrow^000000 by 40%.",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Decreases After Skill Delay by 7%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 220",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 170",
+   "Sura"
+  ]
+ },
+ "1867": {
+  "name": "Safety Knuckle",
+  "description": [
+   "It was designed for the safety of Einbech workers.",
+   "Due to its excellent durability, it was also improved for combat using various attachments.",
+   "_______________________",
+   "ATK +10%.",
+   "Increases damage of ^009900Knuckle Arrow^000000 by 10%.",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "ATK +40",
+   "Increases Attack Speed (decreases After Attack Delay by 15%)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Knuckle Arrow^000000 by additional 15%.",
+   "Physical attacks have a chance to increase physical damage to all size enemies by 15% for 10 seconds.",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Decreases After Skill Delay by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 210",
+   "^0000CCWeight:^000000 180",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 170",
+   "Sura"
+  ]
+ },
+ "1870": {
+  "name": "Royal Knuckle",
+  "description": [
+   "Knuckles used by Glastheim Monks.",
+   "It's an ordinary weapon with nothing special, but it is influenced by the magical power of Himelmez.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 15%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "ATK +4",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Rampage Blaster^000000 by 20%.",
+   "_______________________",
+   "^0000FFRefine Level +11^000000:",
+   "Decreases ^009900Rampage Blaster^000000 skill cooldown by 1 second.",
+   "Increases Physical Damage against enemies of ^FF0000Undead^000000 and ^FF0000Angel^000000 race by 20%.",
+   "_______________________",
+   "When equipped with ^990099King Schmidt's Suit^000000 and ^990099King Schmidt's Manteau^000000:",
+   "ATK +30",
+   "Physical attacks have a chance to increase Ranged Physical Damage by additional 10% for 10 seconds.",
+   "_______________________",
+   "^0000FFTotal Refine Level of entire set^000000 at least ^0000FF+30^000000:",
+   "Increases Physical Damage against enemies of ^777777Holy^000000 and ^777777Undead^000000 elemental by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Knuckle",
+   "^0000CCAttack:^000000 190",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 170",
+   "Sura"
+  ]
+ },
+ "1900": {
+  "name": "Vicious Mind Violin",
+  "description": [
+   "Violin imbued with Vicious Mind.",
+   "_______________________",
+   "MATK +50",
+   "_______________________",
+   "Increases ATK by (Refinelv*Refinelv).",
+   "(up to +15 Refine Level)",
+   "_______________________",
+   "Increases MATK by (Refinelv*Refinelv)/2.",
+   "(up to +15 Refine Level)",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 160",
+   "Bard classes"
+  ]
+ },
+ "1901": {
+  "name": "Violin",
+  "description": [
+   "The classical stringed instrument favored by Rocker, the grasshopper monster who'd rather play music than do actual work.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Bard classes"
+  ]
+ },
+ "1902": {
+  "name": "Violin",
+  "description": [
+   "The classical stringed instrument favored by Rocker, the grasshopper monster who'd rather play music than do actual work.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 2",
+   "Bard classes"
+  ]
+ },
+ "1903": {
+  "name": "Mandolin",
+  "description": [
+   "A small, stringed instrument used in Baroque, Classical, country and folk music.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Bard classes"
+  ]
+ },
+ "1904": {
+  "name": "Mandolin",
+  "description": [
+   "A small, stringed instrument used in Baroque, Classical, country and folk music.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 90",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Bard classes"
+  ]
+ },
+ "1905": {
+  "name": "Lute",
+  "description": [
+   "A classical plucked string instrument that is incredibly difficult to tune and adjust.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Bard classes"
+  ]
+ },
+ "1906": {
+  "name": "Lute",
+  "description": [
+   "A classical plucked string instrument that is incredibly difficult to tune and adjust.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 14",
+   "Bard classes"
+  ]
+ },
+ "1907": {
+  "name": "Guitar",
+  "description": [
+   "A six stringed musical instrument that is played by plucking the strings with fingers or a pick.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 142",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1908": {
+  "name": "Guitar",
+  "description": [
+   "A six-stringed musical instrument that is played by plucking the strings with fingers or a pick.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 142",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1909": {
+  "name": "Harp",
+  "description": [
+   "A stringed instrument known for the beautiful sound ofeach note that is played.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 114",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1910": {
+  "name": "Harp",
+  "description": [
+   "A stringed instrument known for the beautiful sound ofeach note that is played.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 114",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1911": {
+  "name": "Gumoongoh",
+  "description": [
+   "A traditional chordophone, favored by the aristocracy in days past, which plays deep, subtle notes.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 126",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1912": {
+  "name": "Gumoongoh",
+  "description": [
+   "A traditional chordophone, favored by the aristocracy in days past, which plays deep, subtle notes.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 126",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1913": {
+  "name": "Electric Guitar",
+  "description": [
+   "An electric guitar which amplifies its user's power.",
+   "_______________________",
+   "INT +2, AGI +1",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFJupitel Thunder^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 180",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Bard classes"
+  ]
+ },
+ "1914": {
+  "name": "Burning Passion Guitar",
+  "description": [
+   "A magically dazzling guitar that bewitches its user to play songs of passion once it's held in his hands.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 90",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1915": {
+  "name": "Loner's Guitar",
+  "description": [
+   "A guitar which makes a depressing sound when strummed and is said to have been played by a bard who spend his entire life in complete loneliness.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 90",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1916": {
+  "name": "Green Acre Guitar",
+  "description": [
+   "According to rumor, this quaint guitar can be used to communicate with stones and even the very Earth itself.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 90",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1917": {
+  "name": "Gentle Breeze Guitar",
+  "description": [
+   "A magical guitar which fills the one who plays it with a desire for traveling.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 90",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 27",
+   "Bard classes"
+  ]
+ },
+ "1918": {
+  "name": "Oriental Lute",
+  "description": [
+   "An ancient lute seen on display in oriental towns such as Payon, Amatsu or Kunlun.",
+   "Nowadays, no one really knows how to play it.",
+   "_______________________",
+   "Increases damage of ^009900Arrow Vulcan^000000 and ^009900Musical Strike^000000 by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Bard classes"
+  ]
+ },
+ "1919": {
+  "name": "Base Guitar",
+  "description": [
+   "An instrument that produces low pitched sound.",
+   "_______________________",
+   "Recovers 3 SP for each enemy defeated.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Heaven's Drive^000000 on attacker when wielder receive physical attacks.",
+   "_______________________",
+   "Random chance to inflict ^663399Confuse^000000 status to all enemies within a 11*11 cell area.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Clown"
+  ]
+ },
+ "1920": {
+  "name": "Berserk Guitar",
+  "description": [
+   "When musicians play this legendary instrument, their consciousness is fully absorbed, returning only once they've realized that they've finished their performance.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 100%).",
+   "_______________________",
+   "Disables HP Recovery Rate.",
+   "_______________________",
+   "Heavily reduces DEX.",
+   "_______________________",
+   "Drains 50 HP every 5 second.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 10",
+   "^0000CCWeight:^000000 180",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Clown"
+  ]
+ },
+ "1921": {
+  "name": "Gun Moon Gom",
+  "description": [
+   "The adventurers who are brave the item which is provided from the hazard adventurer guild.",
+   "_______________________",
+   "Increases damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Clown"
+  ]
+ },
+ "1922": {
+  "name": "Oriental Lute",
+  "description": [
+   "An ancient lute seen on display in oriental towns such as Payon, Amatsu or Kunlun.",
+   "Nowadays, no one really knows how to play it.",
+   "_______________________",
+   "Increases damage of ^009900Arrow Vulcan^000000 and ^009900Musical Strike^000000 by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Bard classes"
+  ]
+ },
+ "1923": {
+  "name": "Valorous Battlefield Guitar",
+  "description": [
+   "A guitar which was created to encourage armies amidst battle.",
+   "It looks useful for battles against Demihuman.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Bard classes"
+  ]
+ },
+ "1924": {
+  "name": "Brave Battlefield Guitar",
+  "description": [
+   "A guitar which was created to encourage armies amidst battle.",
+   "It looks useful for battles against Demihuman.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Bard classes"
+  ]
+ },
+ "1925": {
+  "name": "Cello",
+  "description": [
+   "An instrument with a low tone. Its 4 strings play nice calm sounds so this instrument is good for both solo and concert play.",
+   "_______________________",
+   "AGI +2",
+   "DEX +3",
+   "_______________________",
+   "Add 2 cells knock back effect when using ^009900Musical Strike^000000.",
+   "_______________________",
+   "Add 3 cells knock back effect when using ^009900Arrow Vulcan^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Clown"
+  ]
+ },
+ "1926": {
+  "name": "Harp of Nepenthes",
+  "description": [
+   "A harp with its strings made from the tentacles of Nepenthes.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "Random chance to inflict ^663399Stun^000000 status on the target when using Musical Strike.",
+   "The chance doubles if the Refining Level is over 8.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Clown and Gypsy"
+  ]
+ },
+ "1927": {
+  "name": "Glorious Guitar",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Pierces physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000Slaughter^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Using ^009900Arrow Vulcan^000000 has a chance of casting Level 5 ^009900Tarot Card of Fate^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Bard classes"
+  ]
+ },
+ "1928": {
+  "name": "Berserk Guitar",
+  "description": [
+   "^000088Rental Item^000000",
+   "The legendary guitar known for when the player finally snaps out of stupor, you've already finished your performance.",
+   "_______________________",
+   "Increases Attack Speed (decreases After Attack Delay by 100%).",
+   "_______________________",
+   "Disables HP Recovery Rate.",
+   "_______________________",
+   "Drain 50 HP every 5 seconds.",
+   "_______________________",
+   "Heavily decreases DEX.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 40",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Clown"
+  ]
+ },
+ "1929": {
+  "name": "Guitar",
+  "description": [
+   "^000088Rental Item^000000",
+   "A six stringed musical instrument that is played by plucking the strings with fingers or a pick.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Small^000000, ^FF0000Medium^000000 and ^FF0000Large^000000 size by 40%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "ATK +10",
+   "MATK +10",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 177",
+   "^0000CCWeight:^000000 0",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Bard classes"
+  ]
+ },
+ "1930": {
+  "name": "Green Whistle",
+  "description": [
+   "A flute made of sturdy plant stem.",
+   "_______________________",
+   "MATK +50",
+   "_______________________",
+   "Decreases Variable Casting Time of ^009900Deep Sleep Lullaby^000000 and ^009900Windmill Rush^000000 by 2 secs.",
+   "SP cost ofeach skill decreased by 4 with every upgrade above Level 6.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 102",
+   "Minstrel"
+  ]
+ },
+ "1931": {
+  "name": "Eden Guitar I",
+  "description": [
+   "An instrument made by the Eden Group. It is suitable for those who have more advanced experience as Bards.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Weapons Expert BK]<INFO>moc_para01,112,79,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Bard classes"
+  ]
+ },
+ "1932": {
+  "name": "TE WoE Guitar",
+  "description": [
+   "^000088Rental Item^000000",
+   "*Effects in WoE TE area",
+   "Increases Physical Damage against ^FF0000Players^000000 by 40%.",
+   "Random chance to inflict ^663399Poison^000000 status when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Bard classes"
+  ]
+ },
+ "1933": {
+  "name": "Thanos Violin",
+  "description": [
+   "A violin sculpted from Gray Shard to counter Magic Sword Tartanos.",
+   "It offers incredible power and magic at a great cost.",
+   "_______________________",
+   "INT +6",
+   "VIT +6",
+   "LUK -6",
+   "MATK +130",
+   "_______________________",
+   "Low chance to drain 5% of attack into HP and SP.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 20%.",
+   "_______________________",
+   "Drains 100 HP every 10 seconds.",
+   "_______________________",
+   "Drains 1000 HP when unequipping.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 200",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "Minstrel"
+  ]
+ },
+ "1934": {
+  "name": "Contrabass",
+  "description": [
+   "The Contrabass, also known as large musical instrument called the violin strains.",
+   "Large and powerful enough to be used as a weapon.",
+   "_______________________",
+   "MATK +120",
+   "_______________________",
+   "Decreases Improvised Song skill cooldown by 2 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 25",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Minstrel"
+  ]
+ },
+ "1935": {
+  "name": "New Oz's Ukulele",
+  "description": [
+   "The color match well with new oz's outfit.",
+   "_______________________",
+   "Decreases SP Consumption of ^009900Windmill Rush^000000 by 20.",
+   "_______________________",
+   "When equipped with ^990099New Oz's Wing Ring^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 200%.",
+   "Increases SP Consumption of ^009900Arrow Vulcan^000000 by 50.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Minstrel"
+  ]
+ },
+ "1936": {
+  "name": "Ru Blue Violin",
+  "description": [
+   "Blue Violin which has destructive power.",
+   "_______________________",
+   "DEX +5, VIT +5.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Long Range ATK +20%",
+   "Decreases SP Consumption by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Minstrel"
+  ]
+ },
+ "1937": {
+  "name": "Ru Gold Violin",
+  "description": [
+   "A golden violin with brutal power.",
+   "_______________________",
+   "DEX +8, VIT +8",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "Minstrel"
+  ]
+ },
+ "1938": {
+  "name": "Infinity Violin",
+  "description": [
+   "This weapon contains a strange energy.",
+   "I feel that one of its benefits were sealed with a high cost.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Minstrel"
+  ]
+ },
+ "1939": {
+  "name": "Crimson Violin",
+  "description": [
+   "Violin that emitting red aura.",
+   "_______________________",
+   "ATK increased by (RefineLv*RefineLv), up to +15 Refine Level.",
+   "_______________________",
+   "For each ^0000FF10 ^CC6600Base Level^000000 above ^0000FF70^000000:",
+   "ATK +5",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Bard classes"
+  ]
+ },
+ "1940": {
+  "name": "Conch",
+  "description": [
+   "A flute made from a large shell.",
+   "_______________________",
+   "For each Refine Level, INT +1 and DEX +1",
+   "_______________________",
+   "^0000FFRefine Level +5^000000:",
+   "Increases damage of ^009900Reverberation^000000 by 10% and Decreases Variable Casting Time by 10%",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Reverberation^000000 by 20% and Decreases Variable Casting Time by 20%",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Reverberation^000000 by 40% and Decreases Variable Casting Time by 40%.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 60",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Minstrel"
+  ]
+ },
+ "1941": {
+  "name": "Union Violin",
+  "description": [
+   "A certified kingdom equipment for adventurer.",
+   "_______________________",
+   "Increases ATK by (Refine*Refine*1.25)",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 76",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Bard classes"
+  ]
+ },
+ "1942": {
+  "name": "Requiem Violin",
+  "description": [
+   "A violin given by the King.",
+   "It seems to have the effect of calming the souls of the dead.",
+   "_______________________",
+   "MATK +120",
+   "_______________________",
+   "Increases Physical Damage against enemies in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by 40%.",
+   "_______________________",
+   "^0000FFRefine Level +5^000000:",
+   "Increases Physical Damage against enemies in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by additional 20%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+6^000000:",
+   "Increases Physical Damage against enemies in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by additional 15%.",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 200%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Minstrel"
+  ]
+ },
+ "1943": {
+  "name": "Erhu",
+  "description": [
+   "An eastern musical instrument that can brings nostalgic memories.",
+   "_______________________",
+   "When using Circle of Nature, for 60 seconds: Restore 1 SP every 4 seconds.",
+   "_______________________",
+   "^0000FFRefine Level +10^000000:",
+   "Erhu become indestructible.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "Clown"
+  ]
+ },
+ "1944": {
+  "name": "Hippie Guitar",
+  "description": [
+   "Guitar with a sense of free will. It looks old and outdated, but still can be used.",
+   "_______________________",
+   "Every learned Level of Musical Lesson reduces After Attack Delay.",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases ATK by 5 for every learned Musical Lesson skill",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "ASPD +1",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Minstrel"
+  ]
+ },
+ "1945": {
+  "name": "Diva Violin",
+  "description": [
+   "A weapon of unknown origin that contains the magic of the labyrinth.",
+   "It is unclear what kind of material it is made of, and the same weapons have different performances.",
+   "_______________________",
+   "MATK +120",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 150%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by additional 50%.",
+   "_______________________",
+   "When compounded with ^990099Labyrinth Baphomet Card^000000:",
+   "ATK +10%",
+   "Normal attacks inflicts splash damage.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 25",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 150",
+   "Minstrel"
+  ]
+ },
+ "1946": {
+  "name": "Mirage Violin",
+  "description": [
+   "A Diva Violin that has mutated under the influence of the power of the labyrinth.",
+   "It is unclear what kind of material it is made of, and it is said that even similar weapons have different performance.",
+   "_______________________",
+   "Attack Range: 5 cells",
+   "_______________________",
+   "MATK +120",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 150%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by additional 50%.",
+   "_______________________",
+   "When compounded with ^990099Labyrinth Dracula Card^000000:",
+   "Physical attacks have a certain chance to absorb 5% of the inflicted damage as SP.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 180",
+   "^0000CCWeight:^000000 25",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 150",
+   "Minstrel"
+  ]
+ },
+ "1947": {
+  "name": "Vicious Mind Violin",
+  "description": [
+   "A spear with evil spirit dwelling inside.",
+   "_______________________",
+   "MATK +100",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "MATK +1",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 25",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Minstrel"
+  ]
+ },
+ "1948": {
+  "name": "Guitar of Nature",
+  "description": [
+   "A guitar that allows you to feel the power of nature.",
+   "_______________________",
+   "MATK +120",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "VIT +1",
+   "MaxHP +1%",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 150%.",
+   "Decreases damage from ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by additional 50%.",
+   "Decreases damage from ^FF0000Demi-Human^000000 race by additional 5%.",
+   "_______________________",
+   "When equipped with ^990099Frontier Boots^000000:",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "Decreases damage taken from ^FF0000Doram Players^000000 by 20%.",
+   " ",
+   "^0000FFRefine Level^000000 of ^990099Frontier Boots^000000 is ^0000FF+7 or higher^000000:",
+   " ",
+   "^0000FFRefine Level^000000 of ^990099Guitar of Nature^000000 is ^0000FF+7 or higher^000000:",
+   "MaxHP +10%, MaxSP +10%",
+   " ",
+   "^0000FFRefine Level^000000 of ^990099Guitar of Nature^000000 is ^0000FF+9 or higher^000000:",
+   "Decreases damage taken from ^FF0000Normal^000000 class by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Musical Instrument",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Minstrel"
+  ]
+ },
+ "1950": {
+  "name": "Rope",
+  "description": [
+   "A strong, thick cord composed of tightly braided fiber.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 45",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 3",
+   "Dancer classes"
+  ]
+ },
+ "1951": {
+  "name": "Rope",
+  "description": [
+   "A strong, thick cord composed of tightly braided fiber.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 45",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 3",
+   "Dancer classes"
+  ]
+ },
+ "1952": {
+  "name": "Whip",
+  "description": [
+   "A standard whip that's perfect for adventuring Dancers.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 30",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 16",
+   "Dancer classes"
+  ]
+ },
+ "1953": {
+  "name": "Whip",
+  "description": [
+   "A standard whip that's perfect for adventuring Dancers.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 30",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 16",
+   "Dancer classes"
+  ]
+ },
+ "1954": {
+  "name": "Wire Whip",
+  "description": [
+   "A whip made of a flexible wire attached to an iron handle.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 95",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 16",
+   "Dancer classes"
+  ]
+ },
+ "1955": {
+  "name": "Wire Whip",
+  "description": [
+   "A whip made of a flexible wire attached to an iron handle.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 95",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 16",
+   "Dancer classes"
+  ]
+ },
+ "1956": {
+  "name": "Rante Whip",
+  "description": [
+   "A whip with a spiked ball attached at the end.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 135",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1957": {
+  "name": "Rante Whip",
+  "description": [
+   "A whip with a spiked ball attached at the end.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 135",
+   "^0000CCWeight:^000000 90",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1958": {
+  "name": "Tail Whip",
+  "description": [
+   "A whip fashioned out of an animal's tail that is said to bring good luck.",
+   "_______________________",
+   "LUK +3",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1959": {
+  "name": "Tail Whip",
+  "description": [
+   "A whip fashioned out of an animal's tail that is said to bring good luck.",
+   "_______________________",
+   "LUK +3",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 105",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1960": {
+  "name": "Whip",
+  "description": [
+   "A fairly common and very normal whip.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1961": {
+  "name": "Whip",
+  "description": [
+   "A fairly common and very normal whip.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1962": {
+  "name": "Lariat Whip",
+  "description": [
+   "A hefty whip made from toughened snakeskin.",
+   "_______________________",
+   "DEX +5, AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 44",
+   "Dancer classes"
+  ]
+ },
+ "1963": {
+  "name": "Rapture Rose",
+  "description": [
+   "Constructed purely of thorny stems from rosebushes.",
+   "_______________________",
+   "Random chance to inflict ^663399Poison^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 115",
+   "^0000CCWeight:^000000 30",
+   "^0000CCElement:^663399 Poison",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 44",
+   "Dancer classes"
+  ]
+ },
+ "1964": {
+  "name": "Chemeti Whip",
+  "description": [
+   "A powerful whip made of steel chain for heavy duty battles.",
+   "_______________________",
+   "Critical +5",
+   "Perfect Dodge +2",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 135",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 44",
+   "Dancer classes"
+  ]
+ },
+ "1965": {
+  "name": "Red Flame Whip",
+  "description": [
+   "A whip made from the tough leather of a Fire elemental monster.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1966": {
+  "name": "Icicle Whip",
+  "description": [
+   "A whip created from enchanted icicles that are eternally frozen.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1967": {
+  "name": "Gaia Whip",
+  "description": [
+   "A whip fashioned out of tough tree roots that have been braided together.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1968": {
+  "name": "Skipping Rope",
+  "description": [
+   "A skipping rope with wooden handles.",
+   "_______________________",
+   "Critical +20",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1969": {
+  "name": "Blade Whip",
+  "description": [
+   "A wire in which blade fragments are interwoven, making this whip as sharp as a sword.",
+   "_______________________",
+   "Random chance to inflict ^663399Bleeding^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 140",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1970": {
+  "name": "Queen's Whip",
+  "description": [
+   "This whip is the best of the best.",
+   "_______________________",
+   "Increases damage of ^009900Arrow Vulcan^000000 and ^009900Slinging Arrow^000000 by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 110",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Dancer classes"
+  ]
+ },
+ "1971": {
+  "name": "Electric Wire",
+  "description": [
+   "An electric wire. Beware of electrick shock.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Dancer classes"
+  ]
+ },
+ "1972": {
+  "name": "Electric Eel",
+  "description": [
+   "A whip made from a slippery electric eel.",
+   "_______________________",
+   "INT +2, AGI +2",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Jupitel Thunder^000000 or ^0000FFArrow Vulcan^000000 when dealing Physical Damages;",
+   "the skill Level of ^009900Arrow Vulcan^000000 that is cast depends on this weapon's Refine Level.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 200",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Gypsy"
+  ]
+ },
+ "1973": {
+  "name": "Sea Witch's Foot",
+  "description": [
+   "A whip made from the foot of an evil witch who lived in the sea to the west and was feared for her ability to siphon her enemy's energy.",
+   "_______________________",
+   "Recovers 5 SP for each defeated enemy.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Frost Nova^000000 on attacker when wielder receive physical attacks.",
+   "_______________________",
+   "Random chance to inflict ^663399Silence^000000 status to all enemies within a 11*11 cell area when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Gypsy"
+  ]
+ },
+ "1974": {
+  "name": "Carrot Whip",
+  "description": [
+   "A whip that rewards the wearer when she does her best.",
+   "_______________________",
+   "Random chance to increase AGI when dealing physical attack,",
+   "the skill Level cast depends on this weapon's Refine Level.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 185",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Gypsy"
+  ]
+ },
+ "1975": {
+  "name": "Whip of The Queen",
+  "description": [
+   "Whip provided by Adventurer Guild for Brave adventurer.",
+   "_______________________",
+   "Increases damage by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Gypsy"
+  ]
+ },
+ "1976": {
+  "name": "Queen's Whip",
+  "description": [
+   "The best of the best whips.",
+   "_______________________",
+   "Increases damage of ^009900Arrow Vulcan^000000 and ^009900Throw Arrow^000000 by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 110",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Dancer classes"
+  ]
+ },
+ "1977": {
+  "name": "Valorous Battle Lariat",
+  "description": [
+   "An especially made whip for battling against Demihuman; this whip is strong enough to cut their flesh.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Dancer classes"
+  ]
+ },
+ "1978": {
+  "name": "Brave Battle Lariat",
+  "description": [
+   "An especially made whip for battling against Demihuman; this whip is strong enough to cut their flesh.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 20%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Dancer classes"
+  ]
+ },
+ "1979": {
+  "name": "Stem of Nepenthes",
+  "description": [
+   "Strong and flexible whip made of Nepenthes's tentacle.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "Random chance to inflict ^663399Frozen^000000 status when using Throw Arrow.",
+   "The chance doubles if the Refining Level is over 8.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 120",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Gypsy"
+  ]
+ },
+ "1980": {
+  "name": "Whip of Balance",
+  "description": [
+   "A balance is attached at the tip of the whip. Anyone who gets a hit by this whip is knocked back.",
+   "_______________________",
+   "AGI +2, DEX +3",
+   "_______________________",
+   "Add 2 cells knock back effect when using Throw Arrow.",
+   "_______________________",
+   "Add 3 cells knock back effect when using Arrow Vulcan.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 110",
+   "^0000CCWeight:^000000 70",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Gypsy"
+  ]
+ },
+ "1981": {
+  "name": "Glorious Lariat",
+  "description": [
+   "A weapon that only a champion of battlefield can wield.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Demi-Human^000000 race by 95%.",
+   "_______________________",
+   "Ignores physical defense of ^FF0000Demi-Human^000000 race by 20%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "Pierces physical defense of ^FF0000Demi-Human^000000 race by additional 5%.",
+   "^FF0000Slaughter^000000 Lv 1 (Damage bonus of Slaughter increases up to the Refine Level 14.)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Using ^009900Arrow Vulcan^000000 has a chance of casting Level 5 ^009900Tarot Card of Fate^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Dancer classes"
+  ]
+ },
+ "1982": {
+  "name": "Phenomena Whip",
+  "description": [
+   "^000088Rental Item^000000",
+   "Phenomena Whip.",
+   "_______________________",
+   "Increases 25% damage with Throw Arrow skill.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Dancer classes"
+  ]
+ },
+ "1983": {
+  "name": "Rante Whip",
+  "description": [
+   "^000088Rental Item^000000",
+   "A whip with a spiked ball attached at the end.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Small^000000, ^FF0000Medium^000000 and ^FF0000Large^000000 size by 40%.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 0",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Dancer classes"
+  ]
+ },
+ "1984": {
+  "name": "Stem Whip",
+  "description": [
+   "A flexible whip made of renovated plant stem.",
+   "_______________________",
+   "MATK +50",
+   "_______________________",
+   "Decreases Variable Casting Time of ^009900Deep Sleep Lullaby^000000 and ^009900Swing Dance^000000 by 2 secs.",
+   "SP cost ofeach skill decreased by 4 with every upgrade above Level 6.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 170",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 102",
+   "Wanderer"
+  ]
+ },
+ "1985": {
+  "name": "Rosevine",
+  "description": [
+   "A whip of alluring fragrance made of a magical rose stem.",
+   "_______________________",
+   "INT +2, AGI -2",
+   "MATK +130",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Siren's Voice^000000 when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Mayomayo]<INFO>malangdo,213,167,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110",
+   "Wanderer"
+  ]
+ },
+ "1986": {
+  "name": "Eden Whip I",
+  "description": [
+   "A whip made by the Eden Group. It is suitable for those who have more advanced experience as Dancers.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 125",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>[Weapons Expert BK]<INFO>moc_para01,112,79,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Dancer classes"
+  ]
+ },
+ "1987": {
+  "name": "TE WoE Rope",
+  "description": [
+   "^000088Rental Item^000000",
+   "*Effects in WoE TE area",
+   "Increases Physical Damage against ^FF0000Players^000000 by 40%.",
+   "Random chance to inflict ^663399Blind^000000 status when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 100",
+   "^0000CCWeight:^000000 0",
+   "^0000CCWeapon Level:^000000 3",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Dancer classes"
+  ]
+ },
+ "1988": {
+  "name": "Thanos Whip",
+  "description": [
+   "A whip sculpted from Gray Shard to counter Magic Sword Tartanos.",
+   "It offers incredible power and magic at a great cost.",
+   "_______________________",
+   "INT +6",
+   "VIT +6",
+   "LUK -6",
+   "MATK +130",
+   "_______________________",
+   "Low chance to drain 5% of attack into HP and SP.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 20%.",
+   "_______________________",
+   "Drains 100 HP every 10 seconds.",
+   "_______________________",
+   "Drains 1000 HP when unequipping.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 220",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "Wanderer"
+  ]
+ },
+ "1989": {
+  "name": "Rhythmic Gymnastics Ribbon",
+  "description": [
+   "One of the tools used for rhythmic gymnastics representing the body mechanism.",
+   "_______________________",
+   "MATK +120",
+   "Increases Attack Speed (decreases After Attack Delay by 20%).",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 30",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Wanderer"
+  ]
+ },
+ "1990": {
+  "name": "Aigu's Floral Mic",
+  "description": [
+   "A mic whip used by Aigu. A powerful whip despite of its look.",
+   "_______________________",
+   "Decreases SP Consumption of ^009900Moonlight Serenade^000000 by 20.",
+   "_______________________",
+   "When equipped with ^990099Aigu's Floral Bracelet^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 200%.",
+   "Increases SP Consumption of ^009900Arrow Vulcan^000000 by 50.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 100",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Wanderer"
+  ]
+ },
+ "1991": {
+  "name": "Ru Blue Whip",
+  "description": [
+   "Blue Whip which has destructive power.",
+   "_______________________",
+   "DEX +5, VIT +5",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "Long Range ATK +20%",
+   "Decreases SP Consumption by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 200",
+   "^0000CCWeight:^000000 150",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Wanderer"
+  ]
+ },
+ "1992": {
+  "name": "Ru Gold Whip",
+  "description": [
+   "A golden whip with brutal power.",
+   "_______________________",
+   "DEX +8, VIT +8",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 180",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 120",
+   "Wanderer"
+  ]
+ },
+ "1993": {
+  "name": "Barbed Wire",
+  "description": [
+   "An iron wire with a strong blade.",
+   "_______________________",
+   "Give more damage on high DEF enemy.",
+   "_______________________",
+   "Drains 3 SP on each attack.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 120",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 105",
+   "Wanderer"
+  ]
+ },
+ "1994": {
+  "name": "Infinity Wire",
+  "description": [
+   "This weapon contains a strange energy.",
+   "I feel that one of its benefits were sealed with a high cost.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 150",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Wanderer"
+  ]
+ },
+ "1995": {
+  "name": "Crimson Wire",
+  "description": [
+   "Whip that emitting red aura.",
+   "_______________________",
+   "ATK increased by (RefineLv*RefineLv), up to +15 Refine Level.",
+   "_______________________",
+   "For each ^0000FF10 ^CC6600Base Level^000000 above ^0000FF70^000000:",
+   "ATK +5",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 80",
+   "^0000CCWeight:^000000 80",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Dancer classes"
+  ]
+ },
+ "1996": {
+  "name": "Vicious Mind Wire",
+  "description": [
+   "Wire imbued with Vicious Mind.",
+   "_______________________",
+   "MATK +50",
+   "_______________________",
+   "Increases ATK by (Refinelv*Refinelv).",
+   "(up to +15 Refine Level)",
+   "_______________________",
+   "Increases MATK by (Refinelv*Refinelv)/2.",
+   "(up to +15 Refine Level)",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 130",
+   "^0000CCWeight:^000000 130",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 160",
+   "Dancer classes"
+  ]
+ },
+ "1997": {
+  "name": "Union Whip",
+  "description": [
+   "A certified kingdom equipment for adventurer.",
+   "_______________________",
+   "Increases ATK by (Refine*Refine*1.25)",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 76",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 3",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Dancer classes"
+  ]
+ },
+ "1998": {
+  "name": "Requiem Blade Whip",
+  "description": [
+   "A whip given by the king.",
+   "It seems to have the effect of calming the souls of the dead.",
+   "_______________________",
+   "MATK +120",
+   "_______________________",
+   "Increases Magical Damage against monsters in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by 40%.",
+   "_______________________",
+   "^0000FFRefine Level +5^000000:",
+   "Increases Magical Damage against monsters in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by additional 20%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 equal or above ^0000FF+6^000000:",
+   "Increases Magical Damage against monsters in ^0033CCBio Lab^000000 and ^0033CCTomb of the Fallen^000000 by additional 15%.",
+   "_______________________",
+   "^0000FFRefine Level +7^000000:",
+   "Increases damage of ^009900Arrow Vulcan^000000 by 200%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 160",
+   "^0000CCWeight:^000000 50",
+   "^0000CCWeapon Level:^000000 4",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Wanderer"
+  ]
+ },
+ "1999": {
+  "name": "Bell of Vampire",
+  "description": [
+   "A bell that used in a ritual, its tone can fascinate undead.",
+   "_______________________",
+   "When using Circle of Nature, for 60 seconds: Restore 1 SP every 4 seconds.",
+   "_______________________",
+   "^0000FFRefine Level +10^000000:",
+   "Bell of Vampire become indestructible.",
+   "_______________________",
+   "^0000CCType:^000000 Whip",
+   "^0000CCAttack:^000000 45",
+   "^0000CCWeight:^000000 40",
+   "^0000CCWeapon Level:^000000 2",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "Wanderer"
+  ]
+ }
+}

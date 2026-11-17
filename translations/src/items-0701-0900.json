@@ -1,0 +1,611 @@
+{
+ "701": {
+  "name": "Ora Ora",
+  "description": [
+   "A trap that uses sticky, sweet scented liquid to lure and ensnare Thief Bugs. Handy if bugs are totally infesting a home.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "702": {
+  "name": "Animal Gore",
+  "description": [
+   "Bottled blood from a freshly slain beast. It's usually used to lure other animals.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "703": {
+  "name": "Hinalle",
+  "description": [
+   "A common plant with a mildly curative effect, its leaves can give a nice and smoothing sensation.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "704": {
+  "name": "Aloe",
+  "description": [
+   "A rare plant with curative properties that only grows deep in the forest during certain times of the year.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "705": {
+  "name": "Clover",
+  "description": [
+   "A plant with three heart shaped leaves that is plentiful in meadows.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "706": {
+  "name": "Four Leaf Clover",
+  "description": [
+   "An extremely rare clover with four leaves. Legends say that merely holding a Four Leaf Clover is a sign of great fortune to come.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "707": {
+  "name": "Singing Plant",
+  "description": [
+   "A mysterious plant that sings melancholic songs under a full moon. Legend says it's a woman grieving over the loss of her lover that has been reborn.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "708": {
+  "name": "Ment",
+  "description": [
+   "A white flower containing oils that can relieve pain and aches. Strangely, only a few remember how to use it to cause memory loss.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "709": {
+  "name": "Izidor",
+  "description": [
+   "A powerful hallucinogen once ground and eaten, the growing of Izidor has been prohibited because of its awesome addictiveness.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "710": {
+  "name": "Illusion Flower",
+  "description": [
+   "Rarely seen by humans, this flower supposedly shines brilliantly under the light of the moon.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "711": {
+  "name": "Shoot",
+  "description": [
+   "A delicate and fragile plant that is still in the early stages of growth.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "712": {
+  "name": "Flower",
+  "description": [
+   "An ordinary, thornless wildflower that doesn't have any particular scent.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "713": {
+  "name": "Empty Bottle",
+  "description": [
+   "An empty bottle that can be used for carrying liquid.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 2"
+  ]
+ },
+ "714": {
+  "name": "Emperium",
+  "description": [
+   "Merely owning this gloriously resplendent gem is said to be a sign of being chosen by fate to wield great power.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 100"
+  ]
+ },
+ "715": {
+  "name": "Yellow Gemstone",
+  "description": [
+   "An enchanted crystal that is used in conjuction with certain magic spells. Once used, it is powerless and immediately destroyed.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "716": {
+  "name": "Red Gemstone",
+  "description": [
+   "An enchanted crystal that is used in conjuction with certain magic spells. Once used, it is powerless and immediately destroyed.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "717": {
+  "name": "Blue Gemstone",
+  "description": [
+   "An enchanted crystal that is used in conjuction with certain magic spells. Once used, it is powerless and immediately destroyed.",
+   "_______________________",
+   "^0000CCType:^000000 Essential",
+   "^0000CCWeight:^000000 3"
+  ]
+ },
+ "718": {
+  "name": "Garnet",
+  "description": [
+   "A dark red jewel that is the birthstone for people born in January.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "719": {
+  "name": "Amethyst",
+  "description": [
+   "A purple jewel that is the birthstone for people born in February.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "720": {
+  "name": "Aquamarine",
+  "description": [
+   "A clear, sky blue jewel that is the birthstone for people born in March.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "721": {
+  "name": "Emerald",
+  "description": [
+   "A brilliant, green jewel that is the birthstone for people born in May.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "722": {
+  "name": "Pearl",
+  "description": [
+   "A pink jewel that is the birthstone for people born in June.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "723": {
+  "name": "Ruby",
+  "description": [
+   "A deep maroon jewel that is the birthstone for people born in July.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "724": {
+  "name": "Cursed Ruby",
+  "description": [
+   "A ruby containing mysterious powers.",
+   "_______________________",
+   "^0000CCType:^000000 Valuable",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "725": {
+  "name": "Sardonyx",
+  "description": [
+   "An onyx with alternating brown and white bands of sard. It's the birthstone for people born in August.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "726": {
+  "name": "Sapphire",
+  "description": [
+   "A dark blue gem that is the birthstone for people born during September.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "727": {
+  "name": "Opal",
+  "description": [
+   "A gem displaying an array of brilliant colors that is the birthstone for people born in October.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "728": {
+  "name": "Topaz",
+  "description": [
+   "A golden gem that is the birthstone for people born in November.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "729": {
+  "name": "Zircon",
+  "description": [
+   "A dazzling white-blue gem that is the birthstone for the month of December.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "730": {
+  "name": "1carat Diamond",
+  "description": [
+   "A small, twinkling and transparent gem that can be sold at a good price.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "731": {
+  "name": "2carat Diamond",
+  "description": [
+   "A medium size, sparkling transparent gem that can be sold at a high price.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "732": {
+  "name": "3carat Diamond",
+  "description": [
+   "A huge, dazzling gem that can be sold at an outrageous price.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "733": {
+  "name": "Cracked Diamond",
+  "description": [
+   "A damaged diamond with obvious imperfections that won't sell for much zeny.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "734": {
+  "name": "Red Frame",
+  "description": [
+   "A red frame that would make a nice present.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "735": {
+  "name": "Chung Jah",
+  "description": [
+   "Ancient Korean porcelain made of blue ceramic and crafted by a true master.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 50"
+  ]
+ },
+ "736": {
+  "name": "China",
+  "description": [
+   "A clean, white plate crafted by a Chinese master. It's a nice present for the ladies.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 30"
+  ]
+ },
+ "737": {
+  "name": "Black Ladle",
+  "description": [
+   "A black colored ladle, made out of an especially strong glowing material.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "738": {
+  "name": "Pencil Case",
+  "description": [
+   "A case for containing pencils. It'd be a nice gift for artists, writers, students and the like",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "739": {
+  "name": "Rouge",
+  "description": [
+   "Make-up for rich women made of extracts from plants and animals. When applied to the skin, it shines in a lustrous, attractive red color.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "740": {
+  "name": "Puppet",
+  "description": [
+   "A cute cotton doll that's a favorite for little girls.",
+   "Can be traded for a ^990099Candy Cane^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "741": {
+  "name": "Poring Doll",
+  "description": [
+   "A doll made to resemble a Poring monster. Everyone likes it for its cuteness.",
+   "Can be traded for a ^990099Candy^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "742": {
+  "name": "Chonchon Doll",
+  "description": [
+   "A doll made in the image of a Chonchon monster.",
+   "Most people feel a little repulsed by this doll...",
+   "Can be traded for a ^990099Candy Cane^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "743": {
+  "name": "Spore Doll",
+  "description": [
+   "A doll that looks just like a Spore monster.",
+   "Can be traded for 5 ^990099Well-Baked Cookie^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "744": {
+  "name": "Bouquet",
+  "description": [
+   "A bunch of flowers that is given to express love, thanks or appreciation.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "745": {
+  "name": "Wedding Bouquet",
+  "description": [
+   "A small bouquet thrown by brides during the wedding ceremony. The single woman who catches it is the next to be married, supposedly.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "746": {
+  "name": "Glass Bead",
+  "description": [
+   "A toy for young boys that's sort of like a marble.",
+   "But not really.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "747": {
+  "name": "Crystal Mirror",
+  "description": [
+   "A gorgeous mirror made with polished crystal that is considered an essential for every woman.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 5"
+  ]
+ },
+ "748": {
+  "name": "Witherless Rose",
+  "description": [
+   "A symbol of eternal love, this enchanted rose will never wither. However, it is rare and expensive.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "749": {
+  "name": "Frozen Rose",
+  "description": [
+   "Sculpted out of ice by masters in the Arctic, this unique and beautiful rose makes a great gift.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "750": {
+  "name": "Baphomet Doll",
+  "description": [
+   "A doll made to resemble Baphomet, enemy of all that is righteous. It is a dollmaker's masterpiece.",
+   "Can be traded for 5 ^990099Panacea^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "751": {
+  "name": "Osiris Doll",
+  "description": [
+   "A doll made to resemble Osiris, king of darkness. Without a doubt, it is a dollmaker's masterpiece.",
+   "Can be traded for 2 ^990099Fruit of Mastela^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "752": {
+  "name": "Rocker Doll",
+  "description": [
+   "A doll made to resemble Rocker, the grasshopper that loves to play its violin in the fields.",
+   "Can be traded for 7 ^990099Banana Juice^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "753": {
+  "name": "Yoyo Doll",
+  "description": [
+   "A doll made to resemble one of the Yoyos. These intelligent monkeys live in groups and are very familiar with humans.",
+   "Can be traded for a ^990099Seed of Yggdrasil^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "754": {
+  "name": "Racoon Doll",
+  "description": [
+   "A doll made to resemble Smokie, the racoon that ^333333possibly^000000 has the power of invisibility.",
+   "Can be traded for 3 ^990099Piece of Cake^000000 if You bring this doll to <NAVI>Elin<INFO>alberta,117,135,0,100,0,0</INFO></NAVI> in Alberta.",
+   "_______________________",
+   "^0000CCType:^000000 Collectible",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "756": {
+  "name": "Rough Oridecon",
+  "description": [
+   "Raw ore that mostly consists of Oridecon metal.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "757": {
+  "name": "Rough Elunium",
+  "description": [
+   "Raw ore that mostly consists of Elunium metal.",
+   "_______________________",
+   "^0000CCType:^000000 Forging material",
+   "^0000CCWeight:^000000 20"
+  ]
+ },
+ "766": {
+  "name": "Silky Fur Bundle",
+  "description": [
+   "Nutcracker's missing hairs are collected and tied together.",
+   "Some smell of the beast remains.",
+   " ",
+   "Perfect for fighting warnuts!",
+   "_______________________",
+   "^ff0000(The item will be deleted after the event ends.)^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "779": {
+  "name": "[Blank] Nibble Leon Card",
+  "description": [
+   "A blank card that once contained the power of a monster.",
+   "It seeks to regain its original power as a monster card.",
+   "_______________________",
+   "^FF0000[[Blank] Nibble Leon Card can only be sold to NPCs or moved to the storage.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "780": {
+  "name": "Pet Hammer",
+  "description": [
+   "A pretty big mallet.",
+   "An item to evolve into a Pet [Abandoned Teddy Bear].",
+   "_______________________",
+   "^FF0000[Pet Hammer] can only be sold to NPCs or moved to the storage.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 1"
+  ]
+ },
+ "781": {
+  "name": "Commemorative Coin",
+  "description": [
+   "A coin issued to commemorate a national event.",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "782": {
+  "name": "[2021] BitCash Ticket",
+  "description": [
+   "If you give it to \"Full Moon\", it will be exchanged for a special item.",
+   "_______________________",
+   "^000088[[2021] BitCash Ticket]",
+   "· Rune-Midgards Kingdom",
+   "Take it to the NPC \"Full Moon\" in the capital Prontera at coordinates (125 125)^000000",
+   "_______________________",
+   "^FF0000This item can be used until December 21, 2021 (Tuesday) when regular maintenance begins.^000000",
+   "_______________________",
+   "^FF0000[[2021] BitCash Ticket] can only be transferred to the storage.^000000",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "783": {
+  "name": "Proof of Labyrinth Research Contribution",
+  "description": [
+   "A special token given to those who contributed to the investigation of the Phantom Labyrinth.",
+   "_______________________",
+   "^0000CCWeight:^000000 0.1"
+  ]
+ },
+ "790": {
+  "name": "[Event]Flower Left by Phantom",
+  "description": [
+   "Flowers left in the place where the mighty Phantom that haunts the Corridor of Phantom has disappeared.",
+   "The Phantom's Spirits will love it if you collect and deliver these flowers to them.",
+   "_______________________",
+   "^0000CCWeight:^000000 0.1"
+  ]
+ },
+ "791": {
+  "name": "[Event]Phantom's Seal",
+  "description": [
+   "^ff0000This item cannot be traded with other accounts.^000000",
+   "A seal engraved by the Phantom's Spirit.",
+   "Indicates the qualification to enter the corridor of Phantom.",
+   "_______________________",
+   "^0000CCWeight:^000000 0"
+  ]
+ },
+ "793": {
+  "name": "Shadow Booster Voucher",
+  "description": []
+ },
+ "824": {
+  "name": "[Event] Level 200 Gift Ticket",
+  "description": []
+ }
+}

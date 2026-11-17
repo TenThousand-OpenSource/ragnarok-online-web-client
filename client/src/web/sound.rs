@@ -15,10 +15,20 @@ const TITLE_MUSIC: &str = "/bgm/01.mp3";
 const BUTTON: &str = "data/wav/버튼소리.wav";
 const MUSIC_VOLUME: f64 = 0.5;
 
+/// How many of one sound may sound at once: a crowd of the same monster is not that many times as loud.
+const VOICES: usize = 3;
+
 #[derive(Default)]
 struct Sounds {
     music: Option<HtmlAudioElement>,
     button: Option<HtmlAudioElement>,
+    /// Whether the game's sounds play at all (the player's switch, and the page being looked at).
+    on: bool,
+    /// The music of the map the character is on: its track, and what plays it.
+    track: Option<String>,
+    map: Option<(String, HtmlAudioElement)>,
+    /// The sounds of the game by file name, a few players each.
+    effects: std::collections::HashMap<String, Vec<HtmlAudioElement>>,
 }
 
 thread_local! {
@@ -63,5 +73,71 @@ pub fn button() {
             button.set_current_time(0.0);
             let _ = button.play();
         }
+    });
+}
+
+/// Turns the sounds of the game itself on or off: the map's music and every effect.
+pub fn game(on: bool) {
+    SOUNDS.with_borrow_mut(|sounds| {
+        sounds.on = on;
+        tune_map(sounds);
+    });
+}
+
+/// The music of the map the character is on (`bgm\\08.mp3` as the client's table names it), or none.
+pub fn map_track(track: Option<String>) {
+    SOUNDS.with_borrow_mut(|sounds| {
+        sounds.track = track;
+        tune_map(sounds);
+    });
+}
+
+fn tune_map(sounds: &mut Sounds) {
+    let wanted = sounds.track.clone().filter(|_| sounds.on);
+    // Another map's music stops; the same one plays on.
+    if let Some((playing, music)) = &sounds.map {
+        if Some(playing) != wanted.as_ref() {
+            let _ = music.pause();
+            sounds.map = None;
+        }
+    }
+    let Some(wanted) = wanted else { return };
+    if sounds.map.is_none() {
+        let url = format!("/{}", wanted.replace('\\', "/"));
+        if let Ok(music) = HtmlAudioElement::new_with_src(&url) {
+            music.set_loop(true);
+            music.set_volume(MUSIC_VOLUME);
+            sounds.map = Some((wanted, music));
+        }
+    }
+    if let Some((_, music)) = sounds.map.as_ref().filter(|(_, music)| music.paused()) {
+        let _ = music.play();
+    }
+}
+
+/// Plays one of the game's sounds (a file of `data/wav`), as loud as `volume` (0 to 1).
+pub fn effect(name: &str, volume: f64) {
+    if volume <= 0.02 || name.is_empty() {
+        return;
+    }
+    SOUNDS.with_borrow_mut(|sounds| {
+        if !sounds.on {
+            return;
+        }
+        let players = sounds.effects.entry(name.to_owned()).or_default();
+        // One that has finished plays again; else another is made, up to a few.
+        let free = players.iter().position(|player| player.paused() || player.ended());
+        let player = match free {
+            Some(free) => &players[free],
+            None if players.len() < VOICES => {
+                let Ok(player) = HtmlAudioElement::new_with_src(&asset_url(&format!("data/wav/{}", name.replace('\\', "/")))) else { return };
+                players.push(player);
+                players.last().unwrap()
+            }
+            None => return,
+        };
+        player.set_volume(volume.clamp(0.0, 1.0));
+        player.set_current_time(0.0);
+        let _ = player.play();
     });
 }

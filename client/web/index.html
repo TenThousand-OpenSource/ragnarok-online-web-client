@@ -6,6 +6,55 @@
 <title>Ragnarok 2026</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  /* The name of whoever the pointer is on, over their head. */
+  #unit-name { position: fixed; display: none; transform: translateX(-50%); padding: 4px; white-space: nowrap; pointer-events: none;
+               font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; z-index: 5;
+               text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000, -1px -1px #000, 1px 1px #000, -1px 1px #000, 1px -1px #000; }
+  .dim { opacity: .4; }
+  /* The dark that covers the screen while the character is moved elsewhere. */
+  #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 8; }
+  /* The client's loading screen (UILoadingWnd): its picture over the whole screen, and a bar of 240 by 15
+     standing 100 left of the middle and 160 under it, as large as the windows are drawn. */
+  #loading { position: fixed; inset: 0; display: none; background: #000 center / 100% 100% no-repeat; z-index: 9; }
+  #loading-bar { position: absolute; left: 50%; top: 50%; width: 240px; height: 15px; box-sizing: border-box; border: 1px solid #00ffff;
+                 background: #8e8e8e; transform-origin: 0 0; transform: scale(var(--s, 1)) translate(-100px, 160px); }
+  #loading-fill { display: block; width: 0; height: 13px; background: #2a4b8f; }
+  #loading-figure { position: absolute; left: 100px; top: -1px; font: bold 13px Gulim, Tahoma, Arial, sans-serif; line-height: 15px; color: #ffff00; white-space: pre; }
+  /* The key that uses a slot of the bar, in its corner. */
+  .key { position: absolute; left: 1px; top: -1px; font: 9px Tahoma, Arial, sans-serif; color: #5a6aa8; pointer-events: none; }
+  /* The life of a monster being fought, under it: green on dark, in a blue frame, as the original's. */
+  #bars { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 4; }
+  .life { position: fixed; width: 58px; height: 3px; background: #424242; border: 1px solid #10189c; }
+  .life i { display: block; height: 3px; background: #10ef21; }
+  /* The bar of a cast (UIRechargeGage): its colours are the client's. */
+  .cast { position: fixed; width: 60px; height: 6px; box-sizing: border-box; background: #444444; border: 1px solid #14199b; pointer-events: none; }
+  .cast i { display: block; height: 4px; background: #16ea25; }
+  .life.own { height: 7px; }
+  .life.own i.low { background: #ff0000; }
+  .life.own i.sp { margin-top: 1px; background: #205cc3; }
+  /* What someone says, over their head: white on a dark plate, as the original's. */
+  .say { position: fixed; transform: translate(-50%, -100%); max-width: 220px; padding: 2px 6px; pointer-events: none; text-align: center;
+         font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; background: rgba(0, 0, 0, .55); border-radius: 2px; overflow-wrap: break-word; }
+  /* The storage's tabs: names written up the side. */
+  .side { padding: 0; border: 1px solid #b9bfdc; border-right: 0; border-radius: 4px 0 0 4px; background: #e9ecf7; cursor: pointer; }
+  .side.open { background: #fff; font-weight: bold; }
+  .side i { display: block; font: 10px Tahoma, Arial, sans-serif; font-style: normal; color: #313131; transform: rotate(-90deg); white-space: nowrap; }
+  .row { outline: 0; color: #000; }
+  .row:focus { background: #5b9bf0; color: #fff; }
+  /* The number of a hit, rising from the one hit: white on others, red on the player's own character. */
+  .hit { position: fixed; transform: translateX(-50%); pointer-events: none; z-index: 5; font: bold 16px Arial, sans-serif; color: #fff;
+         text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000; animation: hit .9s ease-out forwards; }
+  .hit.own { color: #ff2a2a; }
+  /* The number starts large over the one struck and flies up and aside, shrinking as it goes, as the original's. */
+  @keyframes hit { 0% { transform: translate(-50%, 0) scale(1.7); opacity: 1; } 70% { opacity: 1; }
+                   100% { transform: translate(calc(-50% + var(--sway, 0px)), -80px) scale(.55); opacity: 0; } }
+  /* What was picked up, told for a moment. */
+  .note { animation: note 5s linear forwards; }
+  #obtained { text-align: center; }
+  @keyframes note { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+  /* The game's own pointers over the page, once they are read: the plain one, and the pressing one on what can be pressed. */
+  html, body, #ui { cursor: var(--point, auto); }
+  #ui button, #ui .b, #ui [data-click], #ui [data-use] { cursor: var(--press, pointer); }
   canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: none; }
   #ui { position: fixed; inset: 0; overflow: hidden; background: #000 center / cover no-repeat;
         font: 12px/1.25 Tahoma, Arial, sans-serif; color: #000; user-select: none; }
@@ -63,7 +112,12 @@
   .page { font: bold 18px Tahoma, Arial, sans-serif; color: #fff; text-align: center; }
   .start { font: bold 18px Tahoma, Arial, sans-serif; color: #fff; padding-top: 34px; }
   .start:disabled { color: #dc747f; }
-  .chosen { pointer-events: none; animation: chosen .664s steps(1) infinite; }
+  .chosen { pointer-events: none; }
+  .chosen i { position: absolute; inset: 0; opacity: 0; background-repeat: no-repeat; animation: chosen .664s steps(1) infinite; }
+  .chosen i:nth-child(2) { animation-delay: 83ms; } .chosen i:nth-child(3) { animation-delay: 166ms; } .chosen i:nth-child(4) { animation-delay: 249ms; }
+  .chosen i:nth-child(5) { animation-delay: 332ms; } .chosen i:nth-child(6) { animation-delay: 415ms; } .chosen i:nth-child(7) { animation-delay: 498ms; }
+  .chosen i:nth-child(8) { animation-delay: 581ms; }
+  @keyframes chosen { 0% { opacity: 1; } 12.5% { opacity: 0; } 100% { opacity: 0; } }
 
   /* Character creation. */
   .race { padding: 0; border: 0; background: no-repeat 0 0; font: inherit; text-align: left; cursor: pointer; }
@@ -88,6 +142,8 @@
   #chat { z-index: 9; }
   /* Items, skills, and the slots they are dragged to. */
   .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+  /* A text field that scrolls with its bar in sight (the client's UITextViewer). */
+  .viewer { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #b9bfdc #f4f5fb; }
   .scroll::-webkit-scrollbar { display: none; }
   .cell, .slot { width: 32px; height: 32px; }
   .slot { width: 24px; height: 24px; cursor: pointer; }
@@ -101,15 +157,48 @@
   .tab { padding: 4px 0 0; border: 1px solid #c3c3c3; background: #e8e8e8; font: 12px Tahoma, Arial, sans-serif; color: #000; cursor: pointer; }
   .tab.open { background: #fff; border-right-color: #fff; width: 18px !important; }
   .tab span { display: block; line-height: 13px; text-align: center; }
-  #chat-log { padding: 3px 2px; overflow: hidden; background: rgba(0, 0, 0, .4); border-left: 1px solid #fff; border-right: 1px solid #fff;
-              display: flex; flex-direction: column; justify-content: flex-end; }
+  #chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: thin; scrollbar-color: #9aa3c8 transparent;
+              color: #fff; font: 12px Gulim, Tahoma, Arial, sans-serif; user-select: text; }
   #chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
+  .chat-tab { padding: 0; border: 0; color: #fff; font: 12px Gulim, Tahoma, Arial, sans-serif; line-height: 15px; text-align: center; white-space: nowrap; overflow: hidden; cursor: var(--press, pointer); }
+  #chat-input { background: #f0f0f0; }
+  .mapname { position: absolute; right: 17px; top: 164px; width: 128px; height: 14px; color: #fff; font-size: 12px; pointer-events: none; }
+  .mapname span { position: absolute; left: 20px; top: 0; white-space: pre; text-shadow: -1px 0 0 #000; }
+                border-radius: 9px; white-space: nowrap; pointer-events: none; }
+
+  .w.top { z-index: 25; }
+  .w form { margin: 0; }
+  .a { position: absolute; margin: 0; }
+  .pass { pointer-events: none; }
+       cursor: pointer; white-space: nowrap; overflow: hidden; }
+  .b:hover { background-image: var(--o); }
+  .in.centre { text-align: center; }
+  .in::placeholder { color: #9c9c9c; }
+  .small { font-size: 11px; }
+  .centre { text-align: center; }
+  .w p.a.tight { line-height: 14px; }
+  .w p.a { line-height: 16px; }
+
+  /* Character select. */
+  .start:disabled { color: #dc747f; }
+
+  /* Character creation. */
+
+           box-shadow: 0 1px 4px rgba(40, 50, 110, .45); }
+  .panel .rows { margin: 0 14px; }
+                                background: #fff; border: 1px solid #b9bfdc; border-radius: 9px; outline: 0; user-select: text; }
+
+  /* The game's own windows. */
+  .hud { z-index: 10; }
+  #chat { z-index: 9; }
+       text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff; }
+              display: flex; flex-direction: column; justify-content: flex-end; }
   #chat-input { background: #f0f0f0; }
   .mapname { position: absolute; right: 8px; top: 168px; width: 130px; text-align: center; color: #fff; font-size: 11px;
              text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; }
   .lang button:first-of-type { }
   /* The minimap, in the corner where the original client has it. */
-  .minimap { position: absolute; right: 8px; top: 36px; width: 128px; height: 128px; background: rgba(0, 0, 0, .35);
+  .minimap { position: absolute; right: 17px; top: 36px; width: 128px; height: 128px; background: rgba(0, 0, 0, .35);
              border: 1px solid rgba(255, 255, 255, .6); }
   .minimap img { width: 100%; height: 100%; display: block; opacity: .9; }
   .minimap i { position: absolute; width: 6px; height: 6px; margin: -4px 0 0 -4px; background: #fff; border: 1px solid #000;
@@ -119,10 +208,15 @@
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="unit-name"></div>
+<div id="bars"></div>
+<div id="fade"></div>
+<div id="loading"><div id="loading-bar"><i id="loading-fill"></i><span id="loading-figure"></span></div></div>
 <div id="ui"></div>
 <script type="module">
-  import init from "./roweb_client.js";
-  init().catch((error) => { document.getElementById("ui").textContent = String(error); });
+  // The build's number goes into both addresses, so that a browser never runs an older build it kept.
+  import init from "./roweb_client.js?v=__BUILD__";
+  init({ module_or_path: "./roweb_client_bg.wasm?v=__BUILD__" }).catch((error) => { document.getElementById("ui").textContent = String(error); });
 </script>
 </body>
 </html>

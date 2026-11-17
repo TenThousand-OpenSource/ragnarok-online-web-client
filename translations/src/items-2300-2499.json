@@ -1,0 +1,3850 @@
+{
+ "2301": {
+  "name": "Cotton Shirt",
+  "description": [
+   "A simple, sturdily made shirt of cotton.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2302": {
+  "name": "Cotton Shirt",
+  "description": [
+   "A simple, sturdily made shirt of cotton.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Almond J<INFO>izlude,108,139,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2303": {
+  "name": "Jacket",
+  "description": [
+   "A jacket made out of mediocre leather.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2304": {
+  "name": "Jacket",
+  "description": [
+   "A jacket made out of mediocre leather.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2305": {
+  "name": "Adventurer's Suit",
+  "description": [
+   "A light, comfortable suit made just for young adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2306": {
+  "name": "Adventurer's Suit",
+  "description": [
+   "A light, comfortable suit made just for young adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2307": {
+  "name": "Mantle",
+  "description": [
+   "A cloak that is simple, yet elegant.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 37",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2308": {
+  "name": "Mantle",
+  "description": [
+   "A cloak that is simple, yet elegant.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 37",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2309": {
+  "name": "Coat",
+  "description": [
+   "A long coat that provides remarkable warmth in cold weather.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 42",
+   "^0000CCWeight:^000000 120",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2310": {
+  "name": "Coat",
+  "description": [
+   "A long coat that provides remarkable warmth in cold weather.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 42",
+   "^0000CCWeight:^000000 120",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2311": {
+  "name": "Mink Coat",
+  "description": [
+   "A fur coat that is actually made using hides from Lunatics.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 30",
+   "^0000CCWeight:^000000 230",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "All Jobs except Novice"
+  ]
+ },
+ "2312": {
+  "name": "Padded Armor",
+  "description": [
+   "Armor constructed of solid metal plates that have been padded on the inside for comfort.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 35",
+   "^0000CCWeight:^000000 280",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2313": {
+  "name": "Padded Armor",
+  "description": [
+   "Armor constructed of solid metal plates that have been padded on the inside for comfort.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 35",
+   "^0000CCWeight:^000000 280",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2314": {
+  "name": "Chain Mail",
+  "description": [
+   "Heavy mail made entirely of polished, metal chain links.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 55",
+   "^0000CCWeight:^000000 330",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2315": {
+  "name": "Chain Mail",
+  "description": [
+   "Heavy mail made entirely of polished, metal chain links.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 55",
+   "^0000CCWeight:^000000 330",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2316": {
+  "name": "Full Plate",
+  "description": [
+   "Heavy, solid armor made of durable plates of impenetrable metal.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 70",
+   "^0000CCWeight:^000000 450",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordman classes"
+  ]
+ },
+ "2317": {
+  "name": "Full Plate",
+  "description": [
+   "Heavy, solid armor made of durable plates of impenetrable metal.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 70",
+   "^0000CCWeight:^000000 450",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordman classes"
+  ]
+ },
+ "2318": {
+  "name": "Lord's Clothes",
+  "description": [
+   "Formal clothing made in a Renaissance style that evokes thoughts of romance and elegance.",
+   "_______________________",
+   "INT +1",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 59",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Merchant"
+  ]
+ },
+ "2319": {
+  "name": "Glittering Jacket",
+  "description": [
+   "A jacket covered in fake, yet glamorous, rhinestones that is favored by hipsters and lounge singers.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Random chance to inflict ^663399Blind^000000 status on the target when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 58",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "All Jobs except Novice"
+  ]
+ },
+ "2320": {
+  "name": "Formal Suit",
+  "description": [
+   "A formal suit for males.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2321": {
+  "name": "Silk Robe",
+  "description": [
+   "A finely woven, silk robe that has been enchanted with magic.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Acolyte, Merchant and Soul Linker"
+  ]
+ },
+ "2322": {
+  "name": "Silk Robe",
+  "description": [
+   "A finely woven, silk robe that has been enchanted with magic.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Magician, Acolyte, Merchant and Soul Linker"
+  ]
+ },
+ "2323": {
+  "name": "Scapulare",
+  "description": [
+   "A blessed outer garment worn by clerics for religious ceremonies.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 24",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte"
+  ]
+ },
+ "2324": {
+  "name": "Scapulare",
+  "description": [
+   "A blessed outer garment worn by clerics for religious ceremonies.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 24",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte"
+  ]
+ },
+ "2325": {
+  "name": "Saint's Robe",
+  "description": [
+   "A robe that has been baptized with saintly power.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte and Merchant"
+  ]
+ },
+ "2326": {
+  "name": "Saint's Robe",
+  "description": [
+   "A robe that has been baptized with saintly power.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Acolyte and Merchant"
+  ]
+ },
+ "2327": {
+  "name": "Holy Robe",
+  "description": [
+   "A robe that emanates an aura of holiness.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 race monsters by 15%.",
+   "_______________________",
+   "Decreases damage taken from ^777777Shadow^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 57",
+   "^0000CCWeight:^000000 170",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Acolyte"
+  ]
+ },
+ "2328": {
+  "name": "Wooden Mail",
+  "description": [
+   "A simple set of armor carved out of solid wood.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2329": {
+  "name": "Wooden Mail",
+  "description": [
+   "A simple set of armor carved out of solid wood.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2330": {
+  "name": "Tights",
+  "description": [
+   "Skintight, form fitting clothing that allows easy movement.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 27",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Archer"
+  ]
+ },
+ "2331": {
+  "name": "Tights",
+  "description": [
+   "Skintight, form fitting clothing that allows easy movement.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 27",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Archer"
+  ]
+ },
+ "2332": {
+  "name": "Silver Robe",
+  "description": [
+   "A robe knit out of silver thread.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 23",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2333": {
+  "name": "Silver Robe",
+  "description": [
+   "A robe knit out of silver thread.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 23",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2334": {
+  "name": "Magician Coat",
+  "description": [
+   "An exclusive robe for Magician Class characters that contains magic power.",
+   "_______________________",
+   "INT +1",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2335": {
+  "name": "Thief Clothes",
+  "description": [
+   "Extremely light clothes outfitted with many pockets, making it handy for stashing stolen goods.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Thief and Ninja"
+  ]
+ },
+ "2336": {
+  "name": "Thief Clothes",
+  "description": [
+   "Extremely light clothes outfitted with many pockets, making it handy for stashing stolen goods.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Thief and Ninja"
+  ]
+ },
+ "2337": {
+  "name": "Ninja Suit",
+  "description": [
+   "A sneaking suit that enables its wearer into move more quickly and stealthily.",
+   "_______________________",
+   "AGI +1",
+   "MDEF +3",
+   "_______________________",
+   "When equipped with ^990099Shinobi Sash^000000:",
+   "MaxHP +300",
+   "Decreases SP Consumption by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 58",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Thief and Ninja"
+  ]
+ },
+ "2338": {
+  "name": "Wedding Dress",
+  "description": [
+   "A wedding dress that is immaculately white.",
+   "_______________________",
+   "MDEF +15",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Female Only",
+   "All Jobs except Novice"
+  ]
+ },
+ "2339": {
+  "name": "Pantie",
+  "description": [
+   "A risque undergarment that is comfortable to wear, but offers very little in the way of defense.",
+   "_______________________",
+   "When equipped with ^990099Undershirt^000000:",
+   "AGI +5",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 22",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2340": {
+  "name": "Novice Breastplate",
+  "description": [
+   "A piece of armor that covers the chest of a Novice.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 32",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10",
+   "Novice"
+  ]
+ },
+ "2341": {
+  "name": "Full Plate Armor",
+  "description": [
+   "An extremely heavy piece of armor worn by members of the Legion.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 79",
+   "^0000CCWeight:^000000 550",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Crusader"
+  ]
+ },
+ "2342": {
+  "name": "Full Plate Armor",
+  "description": [
+   "An extremely heavy piece of armor worn by members of the Legion.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 79",
+   "^0000CCWeight:^000000 550",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Crusader"
+  ]
+ },
+ "2343": {
+  "name": "Robe of Casting",
+  "description": [
+   "A robe which aids its wearer in reducing magic casting time.",
+   "_______________________",
+   "MDEF +4",
+   "_______________________",
+   "Decreases Variable Casting Time by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 110",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Wizard, Sage and Soul Linker"
+  ]
+ },
+ "2344": {
+  "name": "Lucius's Fierce of Volcano",
+  "description": [
+   "A suit of armor that is enchanted with the fire elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^FF0000 Fire",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2345": {
+  "name": "Lucius's Fierce of Volcano",
+  "description": [
+   "A suit of armor that is enchanted with the fire elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "All Jobs except Novice"
+  ]
+ },
+ "2346": {
+  "name": "Sapien's Wail of Ocean",
+  "description": [
+   "A suit of armor that is enchanted with the water elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2347": {
+  "name": "Sapien's Wail of Ocean",
+  "description": [
+   "A suit of armor that is enchanted with the water elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^0000BB Water",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "All Jobs except Novice"
+  ]
+ },
+ "2348": {
+  "name": "Ebecee's Rage of Typhoon",
+  "description": [
+   "A suit of armor that is enchanted with the wind elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2349": {
+  "name": "Ebecee's Rage of Typhoon",
+  "description": [
+   "A suit of armor that is enchanted with the wind elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^33CC00 Wind",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "All Jobs except Novice"
+  ]
+ },
+ "2350": {
+  "name": "Claytos's Rupture of Earth",
+  "description": [
+   "A suit of armor that is enchanted with the earth elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2351": {
+  "name": "Claytos's Rupture of Earth",
+  "description": [
+   "A suit of armor that is enchanted with the earth elemental.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 220",
+   "^0000CCElement:^CC5500 Earth",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 45",
+   "All Jobs except Novice"
+  ]
+ },
+ "2352": {
+  "name": "Tattered Novice Ninja Suit",
+  "description": [
+   "An exclusive armor for new adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "2353": {
+  "name": "Odin's Blessing",
+  "description": [
+   "The main component of the Hermod Armor set.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 53",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2354": {
+  "name": "Goibne's Armor",
+  "description": [
+   "A suit of armor that was accidentally enchanted by Goibne the blacksmith when he spilled the mystic ale of life all over it.",
+   "_______________________",
+   "VIT +2",
+   "MaxHP +10%",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 58",
+   "^0000CCWeight:^000000 350",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 54",
+   "All Jobs except Novice"
+  ]
+ },
+ "2355": {
+  "name": "Angelic Protection",
+  "description": [
+   "Super Novice Guardian Angel's robe.",
+   "_______________________",
+   "MDEF +20",
+   "_______________________",
+   "When equipped with ^990099Angel's Kiss^000000, ^990099Angelic Cardigan^000000, ^990099Angel's Reincarnation^000000 and ^990099Angelic Guard^000000:",
+   "MaxHP +900",
+   "MaxSP +100",
+   "Random chance to auto-cast Level 1 ^009900Assumptio^000000 when receiving physical attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Novice"
+  ]
+ },
+ "2356": {
+  "name": "Blessed Holy Robe",
+  "description": [
+   "A blessed holy robe that protects its wearer from being tainted by evil.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Increases resistance against ^663399Blind^000000 status by 80%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 250",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Priest and Monk classes"
+  ]
+ },
+ "2357": {
+  "name": "Valkyrie Armor",
+  "description": [
+   "A set of shining white armor worn by Valkyries, the battle maidens that serve the god Odin.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "When equipped by ^0033CCMage^000000, ^0033CCArcher^000000 and ^0033CCAcolyte^000000 classes:",
+   "Increases resistance against ^663399Silence^000000 status by 50%.",
+   "_______________________",
+   "When equipped by ^0033CCSwordman^000000, ^0033CCMerchant^000000 and ^0033CCThief^000000 classes:",
+   "Increases resistance against ^663399Stun^000000 status by 50%.",
+   "_______________________",
+   "When equipped with ^990099Valkyrie Helm^000000, ^990099Valkyrie Manteau^000000 and ^990099Valkyrie Shoes^000000:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 55",
+   "^0000CCWeight:^000000 280",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2358": {
+  "name": "Angel's Dress",
+  "description": [
+   "A winged dress that is said to have been worn by an angel.",
+   "It makes you feel very lucky when you wear it.",
+   "_______________________",
+   "LUK +4",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2359": {
+  "name": "Ninja Suit",
+  "description": [
+   "A sneaking suit that enables its wearer into move more quickly and stealthily.",
+   "_______________________",
+   "AGI +1",
+   "MDEF +3",
+   "_______________________",
+   "When equipped with ^990099Shinobi Sash^000000:",
+   "MaxHP +300",
+   "Decreases SP Consumption by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 58",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Thief and Ninja"
+  ]
+ },
+ "2360": {
+  "name": "Robe of Casting",
+  "description": [
+   "A robe which aids its wearer in reducing magic casting time.",
+   "_______________________",
+   "MDEF +4",
+   "_______________________",
+   "Decreases Variable Casting Time by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 110",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Wizard, Sage and Soul Linker"
+  ]
+ },
+ "2361": {
+  "name": "Blue Robe",
+  "description": [
+   "A type of traditional outfit. It brings out the hidden powers of the wearer through its spiritual power.",
+   "_______________________",
+   "All Basic Stats +5",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2362": {
+  "name": "Red Robe",
+  "description": [
+   "A type of traditional outfit. It brings out the hidden powers of the wearer through its spiritual power.",
+   "_______________________",
+   "All Basic Stats +5",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2363": {
+  "name": "White Robe",
+  "description": [
+   "A type of traditional outfit. It brings out the hidden powers of the wearer through its spiritual power.",
+   "_______________________",
+   "All Basic Stats +3",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "2364": {
+  "name": "Meteor Plate",
+  "description": [
+   "This plate armor was forged using mysterious materials from a meteor.",
+   "_______________________",
+   "Increases resistance against ^663399Stun^000000 and ^663399Frozen^000000 status by 30%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 85",
+   "^0000CCWeight:^000000 300",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "Transcendent Swordsman and Merchant"
+  ]
+ },
+ "2365": {
+  "name": "Orlean's Gown",
+  "description": [
+   "A uniform that was once worn by a chef that was obsessed with cleanliness.",
+   "Nobody could stop him once he started talking about cuisine.",
+   "_______________________",
+   "Skill casting cannot be interrupted.",
+   "_______________________",
+   "Increases Variable Casting Time by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2366": {
+  "name": "Divine Cloth",
+  "description": [
+   "A holy garment that has been purified by a series of religious rituals.",
+   "_______________________",
+   "Increases resistance against ^663399Curse^000000, ^663399Silence^000000, ^663399Stun^000000, ^663399Sleep^000000 and ^663399Stone Curse^000000 status by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2367": {
+  "name": "Sniping Suit",
+  "description": [
+   "A sniping suit that stimulates all the muscles used in firing arrows, increasing accuracy while reducing stress on the body.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Critical +6 with additional Critical bonus determined by LUK stat.",
+   "_______________________",
+   "Decreases After Skill Delay by 23%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 42",
+   "^0000CCWeight:^000000 75",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Sniper"
+  ]
+ },
+ "2368": {
+  "name": "Golden Armor",
+  "description": [
+   "A special Armor made of a pure gold mixture. According to legend you will gain magical strength whilst wearing this.",
+   "_______________________",
+   "MDEF +4",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2369": {
+  "name": "Freya Overcoat",
+  "description": [
+   "^000088Rental Item^000000",
+   "The coat of the queen Freya, protected by frozen power.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "When equipped with ^990099Freya Crown^000000, ^990099Freya Boots^000000 and ^990099Freya Cape^000000:",
+   "MaxHP +20%",
+   "Prevents ^663399Frozen^000000 status.",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "Enables the use of Level 10 ^0000FFFrost Nova^000000.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2370": {
+  "name": "Used Magician Coat",
+  "description": [
+   "Coat from Guild of Traveler.",
+   "_______________________",
+   "DEX +1",
+   "ATK +10",
+   "MaxHP +300",
+   "MaxSP +30",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2371": {
+  "name": "Pantie",
+  "description": [
+   "A risque undergarment that is comfortable to wear, but offers very little in the way of defense.",
+   "_______________________",
+   "When equipped with ^990099Undershirt^000000:",
+   "AGI +5",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 22",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2372": {
+  "name": "Magician Coat",
+  "description": [
+   "An exclusive robe for Magician Class characters that contains magic power.",
+   "_______________________",
+   "INT +1",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2373": {
+  "name": "Holy Robe",
+  "description": [
+   "A robe that emanates an aura of holiness.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 race monsters by 15%.",
+   "_______________________",
+   "Decreases damage taken from ^777777Shadow^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 57",
+   "^0000CCWeight:^000000 170",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Acolyte"
+  ]
+ },
+ "2374": {
+  "name": "Diabolus Robe",
+  "description": [
+   "A robe which is decorated with unknown letters. The wearer feels like they're learning a new language.",
+   "_______________________",
+   "MaxSP +150",
+   "MDEF +5",
+   "_______________________",
+   "Decreases After Skill Delay by 10%.",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 6%.",
+   "_______________________",
+   "When equipped with ^990099Diabolus Ring^000000:",
+   "MATK +3%",
+   "ATK +3%",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 57",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Transcendent Archer, Magician and Acolyte"
+  ]
+ },
+ "2375": {
+  "name": "Diabolus Armor",
+  "description": [
+   "A suit of armor which is made of an unknown metal in the human-world. Mysterious power is hidden in the armor.",
+   "_______________________",
+   "DEX +1, STR +2",
+   "MaxHP +150",
+   "_______________________",
+   "Increases resistance against ^663399Stun^000000 and ^663399Stone Curse^000000 status by 5%.",
+   "_______________________",
+   "When equipped with ^990099Diabolus Ring^000000:",
+   "ATK +3%",
+   "MATK +3%",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 79",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Transcendent Swordman, Merchant and Thief"
+  ]
+ },
+ "2376": {
+  "name": "Assaulter Plate",
+  "description": [
+   "Designed for brave warriors who face enemies at the forefront.",
+   "It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Battle Greaves^000000 and ^990099Captain's Manteau^000000:",
+   "VIT +3",
+   "MaxHP +12%",
+   "Increases damage taken from all non-^FF0000Demi-Human^000000 race by 300%.",
+   "Increases recovery amount gained from ^009900Healing^000000 skills and ^0033CCRestorative items^000000 by 10%.",
+   "Adds a chance of restoring 6,000 HP per second for 10 seconds when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 57",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordsman, Merchant, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2377": {
+  "name": "Elite Engineer Armor",
+  "description": [
+   "Designed to be used by outstanding warriors who have remarkable attack skills. It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Battle Greaves^000000 and ^990099Captain's Manteau^000000:",
+   "STR +3",
+   "MaxHP +12%",
+   "Increases damage of ^009900Mammonite^000000 by 20%.",
+   "Increases recovery amount gained from ^0000FFHeal^000000 and ^009900Potion Pitcher^000000 by 10%.",
+   "Increases damage taken from non-^FF0000Demi-Human^000000 race by 300%.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 50",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Merchant"
+  ]
+ },
+ "2378": {
+  "name": "Assassin Robe",
+  "description": [
+   "If you desire to move more quickly, this might help. It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Battle Greaves^000000 and ^990099Captain's Manteau^000000:",
+   "AGI +3",
+   "MaxHP +12%",
+   "Critical +5",
+   "Increases Attack Speed (decreases After Attack Delay by 5%).",
+   "Increases damage taken from non-^FF0000Demi-Human^000000 race by 300%.",
+   "Adds a chance of restoring 3,000 HP per second for 10 seconds when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 41",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Thief and Ninja"
+  ]
+ },
+ "2379": {
+  "name": "Warlock's Battle Robe",
+  "description": [
+   "A Battle Robe that helps increase the possibility of survival. It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Combat Boots^000000 and ^990099Commander's Manteau^000000:",
+   "INT +3",
+   "MaxHP +12%",
+   "Increases resistance against ^663399Stun^000000 by 20%.",
+   "Increases damage taken from non-^FF0000Demi-Human^000000 race by 300%.",
+   "Adds a chance of enchanting Armor with ^777777Ghost^000000 element for 10 seconds when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 36",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2380": {
+  "name": "Medic's Robe",
+  "description": [
+   "Designed to be used by responsible warriors who take charge of the survival of the guild or party.",
+   "It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Combat Boots^000000 and ^990099Commander's Manteau^000000:",
+   "INT +3",
+   "MaxHP +12%",
+   "Decreases ^0000FFHoly Light^000000 Variable Casting Time by 50%.",
+   "Increases damage taken from non-^FF0000Demi-Human^000000 race by 300%.",
+   "Increases ^009900Healing^000000 skills effectiveness by 6%.",
+   "Adds a chance of enchanting Armor with ^777777Ghost^000000 element for 10 seconds when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Acolyte"
+  ]
+ },
+ "2381": {
+  "name": "Elite Archer Suit",
+  "description": [
+   "If you desire to become an accurate and efficient warrior in battle, this might help.",
+   "It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Combat Boots^000000 and ^990099Commander's Manteau^000000:",
+   "DEX +3",
+   "MaxHP +12%",
+   "Decreases damage taken from Ranged Physical Damage by 10%.",
+   "Decreases cast delay by 25%.",
+   "Increases damage taken from all non-^FF0000Demi-Human^000000 race by 300%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 35",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Archer"
+  ]
+ },
+ "2382": {
+  "name": "Elite Shooter Suit",
+  "description": [
+   "If you are a true Gunslinger, you might want this suit! It gives off multiple effects when compounded as a set.",
+   "_______________________",
+   "MaxHP +150",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099Battle Boots^000000 and ^990099Sheriff's Manteau^000000:",
+   "DEX +3",
+   "MaxHP +12%",
+   "Decreases damage taken from Ranged Physical Damage by 10%.",
+   "Decreases cast delay by 25%.",
+   "Increases damage taken from all non-^FF0000Demi-Human^000000 race by 300%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Gunslinger"
+  ]
+ },
+ "2383": {
+  "name": "Brynhild",
+  "description": [
+   "Brynhild is one of the valiant valkyries, meaning \"The warrior's armor\".",
+   "_______________________",
+   "MaxHP +(20*Base Level)",
+   "MaxSP +(5*Base Level)",
+   "MDEF +10",
+   "MATK +10%",
+   "ATK +10%",
+   "_______________________",
+   "Prevents knock-back effect.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 120",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2384": {
+  "name": "Spiritual Tunic",
+  "description": [
+   "^000088Rental Item^000000",
+   "A magic tunic that protect from various elements.",
+   "_______________________",
+   "MaxHP +800",
+   "MDEF +5",
+   "_______________________",
+   "Prevents ^663399Frozen^000000 status.",
+   "_______________________",
+   "Decreases damage taken from all elements except ^777777Neutral^000000 and ^0000BBWater^000000 elemental attacks by 20%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 38",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2385": {
+  "name": "Recuperative Armor",
+  "description": [
+   "^000088Rental Item^000000",
+   "A suit of armor that allows the master to regain his life by taking the enemies",
+   "_______________________",
+   "Disables HP and SP Recovery Rate.",
+   "_______________________",
+   "When unequipping, drains 100 SP.",
+   "_______________________",
+   "When a monster is defeated from Physical or Magical Damages, recover 60 HP and 6 SP.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 67",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2386": {
+  "name": "Chameleon Armor",
+  "description": [
+   "A miraculous Armor that can change its abilities according to those of its wearer.",
+   "_______________________",
+   "Increases MaxHP and MaxSP based on wearer's base Level.",
+   "_______________________",
+   "Adds a chance of nullifying all magical skills for 2 seconds when receiving magical attack.",
+   "_______________________",
+   "When equipped by ^0033CCSwordman^000000,^0033CCMerchant^000000 and ^0033CCThief^000000 classes:",
+   "DEF +3",
+   "_______________________",
+   "When equipped by ^0033CCMage^000000, ^0033CCAcolyte^000000 and ^0033CCArcher^000000 classes:",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 55",
+   "^0000CCWeight:^000000 170",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2387": {
+  "name": "Sprint Mail",
+  "description": [
+   "Very nimble looking armor that lets you gallop like a Peco Peco. It looks like a running shirt, while it has the function of a suit of armor.",
+   "_______________________",
+   "VIT +1",
+   "_______________________",
+   "Increases HP Recovery Rate by 5%.",
+   "_______________________",
+   "Increases recovery amount gained from ^009900Healing^000000 skills and ^0033CCRestorative items^000000 by 3%.",
+   "_______________________",
+   "When equipped with ^990099Sprint Shoes^000000 and ^990099Sprint Ring^000000:",
+   "MaxHP +7%",
+   "MaxSP +7%",
+   "Decreases Variable Casting Time by 3%.",
+   "Decreases After Skill Delay by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2388": {
+  "name": "Kandura",
+  "description": [
+   "A traditional garb worn by desert dwellers that is specially designed for hot weather environments.",
+   "_______________________",
+   "AGI +1",
+   "FLEE +5",
+   "Increases Attack Speed (decreases After Attack Delay by 2%).",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 36",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Assassin Cross"
+  ]
+ },
+ "2389": {
+  "name": "Armor of Naga",
+  "description": [
+   "A suit of armor made from the scales of Naga. It is very sharp and shiny and it seems like it will hurt anything that goes near it.",
+   "_______________________",
+   "MDEF +2",
+   "_______________________",
+   "Random chance to increase ATK by 20 for 10 seconds when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2390": {
+  "name": "Improved Tights",
+  "description": [
+   "Brand new tights developed by the Rekenber Corporation. Made of very advanced material which fit close to the body and still allows maximum movement.",
+   "_______________________",
+   "MDEF +2",
+   "Perfect Dodge +3",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 38",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Transcendent Archer"
+  ]
+ },
+ "2391": {
+  "name": "Life Link",
+  "description": [
+   "A holy armor made by the Goddess in order to cure the chosen warrior.",
+   "_______________________",
+   "VIT +2",
+   "MDEF +5",
+   "_______________________",
+   "Increases HP Recovery Rate by 50%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 75",
+   "^0000CCWeight:^000000 350",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 82",
+   "Transcendent Swordman classes"
+  ]
+ },
+ "2392": {
+  "name": "Old Green Pantie",
+  "description": [
+   "^000088Rental Item^000000",
+   "It looks has hanging for a long time in the closet. A little small, but you can still wear it.",
+   "_______________________",
+   "STR +2, VIT +2",
+   "MaxHP +200",
+   "MDEF +1",
+   "_______________________",
+   "Random chance to auto-cast Level 5 ^009900Call Spirit^000000 when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 60",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2393": {
+  "name": "Novice Adventurer's Suit",
+  "description": [
+   "A light, comfortable suit made just for young adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 45",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2394": {
+  "name": "Glorious Suit",
+  "description": [
+   "A suit that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +20%",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 7%.",
+   "_______________________",
+   "When equipped with ^990099Glorious Shoes^000000 and ^990099Glorious Muffler^000000:",
+   "ATK +5%",
+   "MATK +5%",
+   "Increases recovery amount gained from ^009900Heal^000000, ^009900Potion Pitcher^000000 and ^009900Sanctuary^000000 by 3%.",
+   "Prevents ^663399Frozen^000000 status.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 81",
+   "All Jobs except Novice"
+  ]
+ },
+ "2395": {
+  "name": "Glorious Popularized Suit",
+  "description": [
+   "A suit that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +600",
+   "_______________________",
+   "Increases SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 61",
+   "All Jobs except Novice"
+  ]
+ },
+ "2396": {
+  "name": "Glorious Mass-Production Suit",
+  "description": [
+   "A suit that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +500",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Apprentice Craftsman<INFO>prontera,165,60,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2397": {
+  "name": "Jacket of Incredible Showman",
+  "description": [
+   "A jacket wore by showman, it makes body warm and protect from cold.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 90",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2398": {
+  "name": "Sniping Suit",
+  "description": [
+   "Sniping suits helps required muscles to move effectively for shooting an arrow.",
+   "Decreases necessary time to shoot arrows and helps to achieve improved accuracy.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Critical +6",
+   "Increases Critical depends on base LUK.",
+   "_______________________",
+   "Decreases After Skill Delay by 23%.",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 75",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Sniper"
+  ]
+ },
+ "2399": {
+  "name": "Dragon Vest",
+  "description": [
+   "Inner wear made out of a draco's mane.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "When equipped with ^990099Dragon Manteau^000000:",
+   "AGI +5",
+   "FLEE +15",
+   "_______________________",
+   "^0000CCType:^000000 Armor",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes"
+  ]
+ },
+ "2400": {
+  "name": "Pollux Shoes",
+  "description": [
+   "Shoes imbued with the power of Pollux, one of the great winter hexagons.",
+   "_______________________",
+   "MDEF +5",
+   "ATK +50",
+   "Increases Attack Speed (decreases After Attack Delay by 10%).",
+   "MaxHP +10%, MaxSP +10%",
+   "_______________________",
+   "When equipped by ^0033CCStar Emperor^000000:",
+   "ATK +80",
+   "MaxHP +10%, MaxSP +10%",
+   "Physical attacks recovers 2 SP.",
+   "Decreases damage taken from enemies of ^FF0000Boss^000000 class by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +8^000000:",
+   "Decreases Fixed Casting Time by 60%.",
+   " ",
+   "For each ^CC6600Base Level^000000:",
+   "Increases damage of ^009900Flying Kick^000000 by 5%.",
+   "_______________________",
+   "When equipped with ^990099Pollux Manteau^000000:",
+   "MaxHP +2000, MaxSP +200",
+   "Increases Physical Damage against enemies of every size by 30%.",
+   "_______________________",
+   "When equipped by ^0033CCStar Emperor^000000 and with ^990099Zodiac^000000:",
+   "^0000FFFor each Refine Level^000000:",
+   "Perfect HIT +2%",
+   "_______________________",
+   "^FF0000[Pollux Shoes] can only be sold to NPCs or moved to the storage.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2401": {
+  "name": "Sandals",
+  "description": [
+   "Cute, feminine shoes that are a part of the standard schoolgirl's uniform.",
+   "Fortunately, these are unisex.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2402": {
+  "name": "Sandals",
+  "description": [
+   "Cute, feminine shoes that are a part of the standard schoolgirl's uniform.",
+   "Fortunately, these are unisex.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2403": {
+  "name": "Shoes",
+  "description": [
+   "A pair of shoes made of supple, high quality leather.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2404": {
+  "name": "Shoes",
+  "description": [
+   "A pair of shoes made of supple, high quality leather.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2405": {
+  "name": "Boots",
+  "description": [
+   "A pair of heavy leather boots, padded with Lunatic fur, that is suited to warriors.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Archer, Merchant, Thief, Taekwon Boy/Girl, Star Gladiator and Gunslinger"
+  ]
+ },
+ "2406": {
+  "name": "Boots",
+  "description": [
+   "A pair of heavy leather boots, padded with Lunatic fur, that is suited to warriors.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Archer, Merchant, Thief, Taekwon Boy/Girl, Star Gladiator and Gunslinger"
+  ]
+ },
+ "2407": {
+  "name": "Crystal Pumps",
+  "description": [
+   "A pair of feminine high heeled shoes made of fine crystal. Usually, these are worn only on special occasions.",
+   "_______________________",
+   "LUK +5",
+   "MDEF +10",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2408": {
+  "name": "Shackles",
+  "description": [
+   "These steel shackles were clamped on the ankles to prevent some prisoner from escaping.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 300",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2409": {
+  "name": "Pointed Shoes",
+  "description": [
+   "Striped high heeled shoes said to have been worn by a wicked witch since they enhanced her magical powers.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2410": {
+  "name": "Sleipnir",
+  "description": [
+   "Named after Odin's trusty steed, these shoes also mimic Sleipnir's powers.",
+   "_______________________",
+   "INT +25",
+   "MDEF +10",
+   "MaxHP +20%",
+   "MaxSP +20%",
+   "_______________________",
+   "Increases SP Recovery Rate by 25%.",
+   "_______________________",
+   "Increases movement speed.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 350",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2411": {
+  "name": "Greaves",
+  "description": [
+   "Steel boots which offer dependable foot protection.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 27",
+   "^0000CCWeight:^000000 75",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Knight and Crusader classes"
+  ]
+ },
+ "2412": {
+  "name": "Greaves",
+  "description": [
+   "Steel boots which offer dependable foot protection.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 27",
+   "^0000CCWeight:^000000 75",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Knight and Crusader classes"
+  ]
+ },
+ "2413": {
+  "name": "Safety Boots",
+  "description": [
+   "Light, sturdy shoes with steel covers to protect its wearer's feet from harm.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 22",
+   "^0000CCWeight:^000000 35",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Swordman classes"
+  ]
+ },
+ "2414": {
+  "name": "Novice Slippers",
+  "description": [
+   "Exclusive shoe for new adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "2415": {
+  "name": "Bunny Slippers",
+  "description": [
+   "A pair of slippers which enhances a girl's cuteness. Secretly worn by pretty boys.",
+   "_______________________",
+   "LUK +3",
+   "_______________________",
+   "Female Only",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "All Jobs except Novice"
+  ]
+ },
+ "2416": {
+  "name": "Novice Shoes",
+  "description": [
+   "A pair of shoes made exclusively for brand new adventurers.",
+   "_______________________",
+   "MaxHP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Novice"
+  ]
+ },
+ "2417": {
+  "name": "Fricco's Shoes",
+  "description": [
+   "A pair of shoes that were blessed by Freyr, the god of Earth and the son of Njord.",
+   "His blessing would release its owner from pain.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "Increases recovery amount gained from ^0033CCRed Potion^000000, ^0033CCOrange Potion^000000, ^0033CCYellow Potion^000000 and ^0033CCWhite Potion^000000 by 20%.",
+   "_______________________",
+   "When equipped with ^990099Falcon Muffler^000000 and ^990099Odin's Blessing^000000:",
+   "AGI +3",
+   "MaxHP +5%",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2418": {
+  "name": "Vidar's Boots",
+  "description": [
+   "The boots worn by Vidar, son of Odin, when he killed the Fenrir Wolf.",
+   "These represent the great physical and mental strength Vidar displayed in that epic final battle.",
+   "_______________________",
+   "MaxHP +9%",
+   "MaxSP +9%",
+   "_______________________",
+   "When equipped with ^990099Vali's Manteau^000000 and ^990099Odin's Blessing^000000:",
+   "VIT +5",
+   "Increases HP and SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 65",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2419": {
+  "name": "Goibne's Greaves",
+  "description": [
+   "A pair of shoes rumored to be forged by Goibne in response to competition from his rival, Dulb.",
+   "_______________________",
+   "MaxHP +5%",
+   "MaxSP +5%",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 54",
+   "All Jobs except Novice"
+  ]
+ },
+ "2420": {
+  "name": "Angel's Reincarnation",
+  "description": [
+   "Heavenly sandals worn by the Guardian Angel of Super Novices.",
+   "_______________________",
+   "MaxHP +100",
+   "_______________________",
+   "When equipped with ^990099Angel's Kiss^000000, ^990099Angelic Protection^000000, ^990099Angelic Cardigan^000000 and ^990099Angelic Guard^000000:",
+   "MaxHP +900",
+   "MaxSP +100",
+   "Random chance to auto-cast Level 1 ^009900Assumptio^000000 when receiving physical attacks.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 25",
+   "Novice"
+  ]
+ },
+ "2421": {
+  "name": "Valkyrie Shoes",
+  "description": [
+   "A pair of shoes worn by the Valkyries, Odin's battle maidens.",
+   "These shoes grow more powerful as the wearer improves his own abilities.",
+   "_______________________",
+   "When equipped by ^0033CCMage^000000, ^0033CCArcher^000000 and ^0033CCAcolyte^000000 classes:",
+   "MaxHP +(Base Level*5).",
+   "_______________________",
+   "When equipped by ^0033CCSwordman^000000, ^0033CCMerchant^000000 and ^0033CCThief^000000 classes:",
+   "MaxSP +(Job Level*2)",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2422": {
+  "name": "High Fashion Sandals",
+  "description": [
+   "Jeweled, golden strapped sandals that offer a casual, yet fashionable, comfort.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 7",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Magician, Acolyte and Soul Linker"
+  ]
+ },
+ "2423": {
+  "name": "Variant Shoes",
+  "description": [
+   "Although it seems that whoever made these shoes tried to fix his mistakes, he didn't make these as well as he hoped.",
+   "_______________________",
+   "MaxHP +20%",
+   "MaxSP +20%",
+   "Decreases MaxHP and MaxSP for every Refine Level.",
+   "_______________________",
+   "Increases DEF for every 2 Refine Levels.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 85",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2424": {
+  "name": "Tidal Shoes",
+  "description": [
+   "This pair of shoes was designed with a waterproof coating that prevents slippage in wet areas.",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental attacks by 5%.",
+   "_______________________",
+   "Increases HP Recovery Rate by 5%.",
+   "_______________________",
+   "When equipped with ^990099Wool Scarf^000000:",
+   "MaxHP +10%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2425": {
+  "name": "Black Leather Boots",
+  "description": [
+   "A pair of boots made of light, resilient leather that makes you want to run when you wear them.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "AGI +2",
+   "_______________________",
+   "When equipped with ^990099Rider Insignia^000000:",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2426": {
+  "name": "Shadow Walk",
+  "description": [
+   "Shadowy shoes made using dark forces and enchanted with a spell to protect their wearer when danger approaches.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "Random chance to auto-cast Level 2 ^009900Cloaking^000000 (or learned Level) when receiving magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2427": {
+  "name": "Golden Shoes",
+  "description": [
+   "A special Footgear made of a pure gold mixture. According to legend you will gain magical strength whilst wearing these.",
+   "_______________________",
+   "MDEF +4",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2428": {
+  "name": "Freya Boots",
+  "description": [
+   "The boots of the queen Freya, surrounded by mysterious hints of mist.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Freya Crown^000000, ^990099Freya Overcoat^000000 and ^990099Freya Cape^000000:",
+   "MaxHP +20%",
+   "Prevents ^663399Frozen^000000 status.",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "Enables the use of Level 10 ^0000FFFrost Nova^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 22",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2429": {
+  "name": "Iron Boots",
+  "description": [
+   "Solidly crafted Steel Boots that are especially made for those seeking the Golden Key.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 150^000000",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Thief and Archer"
+  ]
+ },
+ "2430": {
+  "name": "Iron Boots",
+  "description": [
+   "Solidly crafted Steel Boots that are especially made for those seeking the Golden Key.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 80",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2431": {
+  "name": "Valley Shoes",
+  "description": [
+   "A pair of shoes from Guild of Traveler.",
+   "_______________________",
+   "MaxHP +7%",
+   "MaxSP +7%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2432": {
+  "name": "Pointed Shoes",
+  "description": [
+   "Striped high heeled shoes said to have been worn by a wicked witch since they enhanced her magical powers.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2433": {
+  "name": "Diabolus Boots",
+  "description": [
+   "Mysterious boots that automatically adjust their size to the wearer's size. They seem alive.",
+   "_______________________",
+   "MaxHP +(Base Level*10)",
+   "_______________________",
+   "When equipped with ^990099Diabolus Manteau^000000:",
+   "MaxHP +6%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 25",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2434": {
+  "name": "Black Leather Boots",
+  "description": [
+   "A pair of boots made of light, resilient leather that makes you want to run when you wear them.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "AGI +2",
+   "_______________________",
+   "When equipped with ^990099Rider Insignia^000000:",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2435": {
+  "name": "Battle Greaves",
+  "description": [
+   "A greaves that optimizes the quality of one's ability for battle.",
+   "_______________________",
+   "MaxHP +100",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordsman, Merchant, Thief Classes, Ninja, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2436": {
+  "name": "Combat Boots",
+  "description": [
+   "A pair of shoes that are comfortable and solidly made for battle.",
+   "_______________________",
+   "MaxHP +100",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Magician, Acolyte, Archer, Soul Linker"
+  ]
+ },
+ "2437": {
+  "name": "Battle Boots",
+  "description": [
+   "They don't look any different than other boots, but they are designed exclusively for Gunslingers.",
+   "_______________________",
+   "MaxHP +100",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Gunslinger"
+  ]
+ },
+ "2438": {
+  "name": "Paw of Cat",
+  "description": [
+   "A pair of shoes that imitated kitty's paws. It gives you a feeling that you can move as swiftly as cats.",
+   "_______________________",
+   "DEX +1",
+   "FLEE +5",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFCat Cry^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2439": {
+  "name": "Refresh Shoes",
+  "description": [
+   "^000088Rental Item^000000",
+   "A pair of shoes made with a complex design from soft animal skin.",
+   "_______________________",
+   "MaxHP +17%",
+   "MaxSP +8%",
+   "_______________________",
+   "Restores 20 HP and 3 SP every 10 seconds.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2440": {
+  "name": "Sprint Shoes",
+  "description": [
+   "Very useful for running. Tighten the strips and you're off to the races!",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "Increases SP Recovery Rate by 5%.",
+   "_______________________",
+   "When equipped with ^990099Sprint Mail^000000 and ^990099Sprint Ring^000000:",
+   "MaxHP +7%",
+   "MaxSP +7%",
+   "Decreases Variable Casting Time by 3%.",
+   "Decreases After Skill Delay by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2441": {
+  "name": "Beach Sandals",
+  "description": [
+   "A sandals received as a gift from Comodo Environmental Commission.",
+   "It seems to match perfect with Comodo beach.",
+   "_______________________",
+   "STR +1, INT +1, AGI +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 10%.",
+   "_______________________",
+   "When equipped with ^990099Beach Manteau^000000:",
+   "FLEE +5",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2442": {
+  "name": "Red Stocking Boots",
+  "description": [
+   "Torn in some places, but it even helps ventilation. of course, not convenient in the rain.",
+   "_______________________",
+   "LUK +2",
+   "MDEF +1",
+   "_______________________",
+   "Increases HP and SP Recovery Rate by 10%.",
+   "_______________________",
+   "Random chance to auto-cast Level 3 ^009900Quagmire^000000 when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2443": {
+  "name": "Fisher's Boots",
+  "description": [
+   "A waterproof boots.",
+   "_______________________",
+   "Decreases Fishing casting time by 2 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 25",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2444": {
+  "name": "Glorious Shoes",
+  "description": [
+   "A pair of shoes that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +10%",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 4%.",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Increase Agi^000000 on wearer when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 81",
+   "All Jobs except Novice"
+  ]
+ },
+ "2445": {
+  "name": "Glorious Popularized Shoes",
+  "description": [
+   "A pair of shoes that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +5%",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 61",
+   "All Jobs except Novice"
+  ]
+ },
+ "2446": {
+  "name": "Glorious Mass-Production Shoes",
+  "description": [
+   "A pair of shoes that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2447": {
+  "name": "Army Boots",
+  "description": [
+   "Boots popular among armymen.",
+   "It may not be the most comfortable shoes you've ever used, but Captain Alcimento approve.",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2448": {
+  "name": "Fast shoes",
+  "description": [
+   "These are special shoes made by a craftsman of a place famous for its beaches and festivities.",
+   "There are many legends around these rarities, such as the inexplicable ability that your users get to dance.",
+   "Everyone who feel a little lighter, as if they are floating. The shoes also come with an anti-foot odor effect.",
+   "_______________________",
+   "AGI +1",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "Decreases Variable Casting Time by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 2",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2449": {
+  "name": "Variant Shoes",
+  "description": [
+   "A pair of shoes that seem to be wrong somewhere. The intention of the maker to perfect the shoes can be seen but it seems to be a failure.",
+   "_______________________",
+   "MaxHP +20%",
+   "MaxSP +20%",
+   "Decreases MaxHP and MaxSP for every Refine Level.",
+   "_______________________",
+   "Increases DEF for every 2 Refine Levels.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 3",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 85",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2450": {
+  "name": "Vital Tree Shoes",
+  "description": [
+   "A pair of shoes made out of the stem of the Tree of Life. They are comfortable and provide life energy to the wearer.",
+   "_______________________",
+   "VIT +2",
+   "MDEF +3",
+   "MaxHP +10%",
+   "_______________________",
+   "Increases HP Recovery Rate by 5%.",
+   "_______________________",
+   "Recover 30 HP every 10 seconds.",
+   "_______________________",
+   "Increases recovery amount gained from Restorative items and Healing skills by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2451": {
+  "name": "Freya's Spiritual Sandals",
+  "description": [
+   "^000088Rental Item^000000",
+   "A pair of spiritual sandals granted by Freya.",
+   "It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "MaxHP +8%",
+   "MaxSP +8%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2452": {
+  "name": "Freya's Spiritual Sandals",
+  "description": [
+   "^000088Rental Item^000000",
+   "A pair of spiritual sandals granted by Freya.",
+   "It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "MaxHP +8%",
+   "MaxSP +8%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2453": {
+  "name": "Freya's Spiritual Sandals",
+  "description": [
+   "^000088Rental Item^000000",
+   "A pair of spiritual sandals granted by Freya.",
+   "It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "MaxHP +8%",
+   "MaxSP +8%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2454": {
+  "name": "Freya's Spiritual Sandals",
+  "description": [
+   "^000088Rental Item^000000",
+   "A pair of spiritual sandals granted by Freya.",
+   "It appears very sturdy, but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "MaxHP +8%",
+   "MaxSP +8%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2455": {
+  "name": "Time Keeper Boots",
+  "description": [
+   "Boots made for the keepers of time and suitable for use in all conditions.",
+   "_______________________",
+   "MaxHP +100",
+   "MDEF +1",
+   "_______________________",
+   "Increases HP Recovery Rate by 10%.",
+   "Increases SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 17",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2456": {
+  "name": "Eden Group Boots I",
+  "description": [
+   "Boots that are provided only for members of the Eden Group. These are designed to fit comfortably throughout long-walks.",
+   "_______________________",
+   "Increases HP Recovery Rate by 10%.",
+   "Increases SP Recovery Rate by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 14",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12"
+  ]
+ },
+ "2457": {
+  "name": "Eden Group Boots II",
+  "description": [
+   "Boots that are provided only for members of the Eden Group. These are designed to fit comfortably throughout long-walks.",
+   "_______________________",
+   "Increases HP Recovery Rate by 12%.",
+   "Increases SP Recovery Rate by 4%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 26"
+  ]
+ },
+ "2458": {
+  "name": "Eden Group Boots III",
+  "description": [
+   "Boots that are provided only for members of the Eden Group. These are designed to fit comfortably throughout long-walks.",
+   "_______________________",
+   "Increases HP Recovery Rate by 14%.",
+   "Increases SP Recovery Rate by 6%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 0",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40"
+  ]
+ },
+ "2459": {
+  "name": "Upgrade Shoes",
+  "description": [
+   "A pair of shoes molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2460": {
+  "name": "Upgrade Boots",
+  "description": [
+   "A Boots molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 21",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Thief, Archer, Taekwon, Star Gladiator and Gunslinger"
+  ]
+ },
+ "2461": {
+  "name": "Upgrade Greaves",
+  "description": [
+   "A Greave molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 32",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Knight and Crusader classes"
+  ]
+ },
+ "2462": {
+  "name": "Ephemeral Sleipnir",
+  "description": [
+   "Named after Odin's trusty steed, these shoes also mimic Sleipnir's powers.",
+   "_______________________",
+   "MaxHP +10%",
+   "MaxSP +10%",
+   "MDEF +10",
+   "_______________________",
+   "Increases SP Recovery Rate by 15%.",
+   "_______________________",
+   "Increases movement speed.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 350",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2463": {
+  "name": "Feral Boots",
+  "description": [
+   "It has a message inscribed - Feline boots of a forgotten era, with both an unpolished and polished beauty.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75"
+  ]
+ },
+ "2464": {
+  "name": "NoFear Shoes",
+  "description": [
+   "Let the ass-kicking commence!",
+   "_______________________",
+   "STR +1, INT +1, DEX +1",
+   "MaxHP +10%",
+   "MaxSP +5%",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 2%.",
+   "_______________________",
+   "When equipped with ^990099No Fear Underwear^000000 & ^990099No Fear Belt^000000:",
+   "Prevents ^663399Frozen^000000 status.",
+   "Increases experience gained from defeating monsters by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 6",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2465": {
+  "name": "Dance Shoes",
+  "description": [
+   "A pair of shoes fit for dancing.",
+   "_______________________",
+   "AGI +1",
+   "Increases Attack Speed (decreases After Attack Delay by 2%).",
+   "_______________________",
+   "Decreases SP Consumption of ^009900Swing Dance^000000 by 32.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 105",
+   "Wanderer"
+  ]
+ },
+ "2466": {
+  "name": "Training Shoes",
+  "description": [
+   "A special shoes that made to Reduces the burden of the foot when running.",
+   "_______________________",
+   "MaxHP +2%",
+   "MaxSP +2%",
+   "_______________________",
+   "Increases HP and SP Recovery Rate by 5%.",
+   "_______________________",
+   "When equipped with ^990099Undershirt^000000 and ^990099Pantie^000000:",
+   "STR +2",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ },
+ "2467": {
+  "name": "Goldenrod Shoes",
+  "description": [
+   "A pair of golden long boots imbued with power of wind.",
+   "_______________________",
+   "MaxHP +500",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^33CC00Wind^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2468": {
+  "name": "Aqua Shoes",
+  "description": [
+   "A pair of sea-blue long boots imbued with power of water.",
+   "_______________________",
+   "MaxHP +500",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2469": {
+  "name": "Crimson Shoes",
+  "description": [
+   "A pair of red long boots imbued with power of fire.",
+   "_______________________",
+   "MaxHP +500",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2470": {
+  "name": "Forest Shoes",
+  "description": [
+   "A pair of turquoise long boots imbued with power of Earth.",
+   "_______________________",
+   "MaxHP +500",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Warlock"
+  ]
+ },
+ "2471": {
+  "name": "Shoes of Affection",
+  "description": [
+   "An ancient relic of war that once worn to help people in suffering.",
+   "_______________________",
+   "MaxHP +500",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "Increases damage taken from non-^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Archbishop"
+  ]
+ },
+ "2472": {
+  "name": "Shoes of Judgement",
+  "description": [
+   "An ancient relic of war that once worn to fight Demon.",
+   "_______________________",
+   "MaxSP +150",
+   "_______________________",
+   "Increases damage of ^009900Judex^000000 by 30%.",
+   "_______________________",
+   "Increases SP Consumption of ^009900Judex^000000 by 40.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Archbishop"
+  ]
+ },
+ "2473": {
+  "name": "Eden Group Boots IV",
+  "description": [
+   "Boots that are provided only for members of the Eden Group. These are designed to fit comfortably throughout long-walks.",
+   "_______________________",
+   "VIT +1",
+   "AGI +1",
+   "_______________________",
+   "Increases HP Recovery Rate by 28%.",
+   "Increases SP Recovery Rate by 12%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Blacksmith Thorn<INFO>moc_para01,111,83,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60"
+  ]
+ },
+ "2474": {
+  "name": "Lehmannza Shoes",
+  "description": [
+   "[bRO item]"
+  ]
+ },
+ "2475": {
+  "name": "Ur Greaves",
+  "description": [
+   "Greaves made by purifying an Ur Rune.",
+   "_______________________",
+   "MaxSP +40",
+   "_______________________",
+   "^0000FFFor each Refine Level above +7^000000:",
+   "MaxHP +1%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 32",
+   "^0000CCWeight:^000000 90",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "2476": {
+  "name": "Peuz Greaves",
+  "description": [
+   "Greaves made by purifying a Peuz Rune.",
+   "_______________________",
+   "MaxSP +40",
+   "_______________________",
+   "^0000FFFor each Refine Level above +7^000000:",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 32",
+   "^0000CCWeight:^000000 90",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "2477": {
+  "name": "Sapha's Shoes",
+  "description": [
+   "A pair of shoes that have long been known to be from the world of darkness.",
+   "_______________________",
+   "LUK +3",
+   "MaxSP +30",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2478": {
+  "name": "Nab's Shoes",
+  "description": [
+   "A famous historical assassin relic.",
+   "_______________________",
+   "INT +2",
+   "FLEE +3",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2479": {
+  "name": "White Wing Boots",
+  "description": [
+   "A pair of shoes of the brilliant member of Archer guild known as Icarus.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "Decreases SP Consumption of ^009900Aimed Bolt^000000 by 10.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger"
+  ]
+ },
+ "2480": {
+  "name": "Black Wing Boots",
+  "description": [
+   "An ancient artifact that helps maintain clear mental focus.",
+   "_______________________",
+   "INT +2",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger"
+  ]
+ },
+ "2481": {
+  "name": "Rune Boots",
+  "description": [
+   "Black leather boots engraved Rune.",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF90^000000:",
+   "ATK +10",
+   "Base ^CC6600STR^000000 at least ^0000FF120^000000:",
+   "ATK +10",
+   "_______________________",
+   "Base ^CC6600INT^000000 at least ^0000FF90^000000:",
+   "MATK +3%",
+   "Base ^CC6600INT^000000 at least ^0000FF120^000000:",
+   "MATK +2%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2482": {
+  "name": "Shoes of Valor",
+  "description": [
+   "A magical shoes.",
+   "_______________________",
+   "Increases SP Recovery Rate by 10%.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFIncrease Agility^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2483": {
+  "name": "Siege Greaves",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "MDEF +1",
+   "Decreases damage taken from ^FF0000Players^000000 by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 30",
+   "^0000CCWeight:^000000 75",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2484": {
+  "name": "Siege Boots",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "MDEF +5",
+   "Decreases damage taken from ^FF0000Players^000000 by 1%.",
+   "_______________________",
+   "When equipped with ^990099Siege Manteau^000000 and ^990099Siege Suit^000000:",
+   "DEX +5",
+   "Decreases damage taken from ^FF0000Players^000000 by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "Swordsman, Merchant, Thief, Archer, Taekwon, Star Gladiator and Ninja"
+  ]
+ },
+ "2485": {
+  "name": "Siege Shoes",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "MDEF +10",
+   "Decreases damage taken from ^FF0000Players^000000 by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 35",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "Novice, Magician, Acolyte and Soul Linker"
+  ]
+ },
+ "2486": {
+  "name": "Shadow Walk",
+  "description": [
+   "Shadowy shoes made using dark forces and enchanted with a spell to protect their wearer when danger approaches.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "Random chance to auto-cast Level 2 ^009900Cloaking^000000 (or learned Level) when receiving magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 200",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "All Jobs except Novice"
+  ]
+ },
+ "2487": {
+  "name": "Vital Tree Shoes",
+  "description": [
+   "A pair of shoes made from stem of tree of life.",
+   "_______________________",
+   "VIT +2",
+   "MDEF +3",
+   "MaxHP +10%",
+   "_______________________",
+   "Increases HP Recovery Rate by 5%.",
+   "_______________________",
+   "Recover 30 HP every 10 seconds.",
+   "_______________________",
+   "Increases recovery amount gained from Restorative items and Healing skills by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Transcendent classes"
+  ]
+ },
+ "2488": {
+  "name": "Fricco's Shoes",
+  "description": [
+   "A pair of shoes that were blessed by Freyr, the god of Earth and the son of Njord.",
+   "His blessing would release its owner from pain.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "Increases recovery amount gained from ^0033CCRed Potion^000000, ^0033CCOrange Potion^000000, ^0033CCYellow Potion^000000 and ^0033CCWhite Potion^000000 by 20%.",
+   "_______________________",
+   "When equipped with ^990099Falcon Muffler^000000 and ^990099Odin's Blessing^000000:",
+   "AGI +3",
+   "MaxHP +5%",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2489": {
+  "name": "Vidar's Boots",
+  "description": [
+   "The boots worn by Vidar, son of Odin, when he killed the Fenrir Wolf.",
+   "These represent the great physical and mental strength Vidar displayed in that epic final battle.",
+   "_______________________",
+   "MaxHP +9%",
+   "MaxSP +9%",
+   "_______________________",
+   "When equipped with ^990099Vali's Manteau^000000 and ^990099Odin's Blessing^000000:",
+   "VIT +5",
+   "Increases HP and SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 65",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2490": {
+  "name": "Rune Boots",
+  "description": [
+   "Black leather boots engraved Rune.",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF90^000000:",
+   "ATK +10",
+   "Base ^CC6600STR^000000 at least ^0000FF120^000000:",
+   "ATK +10",
+   "_______________________",
+   "Base ^CC6600INT^000000 at least ^0000FF90^000000:",
+   "MATK +3%",
+   "Base ^CC6600INT^000000 at least ^0000FF120^000000:",
+   "MATK +2%",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2491": {
+  "name": "Bangungot Boots of Nightmare",
+  "description": [
+   "Ominous boots emitting Bangungot's revenge and powerful hatred of humans.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "MDEF +1",
+   "_______________________",
+   "^0000FFRefine Level +14^000000:",
+   "Increases movement speed.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2492": {
+  "name": "Bangungot Boots of Bayani Nightmare",
+  "description": [
+   "Ominous boots emitting Bangungot's revenge and powerful hatred of humans.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "MDEF +1",
+   "_______________________",
+   "^0000FFRefine Level +12^000000:",
+   "Increases movement speed.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2493": {
+  "name": "Goibne's Greaves",
+  "description": [
+   "A pair of shoes rumored to be forged by Goibne in response to competition from his rival, Dulb.",
+   "_______________________",
+   "MaxHP +5%",
+   "MaxSP +5%",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 54",
+   "All Jobs except Novice"
+  ]
+ },
+ "2494": {
+  "name": "Crystal Pumps",
+  "description": [
+   "A pair of feminine high heeled shoes made of fine crystal. Usually, these are worn only on special occasions.",
+   "_______________________",
+   "LUK +5",
+   "MDEF +10",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2495": {
+  "name": "Aegir Shoes",
+  "description": [
+   "Aegir's shoes, it looks suppporting your capacity.",
+   "_______________________",
+   "When equipped by ^0033CCMagician^000000, ^0033CCArcher^000000 or ^0033CCAcolyte^000000 classes:",
+   "MaxHP +(5*base Level)",
+   "_______________________",
+   "When equipped by ^0033CCSwordman^000000, ^0033CCMerchant^000000, ^0033CCThief^000000 classes:",
+   "MaxSP +(2*base Level)",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 110"
+  ]
+ },
+ "2496": {
+  "name": "TE WoE Shoes",
+  "description": [
+   "^000088Rental Item^000000",
+   "*Effects in WoE TE area",
+   "MaxHP +150, MaxSP +150",
+   "Increases Damage against ^FF0000Players^000000 by 5%.",
+   "Increases ^663399Frozen^000000 resistance by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40"
+  ]
+ },
+ "2497": {
+  "name": "TE WoE Boots",
+  "description": [
+   "^000088Rental Item^000000",
+   "*Effects in WoE TE area",
+   "MaxHP +200, MaxSP +100.",
+   "Increases Physical Damage against ^FF0000Players^000000 by 10%.",
+   "Increases ^663399Frozen^000000 resistance by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Swordsman and Merchant"
+  ]
+ },
+ "2498": {
+  "name": "TE WoE Magic Sandals",
+  "description": [
+   "^000088Rental Item^000000",
+   "MDEF +5",
+   "_______________________",
+   "*Effects in WoE TE area",
+   "MaxHP +100, MaxSP +200.",
+   "Increases Magical Damage against ^FF0000Players^000000 by 5%.",
+   "Increases ^663399Frozen^000000 resistance by 25%.",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Novice, Magician, Acolyte and Soul Linker"
+  ]
+ },
+ "2499": {
+  "name": "Temporal Boots",
+  "description": [
+   "These boots are obviously old but they show no signs of wear and tear.",
+   "_______________________",
+   "MaxHP +300",
+   "MaxSP +30",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "MaxHP +100",
+   "MaxSP +10",
+   "_______________________",
+   "^0000CCType:^000000 Shoes",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 10"
+  ]
+ }
+}

@@ -5,7 +5,11 @@
 //! `src/map/clif.cpp`) at PACKETVER 20260219.
 
 pub mod items;
+pub mod npc;
 pub mod packets;
+pub mod skills;
+pub mod trade;
+pub mod units;
 
 use std::collections::HashMap;
 use std::sync::OnceLock;
@@ -19,6 +23,7 @@ pub fn packet_length(id: u16) -> Option<i32> {
         .get_or_init(|| {
             include_str!("packet_lengths.txt")
                 .lines()
+                .chain(include_str!("packet_lengths_more.txt").lines())
                 .filter_map(|line| {
                     let (id, length) = line.strip_prefix("0x")?.split_once(' ')?;
                     Some((u16::from_str_radix(id, 16).ok()?, length.trim().parse().ok()?))
@@ -74,6 +79,12 @@ impl Framer {
 
     pub fn push(&mut self, bytes: &[u8]) {
         self.buffer.extend_from_slice(bytes);
+    }
+
+    /// The packet the bytes held so far begin, if they do not make a whole one: its ID, and how many bytes are
+    /// held. Many bytes held for long tell of a length that is not the server's.
+    pub fn waiting(&self) -> Option<(u16, usize)> {
+        (self.buffer.len() >= 2).then(|| (u16::from_le_bytes([self.buffer[0], self.buffer[1]]), self.buffer.len()))
     }
 
     /// The next whole frame, or `None` until more bytes arrive.

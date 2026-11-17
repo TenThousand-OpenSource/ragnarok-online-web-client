@@ -77,7 +77,12 @@ fn cards(bytes: &[u8], at: usize) -> [u32; 4] {
 /// ZC_INVENTORY_ITEMLIST_NORMAL (0x0b09): `u16 length, u8 inventory`, then 34 bytes an item: `i16 index, u32 id,
 /// u8 type, i16 count, u32 worn, u32[4] cards, i32 expires, u8 flags`. Items of other inventories give nothing.
 pub fn stackable(packet: &[u8]) -> Vec<Item> {
-    if packet.get(4) != Some(&OWN_INVENTORY) {
+    stackable_of(packet, OWN_INVENTORY)
+}
+
+/// The same list for another inventory: 2 is the storage.
+pub fn stackable_of(packet: &[u8], inventory: u8) -> Vec<Item> {
+    if packet.get(4) != Some(&inventory) {
         return Vec::new();
     }
     packet[5..]
@@ -87,8 +92,10 @@ pub fn stackable(packet: &[u8]) -> Vec<Item> {
             id: u32_at(item, 2),
             kind: item[6],
             amount: u16_at(item, 7),
-            wearable: 0,
-            worn: u32_at(item, 9),
+            // For ammunition (kind 10) the server puts where it can be worn in the field that holds where a
+            // thing is worn; whether it is in use, it says apart (ZC_EQUIP_ARROW).
+            wearable: if item[6] == 10 { u32_at(item, 9) } else { 0 },
+            worn: if item[6] == 10 { 0 } else { u32_at(item, 9) },
             refine: 0,
             identified: item[33] & 1 != 0,
             cards: cards(item, 13),
@@ -100,7 +107,11 @@ pub fn stackable(packet: &[u8]) -> Vec<Item> {
 /// u8 type, u32 wearable, u32 worn, u32[4] cards, i32 expires, u16 bind, u16 look, u8 options, 25 bytes of them,
 /// u8 refine, u8 grade, u8 flags`.
 pub fn equipment(packet: &[u8]) -> Vec<Item> {
-    if packet.get(4) != Some(&OWN_INVENTORY) {
+    equipment_of(packet, OWN_INVENTORY)
+}
+
+pub fn equipment_of(packet: &[u8], inventory: u8) -> Vec<Item> {
+    if packet.get(4) != Some(&inventory) {
         return Vec::new();
     }
     packet[5..]
@@ -117,6 +128,14 @@ pub fn equipment(packet: &[u8]) -> Vec<Item> {
             cards: cards(item, 15),
         })
         .collect()
+}
+
+/// CZ_ITEM_THROW (0x0363): `u16 index, u16 count`: drops that many of a thing carried onto the ground.
+pub fn throw(index: u16, count: u16) -> Vec<u8> {
+    let mut packet = 0x0363u16.to_le_bytes().to_vec();
+    packet.extend(index.to_le_bytes());
+    packet.extend(count.to_le_bytes());
+    packet
 }
 
 /// ZC_ITEM_PICKUP_ACK (0x0b41): an item came into the inventory (`amount` more of it), or could not (`None`).
@@ -139,10 +158,10 @@ pub fn gained(packet: &[u8]) -> Option<Item> {
     })
 }
 
-/// ZC_USE_ITEM_ACK (0x01c8): `i16 index, u32 id, u32 who, i16 left, u8 ok`. Returns the index and how many are
-/// left, when it was used.
-pub fn used(packet: &[u8]) -> Option<(u16, u16)> {
-    (packet.len() >= 15 && packet[14] != 0).then(|| (u16_at(packet, 2), u16_at(packet, 12)))
+/// ZC_USE_ITEM_ACK (0x01c8): `i16 index, u32 id, u32 who, i16 left, u8 ok`. Returns the index, the item, who
+/// used it and how many are left, when it was used. Everyone near is told of it, not only the one who did.
+pub fn used(packet: &[u8]) -> Option<(u16, u32, u32, u16)> {
+    (packet.len() >= 15 && packet[14] != 0).then(|| (u16_at(packet, 2), u32_at(packet, 4), u32_at(packet, 8), u16_at(packet, 12)))
 }
 
 /// How many of an item left the inventory: ZC_DELETE_ITEM_FROM_BODY (0x07fa: `i16 reason, u16 index, i16 count`)
@@ -332,9 +351,11 @@ mod tests {
 
         let mut use_ack = vec![0u8; 15];
         use_ack[2..4].copy_from_slice(&5u16.to_le_bytes());
+        use_ack[4..8].copy_from_slice(&501u32.to_le_bytes());
+        use_ack[8..12].copy_from_slice(&2000001u32.to_le_bytes());
         use_ack[12..14].copy_from_slice(&2u16.to_le_bytes());
         use_ack[14] = 1;
-        assert_eq!(used(&use_ack), Some((5, 2)));
+        assert_eq!(used(&use_ack), Some((5, 501, 2000001, 2)));
         use_ack[14] = 0;
         assert_eq!(used(&use_ack), None);
 

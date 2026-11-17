@@ -15,6 +15,8 @@ use crate::sprite::{self, Act, Canvas, Frame, Sprite};
 pub const WIDTH: usize = 157;
 pub const HEIGHT: usize = 195;
 const FEET: (i32, i32) = (80, 137);
+/// What putting a figure together answers when something it needs is still on its way.
+const LATER: &str = "later";
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Figure {
@@ -27,6 +29,8 @@ pub struct Figure {
     pub headgear: [u16; 3],
     /// Which recolouring of the job's clothes; 0 for the sprite's own colours.
     pub body_palette: u16,
+    /// The weapon in hand, as its item ID; 0 for none.
+    pub weapon: u32,
     /// Which of the sprite's actions: standing is 0-7 by direction (south first, then clockwise), walking 8-15,
     /// sitting 16-23.
     pub action: usize,
@@ -34,7 +38,157 @@ pub struct Figure {
     pub frame: usize,
 }
 
+/// Which picture: a character put together from its parts, or one frame of a monster's or an NPC's sprite (its
+/// path under `data/sprite/`, the action, the frame).
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub enum SpriteKey {
+    Player(Figure),
+    Creature(String, usize, usize),
+}
+
+/// A picture ready to draw: its pixels, and where in it the feet stand.
+#[derive(Clone)]
+pub struct Picture {
+    pub canvas: Rc<Canvas>,
+    pub feet: (f32, f32),
+}
+
+/// The picture for a key, if it is ready. If not, making it is started, and a later call has it. A sprite that
+/// cannot be read never has one.
+pub fn picture(key: &SpriteKey) -> Option<Picture> {
+    match key {
+        SpriteKey::Player(figure) => painted(figure).map(|canvas| Picture { canvas, feet: (FEET.0 as f32, FEET.1 as f32) }),
+        SpriteKey::Creature(..) => {
+            if let Some(known) = CREATURES.with_borrow(|creatures| creatures.get(key).cloned()) {
+                return known;
+            }
+            // Marked as not there until it is: asked for once.
+            CREATURES.with_borrow_mut(|creatures| creatures.insert(key.clone(), None));
+            let key = key.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let SpriteKey::Creature(path, action, frame) = &key else { return };
+                if let Ok(made) = creature(path, *action, *frame).await {
+                    CREATURES.with_borrow_mut(|creatures| creatures.insert(key.clone(), Some(made)));
+                }
+            });
+            None
+        }
+    }
+}
+
+/// One frame of a sprite that is a single file, in a picture just large enough for it.
+async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Picture, String> {
+    // A path may end in `#rrggbb`: the picture is then tinted with that colour (the red of a blow taken).
+    let (path, tint) = match path.split_once('#') {
+        Some((path, colour)) => (path, u32::from_str_radix(colour, 16).ok()),
+        None => (path, None),
+    };
+    let (pictures, actions) = sprite(&format!("data/sprite/{path}")).await?;
+    TIMES.with_borrow_mut(|times| {
+        times.entry(path.to_owned()).or_insert_with(|| actions.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(actions.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
+    });
+    // Sprites differ in how many actions they have: one too many starts over.
+    let action = action % actions.actions.len().max(1);
+    let shown = frame(&actions, action, frame_number)?;
+    VOICES.with_borrow_mut(|voices| {
+        voices.entry(path.to_owned()).or_insert_with(|| actions.actions.iter().map(|frames| frames.iter().map(|frame| frame.sound.and_then(|sound| actions.sounds.get(sound)).filter(|name| name.as_str() != "atk" && !name.is_empty()).cloned()).collect()).collect());
+    });
+    // The frame's reach around its origin (the feet), from where each of its layers goes.
+    let (mut low, mut high) = ((0i32, 0i32), (1i32, 1i32));
+    for layer in &shown.layers {
+        let source = if layer.truecolor { &pictures.truecolor } else { &pictures.indexed };
+        let Some(picture) = usize::try_from(layer.picture).ok().and_then(|index| source.get(index)) else { continue };
+        let width = (picture.width as f32 * layer.scale.0.abs()).round() as i32;
+        let height = (picture.height as f32 * layer.scale.1.abs()).round() as i32;
+        let (left, top) = (layer.x - (width + 1) / 2, layer.y - (height + 1) / 2);
+        low = (low.0.min(left), low.1.min(top));
+        high = (high.0.max(left + width), high.1.max(top + height));
+    }
+    // Nothing in the game is larger than this; a broken file does not get to ask for more.
+    let (width, height) = (((high.0 - low.0) as usize).min(1024), ((high.1 - low.1) as usize).min(1024));
+    let mut canvas = Canvas::new(width.max(1), height.max(1));
+    canvas.draw((-low.0, -low.1), &pictures, None, &shown);
+    if let Some(tint) = tint {
+        let [_, red, green, blue] = tint.to_be_bytes();
+        for pixel in canvas.rgba.chunks_exact_mut(4) {
+            pixel[0] = (u16::from(pixel[0]) * u16::from(red) / 255) as u8;
+            pixel[1] = (u16::from(pixel[1]) * u16::from(green) / 255) as u8;
+            pixel[2] = (u16::from(pixel[2]) * u16::from(blue) / 255) as u8;
+        }
+    }
+    Ok(Picture { canvas: Rc::new(canvas), feet: (-low.0 as f32, -low.1 as f32) })
+}
+
+/// A frame of a sprite as a picture for the page: its data URL, its size, and where in it the sprite's origin is.
+pub async fn frame_picture(path: &str, action: usize, frame: usize) -> Result<(String, (usize, usize), (f32, f32)), String> {
+    let picture = creature(path, action, frame).await?;
+    let document = web_sys::window().and_then(|window| window.document()).ok_or("no document")?;
+    let element: HtmlCanvasElement = document.create_element("canvas").map_err(|_| "no canvas")?.dyn_into().map_err(|_| "no canvas")?;
+    let canvas = &picture.canvas;
+    element.set_width(canvas.width as u32);
+    element.set_height(canvas.height as u32);
+    let context: CanvasRenderingContext2d = element.get_context("2d").ok().flatten().ok_or("no context")?.unchecked_into();
+    let data = ImageData::new_with_u8_clamped_array_and_sh(Clamped(&canvas.rgba), canvas.width as u32, canvas.height as u32).map_err(|_| "no picture")?;
+    context.put_image_data(&data, 0.0, 0.0).map_err(|_| "no picture")?;
+    Ok((element.to_data_url().map_err(|_| "no picture")?, (canvas.width, canvas.height), picture.feet))
+}
+
+/// One of the game's own mouse pointers (an action of `cursors.spr`), as CSS: the picture and where in it the
+/// pointer's tip is.
+pub async fn cursor(action: usize, frame: usize) -> Result<String, String> {
+    let picture = creature("cursors", action, frame).await?;
+    let document = web_sys::window().and_then(|window| window.document()).ok_or("no document")?;
+    let element: HtmlCanvasElement = document.create_element("canvas").map_err(|_| "no canvas")?.dyn_into().map_err(|_| "no canvas")?;
+    let canvas = &picture.canvas;
+    element.set_width(canvas.width as u32);
+    element.set_height(canvas.height as u32);
+    let context: CanvasRenderingContext2d = element.get_context("2d").ok().flatten().ok_or("no context")?.unchecked_into();
+    let data = ImageData::new_with_u8_clamped_array_and_sh(Clamped(&canvas.rgba), canvas.width as u32, canvas.height as u32).map_err(|_| "no picture")?;
+    context.put_image_data(&data, 0.0, 0.0).map_err(|_| "no picture")?;
+    let url = element.to_data_url().map_err(|_| "no picture")?;
+    let tip = |at: f32, size: usize| (at.max(0.0) as usize).min(size.saturating_sub(1));
+    Ok(format!("url({url}) {} {}, auto", tip(picture.feet.0, canvas.width), tip(picture.feet.1, canvas.height)))
+}
+
+/// The sound file a frame of a creature's sprite starts, once the sprite has been read. `first` tells whether
+/// the frame is the first of its action's run, so that one-frame actions do not sound over and over.
+pub fn sound_of(path: &str, action: usize, frame: usize) -> Option<String> {
+    VOICES.with_borrow(|voices| {
+        let actions = voices.get(path)?;
+        let frames = actions.get(action % actions.len().max(1))?;
+        frames.get(frame % frames.len().max(1))?.clone()
+    })
+}
+
+/// How many frames an action of a sprite has and how long each shows (milliseconds), once the sprite was read.
+pub fn timing(path: &str, action: usize) -> Option<(usize, f64)> {
+    TIMES.with_borrow(|times| {
+        let actions = times.get(path)?;
+        actions.get(action % actions.len().max(1)).copied()
+    })
+}
+
+/// How many frames an action of a creature's sprite has, once the sprite has been read.
+pub fn frames_of(path: &str, action: usize) -> Option<usize> {
+    VOICES.with_borrow(|voices| {
+        let actions = voices.get(path)?;
+        Some(actions.get(action % actions.len().max(1))?.len())
+    })
+}
+
+/// How many frames an action of a character's body has, once a figure of that job and sex has been put together.
+pub fn body_frames(job: u16, sex: u8, action: usize) -> Option<usize> {
+    BODIES.with_borrow(|bodies| bodies.get(&(job, sex))?.get(action).copied())
+}
+
 thread_local! {
+    /// By sprite path: for each action, how many frames it has and how long each shows.
+    static TIMES: RefCell<HashMap<String, Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
+    /// By job and sex: how many frames each action of the body has.
+    static BODIES: RefCell<HashMap<(u16, u8), Vec<usize>>> = RefCell::new(HashMap::new());
+    /// By sprite path: for each action, the sound each of its frames starts.
+    static VOICES: RefCell<HashMap<String, Vec<Vec<Option<String>>>>> = RefCell::new(HashMap::new());
+    static CREATURES: RefCell<HashMap<SpriteKey, Option<Picture>>> = RefCell::new(HashMap::new());
     /// Game files by path; `None` for one that is not there.
     static FILES: RefCell<HashMap<String, Option<Rc<Vec<u8>>>>> = RefCell::new(HashMap::new());
     static PAINTED: RefCell<HashMap<Figure, Rc<Canvas>>> = RefCell::new(HashMap::new());
@@ -53,6 +207,10 @@ pub fn painted(figure: &Figure) -> Option<Rc<Canvas>> {
             match compose(&figure).await {
                 Ok(canvas) => {
                     PAINTED.with_borrow_mut(|painted| painted.insert(figure.clone(), Rc::new(canvas)));
+                }
+                // Not yet: asked for again with the next frame.
+                Err(error) if error == LATER => {
+                    PENDING.with_borrow_mut(|pending| pending.remove(&figure));
                 }
                 Err(error) => web_sys::console::warn_1(&format!("figure: {error}").into()),
             }
@@ -84,6 +242,7 @@ pub fn paint(canvas_id: &str, figure: Figure) {
                 PAINTED.with_borrow_mut(|painted| painted.insert(figure, canvas.clone()));
                 show(&canvas_id, &canvas);
             }
+            Err(error) if error == LATER => {}
             Err(error) => web_sys::console::warn_1(&format!("figure: {error}").into()),
         }
     });
@@ -108,6 +267,11 @@ async fn file(path: &str) -> Option<Rc<Vec<u8>>> {
     fetched
 }
 
+/// A text file of the game, read as Latin letters (what is not is lost; names of maps and files are).
+pub async fn text_file(path: &str) -> Option<String> {
+    file(path).await.map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+}
+
 /// A sprite's pictures and actions, by its path without the extension.
 async fn sprite(path: &str) -> Result<(Sprite, Act), String> {
     let missing = || format!("{path} is missing");
@@ -129,7 +293,15 @@ async fn compose(figure: &Figure) -> Result<Canvas, String> {
     // The first human hair styles are numbered differently in the sprites than in the game's data.
     let hair = if doram { figure.hair_style } else { hair_sprite(figure.sex, figure.hair_style) };
 
+    // Which sprite a weapon has depends on its kind, which the gateway tells: until it has, the figure waits.
+    if figure.weapon != 0 && data::about(figure.weapon).is_none() {
+        data::want_items(std::iter::once(figure.weapon), || {});
+        return Err(LATER.to_owned());
+    }
     let (body_sprite, body_act) = sprite(&format!("data/sprite/{race}/몸통/{sex}/{job}_{sex}")).await?;
+    BODIES.with_borrow_mut(|bodies| {
+        bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().map(Vec::len).collect());
+    });
     let (head_sprite, head_act) = sprite(&format!("data/sprite/{race}/머리통/{sex}/{hair}_{sex}")).await?;
     // Colour 0 is the sprite's own; the others are palettes of their own.
     let palette_folder = if doram { "data/palette/도람족" } else { "data/palette" };
@@ -152,6 +324,24 @@ async fn compose(figure: &Figure) -> Result<Canvas, String> {
     };
     let mut canvas = Canvas::new(WIDTH, HEIGHT);
     canvas.draw(FEET, &body_sprite, body_palette.as_ref(), &body_frame);
+    // The weapon in hand has a sprite of its own, with a picture for each of the body's: one made for that very
+    // weapon if the client has it, else the one of its kind (a dagger, a sword).
+    if figure.weapon != 0 {
+        let base = format!("data/sprite/{race}/{job}/{job}_{sex}");
+        let own = sprite(&format!("{base}_{}", figure.weapon)).await;
+        let weapon = match own {
+            Ok(weapon) => Some(weapon),
+            Err(_) => match data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| data::weapon_sprite(&kind)) {
+                Some(ending) => sprite(&format!("{base}{ending}")).await.ok(),
+                None => None,
+            },
+        };
+        if let Some((pictures, actions)) = weapon {
+            if let Ok(part) = frame(&actions, figure.action, figure.frame) {
+                canvas.draw(FEET, &pictures, None, &part);
+            }
+        }
+    }
     canvas.draw(attach(&head_frame), &head_sprite, hair_palette.as_ref(), &head_frame);
 
     // Headgear sits on the head by the same anchor: bottom first, then middle, then top. One whose sprite is not

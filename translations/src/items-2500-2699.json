@@ -1,0 +1,3599 @@
+{
+ "2501": {
+  "name": "Hood",
+  "description": [
+   "A simple, soft garment that covers the head and neck.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2502": {
+  "name": "Hood",
+  "description": [
+   "A simple, soft garment that covers the head and neck.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2503": {
+  "name": "Muffler",
+  "description": [
+   "A warm scarf that is worn around the neck and shoulders.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2504": {
+  "name": "Muffler",
+  "description": [
+   "A warm scarf that is worn around the neck and shoulders.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2505": {
+  "name": "Manteau",
+  "description": [
+   "A long, loose cape-like garment that protects its wearer from harsh weather.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Thief, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2506": {
+  "name": "Manteau",
+  "description": [
+   "A long, loose cape-like garment that protects its wearer from harsh weather.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Thief, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2507": {
+  "name": "Cape of Ancient Lord",
+  "description": [
+   "A fancy cape said to have once been worn by marquises long ago.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "All Jobs except Novice"
+  ]
+ },
+ "2508": {
+  "name": "Ragamuffin Manteau",
+  "description": [
+   "An old, worn-out cape that can protect its wearer from mystical harm, no matter how powerful it may be.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2509": {
+  "name": "Manteau of Survival",
+  "description": [
+   "A manteau which protects its wearer from the elements.",
+   "_______________________",
+   "VIT +10",
+   "_______________________",
+   "When equipped with ^990099Staff of Survival[1]^000000:",
+   "MaxHP +300",
+   "MATK -5%",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Staff of Survival[1]^000000:",
+   "MATK +1%",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Manteau of Survival^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 55",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2510": {
+  "name": "Somber Novice Hood",
+  "description": [
+   "An exclusive garment for new adventurers.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 0.1",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "2511": {
+  "name": "Skeleton Manteau",
+  "description": [
+   "A manteau which is worn by soldier skeletons.",
+   "_______________________",
+   "STR +2, DEX +2, LUK +2",
+   "INT -3, VIT -3",
+   "AGI -4",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "All Jobs except Novice"
+  ]
+ },
+ "2512": {
+  "name": "Novice Manteau",
+  "description": [
+   "A cute, durable and lightweight manteau for beginning adventurers.",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 7",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "Novice"
+  ]
+ },
+ "2513": {
+  "name": "Heavenly Wings",
+  "description": [
+   "A faint, transparent clothing decorated with a beautiful pattern worn by celestial maidens when they fly through the heavens.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "All Jobs except Novice"
+  ]
+ },
+ "2514": {
+  "name": "Pauldron",
+  "description": [
+   "A pair of heavy shoulder coverings that provide effective protection in combat.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 80",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2515": {
+  "name": "Eagle Wing",
+  "description": [
+   "A robe which once helped the god Odin escape a fatal threat.",
+   "_______________________",
+   "When equipped with ^990099Wing Staff^000000:",
+   "Increases movement speed.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 85",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2516": {
+  "name": "Falcon Muffler",
+  "description": [
+   "A muffler owned by Freya, daughter of Njord, that was often borrowed by Loki.",
+   "Wearing it makes its wearer as nimble as a falcon in flight.",
+   "_______________________",
+   "FLEE +15",
+   "Perfect Dodge +5",
+   "_______________________",
+   "When equipped with ^990099Fricco's Shoes^000000 and ^990099Odin's Blessing^000000:",
+   "AGI +3",
+   "MaxHP +5%",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2517": {
+  "name": "Vali's Manteau",
+  "description": [
+   "A manteau once owned by Vali, son of Odin.",
+   "It represents Vali's fighting spirit which allowed him to defeat Hoedr the warrior despite his blindness.",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 15%.",
+   "_______________________",
+   "When equipped with ^990099Vidar's Boots^000000 and ^990099Odin's Blessing^000000:",
+   "VIT +5",
+   "Increases HP and SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "All Jobs except Novice"
+  ]
+ },
+ "2518": {
+  "name": "Morpheus's Shawl",
+  "description": [
+   "A shawl marked with ancient conjuration patterns that is one of the three keys for releasing the seal that binds Morpheus.",
+   "_______________________",
+   "MaxSP +10%",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "All Jobs except Novice"
+  ]
+ },
+ "2519": {
+  "name": "Morrigan's Manteau",
+  "description": [
+   "A manteau made from gray crow feathers that were enchanted through the power of Morrigan, whose incarnation is the gray crow.",
+   "_______________________",
+   "LUK +2",
+   "Perfect Dodge +8",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 61",
+   "All Jobs except Novice"
+  ]
+ },
+ "2520": {
+  "name": "Goibne's Spaulders",
+  "description": [
+   "Goibne's very first creation, his much prized and precious armor.",
+   "_______________________",
+   "VIT +1",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from Ranged Physical Damage by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 11",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 54",
+   "All Jobs except Novice"
+  ]
+ },
+ "2521": {
+  "name": "Angelic Cardigan",
+  "description": [
+   "The Super Novice Guardian Angel's warm and comfortable cardigan.",
+   "_______________________",
+   "Increases HP Recovery Rate by 5%.",
+   "_______________________",
+   "When equipped with ^990099Angel's Kiss^000000, ^990099Angelic Protection^000000, ^990099Angel's Reincarnation^000000 and ^990099Angelic Guard^000000:",
+   "MaxHP +900",
+   "MaxSP +100",
+   "Random chance to auto-cast Level 1 ^009900Assumptio^000000 when receiving physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 6",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "Novice"
+  ]
+ },
+ "2522": {
+  "name": "Undershirt",
+  "description": [
+   "Lightweight armor made from 100% real cotton that is actually quite durable.",
+   "_______________________",
+   "MDEF +1",
+   "_______________________",
+   "When equipped with ^990099Pantie^000000:",
+   "AGI +5",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2523": {
+  "name": "Undershirt",
+  "description": [
+   "Lightweight armor made from 100% real cotton that is actually quite durable.",
+   "_______________________",
+   "MDEF +1",
+   "_______________________",
+   "When equipped with ^990099Pantie^000000:",
+   "AGI +5",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 15",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2524": {
+  "name": "Valkyrie Manteau",
+  "description": [
+   "A manteau that is worn by the Valkyries, Odin's battle maidens.",
+   "_______________________",
+   "When equipped by ^0033CCMage^000000, ^0033CCArcher^000000 and ^0033CCAcolyte^000000 classes:",
+   "Perfect Dodge +5",
+   "Increases Perfect Dodge by (Refine Level*2).",
+   "_______________________",
+   "When equipped by ^0033CCSwordman^000000, ^0033CCMerchant^000000 and ^0033CCThief^000000 classes:",
+   "Reflects 5% melee damage back to enemies.",
+   "Increases percentage of reflect damage by (Refine Level*2).",
+   "_______________________",
+   "When equipped with ^990099Valkyrie Helm^000000, ^990099Valkyrie Armor^000000 and ^990099Valkyrie Shoes^000000:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2525": {
+  "name": "Cape of Ancient Lord",
+  "description": [
+   "A fancy cape said to have once been worn by marquises long ago.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "All Jobs except Novice"
+  ]
+ },
+ "2526": {
+  "name": "Coat of Dragon Scale",
+  "description": [
+   "A coat made from 300 scales of dragon.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 14",
+   "^0000CCWeight:^000000 1",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50"
+  ]
+ },
+ "2527": {
+  "name": "Dragon Breath",
+  "description": [
+   "A garment that's so warm, it makes the wearer feel as if a dragon is breathing on him.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Dragon^000000 race by 15%.",
+   "_______________________",
+   "When equipped with ^990099Dragon Slayer, Dragon Killer^000000 or ^990099Gae Bolg^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Dragon^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2528": {
+  "name": "Wool Scarf",
+  "description": [
+   "A scarf made from the highest quality wool that feels so comforting and cozy when you're exhausted.",
+   "_______________________",
+   "MDEF +4",
+   "_______________________",
+   "When equipped with ^990099Tidal Shoes^000000:",
+   "MaxHP +10%",
+   "Increases HP Recovery Rate by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 11",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2529": {
+  "name": "Rider Insignia",
+  "description": [
+   "A symbol worn by runners that just makes you want to sprint when you wear it.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "When equipped with ^990099Black Leather Boots^000000:",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2530": {
+  "name": "Rider Insignia",
+  "description": [
+   "A symbol worn by runners that just makes you want to sprint when you wear it.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "When equipped with ^990099Black Leather Boots^000000:",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2531": {
+  "name": "Ulfhedinn",
+  "description": [
+   "A mysterious cape with a protective spell that can convert the wearer's magic defense to physical defense.",
+   "_______________________",
+   "Random chance to Reduces physical damage taken by 20% and increases magical damage taken by 20% for 2 seconds when wearer receiving magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent Swordman, Merchant and Thief"
+  ]
+ },
+ "2532": {
+  "name": "Mythril Magic Cape",
+  "description": [
+   "A mysterious cape with a protective spell that can convert the wearer's physical defense to magic defense.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "Random chance to decreases magical damage taken by 20% and Decreases DEF by 20% for 2 seconds when receiving magical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent Magician, Acolyte and Archer"
+  ]
+ },
+ "2533": {
+  "name": "Freya Cape",
+  "description": [
+   "^000088Rental Item^000000",
+   "Manteau of Freya, thin like a feather.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 15%.",
+   "_______________________",
+   "When equipped with ^990099Freya Crown^000000, ^990099Freya Boots^000000 and ^990099Freya Overcoat^000000:",
+   "MaxHP +20%",
+   "Prevents ^663399Frozen^000000 status.",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "Enables the use of Level 10 ^0000FFFrost Nova^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2534": {
+  "name": "Mufflers",
+  "description": [
+   "A cloak from Guild of Traveler",
+   "_______________________",
+   "FLEE +17",
+   "_______________________",
+   "Decreases damage taken from physical attack by 17%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2535": {
+  "name": "Manteau of Survival",
+  "description": [
+   "^000088Rental Item^000000",
+   "Cloak that increase possibility to survive in extreme condition.",
+   "_______________________",
+   "VIT +10",
+   "MDEF +10",
+   "_______________________",
+   "When equipped with ^990099Staff of Survival^000000:",
+   "MATK +5%",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 25%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 17",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Magician and Soul Linker classes"
+  ]
+ },
+ "2536": {
+  "name": "Skin of Ventus",
+  "description": [
+   "Lucifer's skin, cursed by the devil's language.",
+   "It can be worn as a robe.",
+   "_______________________",
+   "MaxHP +200",
+   "MDEF +2",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 7",
+   "^0000CCWeight:^000000 25",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "All Jobs except Novice"
+  ]
+ },
+ "2537": {
+  "name": "Diabolus Manteau",
+  "description": [
+   "A manteau with an endless dark shape waving near it. Only those who overcome fear can wear this manteau.",
+   "_______________________",
+   "MaxHP +100",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^0033CCSatan Morocc^000000 by 10%.",
+   "_______________________",
+   "When equipped with ^990099Diabolus Boots^000000:",
+   "MaxHP +6%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 25",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2538": {
+  "name": "Captain's Manteau",
+  "description": [
+   "A dignified, splendid Manteau that is provided to any warrior who brings great honor from the battlefield.",
+   "_______________________",
+   "MaxHP +50",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 28",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Swordsman, Merchant, Thief Classes, Ninja, Taekwon Boy/Girl and Star Gladiator"
+  ]
+ },
+ "2539": {
+  "name": "Commander's Manteau",
+  "description": [
+   "A Manteau that is provided to any superior commander who has the outstanding ability to support their base.",
+   "_______________________",
+   "MaxHP +50",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Magician, Acolyte, Archer, Soul Linker"
+  ]
+ },
+ "2540": {
+  "name": "Sheriff's Manteau",
+  "description": [
+   "A Manteau imbued with tension and the mysterious spirit of desolate wilderness.",
+   "_______________________",
+   "MaxHP +50",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 80",
+   "Gunslinger"
+  ]
+ },
+ "2541": {
+  "name": "Asprika",
+  "description": [
+   "A wing made of all lights that exist in the world. It's name means \"Light of the God\".",
+   "_______________________",
+   "FLEE +30",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from melee physical attacks of all elements by 30%.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFTeleport^000000.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 40",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2542": {
+  "name": "Flame Manteau of Naght Sieger",
+  "description": [
+   "A manteau of Flame that Naght Sieger wore.",
+   "_______________________",
+   "MaxHP +5%",
+   "MDEF +2",
+   "MATK +1%",
+   "_______________________",
+   "Increases Physical Damage against enemies of ^FF0000Fire^000000 elemental by 2%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2543": {
+  "name": "Sylphid Manteau",
+  "description": [
+   "^000088Rental Item^000000",
+   "A Soft Manteau that has been blessed by a Wind Fairy.",
+   "It is said to allow the wearer into be protected from danger.",
+   "_______________________",
+   "FLEE +13",
+   "Perfect Dodge +1",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 13%.",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 33",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2544": {
+  "name": "Leather of Tendrilion",
+  "description": [
+   "Leather of a Tendrilion with plant stems sticking out of it.",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 and ^0000BBWater^000000 elemental attacks by 5%.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Brute^000000 and ^FF0000Plant^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 14",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2545": {
+  "name": "Musika",
+  "description": [
+   "An outfit for priests in order to protect the exorcists at Prontera Church.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Heal^000000 on wearer when receiving melee physical attacks.",
+   "If higher Level of ^009900Heal^000000 is learned, it will use the Level the wearer has learned.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "High Priest"
+  ]
+ },
+ "2546": {
+  "name": "Beach Manteau",
+  "description": [
+   "A manteau received as a gift from Comodo Environmental Commission.",
+   "It seems to match perfect with Comodo beach.",
+   "_______________________",
+   "STR +1",
+   "INT +1",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 10%.",
+   "_______________________",
+   "When equipped with ^990099Beach Sandals^000000:",
+   "FLEE +5",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2547": {
+  "name": "Cheap Undershirt",
+  "description": [
+   "^000088Rental Item^000000",
+   "DEX +2",
+   "MDEF +1",
+   "FLEE +10",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 11",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2548": {
+  "name": "Neo Muffler",
+  "description": [
+   "^000088Rental Item^000000",
+   "A warm scarf that is worn around the neck and shoulders.",
+   "_______________________",
+   "MaxHP +10%",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000, ^FF0000Fire^000000, ^777777Holy^000000 and ^777777Shadow^000000 elemental attacks by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 22",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "All Jobs except Novice"
+  ]
+ },
+ "2549": {
+  "name": "Glorious Muffler",
+  "description": [
+   "A garment that only a champion of battlefield can wear.",
+   "_______________________",
+   "MaxHP +5%",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 3",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 81",
+   "All Jobs except Novice"
+  ]
+ },
+ "2550": {
+  "name": "Fisher's Muffler",
+  "description": [
+   "A nice muffler which increase your concentration by protecting you from wild wind around a fishing spot.",
+   "_______________________",
+   "Decreases the fishing casting time by 2 seconds.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2551": {
+  "name": "Rider Insigna",
+  "description": [
+   "A symbol worn by runners that just makes you want to sprint when you wear it.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "When equipped with ^990099Black Leather Boots^000000:",
+   "FLEE +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 55",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2552": {
+  "name": "Mythril Magic Cape",
+  "description": [
+   "A mysterious cape with a protective spell that can convert the wearer's physical defense to magic defense.",
+   "_______________________",
+   "MDEF +3",
+   "_______________________",
+   "Random chance to decreases magical damage taken by 20% and Decreases DEF by 20% for 2 seconds when receiving magical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 3",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Transcendent Magician, Archer and Acolyte"
+  ]
+ },
+ "2553": {
+  "name": "Dragon Manteau",
+  "description": [
+   "Manteau from a Draco's mane.",
+   "_______________________",
+   "AGI +1",
+   "MDEF +5",
+   "_______________________",
+   "When equipped with ^990099Dragon Vest^000000:",
+   "AGI +5",
+   "FLEE +15",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 14",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2554": {
+  "name": "Nidhoggur's Shadow Garb",
+  "description": [
+   "Made from a scale of Nidhoggur's Shadow, it still possesses its strong power.",
+   "_______________________",
+   "Increases MaxSP based on Refine Level and wearer's Base Level.",
+   "MDEF +3",
+   "_______________________",
+   "Decreases damage taken from all elemental attacks by 7%.",
+   "_______________________",
+   "Random chance to absorb 1% damage inflicted to SP.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 25",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Transcendent classes except Novice"
+  ]
+ },
+ "2555": {
+  "name": "Freya's Spiritual Scarf",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual scarf granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "FLEE +15",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2556": {
+  "name": "Freya's Spiritual Scarf",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual scarf granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "FLEE +15",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2557": {
+  "name": "Freya's Spiritual Scarf",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual scarf granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "FLEE +15",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2558": {
+  "name": "Freya's Spiritual Scarf",
+  "description": [
+   "^000088Rental Item^000000",
+   "A spiritual scarf granted by Freya. It appears very sturdy,",
+   "but it will eventually disappear and return to Freya's realm, Folkvangr.",
+   "_______________________",
+   "FLEE +15",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20"
+  ]
+ },
+ "2559": {
+  "name": "Time Keeper Manteau",
+  "description": [
+   "Manto, tailored for those who devoted his life to the protection of people. Protects from the wind.",
+   "_______________________",
+   "FLEE +10",
+   "MDEF +1",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2560": {
+  "name": "Eden Group Manteau",
+  "description": [
+   "A manteau which is only for Eden Group members. It is designed to flatter anyone's backside.",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 14",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 12"
+  ]
+ },
+ "2561": {
+  "name": "Upgrade Hood",
+  "description": [
+   "A hood molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 9",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2562": {
+  "name": "Upgrade Muffler",
+  "description": [
+   "A muffler molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2563": {
+  "name": "Upgrade Manteau",
+  "description": [
+   "A manteau molded out of Elunium and pure gold mixture.",
+   "_______________________",
+   "MaxHP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant, Thief, Taekwon and Star Gladiator"
+  ]
+ },
+ "2564": {
+  "name": "Feral Tail",
+  "description": [
+   "It has a message inscribed - A symbol of valor made with the tail of a savage beast.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75"
+  ]
+ },
+ "2565": {
+  "name": "Beach Towel",
+  "description": [
+   "A colorful beach towel used as protection from the sun.",
+   "_______________________",
+   "MDEF +3",
+   "FLEE +7",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 7%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 2",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2566": {
+  "name": "Half Asprika",
+  "description": [
+   "^000088Rental Item^000000",
+   "A wing made of all lights that exist in the world. It's name means \"Light of the God\".",
+   "_______________________",
+   "FLEE +15",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from melee physical attacks of all elements by 15%.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFTeleport^000000.",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 47"
+  ]
+ },
+ "2568": {
+  "name": "Loki's Muffler",
+  "description": [
+   "A red scarf worn out from long use.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "Increases damage of ^009900Cross Impact^000000 by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100"
+  ]
+ },
+ "2569": {
+  "name": "Shawl of Affection",
+  "description": [
+   "An ancient relic of war that once worn to help people in suffering.",
+   "_______________________",
+   "Perfect Dodge +5",
+   "_______________________",
+   "Random chance to auto-cast Level 1 ^009900Renovatio^000000 on wearer when wearer receiving physical or magical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Archbishop"
+  ]
+ },
+ "2570": {
+  "name": "Shawl of Judgement",
+  "description": [
+   "An ancient relic of war that once worn to fight Demon.",
+   "_______________________",
+   "FLEE +5",
+   "_______________________",
+   "Random chance to auto-cast Level 2 ^009900Oratio^000000 when wearer receiving physical or magical attack.",
+   "If a higher Level of this skill is learned then that Level will activate.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 12",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Archbishop"
+  ]
+ },
+ "2571": {
+  "name": "Eden Group Manteau II",
+  "description": [
+   "A manteau which is only for Eden Group members. It is designed to flatter anyone's backside.",
+   "_______________________",
+   "FLEE +12",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "^0000CCCan be enchanted by:^000000",
+   "<NAVI>Blacksmith Thorn<INFO>moc_para01,111,83,0,100,0,0</INFO></NAVI>",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60"
+  ]
+ },
+ "2572": {
+  "name": "Catapult Shoulder",
+  "description": [
+   "A shoulder with mechanical part. Amplifies the attack power of its wearer.",
+   "Very heavy though.",
+   "_______________________",
+   "ATK +15",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 300",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCRefineable:^000000 No",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70"
+  ]
+ },
+ "2573": {
+  "name": "Archangel's Wings",
+  "description": [
+   "White wings of a holy Archangel.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2574": {
+  "name": "Ur Manteau",
+  "description": [
+   "A manteau created from Ur Runestones.",
+   "_______________________",
+   "MaxHP +2%",
+   "_______________________",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "2575": {
+  "name": "Peuz Manteau",
+  "description": [
+   "A manteau created by refining Peuz runestones.",
+   "_______________________",
+   "FLEE +10",
+   "Critical +10",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 16",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Rune Knight"
+  ]
+ },
+ "2576": {
+  "name": "Adventurer's Backpack",
+  "description": [
+   "A small backpack with essential items for adventure.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFGreed^000000.",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF90^000000:",
+   "^0000FFRefine Level +7^000000:",
+   "ATK +20",
+   "^0000FFRefine Level +9^000000:",
+   "ATK +10",
+   "_______________________",
+   "Base ^CC6600INT^000000 at least ^0000FF90^000000:",
+   "^0000FFRefine Level +7^000000:",
+   "MATK +30",
+   "^0000FFRefine Level +9^000000:",
+   "MATK +20",
+   "_______________________",
+   "Base ^CC6600VIT^000000 at least ^0000FF90^000000:",
+   "^0000FFRefine Level +7^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 10%",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 5%.",
+   "_______________________",
+   "Base ^CC6600AGI^000000 at least ^0000FF90^000000:",
+   "^0000FFRefine Level +7^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 8%)",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "ASPD +1",
+   "_______________________",
+   "Base ^CC6600DEX^000000 at least ^0000FF90^000000:",
+   "^0000FFRefine Level +7^000000:",
+   "Increases Ranged Physical Damage by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases Ranged Physical Damage by 5%.",
+   "_______________________",
+   "Base ^CC6600LUK^000000 at least ^0000FF90^000000:",
+   "^0000FFRefine Level +7^000000:",
+   "Increases Critical Damage by 10%",
+   "_______________________",
+   "^0000FFRefine Level +9^000000:",
+   "Increases Critical Damage by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2577": {
+  "name": "Sapha's Hood",
+  "description": [
+   "A manteau that contains the reliquery remains of an ancient Assassin.",
+   "_______________________",
+   "FLEE +12",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "Critical +1",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2578": {
+  "name": "Nab's Hood",
+  "description": [
+   "An ancient relic that belonged to an unknown Assassin.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000:",
+   "FLEE +2",
+   "ATK +2",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 13",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Guillotine Cross"
+  ]
+ },
+ "2579": {
+  "name": "Magic Stole",
+  "description": [
+   "The embroidered shawl that can enhance the concentration of magic.",
+   "_______________________",
+   "MaxSP +3%",
+   "MDEF +3",
+   "_______________________",
+   "Decreases SP Consumption by 5%.",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "MaxSP +3%",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2580": {
+  "name": "White Wing Manteau",
+  "description": [
+   "A manteau of brilliant member of archer guild known as Icarus.",
+   "_______________________",
+   "AGI +2",
+   "FLEE +10",
+   "_______________________",
+   "Random chance to increase FLEE by 20 for 7 seconds when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger"
+  ]
+ },
+ "2581": {
+  "name": "Black Wing Manteau",
+  "description": [
+   "A cloak that helps maintain clear mental focus.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "Increases Perfect Dodge by 1 for every Refine Level above Level 6.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 100",
+   "Ranger"
+  ]
+ },
+ "2582": {
+  "name": "Salvage Cape",
+  "description": [
+   "This wide Manteau carries with it the meaning of Salvation.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFCicada Skin Shed^000000.",
+   "Increases ^0000FFCicada Skin Shed^000000 skill cooldown by 30 secs.",
+   "_______________________",
+   "Increases SP Consumption by 100%.",
+   "Drains SP by 1200 when this garment unequipped.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 130",
+   "Warlock and Archbishop"
+  ]
+ },
+ "2583": {
+  "name": "Holy Cape",
+  "description": [
+   "A cape made from the remain of saint's shrud. Able to protect wearer from darkness.",
+   "_______________________",
+   "MDEF +5",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Demon^000000 and ^FF0000Undead^000000 race by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 5",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50"
+  ]
+ },
+ "2584": {
+  "name": "Wanderer's Coat",
+  "description": [
+   "A coat that once worn by master swordman of the east.",
+   "_______________________",
+   "Perfect Dodge +1",
+   "_______________________",
+   "When equipped with ^990099Wanderer's Sakkat^000000:",
+   "^0000FFRefine Level^000000 of ^990099Wanderer's Coat^000000 is ^0000FF+5 or higher^000000:",
+   "Enables Level 1 ^009900Double Attack^000000.",
+   "_______________________",
+   "^0000FFRefine Level^000000 of ^990099Wanderer's Coat^000000 is ^0000FF+7 or higher^000000:",
+   "Enables Level 5 ^009900Double Attack^000000.",
+   "If wearer has learned higher Level of ^009900Double Attack^000000, it will use the learned Level instead.",
+   "_______________________",
+   "When equipped with ^990099Wanderer's Sakkat^000000 and Pet ^990099Wanderer^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 3%)",
+   "_______________________",
+   "^0000FFRefine Level^000000 of ^990099Wanderer's Coat^000000 is ^0000FF+7 or higher^000000:",
+   "ASPD +1",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2585": {
+  "name": "Muffler of Valor",
+  "description": [
+   "A magic muffler.",
+   "_______________________",
+   "Increases SP Recovery Rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2586": {
+  "name": "Siege Manteau",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "MDEF +1",
+   "Decreases damage taken from ^FF0000Players^000000 by 2%.",
+   "_______________________",
+   "When equipped with ^990099Siege Boots^000000 and ^990099Siege Suit^000000:",
+   "DEX +5",
+   "Decreases damage taken from ^FF0000Players^000000 by additional 15%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 32",
+   "^0000CCWeight:^000000 60",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95",
+   "All Jobs except Novice"
+  ]
+ },
+ "2587": {
+  "name": "Siege Muffler",
+  "description": [
+   "*Effects in WoE & PVP area",
+   "MDEF +10",
+   "Decreases damage taken from ^FF0000Players^000000 by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 15",
+   "^0000CCWeight:^000000 40",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 95"
+  ]
+ },
+ "2588": {
+  "name": "Ragamuffin Manteau",
+  "description": [
+   "An old, worn-out cape that can protect its wearer from mystical harm, no matter how powerful it may be.",
+   "_______________________",
+   "MDEF +10",
+   "_______________________",
+   "^663399Indestructible in battle^000000",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 4",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2589": {
+  "name": "Fallen Angel Wings",
+  "description": [
+   "A large, black wings of a fallen dark angel.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "For each ^0000FF20^000000 base ^CC6600STR^000000:",
+   "ATK +1",
+   "_______________________",
+   "For each ^0000FF20^000000 base ^CC6600INT^000000:",
+   "MATK +1",
+   "_______________________",
+   "For each ^0000FF20^000000 base ^CC6600VIT^000000:",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 1%.",
+   "_______________________",
+   "For each ^0000FF20^000000 base ^CC6600AGI^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 1%).",
+   "_______________________",
+   "For each ^0000FF20^000000 base ^CC6600DEX^000000:",
+   "Increases Ranged Physical Damage by 1%.",
+   "_______________________",
+   "For each ^0000FF20^000000 base ^CC6600LUK^000000:",
+   "Increases Critical Damage by 1%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 18",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "^0000CCEnchantable:^000000 Yes",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2590": {
+  "name": "Buwaya Sack Cloth",
+  "description": [
+   "Clothes tailored from Buwaya's kidnapping sack. Full of vindictive spirits that cannot rest in peace.",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Increases recovery amount gained from ^009900Healing^000000 skills and ^0033CCRestorative items^000000 by 1%.",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000, ^0000BBWater^000000, ^FF0000Fire^000000 and ^33CC00Wind^000000 elemental by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2591": {
+  "name": "Buwaya Sack Cloth(Bayani)",
+  "description": [
+   "Clothes tailored from Buwaya's kidnapping sack. Full of vindictive spirits that cannot rest in peace.",
+   "_______________________",
+   "^0000FFFor each 3 Refine Levels^000000:",
+   "Increases recovery amount gained from ^009900Healing^000000 skills and ^0033CCRestorative items^000000 by 1%.",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000, ^0000BBWater^000000, ^FF0000Fire^000000 and ^33CC00Wind^000000 elemental by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 8",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2592": {
+  "name": "Manteau of Domovoi",
+  "description": [
+   "A red manteau of Boss of Domovoi tribe.",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFCloaking^000000.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Drooping Domovoi^000000:",
+   "MaxHP +3%",
+   "RDecreases damage taken from ^FF0000Demi-Human^000000 race by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 3",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50"
+  ]
+ },
+ "2593": {
+  "name": "Froid Manteau",
+  "description": [
+   "A mysterious manteau imbued with the power of water.",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Brute^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Froid Shield^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099Froid Manteau^000000:",
+   "Decreases damage taken from monsters of ^FF0000Brute^000000 race by 1%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Froid Shield^000000:",
+   "Increases Physical Damage against enemies of ^0000BBWater^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Froid Shoes^000000:",
+   "Increases Physical Damage against enemies of ^0000BBWater^000000 elemental by 5%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Froid Manteau^000000:",
+   "MaxHP +1%",
+   "MaxSP +1%",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "FLEE +20",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2594": {
+  "name": "Wrapping Cloth Manteau",
+  "description": [
+   "A simple cloak made of wrapped cloth.",
+   "_______________________",
+   "FLEE +10",
+   "_______________________",
+   "^0000FFRefine Level +6^000000:",
+   "FLEE +2",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 2%.",
+   "_______________________",
+   "^0000FFRefine Level +8^000000:",
+   "FLEE +3",
+   "Decreases damage taken from ^777777Neutral^000000 elemental attacks by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 0",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2595": {
+  "name": "Sombre Manteau",
+  "description": [
+   "A mysterious manteau with the power of darkness.",
+   "_______________________",
+   "Decreases damage taken from ^777777Shadow^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Undead^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Sombre Shield^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099Sombre Manteau^000000:",
+   "Decreases damage taken from ^FF0000Undead^000000 race by 1%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Sombre Shield^000000:",
+   "Increases Physical Damage against enemies of ^777777Shadow^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Sombre Shoes^000000:",
+   "Increases Physical Damage against enemies of ^777777Shadow^000000 elemental by 5%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Sombre Manteau^000000:",
+   "MaxHP +1%",
+   "MaxSP +1%",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "FLEE +20",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2596": {
+  "name": "Sharel Manteau",
+  "description": [
+   "A magical manteau with elemental resistance on it.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demon^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099Sharel Shield^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099Sharel Manteau^000000:",
+   "Decreases damage taken from ^FF0000Demon^000000 race monsters by 1%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Sharel Shield^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Fire^000000 elemental by 1%.",
+   "_______________________",
+   "When equipped with ^990099Sharel Shoes^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Fire^000000 elemental by 5%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099Sharel Manteau^000000:",
+   "MaxHP +1%",
+   "MaxSP +1%",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "FLEE +20",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2597": {
+  "name": "Bloody Muffler",
+  "description": [
+   "This muffler is stained with blood.",
+   "_______________________",
+   "Increases Critical Damage by 3%.",
+   "_______________________",
+   "When equipped with ^990099Critical Ring^000000:",
+   "Critical +10",
+   "Increases Critical Damage by 5%.",
+   "_______________________",
+   "^0000FFRefine Level^000000 of ^990099Bloody Muffler^000000 is ^0000FF+5 or higher^000000:",
+   "Increases Critical Damage by 3%.",
+   "_______________________",
+   "^0000FFRefine Level^000000 of ^990099Bloody Muffler^000000 is ^0000FF+7 or higher^000000:",
+   "Increases Critical Damage by 4%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 10",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50"
+  ]
+ },
+ "2598": {
+  "name": "L'Amour Manteau",
+  "description": [
+   "A magical cloak imbued with the power of immortality.",
+   "_______________________",
+   "Decreases damage taken from ^777777Undead^000000 elemental by 5%.",
+   "_______________________",
+   "Increases damage taken from monsters of ^FF0000Demi-Human^000000 race by 5%.",
+   "_______________________",
+   "When equipped with ^990099L'Amour Shield^000000:",
+   "^0000FFFor each Refine Level^000000 of ^990099L'Amour Manteau^000000:",
+   "Decreases damage taken from ^FF0000Demi-Human^000000 race by 1%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099L'Amour Shield^000000:",
+   "Increases Physical Damage against enemies of ^777777Undead^000000 element by 1%.",
+   "_______________________",
+   "When equipped with ^990099L'Amour Shoes^000000:",
+   "Increases Physical Damage against enemies of ^777777Undead^000000 element by 5%.",
+   "_______________________",
+   "^0000FFFor each Refine Level^000000 of ^990099L'Amour Manteau^000000:",
+   "MaxHP +1%",
+   "MaxSP +1%",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "FLEE +20",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 20",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65"
+  ]
+ },
+ "2599": {
+  "name": "Goibne's Spaulders",
+  "description": [
+   "Goibne's very first creation, his much prized and precious armor.",
+   "_______________________",
+   "VIT +1",
+   "MDEF +2",
+   "_______________________",
+   "Decreases damage taken from Ranged Physical Damage by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Garment",
+   "^0000CCDefense:^000000 11",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 54",
+   "All Jobs except Novice"
+  ]
+ },
+ "2600": {
+  "name": "Sheep Sachet",
+  "description": [
+   "Sachet with pleasant aroma of sheep.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "Enables the use of Level 1 ^0000FFHoly Light^000000.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2601": {
+  "name": "Ring",
+  "description": [
+   "A metal band worn on the finger which strangely increases its wearer's strength.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2602": {
+  "name": "Earring",
+  "description": [
+   "Jewelry, worn on the earlobe, that increases its wearer's intelligence.",
+   "_______________________",
+   "INT +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2603": {
+  "name": "Necklace",
+  "description": [
+   "A necklace once worn by an ancient queen that enhances the vitality of whoever wears it.",
+   "_______________________",
+   "VIT +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2604": {
+  "name": "Glove",
+  "description": [
+   "A specially made covering worn on the hand to improve one's grip on weapons.",
+   "_______________________",
+   "DEX +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2605": {
+  "name": "Brooch",
+  "description": [
+   "Mystic jewelry that attaches to clothing by means of a pin.",
+   "_______________________",
+   "AGI +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2606": {
+  "name": "Rental Black Tail of Hyukke",
+  "description": [
+   "Rental equipment customized for beginners.",
+   "Let's try it on.",
+   "_______________________",
+   "Critical +7",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "_______________________",
+   "^ff0000Cannot be sold and stored.^000000",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2607": {
+  "name": "Clip",
+  "description": [
+   "A versatile accessory that you can attach to pretty much anything.",
+   "_______________________",
+   "MaxSP +10",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2608": {
+  "name": "Rosary",
+  "description": [
+   "A string of beads used to count the number of repetitions that prayers are recited.",
+   "_______________________",
+   "LUK +2",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2609": {
+  "name": "Skull Ring",
+  "description": [
+   "A weird ring adorned with a skull in which the words, \"^CC0000Forever, until death...^000000\" are engraved. Giving this as a gift might send a mixed message.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2610": {
+  "name": "Gold Ring",
+  "description": [
+   "A fairly common ring made of gold.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2611": {
+  "name": "Silver Ring",
+  "description": [
+   "A simple, modest ring fashioned out of silver.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2612": {
+  "name": "Flower Ring",
+  "description": [
+   "A quaint, pretty ring made of wildflowers.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2613": {
+  "name": "Diamond Ring",
+  "description": [
+   "A ring adorned with a large \"diamond\",the rock known to be a girl's best gift. Sadly, these so-called diamonds fetch a hefty price.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2614": {
+  "name": "Eye of Dullahan",
+  "description": [
+   "An accessory modeled after the eye of Dullahan.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Undead^000000 elemental and ^FF0000Demon^000000 race monsters by 4%.",
+   "_______________________",
+   "Prevents ^663399Poison^000000 status.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "All Jobs except Novice"
+  ]
+ },
+ "2615": {
+  "name": "Safety Ring",
+  "description": [
+   "A strange ring that curiously raises its wearer's defense.",
+   "_______________________",
+   "DEF +5",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "All Jobs except Novice"
+  ]
+ },
+ "2616": {
+  "name": "Critical Ring",
+  "description": [
+   "An esoteric ring which enables its wearer into amplify his hidden power.",
+   "_______________________",
+   "Critical +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40",
+   "All Jobs except Novice"
+  ]
+ },
+ "2617": {
+  "name": "Celebrant's Mitten",
+  "description": [
+   "A glove blessed with holiness that increases its wearer's intelligence.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 35",
+   "All Jobs except Novice"
+  ]
+ },
+ "2618": {
+  "name": "Matyr's Leash",
+  "description": [
+   "A leash that wore by Matyr.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 35",
+   "All Jobs except Novice"
+  ]
+ },
+ "2619": {
+  "name": "Bow Thimble",
+  "description": [
+   "A finger accessory for archers which helps improve their accuracy.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Archer"
+  ]
+ },
+ "2620": {
+  "name": "Rogue's Treasure",
+  "description": [
+   "An exclusive ring for the Thief and Ninja class.",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF90^000000:",
+   "HIT +10",
+   "FLEE +10",
+   "_______________________",
+   "Base ^CC6600AGI^000000 at least ^0000FF90^000000:",
+   "ATK +10",
+   "Critical +10",
+   "_______________________",
+   "When equipped with ^990099Black Cat^000000:",
+   "HIT +3",
+   "Decreases Variable Casting Time by 3%.",
+   "Increases Physical Damage against enemies of ^FF0000Large^000000 size by 8%.",
+   "_______________________",
+   "When equipped with ^990099Cold Heart^000000:",
+   "Increases Attack Speed (decreases After Attack Delay by 3%).",
+   "Increases Physical Damage against enemies of ^FF0000Medium^000000 size by 8%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 70",
+   "Thief and Ninja"
+  ]
+ },
+ "2621": {
+  "name": "Ring",
+  "description": [
+   "An ancient ring.",
+   "_______________________",
+   "STR +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Jobs except Novice"
+  ]
+ },
+ "2622": {
+  "name": "Earring",
+  "description": [
+   "An ancient earring.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Jobs except Novice"
+  ]
+ },
+ "2623": {
+  "name": "Necklace",
+  "description": [
+   "An ancient necklace.",
+   "_______________________",
+   "VIT +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Jobs except Novice"
+  ]
+ },
+ "2624": {
+  "name": "Glove",
+  "description": [
+   "An ancient mitten.",
+   "_______________________",
+   "DEX +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Jobs except Novice"
+  ]
+ },
+ "2625": {
+  "name": "Brooch",
+  "description": [
+   "An ancient brooch.",
+   "_______________________",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Jobs except Novice"
+  ]
+ },
+ "2626": {
+  "name": "Rosary",
+  "description": [
+   "An ancient rosary.",
+   "_______________________",
+   "LUK +1",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 90",
+   "All Jobs except Novice"
+  ]
+ },
+ "2627": {
+  "name": "Belt",
+  "description": [
+   "A simple, very practical belt that has little fashion value.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 120",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 25"
+  ]
+ },
+ "2628": {
+  "name": "Novice Armlet",
+  "description": [
+   "An easy to wear bracelet made just for young Novices.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Novice"
+  ]
+ },
+ "2629": {
+  "name": "Megingjord",
+  "description": [
+   "Legendary Belt rumored to be owned by Thor the god of thunder, which increases its wearer's strength.",
+   "_______________________",
+   "STR +40",
+   "MDEF +7",
+   "_______________________",
+   "For each 5 ^CC6600Base Level^000000:",
+   "STR +1",
+   "_______________________",
+   "Base ^CC6600STR^000000 at least ^0000FF120^000000:",
+   "Increases Physical Damage against enemies of ^FF0000Boss^000000 class by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 2",
+   "^0000CCWeight:^000000 800",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2630": {
+  "name": "Brisingamen",
+  "description": [
+   "Legendary necklace worn by Goddess Freija. It is an accessory of Gods that provide multiple abilities to its casters.",
+   "_______________________",
+   "STR +6, AGI +6, VIT +6",
+   "INT +10, LUK +10",
+   "MDEF +5",
+   "_______________________",
+   "Increases ^009900Healing^000000 skills effectiveness by 6%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2631": {
+  "name": "Celebration Ring",
+  "description": [
+   "A ring that is given to a baby that becomes a year old.",
+   "_______________________",
+   "All Basic Stats +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 1",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2634": {
+  "name": "Wedding Ring",
+  "description": [
+   "A wedding ring for a Groom which symbolizes ever-lasting love."
+  ]
+ },
+ "2635": {
+  "name": "Wedding Ring",
+  "description": [
+   "A wedding ring for a Bride which symbolizes ever-lasting trust."
+  ]
+ },
+ "2636": {
+  "name": "Gold Christmas Ring",
+  "description": [
+   "A beautiful gold ring that was made for Christmas.",
+   "Someone's name is engraved on it.",
+   "_______________________",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "2637": {
+  "name": "Silver Christmas Ring",
+  "description": [
+   "A beautiful silver ring that was made for Christmas.",
+   "Someone's name is engraved on it.",
+   "_______________________",
+   "^0000CCWeight:^000000 10"
+  ]
+ },
+ "2638": {
+  "name": "Sacred Incense",
+  "description": [
+   "An incense bag which is carried to avoid bad things.",
+   "_______________________",
+   "STR +1",
+   "LUK +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2639": {
+  "name": "Occult Incense",
+  "description": [
+   "An incense bag which is carried to ward off evil.",
+   "_______________________",
+   "INT +1",
+   "AGI +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2640": {
+  "name": "Kafra Ring",
+  "description": [
+   "A mysterious ring rumored to be worn by Kafra Employees.",
+   "_______________________",
+   "STR +1, AGI +1, INT +1, LUK +1",
+   "MDEF +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2641": {
+  "name": "Fashion Hip Sack",
+  "description": [
+   "A fashionable hip sack which is ideal for merchants who have to carry many goods with them.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 70",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 50",
+   "Merchant"
+  ]
+ },
+ "2642": {
+  "name": "Serin's Gold Ring",
+  "description": [
+   "A beautiful golden ring engraved with the words, \"In celebration of Serin's 17th birthday\".",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2643": {
+  "name": "Serin's Gold Ring",
+  "description": [
+   "A beautiful golden ring engraved with the words, \"In celebration of Serin's 17th birthday\".",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2644": {
+  "name": "The Sign",
+  "description": [
+   "A captivatingly beautiful artifact rewarded by the gods to a chosen warrior.",
+   "However, it seems to be more than just a voucher that grants entrance into Valhalla...",
+   "_______________________",
+   "MATK +5%",
+   "ATK +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2645": {
+  "name": "Moonlight Ring",
+  "description": [
+   "An enchanted ring that was forged by the dead under the moonlight.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Thief Classes, Ninja"
+  ]
+ },
+ "2646": {
+  "name": "Carnation Bouquet",
+  "description": [
+   "A carnation bouquet given as gifts to mothers.",
+   "_______________________",
+   "All Basic Stats +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2647": {
+  "name": "Nile Rose",
+  "description": [
+   "An extremely rare jewel attached to a solid silver chain bracelet symbolizing strength, growth and energy.",
+   "_______________________",
+   "All Basic Stats +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2648": {
+  "name": "Morpheus's Ring",
+  "description": [
+   "A ring, enchanted with the power of the Fate Stone, that is one of the three keys for theseal which binds Morpheus.",
+   "_______________________",
+   "INT +1",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "All Jobs except Novice"
+  ]
+ },
+ "2649": {
+  "name": "Morpheus's Bracelet",
+  "description": [
+   "A bracelet, rumored to be a memento of Morpheus's beloved, that is one of the three keys for the seal which binds Morpheus.",
+   "_______________________",
+   "INT +1",
+   "MaxSP +5%",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 33",
+   "All Jobs except Novice"
+  ]
+ },
+ "2650": {
+  "name": "Morrigan's Belt",
+  "description": [
+   "The belt that Morrigan kept as a memento of CuChulain after he perished in battle.",
+   "_______________________",
+   "ATK +5",
+   "Critical +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 61",
+   "All Jobs except Novice"
+  ]
+ },
+ "2651": {
+  "name": "Morrigan's Pendant",
+  "description": [
+   "The pendant that ChuChulain gave to Morrigan when they were both still in love.",
+   "It's symoblic of her endless devotion, as she stood by his side even after he had abandoned her.",
+   "_______________________",
+   "STR +2",
+   "Critical +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 61",
+   "All Jobs except Novice"
+  ]
+ },
+ "2652": {
+  "name": "Goddess of Fortune's Cursed Brooch",
+  "description": [
+   "A cursed brooch which, ironically, was owned by the goddess of fortune.",
+   "_______________________",
+   "Critical +6",
+   "_______________________",
+   "Random chance to inflict ^663399Curse^000000 status on wearer when dealing physical damage.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 40"
+  ]
+ },
+ "2653": {
+  "name": "Sacrifice Ring",
+  "description": [
+   "Not much is known about the mysterious Sacrifice Ring..."
+  ]
+ },
+ "2654": {
+  "name": "Shinobi Sash",
+  "description": [
+   "Belt equipped by a famous ninja. The pattern has a mysterious glow and it seems to have certain magical power.",
+   "_______________________",
+   "STR +1",
+   "AGI +1",
+   "MDEF +1",
+   "_______________________",
+   "When equipped with ^990099Ninja Suit^000000:",
+   "MaxHP +300",
+   "Decreases SP Consumption by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30",
+   "Thief and Ninja"
+  ]
+ },
+ "2655": {
+  "name": "Bloody Iron Ball",
+  "description": [
+   "A heavy steel ball attached to a shackle that was supposed to keep prisoners from escaping in an earlier era.",
+   "However, prisoners outfitted with this ball managed to use it as a weapon.",
+   "_______________________",
+   "When equipped with ^990099Shackle^000000:",
+   "ATK +50",
+   "Decreases damage taken from ^0033CCZombie Prisoner^000000 and ^0033CCSkel Prisoner^000000 by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 400^000000",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2656": {
+  "name": "Armor Charm",
+  "description": [
+   "A mysterious, ancient artifact that can endow normal armor with great defensive power, although it does make the wearer feel very sluggish.",
+   "_______________________",
+   "MaxHP +50",
+   "DEF +1",
+   "_______________________",
+   "When equipped with ^990099Padded Armor^000000:",
+   "DEF +5",
+   "MaxHP +150",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Swordsman, Merchant and Thief classes"
+  ]
+ },
+ "2657": {
+  "name": "Laboratory Permit",
+  "description": [
+   "A pass for Regenschirm Laboratory employees that should allow you access around the lab.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2658": {
+  "name": "Nile Rose",
+  "description": [
+   "A bracelet on which the Hellion's jewel is affixed in order to seal its evil power.",
+   "_______________________",
+   "MaxHP +10",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2659": {
+  "name": "Vesper Core 01",
+  "description": [
+   "An object which seems to be part of the Vesper. Possesses a mysterious power that enables its owner to clear his mind.",
+   "_______________________",
+   "INT +2",
+   "MaxSP +5%",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2660": {
+  "name": "Vesper Core 02",
+  "description": [
+   "An object which seems to be part of the Vesper. Possesses a mysterious power that grants great strength to its owner.",
+   "_______________________",
+   "STR +3",
+   "ATK +10",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2661": {
+  "name": "Vesper Core 03",
+  "description": [
+   "An object which seems to be part of the Vesper. Possesses a mysterious power that grants agility to he who wears it.",
+   "_______________________",
+   "AGI +3",
+   "FLEE +5",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2662": {
+  "name": "Vesper Core 04",
+  "description": [
+   "An object which seems to be part of the Vesper. Possesses a mysterious power that endows the owner with greater accuracy and dexterity.",
+   "_______________________",
+   "DEX +3",
+   "HIT +10",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2663": {
+  "name": "Gauntlet of Hit",
+  "description": [
+   "A glove made from a strange material.",
+   "It allows you to hold your weapon with a firm grip, increasing the strength and accuracy of attacks.",
+   "_______________________",
+   "STR +1",
+   "HIT +15",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 90",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75"
+  ]
+ },
+ "2664": {
+  "name": "Bell Scarf",
+  "description": [
+   "To be a fashionista you need this Scarf to complete your style.",
+   "_______________________",
+   "INT +1",
+   "DEX +2",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 20",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 75",
+   "All Jobs except Novice"
+  ]
+ },
+ "2665": {
+  "name": "Exorcising Ring",
+  "description": [
+   "A symbol of faith to servants of God, this ring possesses a holy power that can repel evil.",
+   "_______________________",
+   "Increases experience gained from defeating ^FF0000Undead^000000 elemental and ^FF0000Demon^000000 race monsters by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 50",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "Acolyte"
+  ]
+ },
+ "2666": {
+  "name": "Lantern of Hope",
+  "description": [
+   "A coconut oil lamp in which a dim light that repels evil is burning.",
+   "_______________________",
+   "STR +2",
+   "_______________________",
+   "Increases resistance against ^663399Blind^000000 status by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2667": {
+  "name": "Renown Archer's Glove",
+  "description": [
+   "A glove that enhance the wearer's concentration, enabling him to perform amazing feats of hitting accuracy.",
+   "_______________________",
+   "DEX +1",
+   "HIT +5",
+   "Critical +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 60",
+   "All Jobs except Novice"
+  ]
+ },
+ "2668": {
+  "name": "Woman Glory",
+  "description": [
+   "Celebration item for Woman's day.",
+   "_______________________",
+   "All Basic Stats +3",
+   "_______________________",
+   "Increases SP Recovery Rate by 20%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 150",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 94"
+  ]
+ },
+ "2669": {
+  "name": "RJC Necklace",
+  "description": [
+   "A gold necklace with the letters RJC engraved on it. Made to celebrate some event.",
+   "_______________________",
+   "MaxSP +10",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2670": {
+  "name": "Ring of Longing",
+  "description": [
+   "A ring made from a mind longing for friend.",
+   "It shines beautifully with the power of two people's friendship.",
+   "_______________________",
+   "FLEE +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 30"
+  ]
+ },
+ "2671": {
+  "name": "Bow Thimble",
+  "description": [
+   "A thimble for archers that enhances their shooting accuracy.",
+   "_______________________",
+   "Increases Ranged Physical Damage by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 65",
+   "Archer"
+  ]
+ },
+ "2672": {
+  "name": "3rd Anniversary Celebration Ring",
+  "description": [
+   "A ring with ^0000883rd Anniversary^000000 engraved on it.",
+   "This ring will be ^000088destroyed^000000 when the 3rd anniversary event ends.",
+   "_______________________",
+   "All Basic Stats +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2673": {
+  "name": "Warrior's Shining Ring",
+  "description": [
+   "The one who bears this ring will gain powers that he did not possess before.",
+   "_______________________",
+   "ATK +10",
+   "Increases SP Recovery Rate by 3%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 48",
+   "All Jobs except Novice"
+  ]
+ },
+ "2674": {
+  "name": "Ring of Honor",
+  "description": [
+   "A special gold ring engraved with the words Warrior of Rune-Midgards.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2675": {
+  "name": "Lord Ring",
+  "description": [
+   "Lord Ring",
+   "_______________________",
+   "All Basic Stats +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 1",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2676": {
+  "name": "Hunter's Earring",
+  "description": [
+   "A special earring given for a mission to get a Crystal monster.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 30",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2677": {
+  "name": "Spiritual Ring",
+  "description": [
+   "A beautiful ring imbued with strange spiritual powers that result in surprising effects when worn with the right items.",
+   "_______________________",
+   "DEX +1",
+   "INT +2",
+   "_______________________",
+   "When equipped with ^990099Wizardry Staff^000000 or ^990099Soul Staff^000000:",
+   "DEX +2",
+   "MATK +6%",
+   "Decreases Variable Casting Time by a percentage according to the Staff's Refine Level.",
+   "_______________________",
+   "When equipped with ^990099Divine Cross^000000:",
+   "DEX +2",
+   "MATK +10%",
+   "Decreases damage taken from ^FF0000Undead^000000 elemental and ^FF0000Demon^000000 race monsters by 10%.",
+   "_______________________",
+   "When equipped with ^990099Clip^000000 or ^990099Rosary^000000:",
+   "Increases damage of ^009900Magnus Exorcismus^000000 by 30%.",
+   "+50% Heal damage on ^FF0000Undead^000000 race.",
+   "Increases SP Recovery Rate by 9%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2678": {
+  "name": "Ring of Flame Lord",
+  "description": [
+   "A ring imbued with the power of the fire spirit king, which can be used to strengthen the wearer's weapon.",
+   "This ring forms a matching set with the Ring of Resonance.",
+   "_______________________",
+   "VIT +1",
+   "STR +2",
+   "ATK +15",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental attacks by 10%.",
+   "_______________________",
+   "Random chance to auto-cast various skills when dealing physical damage.",
+   "When equipped with ^990099Ring of Resonance^000000, this ring adds the Auto Spell ability.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2679": {
+  "name": "Ring of Resonance",
+  "description": [
+   "A ring that resonates with the Ring of Flame Lord together, they form a matching set.",
+   "_______________________",
+   "VIT +1",
+   "AGI +2",
+   "MDEF +2",
+   "_______________________",
+   "Random chance to auto-cast various skills while receiving physical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 2",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Transcendent 2nd classes"
+  ]
+ },
+ "2680": {
+  "name": "Lesser Elemental Ring",
+  "description": [
+   "A ring that holds the power of lesser elemental spirits, but its true effect is unknown.",
+   "_______________________",
+   "All Basic Stats +1",
+   "_______________________",
+   "Random chance to auto-cast random spells when dealing or receiving physical attack.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2681": {
+  "name": "Republic Anniversary Ring",
+  "description": [
+   "It's a special ring to celebrate Republic Day.",
+   "_______________________",
+   "All Basic Stats +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 100",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000 None"
+  ]
+ },
+ "2682": {
+  "name": "Ring of Water",
+  "description": [
+   "A mysterious ring that is blessed by the Spirit of Water.",
+   "_______________________",
+   "Decreases damage taken from ^0000BBWater^000000 elemental by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2683": {
+  "name": "Ring of Fire",
+  "description": [
+   "A mysterious ring that is blessed by the Spirit of Fire.",
+   "_______________________",
+   "Decreases damage taken from ^FF0000Fire^000000 elemental by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2684": {
+  "name": "Ring of Wind",
+  "description": [
+   "A mysterious ring that is blessed by the Spirit of Wind.",
+   "_______________________",
+   "Decreases damage taken from ^33CC00Wind^000000 elemental by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2685": {
+  "name": "Ring of Earth",
+  "description": [
+   "A mysterious ring that is blessed by the Spirit of Earth.",
+   "_______________________",
+   "Decreases damage taken from ^CC5500Earth^000000 elemental by 5%.",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCDefense:^000000 1",
+   "^0000CCWeight:^000000 10",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "Base Level 20",
+   "All Jobs except Novice"
+  ]
+ },
+ "2686": {
+  "name": "Elven Ears",
+  "description": [
+   "^000088Rental Item^000000",
+   "A fashion accessory that gives ears that vaunted, elvish look. For some, it is an incredible turn-on.",
+   "_______________________",
+   "INT +1",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 2",
+   "^0000CCPosition:^000000 Middle",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2687": {
+  "name": "Steel Flower",
+  "description": [
+   "^000088Rental Item^000000",
+   "A small flower made of steel.",
+   "_______________________",
+   "MaxHP +2%",
+   "MaxSP +2%",
+   "ATK +2%",
+   "MATK +2%",
+   "Increases experience gained from defeating monsters by 10%.",
+   "Increases item drop rate by 10%.",
+   "_______________________",
+   "^0000CCType:^000000 Headgear",
+   "^0000CCDefense:^000000 0",
+   "^0000CCPosition:^000000 Lower",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2688": {
+  "name": "Critical Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "An esoteric ring that enables its wearer into amplify his hidden powers.",
+   "_______________________",
+   "Critical +10",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2689": {
+  "name": "Earring",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient earring.",
+   "_______________________",
+   "INT +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2690": {
+  "name": "Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient ring.",
+   "_______________________",
+   "STR +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2691": {
+  "name": "Necklace",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient necklace.",
+   "_______________________",
+   "VIT +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2692": {
+  "name": "Glove",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient glove.",
+   "_______________________",
+   "DEX +4",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2693": {
+  "name": "Brooch",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient brooch.",
+   "_______________________",
+   "AGI +4",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2694": {
+  "name": "Rosary",
+  "description": [
+   "^000088Rental Item^000000",
+   "An ancient rosary.",
+   "_______________________",
+   "LUK +4",
+   "MDEF +5",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2695": {
+  "name": "Safety Ring",
+  "description": [
+   "^000088Rental Item^000000",
+   "A strange ring that curiously raises its wearer's defenses.",
+   "_______________________",
+   "DEF +8",
+   "MDEF +8",
+   "_______________________",
+   "When ^990099VIP^000000 status active:",
+   "All Basic Stats +1",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2696": {
+  "name": "Vesper Core 01",
+  "description": [
+   "^000088Rental Item^000000",
+   "An object that seems to have been part of a Vesper. It has the mysterious power to clear its owner's mind.",
+   "_______________________",
+   "INT +2",
+   "MaxSP +5%",
+   "DEF +1",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2697": {
+  "name": "Vesper Core 02",
+  "description": [
+   "^000088Rental Item^000000",
+   "An object which seems to be part of a Vesper that can mysteriously empower its wearer with enhanced strength.",
+   "_______________________",
+   "STR +3",
+   "ATK +10",
+   "DEF +1",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2698": {
+  "name": "Vesper Core 03",
+  "description": [
+   "^000088Rental Item^000000",
+   "An object which seems to be part of a Vesper that can mysteriously empower its wearer with enhanced agility.",
+   "_______________________",
+   "AGI +3",
+   "FLEE +5",
+   "DEF +1",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ },
+ "2699": {
+  "name": "Vesper Core 04",
+  "description": [
+   "^000088Rental Item^000000",
+   "An object which seems to be part of a Vesper that can mysteriously empower its wearer by enhancing his accuracy and dexterity.",
+   "_______________________",
+   "DEX +3",
+   "HIT +10",
+   "DEF +1",
+   "MDEF +3",
+   "_______________________",
+   "^0000CCType:^000000 Accessory",
+   "^0000CCWeight:^000000 0",
+   "^0000CCArmor Level:^000000 1",
+   "_______________________",
+   "^0000CCRequirement:^000000",
+   "All Jobs except Novice"
+  ]
+ }
+}

@@ -1,0 +1,153 @@
+//! Talking to NPCs: what the player sends, and what the script answers (rAthena, `clif_scriptmes` and its
+//! neighbours in `src/map/clif.cpp`, at PACKETVER 20260219).
+
+/// ZC_SAY_DIALOG (0x00b4): `u16 length, u32 npc, char[] text`; ZC_SAY_DIALOG2 (0x0972) has a `u8 type` before
+/// the text.
+pub const ZC_SAY_DIALOG: u16 = 0x00b4;
+pub const ZC_SAY_DIALOG2: u16 = 0x0972;
+/// ZC_WAIT_DIALOG (0x00b5; 0x0973 with a `u8 type` more): the script waits for "next".
+pub const ZC_WAIT_DIALOG: u16 = 0x00b5;
+pub const ZC_WAIT_DIALOG2: u16 = 0x0973;
+/// ZC_CLOSE_DIALOG (0x00b6): the script is over, and the window stays until "close" is pressed.
+pub const ZC_CLOSE_DIALOG: u16 = 0x00b6;
+/// ZC_MENU_LIST (0x00b7): `u16 length, u32 npc, char[] choices`, the choices divided by colons.
+pub const ZC_MENU_LIST: u16 = 0x00b7;
+/// ZC_CLEAR_DIALOG (0x08d6): the text so far goes away.
+pub const ZC_CLEAR_DIALOG: u16 = 0x08d6;
+/// ZC_OPEN_EDITDLG (0x0142) asks for a number, ZC_OPEN_EDITDLGSTR (0x01d4) for words.
+pub const ZC_OPEN_EDITDLG: u16 = 0x0142;
+pub const ZC_OPEN_EDITDLGSTR: u16 = 0x01d4;
+
+/// The NPC a packet is about: at offset 4 where a length comes first, else at 2.
+pub fn npc(id: u16, packet: &[u8]) -> Option<u32> {
+    let at = if matches!(id, ZC_SAY_DIALOG | ZC_SAY_DIALOG2 | ZC_MENU_LIST) { 4 } else { 2 };
+    Some(u32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?))
+}
+
+fn text(bytes: &[u8]) -> String {
+    let end = bytes.iter().position(|byte| *byte == 0).unwrap_or(bytes.len());
+    String::from_utf8_lossy(&bytes[..end]).into_owned()
+}
+
+/// What an NPC says: one line of its window.
+pub fn said(id: u16, packet: &[u8]) -> Option<String> {
+    Some(text(packet.get(if id == ZC_SAY_DIALOG2 { 9 } else { 8 }..)?))
+}
+
+/// The choices of a menu. An empty one is still a choice: the server counts it.
+pub fn menu(packet: &[u8]) -> Option<Vec<String>> {
+    let mut choices: Vec<String> = text(packet.get(8..)?).split(':').map(str::to_owned).collect();
+    // The list ends with a colon.
+    if choices.last().is_some_and(String::is_empty) {
+        choices.pop();
+    }
+    Some(choices)
+}
+
+fn about(id: u16, npc: u32) -> Vec<u8> {
+    let mut packet = id.to_le_bytes().to_vec();
+    packet.extend(npc.to_le_bytes());
+    packet
+}
+
+/// CZ_CONTACTNPC (0x0090): `u32 npc, u8 type` (1): the player presses an NPC.
+pub fn contact(npc: u32) -> Vec<u8> {
+    let mut packet = about(0x0090, npc);
+    packet.push(1);
+    packet
+}
+
+/// CZ_REQ_NEXT_SCRIPT (0x00b9): "next" was pressed.
+pub fn next(npc: u32) -> Vec<u8> {
+    about(0x00b9, npc)
+}
+
+/// CZ_CLOSE_DIALOG (0x0146): "close" was pressed.
+pub fn close(npc: u32) -> Vec<u8> {
+    about(0x0146, npc)
+}
+
+/// CZ_CHOOSE_MENU (0x00b8): `u32 npc, u8 choice`, the first being 1; 255 turns the menu down.
+pub fn choose(npc: u32, choice: u8) -> Vec<u8> {
+    let mut packet = about(0x00b8, npc);
+    packet.push(choice);
+    packet
+}
+
+/// CZ_INPUT_EDITDLG (0x0143): `u32 npc, i32 value`.
+pub fn number(npc: u32, value: i32) -> Vec<u8> {
+    let mut packet = about(0x0143, npc);
+    packet.extend(value.to_le_bytes());
+    packet
+}
+
+/// CZ_INPUT_EDITDLGSTR (0x01d5): `u16 length, u32 npc, char[] words` ending in a zero.
+pub fn words(npc: u32, words: &str) -> Vec<u8> {
+    let mut packet = 0x01d5u16.to_le_bytes().to_vec();
+    packet.extend(((words.len() + 9) as u16).to_le_bytes());
+    packet.extend(npc.to_le_bytes());
+    packet.extend(words.as_bytes());
+    packet.push(0);
+    packet
+}
+
+/// CZ_RESTART (0x00b2): `u8 type`: 0 returns a dead character to its save point, 1 goes back to the characters.
+pub fn restart(to_characters: bool) -> Vec<u8> {
+    vec![0xb2, 0x00, u8::from(to_characters)]
+}
+
+/// ZC_WHISPER (0x09de): `u16 length, u32 sender, char[24] name, u8 admin, char[] words`: someone whispers.
+pub const ZC_WHISPER: u16 = 0x09de;
+/// ZC_ACK_WHISPER (0x09df): `u8 result, u32 character`: 0 if the whisper arrived.
+pub const ZC_ACK_WHISPER: u16 = 0x09df;
+
+/// Who whispers, and what.
+pub fn whispered(packet: &[u8]) -> Option<(String, String)> {
+    Some((text(packet.get(8..32)?), text(packet.get(33..)?)))
+}
+
+/// CZ_WHISPER (0x0096): `u16 length, char[24] name, char[] words` ending in a zero.
+pub fn whisper(name: &str, words: &str) -> Vec<u8> {
+    let mut packet = 0x0096u16.to_le_bytes().to_vec();
+    packet.extend(((4 + 24 + words.len() + 1) as u16).to_le_bytes());
+    let mut to = name.as_bytes()[..name.len().min(23)].to_vec();
+    to.resize(24, 0);
+    packet.extend(to);
+    packet.extend(words.as_bytes());
+    packet.push(0);
+    packet
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reads_what_an_npc_says_in_both_forms() {
+        let mut old = vec![0xb4, 0, 14, 0, 7, 0, 0, 0];
+        old.extend(b"Hello\0");
+        assert_eq!((npc(ZC_SAY_DIALOG, &old), said(ZC_SAY_DIALOG, &old)), (Some(7), Some("Hello".to_owned())));
+        let mut new = vec![0x72, 0x09, 15, 0, 7, 0, 0, 0, 1];
+        new.extend(b"Hello\0");
+        assert_eq!((npc(ZC_SAY_DIALOG2, &new), said(ZC_SAY_DIALOG2, &new)), (Some(7), Some("Hello".to_owned())));
+    }
+
+    #[test]
+    fn reads_a_menu_and_keeps_empty_choices() {
+        let mut packet = vec![0xb7, 0, 0, 0, 9, 0, 0, 0];
+        packet.extend(b"Save::Quit:\0");
+        assert_eq!(menu(&packet), Some(vec!["Save".to_owned(), String::new(), "Quit".to_owned()]));
+    }
+
+    #[test]
+    fn builds_the_answers() {
+        assert_eq!(contact(0x01020304), [0x90, 0, 4, 3, 2, 1, 1]);
+        assert_eq!(choose(5, 2), [0xb8, 0, 5, 0, 0, 0, 2]);
+        assert_eq!(next(5), [0xb9, 0, 5, 0, 0, 0]);
+        assert_eq!(words(5, "ab"), [0xd5, 0x01, 11, 0, 5, 0, 0, 0, b'a', b'b', 0]);
+        for packet in [contact(1), choose(1, 1), next(1), close(1), number(1, 1)] {
+            let id = u16::from_le_bytes([packet[0], packet[1]]);
+            assert_eq!(crate::net::packet_length(id), Some(packet.len() as i32), "{id:#06x}");
+        }
+    }
+}

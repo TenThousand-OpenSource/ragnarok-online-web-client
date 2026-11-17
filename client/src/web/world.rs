@@ -36,6 +36,9 @@ mod session;
 mod actors;
 mod combat;
 mod frame;
+mod overlays;
+mod pursuit;
+mod pick;
 mod input;
 
 use shaders::*;
@@ -47,6 +50,9 @@ pub use session::*;
 pub use actors::*;
 pub use combat::*;
 use frame::*;
+use overlays::*;
+use pursuit::*;
+use pick::*;
 use input::*;
 
 const FIELD_OF_VIEW: f32 = 15.0;

@@ -123,7 +123,8 @@ def main():
     uses = [f'{plan[module].get("use", "use" if plan[module].get("private") else "pub use")} {module}::*;' for module in plan if taken[module]['free']]
     kept = [line for number, line in enumerate(lines) if number not in drop]
     # The declarations go after the parent's own `use` lines.
-    last_use = max(number for number, line in enumerate(kept) if line.startswith('use '))
+    # (In a file without any, after the comment at its top.)
+    last_use = max((number for number, line in enumerate(kept) if line.startswith('use ')), default=max((number for number, line in enumerate(kept[:kept.index('')] if '' in kept else []) if line.startswith('//!')), default=-1))
     kept[last_use + 1:last_use + 1] = [''] + declarations + [''] + uses
     text = '\n'.join(kept)
     # Impl blocks left empty by the move go, and runs of blank lines shrink.

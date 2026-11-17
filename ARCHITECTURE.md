@@ -41,13 +41,14 @@ client/src/
   bmp.rs            BMP pictures (magenta is see-through)
   sprite.rs         .spr / .act: sprites and their animations
   map.rs            .gat / .gnd: walkable cells, ground mesh, path finding
-  model.rs          .rsw / .rsm: what stands on a map
+  model.rs          .rsw / .rsm: what stands on a map (its matrices in model/matrix.rs)
   effect.rs         .str: the client's effect files, frame by frame
   hotkeys.rs        the client's keys: key numbers, how a key is written, what a Mac lacks
   talk.rs           PetTalkTable.xml: what pets say
   net/
     mod.rs          framing a byte stream into packets (lengths from packet_lengths*.txt)
-    packets.rs      login and character servers, the basics of the map server
+    packets.rs      the way in: what the packets share, and the login server   ── children in packets/ ──
+      chars.rs        the character server            zone.rs   the basics of the map server
     units.rs        everyone on the map: appearing, walking, striking, loot on the ground
     items.rs        inventory, equipment, skills known, hotkey bar
     skills.rs       casting and landing of skills
@@ -58,13 +59,18 @@ client/src/
   web/
     mod.rs          entry point, fetching files from the gateway
     socket.rs       the WebSocket
-    data.rs         tables fetched from the gateway: names of items, skills, jobs, sprites
+    data.rs         the client's tables fetched from the gateway: what is shared, and `load`  ── children in data/ ──
+      jobs.rs  items.rs  skills.rs  pets.rs  interface.rs  maps.rs  guide.rs
+                      each kind of table: what it keeps, how it is read (`read`), how it is asked (`data::…`)
     figure.rs       sprites put together into pictures (a character = body + head + headgear + weapon)
     sound.rs        music and sound effects
-    view.rs         the windows before the game: login, server and character select, creation
+    view.rs         the page outside the game's own windows: shared pieces    ── children in view/ ──
+      accounts.rs     logging in, registering, recovering          characters.rs   server and character select, creation
+      game.rs         the game's screen: the minimap and the character's place
     app.rs          the App: its state and types          ── children in app/ ──
       wiring.rs       page events (click, key, drag, timer) -> Action
-      actions.rs      what each Action does (the one place everything arrives at)
+      actions.rs      which code sees to each Action (the one place everything arrives at); the longer ones in actions/
+        forms.rs  bag.rs  link.rs  taming.rs  travel.rs
       clicks.rs       what each `data-click` does; split by kind in clicks/, as incoming/ is
       keys.rs         the keyboard
       hotkeys_set.rs  which key does what for this player; setting keys (kept in the browser)
@@ -72,16 +78,23 @@ client/src/
       connection.rs   login -> char -> map server, and back
       incoming.rs     packets from the servers; the map server's are split by kind in incoming/
         travel.rs  actors.rs  combat.rs  talk.rs  status.rs  inventory.rs  shops.rs  pets.rs
+      clicks/         account  talk  status  inventory  skills  chat  shops  pets  hotkeys  settings  guide
+      settings.rs     the Game Settings: the player's options, kept in the browser, and what they switch
+      commands.rs     what is typed after a slash
       game.rs         using items and skills, hotkeys, chat lines, entering a map
       screen.rs       which screen shows; painting characters into windows
       page.rs         DOM helpers, storage, fade and loading screen, dragging windows
     hud.rs          the in-game windows: shared pieces         ── children in hud/ ──
       basic.rs  inventory.rs  equipment.rs  skills.rs  status.rs  chat.rs  dialogs.rs  trade.rs  pets.rs
+      hotkeys_set.rs  settings.rs  guide.rs
     world.rs        the world: its state and types             ── children in world/ ──
       session.rs      entering/leaving a map, the player's own character      (called by the app)
       actors.rs       everyone else and the loot                                (called by the app)
       combat.rs       blows, casts, effects                                     (called by the app)
-      frame.rs        one frame: move everyone, advance effects, draw, overlays
+      frame.rs        one frame: move everyone, advance effects, draw
+      overlays.rs     what is laid over the picture: names, bars, numbers of blows, the pointer
+      pursuit.rs      what the character does by itself: walk on, fetch a thing, chase and strike, walk into reach
+      pick.rs         what the pointer is on: someone, or a thing on the ground
       input.rs        the mouse over the world
       gpu.rs          pipelines, textures, the draw call
       loading.rs      reading a map's files
@@ -89,7 +102,8 @@ client/src/
 gateway/src/
   main.rs           routes and start-up
   grf.rs            reading files out of GRF archives
-  tables.rs         the client's Lua tables (items, skills, jobs) and the translations
+  tables.rs         the client's Lua tables: running them, and everything the browser is given at once
+    tables/           one file per kind: items  skills  interface  maps  guide  (+ job_codes.json)
   images.rs         game pictures as PNG
   bridge.rs         WebSocket <-> TCP, only to the configured server ports
   accounts.rs       registration and password recovery
@@ -131,7 +145,44 @@ Elements carry `data-click`, `data-use` (double click), `data-info` / `data-skil
 buttons do), `hud/pets.rs` (its window), and `App::pets` (what is remembered of it). What belongs to no system
 (the connection, the account, the screen shown) is a plain field of `App`.
 
+## The rules every change follows
+
+These hold for everyone who writes here, people and agents alike. A change that breaks one is not done.
+
+1. **Find the home before writing.** A thing belongs to a *system* (pets, items, skills, the guide, the
+   settings…) and to a *layer*. Its code goes into that system's file of that layer; if the system is new, it
+   gets its own files under the same name in every layer it touches (see "One system, one name"). Nothing is
+   added to a file because it happens to be open.
+2. **A layer knows only the layers under it.** `net/` and the formats never touch the page. The world never
+   reaches into the app: it reports through `world::Hooks`. The app never reaches into the world's state: it
+   calls the public functions of `world/{session,actors,combat}.rs`. Windows (`hud/`) only read the App's state.
+3. **Parents hold what is shared, children hold the behaviour.** `app.rs`, `world.rs`, `hud.rs`, `data.rs` and
+   the gateway's `tables.rs` have the types, the shared helpers and the list of children; a child starts with
+   `use super::*;` and is about one thing.
+4. **No file grows past about 500 lines.** One that does is cut by responsibility *in the same change* — not
+   later.
+5. **One state, owned in one place.** What the game remembers is a field of its system's group in `App`
+   (`app.rs`), or of the world's `State`. No second copy, no hidden global except the tables in `data/`.
+6. **The original client is the reference, and the comment says where from.** Behaviour, sizes and texts come
+   from the client's code and files; the comment names the function or file (`UIItemIdentifyWnd`,
+   `Guide_Monster.lub`). What was not found there, or was decided here against it, says so in the comment.
+7. **Data comes from the client's files through the gateway**, each kind with a file in `gateway/src/tables/`
+   and its mirror in `client/src/web/data/`. No game data is typed into the code or committed, except small
+   tables the client has compiled into it, which are written out with a note of their origin.
+8. **What can be tested without a browser is.** A parser or a rule in `net/`, the formats or the gateway gets a
+   unit test with the change. What only shows on the page is looked at in the game before it is called done,
+   and the report says what was and was not looked at.
+9. **A change leaves the documents true.** A new file is added to the directory map below; a new kind of thing
+   to "How to…".
+
+Before finishing: `cargo test`, `./build-web.sh` with no warnings, the largest files checked
+(`find client/src gateway/src -name '*.rs' | xargs wc -l | sort -rn | head`).
+
 ## How to…
+
+**…add a table from the client's files**: read it in `gateway/src/tables/<kind>.rs` and add it to
+`tables::for_browser`; on the client, keep and read it in `web/data/<kind>.rs` (`read`, called from
+`data::load`) and bump the number in `data::load`'s URL so browsers fetch the tables anew.
 
 **…handle a new packet from the map server**
 1. Its length must be in `client/src/net/packet_lengths.txt` (generated) or `packet_lengths_more.txt` (by hand).
@@ -160,7 +211,8 @@ draws by code goes to `world/effects.rs` (geometry) and is fed to the GPU in `wo
 - Comments say what a thing is and why, in plain words; packet layouts are written out where they are parsed.
 - Types live in the parent module (`app.rs`, `world.rs`, `hud.rs`), behaviour in the children; a child starts
   with `use super::*;`.
-- A file that passes ~500 lines is split by responsibility (`tools/split_module.py` does the moving).
+- A file that passes ~500 lines is split by responsibility (`tools/split_module.py` does the moving). The
+  tests of a file that has many are in `<file>/tests.rs`.
 - No game data is committed.
 
 ## Build, run, test
@@ -176,6 +228,9 @@ Test accounts for the local server are in `server/conf/accounts.sql`.
 
 ## Known debts
 
-- `world/frame.rs` is one long function (move, simulate, draw, overlays): to be cut into those four steps.
-- `app/actions.rs` is a long `match`; it can be split by kind the way `incoming/` and `clicks/` are.
+- `world/frame.rs`'s `frame` is still one function of some 350 lines (moving everyone and building what is
+  drawn share too many values to part cheaply).
+- `app.rs` and `world.rs` hold all the types of their layer and stand at the limit of 500 lines.
+- The upper layers (windows, clicks, the world) have no tests: they are checked by hand in the game.
+- Clicks are matched by text (`data-click="…"`), not by a type the compiler checks.
 - Windows are rebuilt as strings; there is no component model, by choice so far.

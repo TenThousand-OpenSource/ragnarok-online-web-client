@@ -24,7 +24,18 @@ pub fn effect_sound(effect: u32) -> Option<&'static str> {
 /// The effects of a skill that strikes nobody (the client's `CGameMode::ReceiveSkillUse`): each with whether it
 /// is shown on the skill's target (or else on the one who used it).
 pub fn skill_effects(skill: u16) -> Vec<(bool, u32)> {
-    include_str!("effect_tables/skill_effects.txt")
+    of_skill(include_str!("effect_tables/skill_effects.txt"), skill)
+}
+
+/// The effects of a skill that strikes somebody (the client's `CSession::PlaySkillEffect`): each with whether its
+/// place is that of the one struck (or else of the striker).
+pub fn skill_hits(skill: u16) -> Vec<(bool, u32)> {
+    of_skill(include_str!("effect_tables/skill_hits.txt"), skill)
+}
+
+/// The lines `skill<TAB>s or t<TAB>effect` of a table that are of that skill.
+fn of_skill(table: &'static str, skill: u16) -> Vec<(bool, u32)> {
+    table
         .lines()
         .filter_map(|line| {
             let mut fields = line.split('\t');
@@ -69,6 +80,9 @@ mod tests {
         // No skill 0, and the usual state for a skill the table does not name.
         assert!(skill_effects(0).is_empty());
         assert_eq!(skill_state(142), 7);
+        // Sonic Blow strikes: one effect at the striker, a file, and one the client draws at the one struck.
+        assert_eq!(skill_hits(136), [(false, 143), (true, 121)]);
+        assert_eq!(effect_file(143), Some("SonicBlow.str"));
     }
 
     #[test]

@@ -118,7 +118,10 @@ translations/
   ru/               Russian: items-*.json, skills-*.json  ({"<id>": {"name", "description"}})
 tools/
   packet-lengths    builds the packet length table from rAthena's sources
-  client-tables     writes out tables compiled into the original client (skills and their effects)
+  client-tables     writes out tables compiled into the original client (skill_effects.py: skills and their
+                    effects), the classic server's scripts put right for the client's maps (classic_overlay.py
+                    writes server/npc/roweb_classic*), and a check that everyone the scripts place stands where the
+                    client's map lets one stand (placement_check.py)
   split_module.py   moves functions of a file that grew too large into child modules
 ```
 

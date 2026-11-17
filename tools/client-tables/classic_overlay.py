@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes the script that puts rAthena's classic (pre-renewal) NPCs where the new client's maps have room for them.
 
-    classic_overlay.py <rathena folder> <output file>
+    classic_overlay.py <rathena folder> <output file> <output file of script changes>
 
 rAthena's classic scripts place everyone by the old maps of a few places. The 2026 client has the new maps of
 them (they are the maps rAthena's renewal scripts are written for), so there the classic coordinates are wrong.
@@ -11,18 +11,39 @@ For each such map this compares the two sets of scripts, name by name:
   - a portal on the map, or leading to it, that differs is taken away and put again as the renewal script has it;
   - a portal on the map that the renewal scripts do not have at all is taken away;
   - whoever the renewal scripts do not have there is left where the classic script put them, and listed in a
-    comment at the end, to be looked at by hand.
+    comment at the end, to be looked at by hand;
+  - those of them who were looked at and stood wrong are in `BY_HAND` and `NO_PLACE` below, each with the reason.
 
-What the scripts do when talked to is not touched: only where things stand. A script that sends a player to such
-a map by itself (`warp "izlude",x,y`) still names the old place.
+What the scripts do when talked to is not touched: only where things stand.
+
+A script that sends a player to such a map by itself (a Kafra, a ship's sailor) names a cell too, and the server
+puts the player on it without looking: on the new map that may be inside a wall, with no way out. rAthena's
+scripts name both places where it matters (`if (checkre(0)) warp "izlude",128,98; else warp "izlude",91,105;`),
+so the second output is a `sed` script that makes each such classic cell the renewal one. The map server's
+container runs it over its own copy of the scripts when it starts (`docker-compose.yml`); rAthena's folder is
+not touched.
 """
+import collections
 import re
 import sys
 
-root, out = sys.argv[1].rstrip('/'), sys.argv[2]
+root, out, out_sed = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
 # The maps whose classic form differs from the client's: by walkable cells, against rAthena's
 # db/pre-re/map_cache.dat (the other five maps listed there are the same in the client to within 1%).
 MAPS = ['izlude', 'alberta', 'morocc']
+# Looked at by hand (`placement_check.py` names who stands in a wall): (map, name, x, y, facing).
+BY_HAND = [
+    # The classic Izlude has one guide; he goes where the renewal map's guide of the middle of the town stands.
+    ('izlude', 'Guide#iz', 133, 113, 4),
+    # The renewal Izlude has none of these three, and their classic cells are inside houses now. They are put on
+    # free cells of the market, by the renewal scripts' own stall keepers: this project's choice, no client or
+    # server table says where.
+    ('izlude', 'Pet Groomer#iz', 121, 162, 4),
+    ('izlude', 'Magazine Dealer Kenny#iz', 134, 153, 4),
+    ('izlude', 'Bullet Dealer Tony#iz', 137, 153, 4),
+]
+# Unseen spots that tell, when pressed, what the building they are on is: the old map's buildings are not there.
+NO_PLACE = [('izlude', 'Sign#Iz1'), ('izlude', 'Sign#Iz2')]
 
 
 def listed(conf):
@@ -76,7 +97,12 @@ for at in MAPS:
         if where != at or kind == 'warp':
             continue
         new = there.get(unique(name))
-        if new is None:
+        by_hand = [entry for entry in BY_HAND if entry[:2] == (at, unique(name))]
+        if by_hand:
+            moves.append(by_hand[0])
+        elif (at, unique(name)) in NO_PLACE:
+            gone.append(unique(name))
+        elif new is None:
             left.append((at, unique(name), x, y, path))
         elif (new[2], new[3]) != (x, y):
             moves.append((at, unique(name), new[2], new[3], new[4]))
@@ -109,4 +135,24 @@ lines += [f'// {at}: {name} at {x},{y} ({path})' for at, name, x, y, path in dro
 lines += ['// Left where the classic script put them: the renewal scripts have nobody of that name on the map.']
 lines += [f'// {at}: {name} at {x},{y} ({path})' for at, name, x, y, path in left]
 open(out, 'w', encoding='utf-8').write('\n'.join(lines) + '\n')
-print(f'{len(moves)} moved, {len(again)} portals put again, {len(dropped)} portals taken away, {len(left)} left as they were')
+
+# Where the scripts themselves send players: the classic cell of each `checkre(0)` pair, and the renewal one.
+BOTH = re.compile(r'checkre\(0\)(?:\s*==\s*true)?\s*\)\s*warp\s+"(\w+)"\s*,\s*(\d+)\s*,\s*(\d+)\s*;\s*else\s+'
+                  r'warp\s+"(\w+)"\s*,\s*(\d+)\s*,\s*(\d+)\s*;')
+sent = collections.defaultdict(collections.Counter)
+for path in sorted(set(listed('npc/pre-re/scripts_main.conf'))):
+    try:
+        text = open(f'{root}/{path}', encoding='latin1').read()
+    except OSError:
+        continue
+    for at, x, y, old_at, old_x, old_y in BOTH.findall(text):
+        if at == old_at and at in MAPS and (x, y) != (old_x, old_y):
+            sent[(at, old_x, old_y)][(x, y)] += 1
+rules = ['# Written by tools/client-tables/classic_overlay.py: see it for what this does and why.']
+for (at, old_x, old_y), new in sorted(sent.items()):
+    # Scripts that name different renewal cells for one classic cell mean the same spot of the town: the one
+    # most of them name is taken.
+    (x, y), _ = new.most_common(1)[0]
+    rules.append(f's/warp *"{at}" *, *{old_x} *, *{old_y} *;/warp "{at}",{x},{y};/g')
+open(out_sed, 'w', encoding='utf-8').write('\n'.join(rules) + '\n')
+print(f'{len(rules) - 1} cells scripts send players to, {len(moves)} moved, {len(again)} portals put again, {len(dropped)} portals taken away, {len(left)} left as they were')

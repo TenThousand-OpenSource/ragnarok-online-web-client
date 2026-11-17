@@ -252,7 +252,7 @@ impl Gpu {
     }
 
     /// Draws the map and, on it, each sprite standing on its feet's place.
-    pub(super) fn draw(&mut self, scene: &Scene, view: &View, sprites: &mut Vec<(SpriteKey, Vector)>, rings: &[f32], marks: &[f32], numbers: &[(SpriteKey, Vector, f32, f32, f32)], effects: &(Vec<f32>, Vec<(Rc<[wgpu::BindGroup; 2]>, bool)>)) {
+    pub(super) fn draw(&mut self, scene: &Scene, view: &View, sprites: &mut Vec<(SpriteKey, Vector, f32)>, rings: &[f32], marks: &[f32], numbers: &[(SpriteKey, Vector, f32, f32, f32)], effects: &(Vec<f32>, Vec<(Rc<[wgpu::BindGroup; 2]>, bool)>)) {
         self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&view.matrix));
         if effects.1.len() > self.effect_room {
             self.effect_room = effects.1.len().next_power_of_two();
@@ -277,17 +277,19 @@ impl Gpu {
         let mut corners = Vec::with_capacity(sprites.len() * 30 + rings.len() + marks.len());
         corners.extend_from_slice(marks);
         corners.extend_from_slice(rings);
-        for (key, feet) in sprites.iter() {
+        for (key, feet, left) in sprites.iter() {
             let texture = &self.sprite_textures[key];
             // A picture standing on the feet, facing the camera, a touch nearer than the ground it stands on.
             // It is drawn as if two cells nearer, in the same place on the screen, as the original does: a ledge
             // or a doorway over the cell does not cut through the one standing there.
             let nearer = 1.0 - 10.0 / dot(subtract(*feet, view.eye), view.forward).max(20.0);
+            // How much of it is left to see, in the shader's sixteenths.
+            let faded = ((1.0 - left.clamp(0.0, 1.0)) * 16.0).floor().min(15.0) * 2.0;
             let (width, height) = texture.size;
             for (x, y) in [(0.0, 0.0), (width, 0.0), (0.0, height), (0.0, height), (width, 0.0), (width, height)] {
                 let corner = along(along(*feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE);
                 corners.extend(along(view.eye, subtract(corner, view.eye), nearer));
-                corners.extend([x / width, y / height]);
+                corners.extend([x / width, y / height + faded]);
             }
         }
         // The numbers: each picture at its place, as large and as faded as it is now, over everything.
@@ -359,7 +361,7 @@ impl Gpu {
                     pass.set_bind_group(1, ring, &[]);
                     pass.draw(mark_corners..mark_corners + ring_corners, 0..1);
                 }
-                for (index, (key, _)) in sprites.iter().enumerate() {
+                for (index, (key, ..)) in sprites.iter().enumerate() {
                     pass.set_bind_group(1, &self.sprite_textures[key].bind, &[]);
                     let first = mark_corners + ring_corners + index as u32 * 6;
                     pass.draw(first..first + 6, 0..1);

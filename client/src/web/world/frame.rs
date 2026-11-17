@@ -3,6 +3,10 @@
 
 use super::*;
 
+/// How long one struck down takes to fade once it has fallen: the client's `CCorpse::OnProcess` takes 1 of 255
+/// from it every 24 milliseconds.
+const CORPSE_MS: f64 = 255.0 * 24.0;
+
 /// Draws one frame, and asks for the next while there is a world to draw.
 pub(super) fn frame() {
     // The effects and sounds whose moment has come.
@@ -53,8 +57,8 @@ pub(super) fn frame() {
             }
             state.hits.push((target, damage));
         }
-        // Monsters struck down are gone once they have fallen.
-        scene.units.retain(|_, unit| unit.dying.is_none_or(|fell| time - fell < 1000.0));
+        // Monsters struck down are gone once what is left of them has faded.
+        scene.units.retain(|_, unit| unit.dying.is_none_or(|fallen| time - fallen < CORPSE_MS));
         let mut sprites = Vec::with_capacity(scene.units.len() + 1);
         let gat = &scene.gat;
         let feet_cell = position;
@@ -81,7 +85,9 @@ pub(super) fn frame() {
             // Other players are left out when the player has it so (the client's Hide other Players).
             let hidden = hide_players && !is_own && matches!(mover.look, Look::Character(_));
             if let Some(shown) = mover.shown.as_ref().filter(|_| !hidden) {
-                sprites.push((shown.clone(), on_ground(gat, position)));
+                // One struck down lies as it fell and fades away (the client's `CCorpse::OnProcess`).
+                let left = mover.dying.map_or(1.0, |fallen| 1.0 - ((time - fallen) / CORPSE_MS).clamp(0.0, 1.0) as f32);
+                sprites.push((shown.clone(), on_ground(gat, position), left));
             }
             // The emotion it shows: the pictures of that action, each for as long as the sprite says, once through.
             // Until the sprite is read its length is not known: it is given four seconds to come.
@@ -97,7 +103,7 @@ pub(super) fn frame() {
                         // It follows the one who shows it, 20 above their feet (the client's `CMsgEffect`, for
                         // `MET_EMOTION`); the rest of the way up is in the sprite's own pictures.
                         if gpu.has_sprite(&key) {
-                            sprites.push((key, along(on_ground(gat, position), [0.0, 1.0, 0.0], 20.0)));
+                            sprites.push((key, along(on_ground(gat, position), [0.0, 1.0, 0.0], 20.0), 1.0));
                         }
                     }
                     None => mover.emotion = None,
@@ -116,7 +122,7 @@ pub(super) fn frame() {
                     let elapsed = ((time - began) / EFFECT_FRAME_MS) as f32;
                     (15.0 + 0.6 * elapsed - 0.083 * elapsed * elapsed).max(0.0)
                 });
-                sprites.push((key, along(on_ground(gat, *at), [0.0, 1.0, 0.0], above)));
+                sprites.push((key, along(on_ground(gat, *at), [0.0, 1.0, 0.0], above), 1.0));
             }
         }
         // Last frame's place of the pointer in the world: its pictures turn at two of the client's frames each.
@@ -124,7 +130,7 @@ pub(super) fn frame() {
             let pictures = figure::timing("cursors", 3).map_or(1, |(count, _)| count.max(1));
             let key = SpriteKey::Creature("cursors".to_owned(), 3, (time / EFFECT_FRAME_MS / 2.0) as usize % pictures);
             if gpu.has_sprite(&key) {
-                sprites.push((key, at));
+                sprites.push((key, at, 1.0));
             }
         }
         let mut ring_corners = Vec::new();

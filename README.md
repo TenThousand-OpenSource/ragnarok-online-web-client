@@ -82,6 +82,13 @@ The server plays by the classic (pre-renewal) rules: `PRERE: "yes"` in `server/d
 gateway reads `../rathena/db/pre-re`. For Renewal set `PRERE: "no"`, give the image another name there, rebuild,
 and start the gateway with `--item-database ../rathena/db/re`.
 
+rAthena's classic scripts place the NPCs and portals of Izlude, Alberta and Morroc by their old maps, and the
+client has the new ones. `server/npc/roweb_classic.txt` moves them, and `roweb_classic_warps.sed` puts right the
+cells the scripts themselves send players to; both are written by `tools/client-tables/classic_overlay.py
+../rathena server/npc/roweb_classic.txt server/npc/roweb_classic_warps.sed` (for Renewal, take both out of
+`docker-compose.yml` and `conf/map_conf.txt`). `tools/client-tables/placement_check.py` lists who stands in a
+wall on any map.
+
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's
 `--smtp-url` at a real server for anything else.
 

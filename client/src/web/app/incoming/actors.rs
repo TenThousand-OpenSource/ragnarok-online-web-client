@@ -42,10 +42,17 @@ impl App {
                     if Some(id) == self.account.as_ref().map(|account| account.account_id) {
                         if died {
                             self.hero.dead = true;
-                            // The client's data has one voice for dying, a man's (`die_male.wav`); where the
-                            // client starts it was not found in its code.
-                            if self.own_figure().sex == 1 {
+                            // This client's own choice, asked for by its owner: the voice of dying. The
+                            // client's data has the files (`die_male.wav` for men, `die_<first job>_female.wav`
+                            // for women), but the 2026 client names none of them, in its code or in the bodies'
+                            // sprites: there a player dies without a sound. A woman of a job after the second
+                            // ones has no file of her line, and dies as silently as there.
+                            const WOMEN: [&str; 7] = ["novice", "swordman", "magician", "archer", "acolyte", "merchant", "thief"];
+                            let figure = self.own_figure();
+                            if figure.sex == 1 {
                                 sound::effect("die_male.wav", 1.0);
+                            } else if let Some(first) = data::first_job(figure.job) {
+                                sound::effect(&format!("die_{}_female.wav", WOMEN[usize::from(first)]), 1.0);
                             }
                             // The client opens its window of options (or closes it, if it was open).
                             self.esc = u8::from(self.esc == 0);

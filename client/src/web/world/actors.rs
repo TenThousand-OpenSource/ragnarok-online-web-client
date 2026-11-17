@@ -198,14 +198,23 @@ pub fn unit_gone(id: u32, died: bool) {
     STATE.with_borrow_mut(|state| {
         state.early.retain(|early| early.id != id);
         if let Some(scene) = &mut state.scene {
-            // A monster struck down is seen falling before it is gone.
+            // A monster struck down is seen falling before it is gone. It falls once the blows on their way to
+            // it have landed (the client's `AM_WILL_BE_DEAD`: it dies when its list of blows to come is empty),
+            // through the pictures of its dying, each for as long as its sprite says (`ST_DEAD`, action 32), and
+            // then lies as its last picture and fades (`MakeCorpse`).
+            let time = now();
+            let falls = state.landing.iter().filter(|blow| blow.1 == id).map(|blow| blow.0).fold(time, f64::max);
             match scene.units.get_mut(&id).filter(|unit| died && unit.lively) {
                 Some(unit) => {
-                    let time = now();
-                    unit.dying = Some(time);
+                    let lasts = match &unit.look {
+                        Look::Creature(path) => figure::timing(path, 32).map(|(pictures, each)| pictures as f64 * each),
+                        Look::Character(_) => None,
+                    }
+                    .unwrap_or(700.0);
+                    unit.dying = Some(falls + lasts);
                     unit.walk = None;
                     unit.life = None;
-                    unit.motion = Some((32, time + 250.0, 700.0));
+                    unit.motion = Some((32, falls, lasts));
                 }
                 None => {
                     scene.units.remove(&id);

@@ -82,7 +82,8 @@ impl Mover {
         // around it sees it from another side.
         let turned = (f32::from(self.facing) * 45.0 - yaw).rem_euclid(360.0);
         // A motion that is yet to begin waits its turn; one under way ends when its time is up or a walk begins.
-        let motion = self.motion.filter(|(_, began, lasts)| !walking && now >= *began && now - began < *lasts);
+        // One struck down stays in the last picture of its fall.
+        let motion = self.motion.filter(|(_, began, lasts)| !walking && now >= *began && (now - began < *lasts || self.dying.is_some()));
         if motion.is_none() && !self.motion.is_some_and(|(_, began, _)| began > now) {
             self.motion = None;
         }

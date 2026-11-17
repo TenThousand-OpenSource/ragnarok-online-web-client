@@ -25,6 +25,7 @@ x-rathena: &rathena
     - ./conf/motd.txt:/rathena/conf/import/motd.txt:ro
     # The classic scripts put right for the maps the client has in their new form.
     - ./npc/roweb_classic.txt:/rathena/npc/custom/roweb_classic.txt:ro
+    - ./npc/roweb_classic_warps.sed:/rathena/npc/custom/roweb_classic_warps.sed:ro
     # Where one can walk, made from the client's own maps (see the gateway's `mapcache` command).
     - ./mapcache/map_cache.dat:/rathena/db/import/map_cache.dat:ro
 
@@ -64,7 +65,11 @@ services:
 
   map:
     <<: *rathena
-    command: sh -c "until nc -z char 6121; do sleep 1; done; exec ./map-server"
+    # Before it starts, the cells the scripts themselves send players to on those maps are put right, in the
+    # container's own copy of the scripts (see tools/client-tables/classic_overlay.py).
+    command: >
+      sh -c "find npc -name '*.txt' -not -path 'npc/custom/*' | xargs sed -i -f npc/custom/roweb_classic_warps.sed;
+      until nc -z char 6121; do sleep 1; done; exec ./map-server"
     ports: ["127.0.0.1:5121:5121"]
     depends_on: [char]
 

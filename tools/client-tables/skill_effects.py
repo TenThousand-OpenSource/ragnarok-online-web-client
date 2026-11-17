@@ -11,11 +11,15 @@ Read from the decompiled client (`rodecomp`):
   Source/Client/Mode/GameModePackets.cpp              CGameMode::ReceiveSkillUse: the effects of a skill that
                                                       strikes nobody, on the one who used it or on its target
   Source/Contents/Skills/SkillActionInfo.cpp          CSession::GetSkillActionInfo2: the motion of the body
+  Source/Contents/Jobs/JobInheritance.cpp             CSession::PlaySkillEffect: the effects of a skill that
+                                                      strikes somebody, and whose place each is put at
 
 Written, one entry a line, tab between the fields:
   effect_files.txt     <effect>  <file.str>       (merged with what the folder already has)
   effect_sounds.txt    <effect>  <sound.wav>
   skill_effects.txt    <skill>   <s|t>  <effect>  (s: on the one who used the skill, t: on its target)
+  skill_hits.txt       <skill>   <s|t>  <effect>  (the same, for a skill that strikes: s at the striker's place,
+                                                  t at the place of the one struck)
   skill_motions.txt    <skill>   <state>          (only skills whose state is not the usual one, 7)
   effects_missing.txt  <effect>  <EF_NAME>  <skills that use it>   effects of the list above that have no .str
                        file: the client draws them by code, and this client does not yet
@@ -105,6 +109,30 @@ for labels, body in switch(used, '  '):
             if effect in effects and (skills[label], who[0], effects[effect]) not in skill_effects:
                 skill_effects.append((skills[label], who[0], effects[effect]))
 
+# The effects of a skill that strikes somebody. Each is launched by one of the two and then told a place
+# (`AM_SETPOS` with the source's or the target's position): the place is what is kept; one told no place is at
+# the one who launched it.
+struck = function(read('Source/Contents/Jobs/JobInheritance.cpp'), 'void CSession::PlaySkillEffect(')
+skill_hits = []
+for labels, body in switch(struck, '  '):
+    found = []
+    for line in body:
+        launched = re.search(r'\b(source|target)->LaunchEffect\((EF_[A-Z0-9_]+)', line)
+        spawned = re.search(r'g_effectMgr->Spawn\([^,]*,\s*(EF_[A-Z0-9_]+),\s*(source|target)->', line)
+        placed = re.search(r'position = (source|target)->render\.position', line)
+        if launched:
+            found.append([launched.group(1), launched.group(2), False])
+        elif spawned:
+            found.append([spawned.group(2), spawned.group(1), True])
+        elif placed and found and not found[-1][2]:
+            found[-1][0], found[-1][2] = placed.group(1), True
+    for label in labels:
+        if label not in skills:
+            continue
+        for who, effect, _ in found:
+            if effect in effects and (skills[label], who[0], effects[effect]) not in skill_hits:
+                skill_hits.append((skills[label], who[0], effects[effect]))
+
 # The motion of the body: the state a skill puts its user in, where it is not 7.
 motions = {}
 info = function(read('Source/Contents/Skills/SkillActionInfo.cpp'), 'void CSession::GetSkillActionInfo2(')
@@ -136,13 +164,15 @@ for number, name in files.items():
 write('effect_files.txt', sorted(known.items()))
 write('effect_sounds.txt', sorted(sounds.items()))
 write('skill_effects.txt', sorted(skill_effects))
+write('skill_hits.txt', sorted(skill_hits))
 write('skill_motions.txt', sorted(motions.items()))
 names = {number: name for name, number in effects.items()}
 missing = {}
-for skill, _, effect in skill_effects:
+for skill, _, effect in skill_effects + skill_hits:
     if effect not in known:
         missing.setdefault(effect, []).append(skill)
 skill_names = {number: name for name, number in skills.items()}
 write('effects_missing.txt', [(effect, names[effect], ' '.join(skill_names[skill] for skill in sorted(set(users)))) for effect, users in sorted(missing.items())])
 print(f'{len(skills)} skills, {len(effects)} effects; {len(known)} effect files ({len(files)} from the code), {len(sounds)} sounds, '
-      f'{len(skill_effects)} skill effects of {len(set(skill for skill, _, _ in skill_effects))} skills, {len(motions)} motions, {len(missing)} effects without a file')
+      f'{len(skill_effects)} skill effects of {len(set(skill for skill, _, _ in skill_effects))} skills, '
+      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(motions)} motions, {len(missing)} effects without a file')

@@ -97,3 +97,32 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     SPRITES.set(entries::<u16>(&field(tables, "sprites")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
     WEAPONS.set(entries::<u16>(&field(tables, "weapons")).into_iter().filter_map(|(kind, name)| Some((kind, name.as_string()?))).collect());
 }
+
+/// The first job a job grew out of, among the classic ones (0 novice, 1 swordman, 2 magician, 3 archer,
+/// 4 acolyte, 5 merchant, 6 thief): for the first and second jobs, their high and their baby forms. The jobs
+/// after those are not told here.
+pub fn first_job(job: u16) -> Option<u16> {
+    // The same order in each of the three ranges of numbers: plain from 0, high from 4001, baby from 4023.
+    let plain = match job {
+        0..=20 => job,
+        4001..=4021 => job - 4001,
+        4023..=4043 => job - 4023,
+        _ => return None,
+    };
+    Some(match plain {
+        0..=6 => plain,
+        // Knight and crusader (13 is the knight on a bird).
+        7 | 13 | 14 => 1,
+        // Wizard and sage.
+        9 | 16 => 2,
+        // Hunter, bard and dancer.
+        11 | 19 | 20 => 3,
+        // Priest and monk.
+        8 | 15 => 4,
+        // Blacksmith and alchemist.
+        10 | 18 => 5,
+        // Assassin and rogue.
+        12 | 17 => 6,
+        _ => return None,
+    })
+}

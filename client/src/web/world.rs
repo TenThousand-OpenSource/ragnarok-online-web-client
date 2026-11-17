@@ -212,7 +212,7 @@ struct Mover {
     sitting: bool,
     /// Lying dead (the player's own character, until it returns to its save point).
     dead: bool,
-    /// A monster struck down: when. It falls, and is gone a moment later.
+    /// A monster struck down: when its fall is over. From then it lies there and fades.
     dying: Option<f64>,
     /// What it said last, and when: shown over its head for a while.
     says: Option<(String, f64)>,

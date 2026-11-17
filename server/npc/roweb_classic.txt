@@ -6,6 +6,8 @@
 
 -	script	roweb_classic_maps	-1,{
 OnInit:
+	unloadnpc "Sign#Iz1";
+	unloadnpc "Sign#Iz2";
 	unloadnpc "alb02";
 	unloadnpc "iz01";
 	unloadnpc "iz02";
@@ -32,10 +34,14 @@ OnInit:
 	movenpc "Cebalis#izlude",55,159,2;	// izlude
 	movenpc "Soldier#izlude",165,156,2;	// izlude
 	movenpc "Honeymoon Helper#Izlude",180,224,3;	// izlude
+	movenpc "Guide#iz",133,113,4;	// izlude
 	movenpc "Kafra Employee#iz",128,148,6;	// izlude
+	movenpc "Magazine Dealer Kenny#iz",134,153,4;	// izlude
+	movenpc "Bullet Dealer Tony#iz",137,153,4;	// izlude
 	movenpc "Butcher#iz",160,186,0;	// izlude
 	movenpc "Fruit Gardener#iz",124,165,4;	// izlude
 	movenpc "Vendor from Milk Ranch#i",128,158,7;	// izlude
+	movenpc "Pet Groomer#iz",121,162,4;	// izlude
 	movenpc "Bulletin Board#5",25,103,0;	// izlude
 	movenpc "Mercenary Manager#Sword",47,170,4;	// izlude
 	movenpc "Mercenary Merchant#Sword",55,170,4;	// izlude
@@ -73,12 +79,6 @@ arena_room,99,24,0	warp	bye_arena_n	2,2,izlude,209,161
 // izlude: izair1 at 149,39 (npc/pre-re/warps/cities/izlude.txt)
 // izlude: lizair2 at 176,56 (npc/pre-re/warps/cities/izlude.txt)
 // Left where the classic script put them: the renewal scripts have nobody of that name on the map.
-// izlude: Guide#iz at 121,87 (npc/pre-re/guides/guides_izlude.txt)
-// izlude: Magazine Dealer Kenny#iz at 171,127 (npc/pre-re/merchants/ammo_boxes.txt)
-// izlude: Bullet Dealer Tony#iz at 171,133 (npc/pre-re/merchants/ammo_dealer.txt)
-// izlude: Pet Groomer#iz at 164,138 (npc/pre-re/merchants/shops.txt)
-// izlude: Sign#Iz1 at 54,139 (npc/pre-re/other/msg_boards.txt)
-// izlude: Sign#Iz2 at 144,148 (npc/pre-re/other/msg_boards.txt)
 // alberta: AlbGuide at 23,238 (npc/pre-re/guides/guides_alberta.txt)
 // alberta: Guide#2alb at 120,60 (npc/pre-re/guides/guides_alberta.txt)
 // alberta: bdt at 118,160 (npc/pre-re/merchants/ammo_dealer.txt)

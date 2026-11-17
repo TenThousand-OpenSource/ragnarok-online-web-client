@@ -98,7 +98,7 @@ pub(super) enum Action {
     /// A skill was pressed with the right button: show its description.
     SkillInfo(u16),
     /// An item was pressed with the right button: show what is known of it.
-    Info(u32),
+    Info(u32, bool),
     /// The character stands by a thing on the ground it was sent to: pick it up.
     Take(u32),
     /// The player pressed someone on the map: their ID, and whether it is a monster.
@@ -287,12 +287,16 @@ pub(super) struct Bag {
     pub open: bool,
     pub tab: Tab,
     pub equipment_open: bool,
-    /// The item whose description is open.
-    pub info: Option<u32>,
+    /// The item whose description is open, and whether it is identified.
+    pub info: Option<(u32, bool)>,
+    /// The items a magnifier can identify (their places in the inventory) while its list is open, and the row
+    /// picked in it (none at first, as in the client's `UIItemIdentifyWnd`).
+    pub identify: Option<Vec<u16>>,
+    pub identify_picked: Option<usize>,
     /// The thing being dropped while its count is asked for: where it is carried, and how many there are.
     pub throwing: Option<(u16, u16)>,
     /// What was picked up last, and whether the chat has told of it (its name may arrive a moment later).
-    pub obtained: Option<(u32, u16)>,
+    pub obtained: Option<(u32, u16, bool)>,
     /// When it was picked up (milliseconds since 1970): the note of it shows for five seconds from then.
     pub obtained_at: f64,
     pub told_obtained: bool,
@@ -396,6 +400,8 @@ pub(super) struct Pets {
     /// The answer to feeding the pet (whether it ate, and its food), until the chat has told of it: the food's
     /// name may arrive a moment later.
     pub fed: Option<(bool, u32)>,
+    /// The pet window was opened by itself for this pet's low intimacy: it is, once for a pet.
+    pub alerted: bool,
     /// The menu of the pet, opened with the right button on it: where on the stage.
     pub menu_at: Option<(i32, i32)>,
     /// How hungry the pet was before its hunger last changed: what it feels on being fed goes by that.

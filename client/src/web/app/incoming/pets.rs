@@ -49,8 +49,16 @@ impl App {
             pets::ZC_CHANGESTATE_PET => {
                 let Some((what, unit, value)) = pets::changed(packet) else { return true };
                 match (what, &mut self.pets.pet) {
-                    (pets::change::OWN, _) => self.pets.unit = unit,
-                    (pets::change::INTIMACY, Some(pet)) => pet.intimacy = value,
+                    (pets::change::OWN, _) => (self.pets.unit, self.pets.alerted) = (unit, self.pets.alerted && unit == self.pets.unit),
+                    (pets::change::INTIMACY, Some(pet)) => {
+                        pet.intimacy = value;
+                        // A pet grown awkward has its window opened, once, when the player has the client's Pet
+                        // Information Window option on (`UpdatePetFriendlyWindow`).
+                        if value <= 100 && !self.pets.alerted && self.settings.set.get("TT_PETINFO_ALERT_ONOFF").copied().unwrap_or_else(|| data::option_starts("TT_PETINFO_ALERT_ONOFF")) {
+                            (self.pets.alerted, self.pets.open) = (true, true);
+                            self.render();
+                        }
+                    }
                     (pets::change::HUNGER, Some(pet)) => (self.pets.hunger_before, pet.hunger) = (pet.hunger, value),
                     // Anyone's pet is seen wearing it; the player's own has it noted in its window too.
                     (pets::change::ACCESSORY, pet) => {

@@ -39,6 +39,9 @@ thread_local! {
     static KEY_NAMES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The options of the client's Game Settings window, in its order.
     static OPTIONS: RefCell<Vec<GameOption>> = const { RefCell::new(Vec::new()) };
+    /// What the client calls each map, by the map's name: its full name, the large and the small line of its
+    /// sign, the sign's picture, and whether the sign is shown on coming in.
+    static MAPS: RefCell<HashMap<String, MapSign>> = RefCell::new(HashMap::new());
     /// The client's message table, by line.
     static MESSAGES: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
     /// The client's emotions by their number: the sprite each is in, and which of its actions it is.
@@ -63,6 +66,8 @@ thread_local! {
     /// What more is told of an item looked at: the client's description, line by line, and what the server's
     /// database says of it.
     static ABOUT: RefCell<HashMap<u32, (Vec<String>, Vec<(String, String)>)>> = RefCell::new(HashMap::new());
+    /// What an item is before it is identified: its name, the name of its pictures, its description.
+    static UNIDENTIFIED: RefCell<HashMap<u32, (String, String, Vec<String>)>> = RefCell::new(HashMap::new());
     /// What the translated skills are called in Russian, by ID.
     static SKILL_NAMES_RU: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// Items asked for and not answered yet (or not known to the gateway at all).
@@ -192,6 +197,7 @@ fn russian() -> bool {
 pub fn forget_texts() {
     ITEMS.with_borrow_mut(HashMap::clear);
     ABOUT.with_borrow_mut(HashMap::clear);
+    UNIDENTIFIED.with_borrow_mut(HashMap::clear);
     ITEMS_ASKED.with_borrow_mut(std::collections::HashSet::clear);
     SKILL_TEXTS.with_borrow_mut(HashMap::clear);
 }
@@ -199,6 +205,21 @@ pub fn forget_texts() {
 /// What an item is called and the name of its pictures, once the gateway has told (see `want_items`).
 pub fn item(id: u32) -> Option<(String, String)> {
     ITEMS.with_borrow(|items| items.get(&id).cloned())
+}
+
+/// What an item in someone's hands is called and the name of its pictures: its own, or, until it is identified,
+/// what the client's table gives for it unidentified (as the client's `CSession::IconPath` and `DisplayName`).
+pub fn item_as(id: u32, identified: bool) -> Option<(String, String)> {
+    let known = item(id)?;
+    if identified {
+        return Some(known);
+    }
+    Some(UNIDENTIFIED.with_borrow(|unknown| unknown.get(&id).filter(|(name, ..)| !name.is_empty()).map(|(name, resource, _)| (name.clone(), resource.clone()))).unwrap_or(known))
+}
+
+/// The description of an item not identified yet.
+pub fn unidentified_about(id: u32) -> Vec<String> {
+    UNIDENTIFIED.with_borrow(|unknown| unknown.get(&id).map(|(_, _, lines)| lines.clone()).unwrap_or_default())
 }
 
 /// An item's description and facts, once the gateway has told of the item.
@@ -229,6 +250,15 @@ pub fn want_items(ids: impl Iterator<Item = u32>, then: fn()) {
                         (id, (strings(field("description")), facts))
                     })
                     .collect();
+                let unknown: Vec<(u32, (String, String, Vec<String>))> = entries::<u32>(&answer)
+                    .into_iter()
+                    .filter_map(|(id, about)| {
+                        let unknown = js_sys::Reflect::get(&about, &"unidentified".into()).ok().filter(|unknown| unknown.is_object())?;
+                        let lines = js_sys::Reflect::get(&unknown, &"description".into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
+                        Some((id, (text_of(&unknown, "name")?, text_of(&unknown, "resource")?, strings(lines))))
+                    })
+                    .collect();
+                UNIDENTIFIED.with_borrow_mut(|all| all.extend(unknown));
                 ABOUT.with_borrow_mut(|about| about.extend(told));
                 ITEMS.with_borrow_mut(|items| items.extend(found));
                 then();
@@ -334,6 +364,23 @@ pub fn option_starts(id: &str) -> bool {
     OPTIONS.with_borrow(|options| options.iter().find(|option| option.id == id).is_some_and(|option| option.on))
 }
 
+/// What the client calls a map (its `mapInfo_true.lub`).
+#[derive(Clone, Default)]
+pub struct MapSign {
+    /// The full name, as `/where` gives it.
+    pub name: String,
+    /// The sign shown on coming in: its large line, the small one over it, its picture, and whether it shows.
+    pub title: String,
+    pub over: String,
+    pub picture: String,
+    pub shown: bool,
+}
+
+/// What the client calls that map, if its table has it.
+pub fn map_sign(map: &str) -> Option<MapSign> {
+    MAPS.with_borrow(|maps| maps.get(map.trim_end_matches(".gat").trim_end_matches(".rsw")).cloned())
+}
+
 /// A line of the client's message table, by the number the client's code knows it by.
 pub fn message(line: usize) -> Option<String> {
     MESSAGES.with_borrow(|messages| messages.get(line).cloned())
@@ -378,7 +425,7 @@ pub fn pet_line(job: u16, hunger: usize, moment: i32) -> Option<String> {
 /// headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=11").await?;
+    let tables = fetch_json("/tables.json?v=12").await?;
     let table = |name: &str| js_sys::Reflect::get(&tables, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
     let jobs = entries::<u16>(&table("jobs")).into_iter().filter_map(|(job, about)| Some((job, text_of(&about, "name")?))).collect();
     let headgear = entries::<u16>(&table("headgear")).into_iter().filter_map(|(view, name)| Some((view, name.as_string()?))).collect();
@@ -409,6 +456,21 @@ pub async fn load() -> Result<(), String> {
                     description: text_of(&option, "description").unwrap_or_default(),
                     on: flag("on"),
                 }
+            })
+            .collect(),
+    );
+    MAPS.set(
+        entries::<String>(&table("maps"))
+            .into_iter()
+            .map(|(map, about)| {
+                let sign = MapSign {
+                    name: text_of(&about, "name").unwrap_or_default(),
+                    title: text_of(&about, "title").unwrap_or_default(),
+                    over: text_of(&about, "over").unwrap_or_default(),
+                    picture: text_of(&about, "picture").unwrap_or_default(),
+                    shown: js_sys::Reflect::get(&about, &"shown".into()).ok().and_then(|shown| shown.as_bool()).unwrap_or(false),
+                };
+                (map, sign)
             })
             .collect(),
     );

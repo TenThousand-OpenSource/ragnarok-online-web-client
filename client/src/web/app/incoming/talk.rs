@@ -71,6 +71,13 @@ impl App {
                     }
                 }
             }
+            // ZC_REQ_EXCHANGE_ITEM (0x01f4): someone asks to trade. With the client's `/notrade` on it is turned
+            // down at once (CZ_ACK_EXCHANGE_ITEM, 0x00e6, with 4); trading itself is not made yet.
+            0x01f4 => {
+                if let (true, Some(socket)) = (self.option("TT_NOTRADE_ON_OFF"), &self.socket) {
+                    socket.send(&[0xe6, 0x00, 4]);
+                }
+            }
             npc::ZC_WHISPER => {
                 if let Some((name, words)) = npc::whispered(packet) {
                     self.chat_line(format!("( {} {name} ) : {words}", crate::i18n::tr("From")), "#ffff00");

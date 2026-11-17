@@ -29,10 +29,38 @@ impl App {
                 }
                 self.items_changed();
             }
+            // ZC_ITEMIDENTIFY_LIST (0x0177): `u16 length`, then the place in the inventory of each item not
+            // identified. A magnifier was used: they are listed to pick the one to identify (the client's
+            // `UIItemIdentifyWnd`).
+            0x0177 => {
+                self.bag.identify = Some(packet.get(4..).unwrap_or_default().chunks_exact(2).map(|index| u16::from_le_bytes([index[0], index[1]])).collect());
+                self.bag.identify_picked = None;
+                self.render();
+            }
+            // ZC_ACK_ITEMIDENTIFY (0x0179): `u16 index, u8 result`. Identified (0): the client says so in yellow
+            // and the item is what it is from now on, name and picture; failed (1): it says so in red.
+            0x0179 => {
+                let index = packet.get(2..4).map_or(0, |index| u16::from_le_bytes([index[0], index[1]]));
+                match packet.get(4) {
+                    Some(0) => {
+                        self.chat_line(data::message(491).unwrap_or_else(|| "Item appraisal has completed successfully.".to_owned()), "#ffff00");
+                        if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                            item.identified = true;
+                            // Its description, if open, is the identified one now.
+                            if self.bag.info == Some((item.id, false)) {
+                                self.bag.info = Some((item.id, true));
+                            }
+                        }
+                        self.items_changed();
+                    }
+                    Some(1) => self.chat_line(data::message(492).unwrap_or_else(|| "Item appraisal has failed.".to_owned()), "#ff0000"),
+                    _ => {}
+                }
+            }
             items::ZC_ITEM_PICKUP_ACK => {
                 if let Some(gained) = items::gained(packet) {
                     // What was picked up is told in the chat and shown for a moment, as the original does.
-                    self.bag.obtained = Some((gained.id, gained.amount));
+                    self.bag.obtained = Some((gained.id, gained.amount, gained.identified));
                     self.bag.obtained_at = js_sys::Date::now();
                     match self.bag.items.iter_mut().find(|item| item.index == gained.index) {
                         Some(item) => item.amount += gained.amount,

@@ -14,6 +14,25 @@ impl App {
                 self.bag.tab = [Tab::Usable, Tab::Equipment, Tab::Other][arg.parse::<usize>().unwrap_or(0).min(2)];
                 self.refresh_items();
             }
+            "identify-pick" => {
+                self.bag.identify_picked = arg.parse().ok();
+                self.render();
+            }
+            // CZ_REQ_ITEMIDENTIFY (0x0178): `u16 index`. OK asks for the picked item (and does nothing while none
+            // is picked); Cancel tells the server -1, so it lets go of the magnifier's use.
+            "identify-ok" | "identify-cancel" => {
+                let picked = self.bag.identify.as_ref().zip(self.bag.identify_picked).and_then(|(items, picked)| items.get(picked).copied());
+                let index = match (what, picked) {
+                    ("identify-ok", Some(index)) => index,
+                    ("identify-ok", None) => return true,
+                    _ => 0xffff,
+                };
+                if let Some(socket) = &self.socket {
+                    socket.send(&items::identify(index));
+                }
+                self.bag.identify = None;
+                self.render();
+            }
             "throw-cancel" => {
                 self.bag.throwing = None;
                 self.refresh_throw();

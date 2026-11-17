@@ -19,10 +19,15 @@ impl App {
         let Some(socket) = &self.socket else { return false };
         match words {
             "/sit" | "/stand" => socket.send(&units::sit(words == "/sit")),
-            // Where the character is (the client's `ShowPlayerLocation`, which also gives the map's full name).
+            // Where the character is, as the client writes it: the map's full name, its own, and the cell
+            // (`ShowPlayerLocation`).
             "/where" => {
                 let Some(game) = &self.game else { return true };
-                let line = format!("{} : {}, {}", game.map, game.x, game.y);
+                let map = game.map.trim_end_matches(".gat");
+                let line = match data::map_sign(map) {
+                    Some(sign) => format!("{}({map}) : {}, {}", sign.name, game.x, game.y),
+                    None => format!("{map} : {}, {}", game.x, game.y),
+                };
                 self.chat_line(line, "#ffff64");
             }
             // CZ_REMEMBER_WARPPOINT (0x011d): this place is kept for Warp Portal.

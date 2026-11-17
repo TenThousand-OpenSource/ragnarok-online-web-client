@@ -98,32 +98,46 @@ impl App {
 
     /// What is known of an item, opened with the right button: its large picture, what the server's database
     /// says of it (kind, weight, price and the like), and the client's own description under that.
-    /// The eggs an incubator can hatch (the client's `UIPetEggListWnd`, 200 by 200): each with its picture and
-    /// name; the picked one is hatched with OK (or with a double click).
+    /// The eggs an incubator can hatch (the client's `UIPetEggListWnd`): the picked one is hatched with OK (or
+    /// with a double click).
     pub(in crate::web) fn egg_window(&self) -> String {
         let Some(eggs) = &self.pets.eggs else { return String::new() };
-        let mut window = title_bar(200, "Pet Egg List");
+        self.item_list("Pet Egg List", eggs, Some(self.pets.egg_picked), "egg")
+    }
+
+    /// The items a magnifier can identify (the client's `UIItemIdentifyWnd`, titled with its message 521): the
+    /// picked one is identified with OK (or with a double click); none is picked at first.
+    pub(in crate::web) fn identify_window(&self) -> String {
+        let Some(items) = &self.bag.identify else { return String::new() };
+        self.item_list("Identify Item", items, self.bag.identify_picked, "identify")
+    }
+
+    /// The client's window that lists items to pick one of (`UIItemIdentifyWnd` and those made of it), 200 by
+    /// 200: four rows 32 apart from 34 down, each with the item's picture 8 in and its name 40 in, the picked one
+    /// on a band 30 high that starts 5 in and 3 above; OK and Cancel 92 and 46 from the right, 24 from the bottom.
+    fn item_list(&self, title: &str, places: &[u16], picked: Option<usize>, list: &str) -> String {
+        let mut window = title_bar(200, title);
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 200, 162)));
-        let rows: String = eggs
+        let rows: String = places
             .iter()
             .enumerate()
             .filter_map(|(row, index)| {
                 let item = self.bag.items.iter().find(|item| item.index == *index)?;
-                let resource = data::item(item.id).map(|(_, resource)| resource);
-                let picked = if row == self.pets.egg_picked { "background:#c6d6f7;" } else { "" };
+                let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
+                let band = if picked == Some(row) { r#"<div style="position:absolute;left:5px;top:0;width:176px;height:30px;background:#c6d6f7"></div>"# } else { "" };
                 Some(format!(
-                    r#"<div style="position:relative;height:26px;{picked}cursor:default" data-click="egg-pick" data-arg="{row}" data-use="egg:{row}"><div style="position:absolute;left:2px;top:1px;width:24px;height:24px">{}</div><div class="t" style="position:absolute;left:32px;top:6px">{}</div></div>"#,
+                    r#"<div style="position:relative;height:32px;cursor:default" data-click="{list}-pick" data-arg="{row}" data-use="{list}:{row}">{band}<div style="position:absolute;left:8px;top:3px;width:24px;height:24px">{}</div><div class="t" style="position:absolute;left:40px;top:3px;white-space:nowrap">{}</div></div>"#,
                     Self::icon(resource.as_deref()),
                     escape(&Self::item_name(item))
                 ))
             })
             .collect();
-        window.push_str(&format!(r#"<div class="a scroll" style="{}">{rows}</div>"#, at(2, 19, 196, 158)));
+        window.push_str(&format!(r#"<div class="a scroll" style="{}">{rows}</div>"#, at(1, 31, 198, 128)));
         window.push_str(&art("basic_interface/btnbar_left.bmp", 0, 179, 21, 21));
         window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, 179, 158, 21));
         window.push_str(&art("basic_interface/btnbar_right.bmp", 179, 179, 21, 21));
-        window.push_str(&picture_button(110, 180, "btn_ok", "egg-ok"));
-        window.push_str(&picture_button(155, 180, "btn_cancel", "egg-cancel"));
+        window.push_str(&picture_button(108, 176, "btn_ok", &format!("{list}-ok")));
+        window.push_str(&picture_button(154, 176, "btn_cancel", &format!("{list}-cancel")));
         window
     }
 }

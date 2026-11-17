@@ -19,6 +19,13 @@ pub(super) fn item_effect(item: u32) -> Option<(&'static str, Option<&'static st
 impl App {
     /// Uses what was double-clicked or what a key stands for: `item:<index>`, `skill:<id>` or `slot:<number>`.
     pub(super) fn use_it(&mut self, what: &str) {
+        // A double click on a row of a list to pick from is picking it and pressing OK (the client's
+        // `UIItemIdentifyWnd::OnLBtnDblClk`).
+        if let Some((list @ ("egg" | "identify"), row)) = what.split_once(':') {
+            self.click(&format!("{list}-pick"), row);
+            self.click(&format!("{list}-ok"), "");
+            return;
+        }
         let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };
         let Some((kind, number)) = what.split_once(':') else { return };
         let Ok(number) = number.parse::<u32>() else { return };
@@ -140,8 +147,8 @@ impl App {
 
     /// Tells of the thing just picked up, once its name is known: a line in the chat, and a note on the screen.
     pub(super) fn tell_obtained(&mut self) {
-        let Some((id, amount)) = self.bag.obtained.filter(|_| !self.bag.told_obtained) else { return };
-        let Some((name, _)) = data::item(id) else { return };
+        let Some((id, amount, identified)) = self.bag.obtained.filter(|_| !self.bag.told_obtained) else { return };
+        let Some((name, _)) = data::item_as(id, identified) else { return };
         self.bag.told_obtained = true;
         self.chat_line(format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), "#ffff00");
         if let Some(note) = element("obtained") {
@@ -268,5 +275,24 @@ impl App {
     pub(super) fn aim_words(&self) {
         let words = self.skills.aimed.filter(|(skill, _)| *skill != TAME).map(|(skill, level)| format!("{} Lv {level}", data::skill(skill).map(|(_, name, _)| name).unwrap_or_default())).unwrap_or_default();
         world::aim_words(&words);
+    }
+
+    /// Shows the sign of the map come into, when the player has it so (the client's `ShowCurrentMapName`):
+    /// the small line, the large one, on the map's picture. A map with neither line says its name.
+    pub(super) fn map_sign(&self) {
+        let Some(sign) = self.game.as_ref().and_then(|game| data::map_sign(&game.map)).filter(|sign| sign.shown && self.option("TT_SHOW_MAP_NAME_ON_OFF")) else { return };
+        let Some(shown) = element("mapsign") else { return };
+        let picture = if sign.picture.is_empty() { "noname" } else { sign.picture.as_str() };
+        let title = if sign.title.is_empty() && sign.over.is_empty() { sign.name.as_str() } else { sign.title.as_str() };
+        shown.set_inner_html(&format!(
+            r#"<img alt="" draggable="false" src="{}" onerror="this.remove()"><div class="over">{}</div><div class="title">{}</div>"#,
+            crate::web::asset_url(&format!("data/texture/유저인터페이스/display_mapname/{picture}.png")),
+            escape(&sign.over),
+            escape(title)
+        ));
+        // Taken off and put on again, so that it starts over on a map come into while the last still shows.
+        shown.set_class_name("");
+        let _ = shown.dyn_ref::<web_sys::HtmlElement>().map(web_sys::HtmlElement::offset_width);
+        shown.set_class_name("shown");
     }
 }

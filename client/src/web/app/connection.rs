@@ -40,6 +40,7 @@ impl App {
         self.deal.storage = None;
         self.bag.throwing = None;
         self.bag.info = None;
+        self.bag.identify = None;
         self.bag.obtained = None;
         self.hero.dead = false;
         self.esc = 0;

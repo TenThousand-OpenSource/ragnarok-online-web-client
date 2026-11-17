@@ -181,6 +181,8 @@ impl App {
         );
         // The list of eggs to hatch: 200 by 200, where the client opens it.
         let eggs = if self.pets.eggs.is_some() { format!(r#"<div id="eggs" class="a hud" style="left:{}px;top:{}px;width:200px">{}</div>"#, (view.0 as i32 - 200) / 2, view.1 as i32 * 200 / 480, self.egg_window()) } else { String::new() };
+        // The list of items to identify: the same window, in the same place.
+        let identify = if self.bag.identify.is_some() { format!(r#"<div id="identify" class="a hud" style="left:{}px;top:{}px;width:200px">{}</div>"#, (view.0 as i32 - 200) / 2, view.1 as i32 * 200 / 480, self.identify_window()) } else { String::new() };
         // The pet window, where the client opens it: 185 across its 640-wide stage, 60 above 400 of 480 down.
         let pet = if self.pets.open && self.pets.pet.is_some() {
             format!(
@@ -216,7 +218,7 @@ impl App {
         // The menu hangs under the basic window, a little into it.
         let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.hero.basic_small { 55 } else { 134 } - 4, self.menu_icons());
         format!(
-            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{pet}{keys}{settings}{pet_menu}
+            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{identify}{pet}{keys}{settings}{pet_menu}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,
             self.basic_info(),
             u8::from(self.chat.locked),

@@ -70,9 +70,9 @@ pub fn start() -> Result<(), String> {
             dispatch(Action::Dropped(slot, String::new()));
         }
         // The right button on an item shows what it is.
-        if let Some(id) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| id.parse().ok()) {
+        if let Some((id, identified)) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| Some((id.trim_end_matches('?').parse().ok()?, !id.ends_with('?')))) {
             event.prevent_default();
-            dispatch(Action::Info(id));
+            dispatch(Action::Info(id, identified));
         }
         // The right button on a skill shows its description.
         if let Some(id) = pressed(&event, "data-skill").and_then(|skill| skill.get_attribute("data-skill")).and_then(|id| id.parse().ok()) {

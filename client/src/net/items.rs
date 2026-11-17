@@ -276,6 +276,14 @@ pub fn set_hotkey(slot: u16, hotkey: Hotkey) -> Vec<u8> {
     [&0x0b21u16.to_le_bytes()[..], &0u16.to_le_bytes(), &slot.to_le_bytes(), &[u8::from(hotkey.skill)], &hotkey.id.to_le_bytes(), &hotkey.count.to_le_bytes()].concat()
 }
 
+/// CZ_REQ_ITEMIDENTIFY (0x0178): `u16 index`. Asks to identify the item at that place of the inventory, after a
+/// magnifier listed it; 0xffff (the client's -1) says none was picked.
+pub fn identify(index: u16) -> Vec<u8> {
+    let mut packet = vec![0x78, 0x01];
+    packet.extend_from_slice(&index.to_le_bytes());
+    packet
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -16,9 +16,11 @@ impl App {
                 "create" => self.create_character(),
                 "throw" => {
                     if let (Some((index, most)), Some(socket)) = (self.bag.throwing.take(), &self.socket) {
-                        let count = field("throw-count").trim().parse::<u32>().unwrap_or(0).min(u32::from(most)) as u16;
-                        if count > 0 {
-                            socket.send(&items::throw(index, count));
+                        // As the client's window does: a number that is none, or more than there is, drops
+                        // nothing, and the window goes away without a word.
+                        let count = field("throw-count").trim().parse::<u32>().unwrap_or(0);
+                        if (1..=u32::from(most)).contains(&count) {
+                            socket.send(&items::throw(index, count as u16));
                         }
                     }
                     self.refresh_throw();
@@ -119,8 +121,8 @@ impl App {
                 data::want_skill(id, || dispatch(Action::ItemsKnown));
                 self.refresh_items();
             }
-            Action::Info(id) => {
-                self.bag.info = Some(id);
+            Action::Info(id, identified) => {
+                self.bag.info = Some((id, identified));
                 data::want_items(std::iter::once(id), || dispatch(Action::ItemsKnown));
                 self.refresh_items();
             }
@@ -345,6 +347,9 @@ impl App {
                 }
                 // The world goes by some of the player's options from its first frame.
                 self.apply_options();
+                if outcome.is_ok() {
+                    self.map_sign();
+                }
                 if let Err(error) = outcome {
                     web_sys::console::error_1(&format!("world: {error}").into());
                     self.message = Some(error);

@@ -14,15 +14,15 @@ impl App {
         }
     }
 
-    /// How many of a stack to drop: the original's small box (182 by 46) with the item's name, the number to
-    /// type over (all of them at first) and OK.
+    /// How many of a stack to drop: the original's small box (`UIItemDropCntWnd`, 182 by 46) with the item's
+    /// name, the number to type over (all of them at first; a plain field of six characters) and OK.
     pub(in crate::web) fn throw_window(&self) -> String {
         let Some((index, most)) = self.bag.throwing else { return String::new() };
         let name = self.bag.items.iter().find(|item| item.index == index).map(Self::item_name).unwrap_or_default();
         format!(
             r#"{}<form data-submit="throw" class="a" style="{}">
                  <div class="a t" style="left:15px;top:6px;width:104px;overflow:hidden;white-space:nowrap">{}</div>
-                 <input id="throw-count" class="a in" style="{};background:#e8e8e8" type="number" min="1" max="{most}" value="{most}">
+                 <input id="throw-count" class="a in" style="{};background:#e8e8e8" type="text" inputmode="numeric" maxlength="6" autocomplete="off" value="{most}">
                  {}
                </form>"#,
             system_box(0, 182, 46),
@@ -35,8 +35,8 @@ impl App {
 
     /// The note of a thing just picked up: its picture and "name - N obtained", fading after a moment.
     pub(in crate::web) fn obtained_note(&self) -> String {
-        let Some((id, amount)) = self.bag.obtained else { return String::new() };
-        let Some((name, resource)) = data::item(id) else { return String::new() };
+        let Some((id, amount, identified)) = self.bag.obtained else { return String::new() };
+        let Some((name, resource)) = data::item_as(id, identified) else { return String::new() };
         // It shows for five seconds from the moment the thing was picked up, however often the page is drawn
         // meanwhile: drawn anew, it goes on from where it was.
         let shown = (js_sys::Date::now() - self.bag.obtained_at) / 1000.0;
@@ -58,9 +58,10 @@ impl App {
     /// collection's background, the item's large picture at 10, 11, its name at 90, 10 and its description in a
     /// field of 182 by 80 at 91, 31 that scrolls.
     pub(in crate::web) fn item_info_window(&self) -> String {
-        let Some(id) = self.bag.info else { return String::new() };
-        let (name, resource) = data::item(id).unwrap_or_else(|| (format!("{} {id}", tr("Item")), String::new()));
-        let (description, _) = data::about(id).unwrap_or_default();
+        let Some((id, identified)) = self.bag.info else { return String::new() };
+        let (name, resource) = data::item_as(id, identified).unwrap_or_else(|| (format!("{} {id}", tr("Item")), String::new()));
+        // Until it is identified an item has the description the client's table gives for it unidentified.
+        let description = if identified { data::about(id).unwrap_or_default().0 } else { data::unidentified_about(id) };
         let description: String = description.iter().map(|line| format!("<div>{}</div>", coloured(line))).collect();
         let large = if resource.is_empty() { String::new() } else { format!(r#"<img src="{}" alt="" onerror="this.remove()">"#, picture(&format!("collection/{resource}.bmp"))) };
         format!(
@@ -94,7 +95,7 @@ impl App {
 
     /// An item's name as the game shows it: its refinement before it, its free slots after it.
     pub(in crate::web) fn item_name(item: &Item) -> String {
-        let name = data::item(item.id).map_or_else(|| format!("{} {}", tr("Item"), item.id), |(name, _)| name);
+        let name = data::item_as(item.id, item.identified).map_or_else(|| format!("{} {}", tr("Item"), item.id), |(name, _)| name);
         if item.refine > 0 { format!("+{} {name}", item.refine) } else { name }
     }
 
@@ -120,7 +121,7 @@ impl App {
         let shown: Vec<&Item> = self.bag.items.iter().filter(|item| item.tab() == self.bag.tab && item.worn == 0).collect();
         for (place, item) in shown.iter().enumerate() {
             let (column, row) = (place as i32 % ITEM_COLUMNS, place as i32 / ITEM_COLUMNS);
-            let resource = data::item(item.id).map(|(_, resource)| resource);
+            let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
             let worn = if item.worn != 0 { " worn" } else { "" };
             cells.push_str(&format!(
                 r#"<div class="a cell{worn}" style="left:{}px;top:{}px" draggable="true" data-drag="item:{}" data-use="{}:{}" data-info="{info}" title="{} : {} {}">{}<span class="n">{}</span></div>"#,
@@ -134,7 +135,7 @@ impl App {
                 tr("ea"),
                 Self::icon(resource.as_deref()),
                 item.amount,
-                info = item.id
+                info = if item.identified { item.id.to_string() } else { format!("{}?", item.id) }
             ));
         }
         // Rows of empty cells below the last item, so the window is never shorter than it shows.

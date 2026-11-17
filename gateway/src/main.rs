@@ -115,7 +115,7 @@ async fn main() {
                 }
             }
         } else if filter == "tables:" {
-            println!("{}", tables::for_client(&grf));
+            println!("{}", tables::with_maps(tables::for_client(&grf), &config.client_dir));
         } else if let Some(ids) = filter.strip_prefix("items:") {
             println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
         } else if let Some(files) = filter.strip_prefix("lua:") {
@@ -152,7 +152,7 @@ async fn main() {
         .route("/tables/ru/skills/{ids}", get(client_skills_russian))
         .route("/tables/ru/skill-names.json", get(client_skill_names_russian))
         .route("/tables/items.ko/{ids}", get(client_items_korean))
-        .with_state(Arc::new(App { tables: tables::for_client(&grf).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), grf }))
+        .with_state(Arc::new(App { tables: tables::with_maps(tables::for_client(&grf), &config.client_dir).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), grf }))
         .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60 }))
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))

@@ -287,6 +287,52 @@ pub fn options(grf: &Grf) -> serde_json::Value {
         .collect()
 }
 
+/// The tables for the browser, with what the client calls each map added (that comes from beside the archives).
+pub fn with_maps(mut tables: serde_json::Value, client_dir: &std::path::Path) -> serde_json::Value {
+    if let Some(tables) = tables.as_object_mut() {
+        tables.insert("maps".to_owned(), maps(client_dir));
+    }
+    tables
+}
+
+/// What the client calls each map (`System\mapInfo_true.lub`, its English one where there is one), by the map's
+/// name without `.rsw`: `{"<map>": {"name": …, "title": …, "over": …, "picture": …, "shown": true}}`: the full
+/// name, the large and the small line of the sign shown on coming in, the sign's picture (a file of the
+/// interface's `display_mapname`), and whether the sign is shown at all. The file is beside the archives, not in
+/// them.
+pub fn maps(client_dir: &std::path::Path) -> serde_json::Value {
+    let read = ["mapInfo_true_EN.lub", "mapInfo_true.lub"].iter().find_map(|file| std::fs::read(client_dir.join("System").join(file)).ok());
+    let Some(bytes) = read else { return serde_json::json!({}) };
+    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let ran = if bytes.starts_with(b"\x1bLua") {
+        lunify::unify(&bytes, &lunify::Format::default(), &lunify::Settings::default()).map_err(|error| format!("{error:?}")).and_then(|code| lua.load(code).set_mode(mlua::ChunkMode::Binary).exec().map_err(|error| error.to_string()))
+    } else {
+        lua.load(bytes).set_mode(mlua::ChunkMode::Text).exec().map_err(|error| error.to_string())
+    };
+    if let Err(error) = ran {
+        eprintln!("tables: mapInfo_true.lub: {error}");
+    }
+    let Ok(table) = lua.globals().get::<Table>("mapTbl") else { return serde_json::json!({}) };
+    let text = |entry: &Table, field: &str| entry.get::<Option<mlua::String>>(field).ok().flatten().map(|text| korean(&text.as_bytes())).unwrap_or_default();
+    let found: serde_json::Map<String, serde_json::Value> = table
+        .pairs::<mlua::String, Table>()
+        .flatten()
+        .map(|(map, entry)| {
+            let sign = entry.get::<Option<Table>>("signName").ok().flatten();
+            let line = |field: &str| sign.as_ref().map(|sign| text(sign, field)).unwrap_or_default();
+            let about = serde_json::json!({
+                "name": text(&entry, "displayName"),
+                "title": line("mainTitle"),
+                "over": line("subTitle"),
+                "picture": text(&entry, "backgroundBmp"),
+                "shown": entry.get::<Option<bool>>("notifyEnter").ok().flatten().unwrap_or(false),
+            });
+            (korean(&map.as_bytes()).trim_end_matches(".rsw").to_owned(), about)
+        })
+        .collect();
+    found.into()
+}
+
 /// Runs more files in a state that already holds others' tables.
 fn run_more<'lua>(lua: &'lua Lua, grf: &Grf, files: &[&str]) -> &'lua Lua {
     run_in(lua, grf, files);
@@ -294,7 +340,11 @@ fn run_more<'lua>(lua: &'lua Lua, grf: &Grf, files: &[&str]) -> &'lua Lua {
 }
 
 /// What an item is called and which pictures are its, by item ID: from the client's `iteminfo.lub`.
-pub struct Items(std::collections::HashMap<u32, (String, String)>, std::collections::HashMap<u32, About>, Korean, Translated);
+pub struct Items(std::collections::HashMap<u32, (String, String)>, std::collections::HashMap<u32, About>, Korean, Translated, Unidentified);
+
+/// What an item is before it is identified (the table's `unidentifiedDisplayName`, `unidentifiedResourceName`
+/// and `unidentifiedDescriptionName`): its name, the name of its pictures, its description.
+pub type Unidentified = std::collections::HashMap<u32, (String, String, Vec<String>)>;
 
 /// A translation of names and descriptions (of items or of skills) kept in files of its own: by ID, the name and
 /// the description's lines.
@@ -457,6 +507,7 @@ impl Items {
         let lua = run(grf, &["iteminfo"]);
         let mut items = std::collections::HashMap::new();
         let mut about = std::collections::HashMap::new();
+        let mut unidentified = Unidentified::new();
         if let Ok(table) = lua.globals().get::<Table>("tbl") {
             for (id, item) in table.pairs::<i64, Table>().flatten() {
                 let field = |name: &str| match item.get::<Value>(name) {
@@ -465,6 +516,8 @@ impl Items {
                 };
                 if let Ok(id) = u32::try_from(id) {
                     items.insert(id, (field("identifiedDisplayName"), field("identifiedResourceName")));
+                    let lines: Vec<String> = item.get::<Table>("unidentifiedDescriptionName").map(|lines| lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect()).unwrap_or_default();
+                    unidentified.insert(id, (field("unidentifiedDisplayName"), field("unidentifiedResourceName"), lines));
                     if let Ok(lines) = item.get::<Table>("identifiedDescriptionName") {
                         let description: Vec<String> = lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect();
                         about.insert(id, About { description, facts: Vec::new() });
@@ -472,7 +525,7 @@ impl Items {
                 }
             }
         }
-        Self(items, about, Korean::new(), Translated::new())
+        Self(items, about, Korean::new(), Translated::new(), unidentified)
     }
 
     /// Takes the items' names and descriptions from the English table that comes with the client
@@ -522,6 +575,20 @@ impl Items {
                 if !description.is_empty() {
                     about.description = description;
                 }
+                // What the item is before it is identified, in English too.
+                let unknown = self.4.entry(id).or_default();
+                if let Ok(Value::String(text)) = item.get::<Value>("unidentifiedDisplayName") {
+                    unknown.0 = english(&text.as_bytes());
+                }
+                if unknown.1.is_empty() {
+                    if let Ok(Value::String(resource)) = item.get::<Value>("unidentifiedResourceName") {
+                        unknown.1 = korean(&resource.as_bytes());
+                    }
+                }
+                let lines: Vec<String> = item.get::<Table>("unidentifiedDescriptionName").map(|lines| lines.sequence_values::<mlua::String>().flatten().map(|line| english(&line.as_bytes())).collect()).unwrap_or_default();
+                if !lines.is_empty() {
+                    unknown.2 = lines;
+                }
                 translated += 1;
             }
         }
@@ -548,7 +615,8 @@ impl Items {
                     Some((russian, lines)) => (if russian.is_empty() { name.clone() } else { russian.clone() }, if lines.is_empty() { description.iter().map(|line| russian_line(line)).collect() } else { lines.clone() }),
                     None => (name.clone(), description.iter().map(|line| russian_line(line)).collect()),
                 };
-                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts })))
+                let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": lines.iter().map(|line| russian_line(line)).collect::<Vec<String>>() }));
+                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified })))
             })
             .collect();
         found.into()
@@ -577,7 +645,8 @@ impl Items {
                 let (name, resource) = self.0.get(&id)?;
                 let (description, facts) = self.1.get(&id).map_or((&[][..], &[][..]), |about| (&about.description[..], &about.facts[..]));
                 let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
-                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts })))
+                let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": lines }));
+                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified })))
             })
             .collect();
         found.into()

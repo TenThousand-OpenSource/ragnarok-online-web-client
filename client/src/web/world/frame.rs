@@ -620,14 +620,38 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
         .map(|(_, _, id, feet)| (id, feet))
 }
 
-/// The thing on the ground a point of the page is on.
+/// The thing on the ground a point of the page is on. The client's way (`CItem::SetRenderInfo`): the rectangle
+/// of the thing's picture on the screen, made at least 34 pixels each way (of a screen 480 high), so that a small
+/// thing is not a small thing to hit; of those the point is in, the nearest.
 pub(super) fn lying_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32)) -> Option<u32> {
     let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
-    scene.drops.iter().find_map(|(id, (_, _, at))| {
-        let place = view.project(on_ground(&scene.gat, *at))?;
-        let (across, up) = ((pointer.0 - place.0 * width).abs(), place.1 * height - pointer.1);
-        (across < 16.0 && (-8.0..26.0).contains(&up)).then_some(*id)
-    })
+    let least = 34.0 * height / 480.0;
+    scene
+        .drops
+        .iter()
+        .filter_map(|(id, (_, item, at))| {
+            let feet = on_ground(&scene.gat, *at);
+            let under = view.project(feet)?;
+            // The picture's own rectangle, where the picture is known; a point at the thing's place otherwise.
+            let resource = data::item(*item).map(|(_, resource)| resource).unwrap_or_default();
+            let key = SpriteKey::Creature(format!("아이템/{}", if resource.is_empty() { "사과" } else { resource.as_str() }), 0, 0);
+            let (low, high) = match gpu.sprite_textures.get(&key) {
+                Some(texture) => {
+                    let corner = |x: f32, y: f32| view.project(along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE));
+                    (corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?)
+                }
+                None => (under, under),
+            };
+            let span = |low: f32, high: f32| {
+                let (low, high) = (low.min(high), low.max(high));
+                let short = (least - (high - low)).max(0.0) / 2.0;
+                low - short..=high + short
+            };
+            let inside = span(low.0 * width, high.0 * width).contains(&pointer.0) && span(low.1 * height, high.1 * height).contains(&pointer.1);
+            inside.then(|| (dot(subtract(feet, view.eye), view.forward), *id))
+        })
+        .min_by(|a, b| a.0.total_cmp(&b.0))
+        .map(|(_, id)| id)
 }
 
 /// Shows a name on the page, its middle at a place, or takes it away. Monsters' names are pink, as the original's.

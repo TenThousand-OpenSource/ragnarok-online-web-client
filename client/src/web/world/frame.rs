@@ -367,7 +367,12 @@ pub(super) fn frame() {
         let pointing = if state.turning.is_some() { 5 } else { usize::MAX };
         let pointing = match &over {
             _ if pointing == 5 => 5,
+            // A skill being aimed: the pointer of a skill, and its other picture over a monster it can go to
+            // (the client's cursor actions 10 and 11).
+            Some((_, _, unit, _)) if state.aiming == Some(false) && unit.lively => 7,
             _ if state.aiming.is_some() => 6,
+            // Over a pet the pointer stays plain, as in the client.
+            Some((_, _, unit, _)) if unit.companion => 0,
             Some((_, _, unit, _)) if unit.lively => 2,
             // A thing lying at an NPC's feet is still picked up.
             Some(_) if state.pointer.is_some_and(|pointer| lying_at(gpu, scene, &view, pointer).is_some()) => 4,

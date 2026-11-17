@@ -65,8 +65,9 @@ const UNSEEN: [u16; 3] = [111, 139, 32767];
 /// The sprite number of a portal: drawn as rings of light, not as a sprite.
 const PORTAL: u16 = 45;
 /// The game's pointers, as actions of its pointer sprite: the plain one, over someone to talk to, over a monster,
-/// over a portal, over a thing to pick up, while the camera is turned, and while a skill is aimed.
-const POINTERS: [usize; 7] = [0, 1, 5, 7, 9, 4, 10];
+/// over a portal, over a thing to pick up, while the camera is turned, while a skill is aimed, and while a skill
+/// is aimed at someone it can be used on.
+const POINTERS: [usize; 8] = [0, 1, 5, 7, 9, 4, 10, 11];
 /// The walking speed until the server says otherwise, in milliseconds per cell.
 const DEFAULT_SPEED: f64 = 150.0;
 /// How long one picture of the walking animation shows at the default speed.
@@ -187,6 +188,8 @@ struct Mover {
     name: String,
     /// Whether it moves while standing still, as monsters do.
     lively: bool,
+    /// A pet (or a homunculus, a mercenary): someone's companion, neither fought nor talked to.
+    companion: bool,
     cell: (i32, i32),
     /// Where it was drawn last, in cells.
     at: (f32, f32),

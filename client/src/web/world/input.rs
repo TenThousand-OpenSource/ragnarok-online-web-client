@@ -55,7 +55,8 @@ pub(super) fn listen() {
                         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
                         let view = scene.camera.view(on_ground(&scene.gat, scene.player.at), gpu.config.width as f32 / gpu.config.height as f32);
                         let (id, _) = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32))?;
-                        let unit = scene.units.get(&id).filter(|unit| matches!(unit.look, Look::Creature(_)))?;
+                        // A pet is neither fought nor talked to: a press on it is a press on the ground.
+                        let unit = scene.units.get(&id).filter(|unit| matches!(unit.look, Look::Creature(_)) && !unit.companion)?;
                         // A thing lying at an NPC's feet is picked up, not the NPC talked to.
                         if !unit.lively && lying_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).is_some() {
                             return None;

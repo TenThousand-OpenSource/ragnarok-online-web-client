@@ -42,6 +42,7 @@ pub fn unit_shown(unit: &Unit) {
         // What follows a # in the name of an NPC or a monster tells the server's scripts apart, and is not shown.
         mover.name = if unit.kind == Kind::Player { unit.name.clone() } else { unit.name.split('#').next().unwrap_or_default().trim().to_owned() };
         mover.lively = unit.kind == Kind::Monster;
+        mover.companion = unit.kind == Kind::Companion;
         mover.speed = if unit.speed > 0 { f64::from(unit.speed) } else { DEFAULT_SPEED };
         match unit.walks_to {
             Some(to) => mover.walk(&scene.gat, cell, (i32::from(to.0), i32::from(to.1))),

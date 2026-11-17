@@ -92,6 +92,8 @@ impl App {
             (_, "KeyE", true) => self.inventory_open = !self.inventory_open,
             (_, "KeyQ", true) => self.equipment_open = !self.equipment_open,
             (_, "KeyS", true) => self.skills_open = !self.skills_open,
+            // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
+            (_, "KeyJ", true) => self.pet_open = !self.pet_open && self.pet.is_some(),
             // F1 to F9 use the first row of the hotkey bar.
             (_, "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9", false) => {
                 let slot = code[1..].parse::<usize>().unwrap_or(1) - 1;

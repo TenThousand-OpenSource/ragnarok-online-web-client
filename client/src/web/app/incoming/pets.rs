@@ -1,6 +1,7 @@
-//! Taming a monster and hatching its egg.
+//! Taming a monster, hatching its egg, and what becomes of the pet.
 
 use super::*;
+use crate::net::pets;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
@@ -31,8 +32,55 @@ impl App {
                     (taming.wanted, taming.delay, taming.longest) = (if *caught != 0 { 7 } else { 3 }, 7, 7);
                 }
             }
+            // ZC_PROPERTY_PET: everything about the player's pet. (A level of 10000 and more tells of a pet still
+            // in an egg that is being looked at; the egg's description is not shown here yet.)
+            pets::ZC_PROPERTY_PET => {
+                if let Some(pet) = pets::property(packet).filter(|pet| pet.level < 10000) {
+                    self.pet = Some(pet);
+                    self.refresh_pet();
+                }
+            }
+            // ZC_CHANGESTATE_PET: one thing about a pet changed (the client's `ReceivePetChangeState`).
+            pets::ZC_CHANGESTATE_PET => {
+                let Some((what, unit, value)) = pets::changed(packet) else { return true };
+                match (what, &mut self.pet) {
+                    (pets::change::OWN, _) => self.pet_unit = unit,
+                    (pets::change::INTIMACY, Some(pet)) => pet.intimacy = value,
+                    (pets::change::HUNGER, Some(pet)) => pet.hunger = value,
+                    (pets::change::ACCESSORY, Some(pet)) if unit == self.pet_unit => pet.accessory = value as u16,
+                    // Back in its egg: there is no pet any more, and its window closes.
+                    (pets::change::EGG, _) if value == 0 => {
+                        (self.pet, self.pet_unit, self.pet_open, self.pet_menu, self.pet_asks) = (None, 0, false, false, 0);
+                        self.render();
+                    }
+                    _ => {}
+                }
+                self.refresh_pet();
+            }
+            // ZC_FEED_PET: the pet ate, and so much of its food is left; or there is none of its food (the
+            // client's `ReceiveFeedResult`, with its colours).
+            pets::ZC_FEED_PET => {
+                self.pet_fed = pets::fed(packet);
+                if let Some((_, food)) = self.pet_fed {
+                    data::want_items(std::iter::once(food), || dispatch(Action::ItemsKnown));
+                }
+                self.tell_fed();
+            }
             _ => return false,
         }
         true
+    }
+
+    /// Tells in the chat how feeding the pet went, once the food's name is known.
+    pub(in crate::web::app) fn tell_fed(&mut self) {
+        let Some((fed, food)) = self.pet_fed else { return };
+        let Some((name, _)) = data::item(food) else { return };
+        self.pet_fed = None;
+        if fed {
+            let left: u32 = self.inventory.iter().filter(|item| item.id == food).map(|item| u32::from(item.amount)).sum();
+            self.chat_line(crate::i18n::tr("Your pet has been fed. {} ({}) remaining").replacen("{}", &name, 1).replacen("{}", &left.to_string(), 1), "#64ffff");
+        } else {
+            self.chat_line(crate::i18n::tr("Pet food [{}] is not available.").replace("{}", &name), "#f51e1e");
+        }
     }
 }

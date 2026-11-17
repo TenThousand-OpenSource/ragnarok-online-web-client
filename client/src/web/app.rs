@@ -19,7 +19,7 @@ use crate::i18n::{Key, Lang, fill};
 use crate::net::skills;
 use crate::net::items::{self, Hotkey, Item, Skill, Tab};
 use crate::net::packets::{self, Character, LoginAccepted, ZoneServer};
-use crate::net::{npc, trade, units};
+use crate::net::{npc, pets, trade, units};
 use crate::net::{Frame, Framer};
 
 mod wiring;
@@ -315,6 +315,18 @@ pub(super) struct App {
     /// and which of them is picked.
     pub eggs: Option<Vec<u16>>,
     pub egg_picked: usize,
+    /// The player's pet, while one is out of its egg, and the unit on the map that is it.
+    pub pet: Option<crate::net::pets::Pet>,
+    pub pet_unit: u32,
+    /// The pet window is open; its menu of commands is; what it asks before acting (1 whether to feed, 2
+    /// whether to give the name typed, kept in `pet_named`).
+    pub pet_open: bool,
+    pub pet_menu: bool,
+    pub pet_asks: u8,
+    pub pet_named: String,
+    /// The answer to feeding the pet (whether it ate, and its food), until the chat has told of it: the food's
+    /// name may arrive a moment later.
+    pub pet_fed: Option<(bool, u32)>,
     /// The slot machine of taming a monster, while it is open.
     pub taming: Option<Taming>,
     /// Which page of the skill window is open.

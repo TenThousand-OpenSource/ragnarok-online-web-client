@@ -335,6 +335,10 @@ struct State {
     listening: bool,
     /// Those the server showed while the map was still being read: put on it once it is there.
     early: Vec<Unit>,
+    /// The map being read, until it shows; and where the character is to stand on it when it does, if the
+    /// server named another place meanwhile.
+    reading: Option<String>,
+    start: Option<(i32, i32)>,
     /// Where on the page the pointer is, while it is over the world with no button held.
     pointer: Option<(f32, f32)>,
     /// Who the pointer is on: their ID, and whether it is a monster.

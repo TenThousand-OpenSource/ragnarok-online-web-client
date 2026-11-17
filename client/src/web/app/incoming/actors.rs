@@ -56,6 +56,13 @@ impl App {
                         }
                     } else {
                         world::unit_gone(id, died);
+                        // The player's pet is out of sight (not teleported with its master: type 0): it is back
+                        // in its egg, or it ran away. The server (rAthena) tells it no other way: its word of
+                        // the egg, ZC_CHANGESTATE_PET type 6, says 0 only of a pet about to run away.
+                        if id == self.pet_unit && packet.get(6) == Some(&0) {
+                            (self.pet, self.pet_unit, self.pet_open, self.pet_menu, self.pet_asks) = (None, 0, false, false, 0);
+                            self.render();
+                        }
                     }
                 }
             }

@@ -31,6 +31,8 @@ thread_local! {
     static SPRITES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The music of each map, as the client's `mp3nametable.txt` names it: `prontera` to `bgm\\08.mp3`.
     static MUSIC: RefCell<HashMap<String, String>> = RefCell::new(HashMap::new());
+    /// The picture of each pet in its window, by the monster's number.
+    static PETS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The ending of a weapon's sprite files, by the client's number for the kind of weapon.
     static WEAPONS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// By job: the job it grew out of, and where its skills stand in the skill window (place to skill).
@@ -269,11 +271,16 @@ pub fn headgear(view: u16) -> Option<String> {
     HEADGEAR.with_borrow(|names| names.get(&view).cloned())
 }
 
+/// The file of a pet's picture in its window (in the interface's `illust` folder), by the monster's number.
+pub fn pet_picture(job: u16) -> Option<String> {
+    PETS.with_borrow(|pets| pets.get(&job).cloned())
+}
+
 /// Fetches the tables from the gateway. Until they are there, jobs have their built-in names and nobody wears
 /// headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=5").await?;
+    let tables = fetch_json("/tables.json?v=6").await?;
     let table = |name: &str| js_sys::Reflect::get(&tables, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
     let jobs = entries::<u16>(&table("jobs")).into_iter().filter_map(|(job, about)| Some((job, text_of(&about, "name")?))).collect();
     let headgear = entries::<u16>(&table("headgear")).into_iter().filter_map(|(view, name)| Some((view, name.as_string()?))).collect();
@@ -285,6 +292,7 @@ pub async fn load() -> Result<(), String> {
         })
         .collect();
     SPRITES.set(entries::<u16>(&table("sprites")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
+    PETS.set(entries::<u16>(&table("pets")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
     WEAPONS.set(entries::<u16>(&table("weapons")).into_iter().filter_map(|(kind, name)| Some((kind, name.as_string()?))).collect());
     TREE.set(
         entries::<u16>(&table("tree"))

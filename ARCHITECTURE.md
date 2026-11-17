@@ -49,6 +49,7 @@ client/src/
     units.rs        everyone on the map: appearing, walking, striking, loot on the ground
     items.rs        inventory, equipment, skills known, hotkey bar
     skills.rs       casting and landing of skills
+    pets.rs         the player's pet: its state, feeding, the commands given to it
     npc.rs          NPC dialogs, whispers, restart
     trade.rs        NPC shops and storage
   web/
@@ -71,7 +72,7 @@ client/src/
       screen.rs       which screen shows; painting characters into windows
       page.rs         DOM helpers, storage, fade and loading screen, dragging windows
     hud.rs          the in-game windows: shared pieces         ── children in hud/ ──
-      basic.rs  inventory.rs  equipment.rs  skills.rs  status.rs  chat.rs  dialogs.rs  trade.rs
+      basic.rs  inventory.rs  equipment.rs  skills.rs  status.rs  chat.rs  dialogs.rs  trade.rs  pets.rs
     world.rs        the world: its state and types             ── children in world/ ──
       session.rs      entering/leaving a map, the player's own character      (called by the app)
       actors.rs       everyone else and the loot                                (called by the app)

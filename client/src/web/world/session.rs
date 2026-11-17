@@ -7,6 +7,8 @@ pub fn enter(map: String, cell: (u16, u16), figure: Figure, hooks: Hooks) {
     let entered = STATE.with_borrow_mut(|state| {
         state.scene = None;
         state.early.clear();
+        state.reading = Some(map.clone());
+        state.start = None;
         state.hooks = Some(hooks);
         state.entered += 1;
         state.entered
@@ -22,7 +24,11 @@ pub fn enter(map: String, cell: (u16, u16), figure: Figure, hooks: Hooks) {
             }
             let ready = state.hooks.as_ref().map(|hooks| hooks.ready);
             match loaded {
-                Ok((gpu, scene)) => {
+                Ok((gpu, mut scene)) => {
+                    if let Some(cell) = state.start.take() {
+                        (scene.player.cell, scene.player.at) = (cell, (cell.0 as f32, cell.1 as f32));
+                    }
+                    state.reading = None;
                     state.gpu = Some(gpu);
                     state.scene = Some(scene);
                     ready.map(|ready| (ready, Ok(())))
@@ -48,6 +54,7 @@ pub fn enter(map: String, cell: (u16, u16), figure: Figure, hooks: Hooks) {
 pub fn leave() {
     STATE.with_borrow_mut(|state| {
         state.scene = None;
+        state.reading = None;
         state.entered += 1;
         state.turning = None;
         state.own = [0; 4];
@@ -131,8 +138,18 @@ pub fn own_dead(dead: bool) {
 /// stays, and everyone seen at the old place is forgotten: the server shows who is at the new one.
 pub fn jump(cell: (u16, u16)) {
     STATE.with_borrow_mut(|state| {
-        let Some(scene) = &mut state.scene else { return };
         let cell = (i32::from(cell.0), i32::from(cell.1));
+        let Some(scene) = &mut state.scene else {
+            // The map is still being read: the character will stand there when it shows. Whoever the server
+            // has shown meanwhile stays: it shows them once.
+            state.start = Some(cell);
+            return;
+        };
+        // Right after the character comes in the server names the cell it already stands on: nobody is
+        // forgotten then, for the server has shown them (a pet among them) and will not show them again.
+        if scene.player.cell == cell && scene.player.walk.is_none() {
+            return;
+        }
         scene.player.cell = cell;
         scene.player.at = (cell.0 as f32, cell.1 as f32);
         scene.player.walk = None;
@@ -178,6 +195,11 @@ pub fn speed(speed: i32) {
 }
 
 /// The size, in cells, of the map shown.
+/// Whether this map is the one being read right now.
+pub fn reading(map: &str) -> bool {
+    STATE.with_borrow(|state| state.scene.is_none() && state.reading.as_deref() == Some(map))
+}
+
 pub fn map_size() -> Option<(usize, usize)> {
     STATE.with_borrow(|state| state.scene.as_ref().map(|scene| (scene.gat.width, scene.gat.height)))
 }

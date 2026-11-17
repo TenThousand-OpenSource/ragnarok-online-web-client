@@ -7,6 +7,7 @@
 pub mod items;
 pub mod npc;
 pub mod packets;
+pub mod pets;
 pub mod skills;
 pub mod trade;
 pub mod units;

@@ -118,6 +118,7 @@ impl App {
             }
             Action::ItemsKnown => {
                 self.tell_obtained();
+                self.tell_fed();
                 self.refresh_items();
                 self.refresh_trade();
                 self.paint_figures();
@@ -294,7 +295,10 @@ impl App {
                 if !matches!(self.screen, Screen::Game) {
                     return fade(false);
                 }
-                let same = self.game.as_ref().is_some_and(|game| game.map == map) && world::map_size().is_some();
+                // Right after the character comes in the server may name its place once more, while the map is
+                // still being read: the reading goes on, and the character is put there when the map shows.
+                let reading = world::reading(&map);
+                let same = self.game.as_ref().is_some_and(|game| game.map == map) && (world::map_size().is_some() || reading);
                 if let Some(game) = &mut self.game {
                     (game.x, game.y) = (x, y);
                     if !same {
@@ -310,7 +314,10 @@ impl App {
                 if same {
                     // The map is already drawn: the character is only put elsewhere on it.
                     world::jump((x, y));
-                    fade(false);
+                    // (While the map is read, its loading screen stays; the dark goes when it shows.)
+                    if !reading {
+                        fade(false);
+                    }
                 } else {
                     self.enter_world();
                 }

@@ -21,6 +21,7 @@ mod skills;
 mod status;
 mod chat;
 mod dialogs;
+mod pets;
 mod trade;
 
 use basic::*;
@@ -178,6 +179,20 @@ impl App {
         );
         // The list of eggs to hatch: 200 by 200, where the client opens it.
         let eggs = if self.eggs.is_some() { format!(r#"<div id="eggs" class="a hud" style="left:{}px;top:{}px;width:200px">{}</div>"#, (view.0 as i32 - 200) / 2, view.1 as i32 * 200 / 480, self.egg_window()) } else { String::new() };
+        // The pet window, where the client opens it: 185 across its 640-wide stage, 60 above 400 of 480 down.
+        let pet = if self.pet_open && self.pet.is_some() {
+            format!(
+                r#"<div id="pet" class="a hud" style="left:{}px;top:{}px;width:280px">{}</div><div id="pet-asks" class="a hud" style="left:{}px;top:{}px;width:280px">{}</div>"#,
+                (view.0 as i32 - 640) / 2 + 185,
+                view.1 as i32 * 400 / 480 - 60,
+                self.pet_window(),
+                (view.0 as i32 - 280) / 2,
+                (view.1 as i32 - 120) / 2,
+                self.pet_question()
+            )
+        } else {
+            String::new()
+        };
         // The slot machine of taming: 196 by 256 in the middle of the screen; a press on it starts the reels.
         let taming = if self.taming.is_some() {
             format!(
@@ -191,7 +206,7 @@ impl App {
         // The menu hangs under the basic window, a little into it.
         let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.basic_small { 55 } else { 134 } - 4, self.menu_icons());
         format!(
-            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}
+            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{pet}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,
             self.basic_info(),
             u8::from(self.chat_locked),

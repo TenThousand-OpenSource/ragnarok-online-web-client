@@ -130,7 +130,11 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
     // The ending of a weapon's sprite files by the kind of weapon (`_단검` for daggers), from `weapontable.lub`.
     let weapons: serde_json::Map<String, serde_json::Value> =
         names(&run(grf, &["weapontable"]), "WeaponNameTable").into_iter().filter(|(id, _)| *id > 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf) })
+    // The picture of each pet in its window (a file of `유저인터페이스\illust`), by the monster's number: from
+    // `petinfo.lub`, whose function `GetPetIllustName_V3` the client asks.
+    let pets: serde_json::Map<String, serde_json::Value> =
+        names(run_more(&lua, grf, &["petinfo"]), "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf), "pets": pets })
 }
 
 /// Runs more files in a state that already holds others' tables.

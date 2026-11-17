@@ -156,6 +156,53 @@ impl App {
                 self.eggs = None;
                 self.render();
             }
+            "pet" => {
+                (self.pet_open, self.pet_menu, self.pet_asks) = (!self.pet_open && self.pet.is_some(), false, 0);
+                self.render();
+            }
+            "pet-menu" => {
+                self.pet_menu = !self.pet_menu;
+                self.refresh_pet();
+            }
+            // The menu of the pet window: feeding is asked about first, the rest is sent as it is.
+            "pet-do" => {
+                self.pet_menu = false;
+                let order = match arg {
+                    "feed" => {
+                        self.pet_asks = 1;
+                        None
+                    }
+                    "perform" => Some(pets::order::PERFORM),
+                    "unequip" => Some(pets::order::UNEQUIP),
+                    _ => Some(pets::order::TO_EGG),
+                };
+                if let (Some(order), Some(socket)) = (order, &self.socket) {
+                    socket.send(&pets::command(order));
+                }
+                self.refresh_pet();
+            }
+            // A new name: 23 letters at most, and asked about before it is sent.
+            "pet-rename" => {
+                let name = field("pet-name").trim().to_owned();
+                if name.len() >= 24 {
+                    self.chat_line(crate::i18n::tr("Your pet name must be 23 characters or less.").to_owned(), "#ff8484");
+                } else if !name.is_empty() {
+                    (self.pet_asks, self.pet_named) = (2, name);
+                    self.refresh_pet();
+                }
+            }
+            "pet-yes" | "pet-no" => {
+                if let (true, Some(socket)) = (what == "pet-yes", &self.socket) {
+                    if self.pet_asks == 1 {
+                        socket.send(&pets::command(pets::order::FEED));
+                    } else if let Some(pet) = &mut self.pet {
+                        socket.send(&pets::rename(&self.pet_named));
+                        pet.name = self.pet_named.clone();
+                    }
+                }
+                self.pet_asks = 0;
+                self.refresh_pet();
+            }
             "skill-info-close" => {
                 self.skill_info = None;
                 self.refresh_items();

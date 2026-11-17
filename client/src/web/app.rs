@@ -295,6 +295,10 @@ pub(super) struct App {
     pub told_obtained: bool,
     /// The character lies dead, until it is returned to its save point.
     pub dead: bool,
+    /// The pet eggs offered for hatching (their places in the inventory), while the incubator's list is open,
+    /// and which of them is picked.
+    pub eggs: Option<Vec<u16>>,
+    pub egg_picked: usize,
     /// The slot machine of taming a monster, while it is open.
     pub taming: Option<Taming>,
     /// Which page of the skill window is open.
@@ -1248,6 +1252,18 @@ impl App {
                         socket.send(&[&0x019fu16.to_le_bytes()[..], &taming.target.to_le_bytes()].concat());
                     }
                 }
+            }
+            "egg-pick" => {
+                self.egg_picked = arg.parse().unwrap_or(0);
+                self.render();
+            }
+            // CZ_SELECT_PETEGG (0x01a7): `u16 index`. The picked egg is hatched.
+            "egg-ok" | "egg-cancel" => {
+                if let (true, Some(socket), Some(index)) = (what == "egg-ok", &self.socket, self.eggs.as_ref().and_then(|eggs| eggs.get(self.egg_picked))) {
+                    socket.send(&[0x01a7u16.to_le_bytes(), index.to_le_bytes()].concat());
+                }
+                self.eggs = None;
+                self.render();
             }
             "skill-info-close" => {
                 self.skill_info = None;
@@ -2245,6 +2261,11 @@ impl App {
                     if Some(id) == self.account.as_ref().map(|account| account.account_id) {
                         if died {
                             self.dead = true;
+                            // The client's data has one voice for dying, a man's (`die_male.wav`); where the
+                            // client starts it was not found in its code.
+                            if self.own_figure().sex == 1 {
+                                sound::effect("die_male.wav", 1.0);
+                            }
                             // The client opens its window of options (or closes it, if it was open).
                             self.esc = u8::from(self.esc == 0);
                             self.dialog = None;
@@ -2579,8 +2600,15 @@ impl App {
                 }
             }
             (Server::Map, skills::ZC_USE_SKILL) => {
-                if let Some((_, _, _, who, _)) = skills::used(packet) {
-                    world::cast_over(who, self.account.as_ref().map_or(0, |account| account.account_id), false);
+                if let Some((skill, _, target, who, _)) = skills::used(packet) {
+                    let own = self.account.as_ref().map_or(0, |account| account.account_id);
+                    world::cast_over(who, own, false);
+                    // Resurrection (skill 54) shows the client's effect on the one raised, with its sound
+                    // (`EF_RESURRECTION`: `Resurrection.str` and `priest_resurrection.wav`).
+                    if skill == 54 {
+                        world::effect("resurrection.str", (target != own).then_some(target));
+                        sound::effect("effect/priest_resurrection.wav", 1.0);
+                    }
                 }
             }
             (Server::Map, skills::ZC_ACK_TOUSESKILL) => self.chat_line(crate::i18n::tr("Skill has failed.").to_owned(), "#ff8484"),
@@ -2593,6 +2621,13 @@ impl App {
                     }
                     self.refresh_items();
                 }
+            }
+            // ZC_PETEGG_LIST (0x01a6): `u16 length`, then the place in the inventory of each egg. An incubator was
+            // used: the eggs are listed to pick the one to hatch (the client's `UIPetEggListWnd`).
+            (Server::Map, 0x01a6) => {
+                self.eggs = Some(packet.get(4..).unwrap_or_default().chunks_exact(2).map(|index| u16::from_le_bytes([index[0], index[1]])).collect());
+                self.egg_picked = 0;
+                self.render();
             }
             // ZC_START_CAPTURE (0x019e): a taming item was used. The monster to tame is picked with the pointer, as
             // a skill's target is (the client's `Zc_Start_Capture`: reach 5).

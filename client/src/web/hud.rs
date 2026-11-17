@@ -178,6 +178,8 @@ impl App {
             self.item_info_window(),
             self.skill_info_window()
         );
+        // The list of eggs to hatch: 200 by 200, where the client opens it.
+        let eggs = if self.eggs.is_some() { format!(r#"<div id="eggs" class="a hud" style="left:{}px;top:{}px;width:200px">{}</div>"#, (view.0 as i32 - 200) / 2, view.1 as i32 * 200 / 480, self.egg_window()) } else { String::new() };
         // The slot machine of taming: 196 by 256 in the middle of the screen; a press on it starts the reels.
         let taming = if self.taming.is_some() {
             format!(
@@ -191,7 +193,7 @@ impl App {
         // The menu hangs under the basic window, a little into it.
         let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.basic_small { 55 } else { 134 } - 4, self.menu_icons());
         format!(
-            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}
+            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,
             self.basic_info(),
             u8::from(self.chat_locked),
@@ -501,6 +503,35 @@ impl App {
 
     /// What is known of an item, opened with the right button: its large picture, what the server's database
     /// says of it (kind, weight, price and the like), and the client's own description under that.
+    /// The eggs an incubator can hatch (the client's `UIPetEggListWnd`, 200 by 200): each with its picture and
+    /// name; the picked one is hatched with OK (or with a double click).
+    fn egg_window(&self) -> String {
+        let Some(eggs) = &self.eggs else { return String::new() };
+        let mut window = title_bar(200, "Pet Egg List");
+        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 200, 162)));
+        let rows: String = eggs
+            .iter()
+            .enumerate()
+            .filter_map(|(row, index)| {
+                let item = self.inventory.iter().find(|item| item.index == *index)?;
+                let resource = data::item(item.id).map(|(_, resource)| resource);
+                let picked = if row == self.egg_picked { "background:#c6d6f7;" } else { "" };
+                Some(format!(
+                    r#"<div style="position:relative;height:26px;{picked}cursor:default" data-click="egg-pick" data-arg="{row}" data-use="egg:{row}"><div style="position:absolute;left:2px;top:1px;width:24px;height:24px">{}</div><div class="t" style="position:absolute;left:32px;top:6px">{}</div></div>"#,
+                    Self::icon(resource.as_deref()),
+                    escape(&Self::item_name(item))
+                ))
+            })
+            .collect();
+        window.push_str(&format!(r#"<div class="a scroll" style="{}">{rows}</div>"#, at(2, 19, 196, 158)));
+        window.push_str(&art("basic_interface/btnbar_left.bmp", 0, 179, 21, 21));
+        window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, 179, 158, 21));
+        window.push_str(&art("basic_interface/btnbar_right.bmp", 179, 179, 21, 21));
+        window.push_str(&picture_button(110, 180, "btn_ok", "egg-ok"));
+        window.push_str(&picture_button(155, 180, "btn_cancel", "egg-cancel"));
+        window
+    }
+
     /// What an item is, as the client shows it (`UIItemCollectionWnd`): its box of 280 by 120 with the
     /// collection's background, the item's large picture at 10, 11, its name at 90, 10 and its description in a
     /// field of 182 by 80 at 91, 31 that scrolls.

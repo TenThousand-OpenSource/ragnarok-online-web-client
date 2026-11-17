@@ -278,6 +278,7 @@ const PHRASES: &[(&str, &str)] = &[
     ("You cannot leave the game right now.", "Сейчас нельзя выйти из игры."),
     ("There is no such character name or the user is offline.", "Такого персонажа нет, или игрок не в сети."),
     ("Skill has failed.", "Умение не удалось."),
+    ("Pet Egg List", "Яйца питомцев"),
     ("You can't put this item on.", "Этот предмет нельзя надеть."),
     ("From", "От"),
     ("Status (Alt+A)", "Характеристики (Alt+A)"),

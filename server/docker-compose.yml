@@ -18,6 +18,7 @@ x-rathena: &rathena
     - ./conf/char_conf.txt:/rathena/conf/import/char_conf.txt:ro
     - ./conf/map_conf.txt:/rathena/conf/import/map_conf.txt:ro
     - ./conf/packet_conf.txt:/rathena/conf/import/packet_conf.txt:ro
+    - ./conf/battle_conf.txt:/rathena/conf/import/battle_conf.txt:ro
     # Where one can walk, made from the client's own maps (see the gateway's `mapcache` command).
     - ./mapcache/map_cache.dat:/rathena/db/import/map_cache.dat:ro
 

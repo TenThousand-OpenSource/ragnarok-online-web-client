@@ -100,7 +100,7 @@ pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<
     let weapon = STATE.with_borrow(|state| state.weapon);
     let player = Mover::new(Look::Character(Figure { weapon, ..figure }), cell);
     Ok((gpu, Scene { indoor, gat, ground, models, water, player, units: HashMap::new(), drops: HashMap::new(), falls: HashMap::new(), aim: None, portals: HashMap::new(), // A new map is looked at from the south, as the original does: only how near the camera is stays.
-        camera: Camera::starting(indoor), told: (-1, -1) }))
+        camera: Camera::starting(indoor, true), told: (-1, -1) }))
 }
 
 /// A picture of the game by its path under `data/texture/`: BMP files are read here, everything else (TGA with

@@ -49,6 +49,7 @@ impl App {
             misses: self.option("TT_MISS_EFFECT_ON_OFF"),
             monster_life: self.option("TT_MONSTERHP_ON_OFF"),
             hide_players: self.option("TT_HIDE_PLAYER_ON_OFF"),
+            zoom_out: self.option("TT_EXPAND_SIGHT_ON_OFF"),
         });
     }
 

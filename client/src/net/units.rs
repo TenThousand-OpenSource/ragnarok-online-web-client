@@ -188,6 +188,12 @@ pub fn attack(target: u32) -> Vec<u8> {
     request(target, 7)
 }
 
+/// CZ_CHANGE_DIRECTION (0x0361 for this client): `u8 head` (how the head is turned), a byte, `u8 direction`
+/// (0 north, turning left).
+pub fn face(direction: u8) -> Vec<u8> {
+    vec![0x61, 0x03, 0, 0, direction % 8]
+}
+
 /// The same request for one blow only.
 pub fn attack_once(target: u32) -> Vec<u8> {
     request(target, 0)

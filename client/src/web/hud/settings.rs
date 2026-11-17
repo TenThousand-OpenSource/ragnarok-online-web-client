@@ -52,7 +52,16 @@ impl App {
                     .iter()
                     .map(|option| {
                         let switch = if option.run {
-                            format!(r#"<div class="a" style="{};background:url('{}') no-repeat;opacity:.45"></div>"#, at(7, 5, 34, 15), picture("GameSettingsUI/btn_optionapply_out.bmp"))
+                            // A thing done at a press: its button, faint for those this client does not do yet.
+                            match Self::command_of(&option.id).or((option.id == "TT_EX_SIT").then_some("/sit")) {
+                                Some(_) => format!(
+                                    r#"<div class="a" style="{};background:url('{}') no-repeat;cursor:pointer" data-click="settings-run" data-arg="{}"></div>"#,
+                                    at(7, 5, 34, 15),
+                                    picture("GameSettingsUI/btn_optionapply_out.bmp"),
+                                    escape(&option.id)
+                                ),
+                                None => format!(r#"<div class="a" style="{};background:url('{}') no-repeat;opacity:.45"></div>"#, at(7, 5, 34, 15), picture("GameSettingsUI/btn_optionapply_out.bmp")),
+                            }
                         } else {
                             format!(
                                 r#"<div class="a" style="{};background:url('{}') no-repeat;cursor:pointer" data-click="settings-switch" data-arg="{}"></div>"#,

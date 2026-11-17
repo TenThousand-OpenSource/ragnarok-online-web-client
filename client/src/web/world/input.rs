@@ -39,6 +39,11 @@ pub(super) fn listen() {
                             // `CGameMode::RequestPlayerAction`), and a press on an NPC, a pet or the bare ground
                             // only ends the aiming. The character walks on as it was.
                             let unit = scene.units.get(&id).filter(|unit| unit.lively || matches!(unit.look, Look::Character(_)))?;
+                            // A skill of help goes on a monster only with Shift held, unless the player has the
+                            // client's No Shift option on.
+                            if unit.lively && state.aim_guarded && !event.shift_key() {
+                                return None;
+                            }
                             (Some(id), (unit.cell.0.max(0) as u16, unit.cell.1.max(0) as u16))
                         };
                         // The skill is used from within its reach: the character walks there first if it must
@@ -138,10 +143,11 @@ pub(super) fn listen() {
                     }
                 }
                 2 => STATE.with_borrow_mut(|state| {
+                    let zoom_out = state.options.zoom_out;
                     let pressed = now();
                     if pressed - state.right_pressed < 350.0 {
                         if let Some(scene) = &mut state.scene {
-                            scene.camera = Camera { distance: scene.camera.distance, ..Camera::starting(scene.indoor) };
+                            scene.camera = Camera { distance: scene.camera.distance, ..Camera::starting(scene.indoor, zoom_out) };
                             if !scene.indoor {
                         scene.camera.remember();
                     }
@@ -170,6 +176,7 @@ pub(super) fn listen() {
             }
         });
         STATE.with_borrow_mut(|state| {
+            let zoom_out = state.options.zoom_out;
             let (Some(last), Some(scene)) = (state.turning, &mut state.scene) else { return };
             // The right button was let go outside the page.
             if event.buttons() & 2 == 0 {
@@ -177,7 +184,7 @@ pub(super) fn listen() {
                 return;
             }
             let (x, y) = (event.client_x() as f32, event.client_y() as f32);
-            let (pitches, distances) = Camera::limits(scene.indoor);
+            let (pitches, distances) = Camera::limits(scene.indoor, zoom_out);
             let indoor = scene.indoor;
             let camera = &mut scene.camera;
             if event.shift_key() {
@@ -271,13 +278,14 @@ pub(super) fn listen() {
             return;
         }
         STATE.with_borrow_mut(|state| {
+            let zoom_out = state.options.zoom_out;
             if let Some(scene) = &mut state.scene {
                 // A notch of a mouse's wheel is about a hundred pixels, and one step of the camera. A touchpad sends
                 // many small moves, a finger resting on it during a click among them: those move it as little.
                 let pixels = event.delta_y() * [1.0, 16.0, 400.0][event.delta_mode().min(2) as usize];
                 let step = (pixels * 0.15).clamp(-15.0, 15.0) as f32;
                 if pixels.abs() >= 4.0 {
-                    let (_, distances) = Camera::limits(scene.indoor);
+                    let (_, distances) = Camera::limits(scene.indoor, zoom_out);
                     scene.camera.distance = (scene.camera.distance + step).clamp(distances[0], distances[1]);
                     if !scene.indoor {
                         scene.camera.remember();

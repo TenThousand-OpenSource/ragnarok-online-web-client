@@ -64,6 +64,7 @@ impl App {
                     // says on whom or where.
                     self.skills.aimed = Some((skill.id, level.unwrap_or(skill.level).min(skill.level).max(1)));
                     world::aim(Some(skill.target == 2), skill.range);
+                    world::aim_guarded(self.guarded(skill.id));
                     self.aim_words();
                 }
             }

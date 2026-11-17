@@ -20,6 +20,15 @@ impl App {
                 self.switch_option(arg);
                 self.refresh_settings();
             }
+            // A row that does something at a press (the client's `CUIOptionItem::RunFunction`).
+            "settings-run" => {
+                if arg == "TT_EX_SIT" {
+                    // Sits down or stands up, whichever it is not doing (the client's `ToggleSitStand`).
+                    self.command(if self.hero.sitting { "/stand" } else { "/sit" });
+                } else if let Some(command) = Self::command_of(arg) {
+                    self.command(command);
+                }
+            }
             "settings-off" => {
                 match arg {
                     "music" => self.settings.music_off = !self.settings.music_off,

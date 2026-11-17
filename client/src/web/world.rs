@@ -53,7 +53,9 @@ const FIELD_OF_VIEW: f32 = 15.0;
 const NEAR: f32 = 10.0;
 const FAR: f32 = 5000.0;
 const DISTANCE: f32 = 300.0;
-const DISTANCE_RANGE: [f32; 2] = [150.0, 500.0];
+const DISTANCE_RANGE: [f32; 2] = [150.0, 730.0];
+/// How far the camera goes outdoors without the client's Zoom Out option (with it: `DISTANCE_RANGE`'s end).
+const DISTANCE_NEAR_MOST: f32 = 400.0;
 const PITCH: f32 = 45.0;
 const PITCH_RANGE: [f32; 2] = [20.0, 70.0];
 /// World units per sprite pixel: about 35 sprite pixels to a cell.
@@ -328,11 +330,13 @@ pub struct Options {
     pub monster_life: bool,
     /// Other players are not drawn.
     pub hide_players: bool,
+    /// The camera may go out to 730 instead of 400 (`/zoom`).
+    pub zoom_out: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false }
+        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false, zoom_out: true }
     }
 }
 
@@ -375,6 +379,9 @@ struct State {
     right_pressed: f64,
     /// The player's options the world goes by.
     options: Options,
+    /// The skill being aimed is one of help, which goes on a monster only with Shift held (unless the client's
+    /// No Shift option is on).
+    aim_guarded: bool,
     /// How the monster being fought is fought: 0 until it is down, 1 while the left button is held, 2 with one
     /// blow as soon as it is near enough (the button was let go before any blow was asked for).
     fight: u8,

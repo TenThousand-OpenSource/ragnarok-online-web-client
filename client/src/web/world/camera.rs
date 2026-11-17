@@ -6,13 +6,15 @@ use super::*;
 impl Camera {
     /// How far the camera may tilt and how far away it may be, outdoors or inside (the original's limits: 20
     /// degrees either way of 45 outdoors and 10 inside, and inside no farther than where it starts).
-    pub(super) fn limits(indoor: bool) -> ([f32; 2], [f32; 2]) {
-        if indoor { ([35.0, 55.0], [DISTANCE_RANGE[0], DISTANCE]) } else { (PITCH_RANGE, DISTANCE_RANGE) }
+    pub(super) fn limits(indoor: bool, zoom_out: bool) -> ([f32; 2], [f32; 2]) {
+        // Outdoors as far as the client's Zoom Out option lets it: 730 with it, 400 without.
+        let far = if zoom_out { DISTANCE_RANGE[1] } else { DISTANCE_NEAR_MOST };
+        if indoor { ([35.0, 55.0], [DISTANCE_RANGE[0], DISTANCE]) } else { (PITCH_RANGE, [DISTANCE_RANGE[0], far]) }
     }
 
     /// The camera a map starts with: looking north outdoors, turned 45 degrees inside, as near as it was left.
-    pub(super) fn starting(indoor: bool) -> Self {
-        let (_, distances) = Self::limits(indoor);
+    pub(super) fn starting(indoor: bool, zoom_out: bool) -> Self {
+        let (_, distances) = Self::limits(indoor, zoom_out);
         Self { yaw: if indoor { 45.0 } else { 0.0 }, pitch: PITCH, distance: Self::remembered().distance.clamp(distances[0], distances[1]) }
     }
 

@@ -188,6 +188,12 @@ pub fn aim(at: Option<bool>, range: u16) {
     aim_shown();
 }
 
+/// Whether the skill being aimed needs Shift held to go on a monster (a skill of help, with the client's No
+/// Shift option off).
+pub fn aim_guarded(guarded: bool) {
+    STATE.with_borrow_mut(|state| state.aim_guarded = guarded);
+}
+
 /// What is written by the pointer while a skill is aimed: its name and the level it will be used at.
 pub fn aim_words(words: &str) {
     STATE.with_borrow_mut(|state| state.aim_words = words.to_owned());

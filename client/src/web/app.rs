@@ -32,6 +32,7 @@ mod clicks;
 mod keys;
 mod hotkeys_set;
 mod settings;
+mod commands;
 mod incoming;
 mod game;
 mod screen;

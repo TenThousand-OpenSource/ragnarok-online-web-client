@@ -185,7 +185,29 @@ pub fn stand(cell: (u16, u16)) {
 
 /// The player's options the world goes by, as they are now.
 pub fn options(options: Options) {
-    STATE.with_borrow_mut(|state| state.options = options);
+    STATE.with_borrow_mut(|state| {
+        state.options = options;
+        // A camera farther out than is now allowed comes in.
+        if let Some(scene) = &mut state.scene {
+            let (_, distances) = Camera::limits(scene.indoor, options.zoom_out);
+            scene.camera.distance = scene.camera.distance.clamp(distances[0], distances[1]);
+        }
+    });
+}
+
+/// The player's own character turns an eighth of the way round where it stands, clockwise or the other way
+/// (the client's `/bangbang` and `/bingbing`): which way it then faces, as the server counts directions (0
+/// north, turning left). None while it walks or there is no map.
+pub fn turn(clockwise: bool) -> Option<u8> {
+    STATE.with_borrow_mut(|state| {
+        let player = &mut state.scene.as_mut()?.player;
+        if player.walk.is_some() {
+            return None;
+        }
+        // The sprites count from the south, turning the other way.
+        player.facing = (player.facing + if clockwise { 1 } else { 7 }) % 8;
+        Some((12 - player.facing) % 8)
+    })
 }
 
 /// Whether the camera stays fixed on the character (the client's `TT_FIXED_CAMERA_ON_OFF`, which its

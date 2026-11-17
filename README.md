@@ -12,12 +12,18 @@ It is work in progress. What is there today:
 - The game world in 3D (WebGPU, WebGL2 fallback): a map's ground with its baked light, its models (buildings,
   trees), water; the original client's camera; walking by clicking, in step with the server; changing maps
   through portals.
-- In-game windows of the original client: Basic Information, Status, Inventory, the skill list, the hotkey bar,
-  chat, and the minimap.
-- English and Russian.
+- Everyone on the map: NPCs with their dialogs, shops and storage, monsters, other players, loot.
+- Fights: attacking with chase, bows with arrows in flight, skills aimed with the pointer with their cast bar and
+  effects, damage numbers, death and resurrection, taming a monster and hatching its egg.
+- In-game windows of the original client: Basic Information, Status, Inventory, Equipment, the skill tree, item
+  and skill descriptions, the hotkey bar, chat, the minimap.
+- Sound: the map's music and the game's sound effects.
+- English and Russian (the interface; items and skills are translated in batches, see `translations/`).
 
-Not there yet: other players, NPCs and monsters on the map, combat, equipment and the other windows, sound
-effects in the world.
+Not there yet: parties and guilds, trading between players, pets' own windows, second-job skills' effects, the
+world map and quests.
+
+**New to the code? Start with [ARCHITECTURE.md](ARCHITECTURE.md).**
 
 ## No game data in this repository
 

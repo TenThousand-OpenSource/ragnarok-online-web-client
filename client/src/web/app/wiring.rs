@@ -1,0 +1,184 @@
+//! Starting the client: the page's events (clicks, keys, drags, timers) are turned into actions for the app.
+
+use super::*;
+
+pub fn start() -> Result<(), String> {
+    let window = web_sys::window().ok_or("no window")?;
+    let document = window.document().ok_or("no document")?;
+    let ui = ui()?;
+    ui.set_attribute("style", &format!("background-image:url('{}')", asset_url(WALLPAPER))).map_err(js_error)?;
+    let on_submit = Closure::<dyn FnMut(Event)>::new(|event: Event| {
+        event.prevent_default();
+        let form = event.target().and_then(|target| target.dyn_into::<Element>().ok());
+        if let Some(action) = form.and_then(|form| form.get_attribute("data-submit")) {
+            dispatch(Action::Submit(action));
+        }
+    });
+    fn pressed(event: &Event, attribute: &str) -> Option<Element> {
+        let target = event.target().and_then(|target| target.dyn_into::<Element>().ok())?;
+        let selector = if attribute == "button" { attribute.to_owned() } else { format!("[{attribute}]") };
+        target.closest(&selector).ok().flatten()
+    }
+    let on_click = Closure::<dyn FnMut(Event)>::new(|event: Event| {
+        APP.with_borrow(App::tune);
+        if let Some(pressed) = pressed(&event, "data-click") {
+            dispatch(Action::Click(pressed.get_attribute("data-click").unwrap_or_default(), pressed.get_attribute("data-arg").unwrap_or_default()));
+        }
+    });
+    let on_double_click = Closure::<dyn FnMut(Event)>::new(|event: Event| {
+        // A double click on a server enters it.
+        if pressed(&event, "data-open-server").is_some() {
+            dispatch(Action::Click("server-ok".to_owned(), String::new()));
+        }
+        if let Some(slot) = pressed(&event, "data-open").and_then(|pressed| pressed.get_attribute("data-open")).and_then(|slot| slot.parse().ok()) {
+            dispatch(Action::Open(slot));
+        }
+        if let Some(what) = pressed(&event, "data-use").and_then(|pressed| pressed.get_attribute("data-use")) {
+            dispatch(Action::Use(what));
+        }
+    });
+    // Icons are dragged from the inventory and the skill list onto the hotkey bar; a right click empties a slot.
+    let on_drag = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
+        let dragged = pressed(&event, "data-drag").and_then(|dragged| dragged.get_attribute("data-drag"));
+        if let (Some(dragged), Some(transfer)) = (dragged, event.data_transfer()) {
+            let _ = transfer.set_data("text/plain", &dragged);
+        }
+    });
+    let on_drag_over = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
+        if pressed(&event, "data-slot").is_some() {
+            event.prevent_default();
+        }
+    });
+    let on_drop = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
+        let slot = pressed(&event, "data-slot").and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok());
+        let dragged = event.data_transfer().and_then(|transfer| transfer.get_data("text/plain").ok());
+        if let (Some(slot), Some(dragged)) = (slot, dragged) {
+            event.prevent_default();
+            dispatch(Action::Dropped(slot, dragged));
+        }
+    });
+    let on_menu = Closure::<dyn FnMut(Event)>::new(|event: Event| {
+        if let Some(slot) = pressed(&event, "data-slot").and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok()) {
+            event.prevent_default();
+            dispatch(Action::Dropped(slot, String::new()));
+        }
+        // The right button on an item shows what it is.
+        if let Some(id) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| id.parse().ok()) {
+            event.prevent_default();
+            dispatch(Action::Info(id));
+        }
+        // The right button on a skill shows its description.
+        if let Some(id) = pressed(&event, "data-skill").and_then(|skill| skill.get_attribute("data-skill")).and_then(|id| id.parse().ok()) {
+            event.prevent_default();
+            dispatch(Action::SkillInfo(id));
+        }
+    });
+    let on_key = Closure::<dyn FnMut(KeyboardEvent)>::new(|event: KeyboardEvent| {
+        let in_game = APP.with_borrow(|app| matches!(app.screen, Screen::Game) && app.message.is_none() && app.ask.is_none());
+        if APP.with_borrow_mut(|app| app.key(&event.key(), &event.code(), event.alt_key())) || (in_game && browsers_own(&event)) {
+            event.prevent_default();
+        }
+        APP.with_borrow(App::tune);
+    });
+    // A browser plays nothing before the first press on the page, wherever it lands: the music starts with it.
+    let on_press = Closure::<dyn FnMut()>::new(|| {
+        APP.with_borrow(App::tune);
+        check_music_soon();
+    });
+    // A thing dragged out of the inventory and let go over the world is dropped there.
+    if let Some(world) = document.get_element_by_id("game") {
+        let over = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| event.prevent_default());
+        let thrown = Closure::<dyn FnMut(web_sys::DragEvent)>::new(|event: web_sys::DragEvent| {
+            event.prevent_default();
+            if let Some(dragged) = event.data_transfer().and_then(|transfer| transfer.get_data("text/plain").ok()) {
+                dispatch(Action::Thrown(dragged));
+            }
+        });
+        world.add_event_listener_with_callback("dragover", over.as_ref().unchecked_ref()).map_err(js_error)?;
+        world.add_event_listener_with_callback("drop", thrown.as_ref().unchecked_ref()).map_err(js_error)?;
+        over.forget();
+        thrown.forget();
+    }
+    drag_windows(&document)?;
+    let on_resize = Closure::<dyn FnMut()>::new(|| dispatch(Action::Resized));
+    let on_visibility = Closure::<dyn FnMut()>::new(|| APP.with_borrow(App::tune));
+    let on_timer = Closure::<dyn FnMut()>::new(|| dispatch(Action::KeepAlive));
+    ui.add_event_listener_with_callback("submit", on_submit.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("click", on_click.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("dblclick", on_double_click.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("dragstart", on_drag.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("dragover", on_drag_over.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("drop", on_drop.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("contextmenu", on_menu.as_ref().unchecked_ref()).map_err(js_error)?;
+    document.add_event_listener_with_callback("keydown", on_key.as_ref().unchecked_ref()).map_err(js_error)?;
+    for event in ["pointerdown", "keydown"] {
+        document.add_event_listener_with_callback(event, on_press.as_ref().unchecked_ref()).map_err(js_error)?;
+    }
+    window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref()).map_err(js_error)?;
+    document.add_event_listener_with_callback("visibilitychange", on_visibility.as_ref().unchecked_ref()).map_err(js_error)?;
+    window.set_interval_with_callback_and_timeout_and_arguments_0(on_timer.as_ref().unchecked_ref(), KEEP_ALIVE_MS).map_err(js_error)?;
+    // These live as long as the page.
+    on_submit.forget();
+    on_click.forget();
+    on_double_click.forget();
+    on_drag.forget();
+    on_drag_over.forget();
+    on_drop.forget();
+    on_menu.forget();
+    on_key.forget();
+    on_press.forget();
+    on_resize.forget();
+    on_visibility.forget();
+    on_timer.forget();
+
+    APP.with_borrow_mut(|app| {
+        app.lang = stored("roweb.lang").and_then(|code| Lang::from_code(&code)).unwrap_or_default();
+        crate::i18n::speak(app.lang);
+        app.saved_id = stored("roweb.id").unwrap_or_default();
+        app.save_id = !app.saved_id.is_empty();
+        app.sound = stored("roweb.sound").as_deref() != Some("off");
+        // A reset link from an e-mail: `/?reset=<token>`.
+        let query = window.location().search().unwrap_or_default();
+        // `/?mute` opens the page silent without changing what the player has chosen: for tests beside a player.
+        if query.trim_start_matches('?').split('&').any(|pair| pair == "mute") {
+            app.sound = false;
+        }
+        if let Some(token) = query.trim_start_matches('?').split('&').find_map(|pair| pair.strip_prefix("reset=")) {
+            app.screen = Screen::Reset(token.to_owned());
+        }
+        app.render();
+        // The music is asked for at once. Most browsers hold it back until the first press on a freshly loaded
+        // page; some let it through.
+        app.tune();
+    });
+    check_music_soon();
+    // The game's tables arrive a moment later; figures painted without them are painted again.
+    wasm_bindgen_futures::spawn_local(async {
+        data::load_music().await;
+        match data::load().await {
+            Ok(()) => {
+                figure::forget();
+                dispatch(Action::Resized);
+            }
+            Err(error) => web_sys::console::warn_1(&error.into()),
+        }
+    });
+    Ok(())
+}
+
+/// Looks, a moment from now, whether the music plays: starting it takes the browser a moment.
+pub(super) fn check_music_soon() {
+    let check = Closure::once_into_js(|| dispatch(Action::CheckMusic));
+    if let Some(window) = web_sys::window() {
+        let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(check.unchecked_ref(), 400);
+    }
+}
+
+pub(super) fn dispatch(action: Action) {
+    APP.with_borrow_mut(|app| app.handle(action));
+}
+
+/// Runs an action after the current browser callback has returned.
+pub(super) fn later(action: Action) {
+    wasm_bindgen_futures::spawn_local(async move { dispatch(action) });
+}

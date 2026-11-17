@@ -150,7 +150,7 @@ impl App {
         let Some((id, amount, identified)) = self.bag.obtained.filter(|_| !self.bag.told_obtained) else { return };
         let Some((name, _)) = data::item_as(id, identified) else { return };
         self.bag.told_obtained = true;
-        self.chat_line(format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), "#ffff00");
+        self.chat_line_of(said::ITEM, format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), "#ffff00");
         if let Some(note) = element("obtained") {
             note.set_inner_html(&self.obtained_note());
         }
@@ -158,7 +158,12 @@ impl App {
 
     /// Adds a line to the chat.
     pub(super) fn chat_line(&mut self, words: String, colour: &str) {
-        self.chat.lines.push((words, colour.to_owned()));
+        self.chat_line_of(said::GENERAL, words, colour);
+    }
+
+    /// A line for the chat window, of one of the client's kinds (`said`): the window's tabs list it or not by that.
+    pub(super) fn chat_line_of(&mut self, kind: u8, words: String, colour: &str) {
+        self.chat.lines.push((words, colour.to_owned(), kind));
         if self.chat.lines.len() > super::super::hud::CHAT_KEPT {
             self.chat.lines.remove(0);
         }

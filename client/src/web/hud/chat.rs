@@ -11,13 +11,14 @@ impl App {
     }
 
     pub(in crate::web) fn chat_lines(&self, lines: usize) -> String {
-        // Every line kept is there: the window shows the last, and scrolls back through the others. The second
-        // tab keeps to what the game itself says (things picked up, deals, refusals), not what people say.
+        // Every line kept is there: the window shows the last, and scrolls back through the others. Each tab
+        // lists the kinds of line the client's own table gives it (`data::chat_tab_shows`): as the client starts,
+        // the first nearly everything, the second only what is said in red when something went wrong.
         let _ = lines;
         self.chat.lines
             .iter()
-            .filter(|(_, colour)| self.chat.tab == 0 || !matches!(colour.as_str(), "#0f0" | "#fff"))
-            .map(|(words, colour)| format!(r#"<div style="color:{colour}">{}</div>"#, escape(words)))
+            .filter(|(_, colour, kind)| data::chat_tab_shows(self.chat.tab, *kind, matches!(colour.as_str(), "#ff0000" | "#f00")))
+            .map(|(words, colour, _)| format!(r#"<div style="color:{colour}">{}</div>"#, escape(words)))
             .collect()
     }
 
@@ -41,12 +42,12 @@ impl App {
                     tr(name),
                 ));
             }
-            // How many play on the server, by the tabs. The client has no such thing (it answers `/who` in the
-            // chat): this is this client's own.
+            // How many play on the server, at the right of the tabs' line, before its small buttons. The client
+            // has no such thing (it answers `/who` in the chat): this is this client's own.
             if let Some(count) = self.online {
                 window.push_str(&format!(
-                    r#"<div class="a online" style="left:{}px;top:0;height:15px" title="{}"><i></i><b id="online-count">{count}</b><span>{}</span></div>"#,
-                    tabs + 12,
+                    r#"<div class="a online" style="right:{}px;top:0;height:15px" title="{}"><i></i><b id="online-count">{count}</b><span>{}</span></div>"#,
+                    82,
                     escape(tr("Players online")),
                     escape(tr("online"))
                 ));

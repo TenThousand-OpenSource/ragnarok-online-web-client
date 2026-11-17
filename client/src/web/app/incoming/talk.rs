@@ -67,7 +67,9 @@ impl App {
                     // `/notalkmsg` and `/notalkmsg2`); it still hangs over their heads.
                     let muted = id == packets::ZC_NOTIFY_CHAT && (self.option("TT_NOTALKMSG_ON_OFF") || self.option("TT_NOTALKMSG2_ON_OFF"));
                     if !muted {
-                        self.chat_line(words, &colour);
+                        // What people say is chat; a broadcast is of no particular kind.
+                        let kind = if matches!(id, packets::ZC_NOTIFY_PLAYERCHAT | packets::ZC_NOTIFY_CHAT) { said::CHAT } else { said::GENERAL };
+                        self.chat_line_of(kind, words, &colour);
                     }
                 }
             }
@@ -80,7 +82,7 @@ impl App {
             }
             npc::ZC_WHISPER => {
                 if let Some((name, words)) = npc::whispered(packet) {
-                    self.chat_line(format!("( {} {name} ) : {words}", crate::i18n::tr("From")), "#ffff00");
+                    self.chat_line_of(said::WHISPER, format!("( {} {name} ) : {words}", crate::i18n::tr("From")), "#ffff00");
                 }
             }
             npc::ZC_ACK_WHISPER => {

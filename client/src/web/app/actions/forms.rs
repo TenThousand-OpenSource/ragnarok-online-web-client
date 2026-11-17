@@ -42,7 +42,7 @@ impl App {
                         socket.send(&npc::whisper(to, words));
                         let line = format!("( To {to} ) : {words}");
                         set_field("chat-input", "");
-                        return self.chat_line(line, "#ffff00");
+                        return self.chat_line_of(said::WHISPER, line, "#ffff00");
                     }
                     socket.send(&packets::say(&game.name, words));
                     set_field("chat-input", "");

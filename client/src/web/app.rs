@@ -329,14 +329,30 @@ pub(super) struct Skills {
 /// The chat window.
 #[derive(Default)]
 pub(super) struct Chat {
-    /// Its lines, oldest first, each with its colour.
-    pub lines: Vec<(String, String)>,
+    /// Its lines, oldest first, each with its colour and its kind (`said`).
+    pub lines: Vec<(String, String, u8)>,
     /// How many rows it shows (0 leaves only its input line), and how many it had before its log was hidden.
     pub rows: usize,
     pub rows_kept: usize,
     /// Which of its tabs is open, and whether the window is locked where it is.
     pub tab: usize,
     pub locked: bool,
+}
+
+/// The kinds of line the chat window keeps, by the numbers the client's code gives them (the last but two of
+/// what it sends with `UIM_PUSHINTOCHATHISTORY`): each tab of the window lists some kinds and not others.
+pub(super) mod said {
+    /// Anything of no particular kind: most of what the game itself says.
+    pub const GENERAL: u8 = 0;
+    /// What someone says aloud.
+    pub const CHAT: u8 = 1;
+    pub const WHISPER: u8 = 2;
+    /// A thing obtained.
+    pub const ITEM: u8 = 6;
+    /// What is worn: put on, taken off, refused.
+    pub const EQUIPMENT: u8 = 7;
+    /// A skill that failed.
+    pub const SKILL_FAILED: u8 = 11;
 }
 
 /// Dealing with NPCs: a shop and the Kafra's storage.

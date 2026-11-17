@@ -3,6 +3,8 @@
 use super::*;
 
 thread_local! {
+    /// The chat window's tabs as the client starts with them: for each, whether it lists a line of each kind.
+    static CHAT_TABS: RefCell<Vec<Vec<bool>>> = const { RefCell::new(Vec::new()) };
     /// The client's keys: its four tables, each entry's name and the keys it starts with.
     static HOTKEYS: RefCell<Vec<Vec<(String, crate::hotkeys::Chord)>>> = const { RefCell::new(Vec::new()) };
     /// How the client writes each key, by the key's number.
@@ -68,9 +70,23 @@ pub fn emotion_named(command: &str) -> Option<u16> {
     EMOTION_NAMES.with_borrow(|names| names.get(&command.to_lowercase()).copied())
 }
 
+/// Whether a tab of the chat window lists a line of that kind (the client's `UINewChatWnd`, on `UM_ADDCHAT`):
+/// what the tab is set to list (its `ChatWndInfo.lub`, by the kind's number), and besides, in every tab, a line
+/// of kind 25, and one of no particular kind written in pure red — what the client says when something went
+/// wrong. Until the table is read the first tab lists everything and the others only those.
+pub fn chat_tab_shows(tab: usize, kind: u8, red: bool) -> bool {
+    kind == 25 || (kind == 0 && red) || CHAT_TABS.with_borrow(|tabs| if tabs.is_empty() { tab == 0 } else { tabs.get(tab).and_then(|shows| shows.get(usize::from(kind))).copied().unwrap_or(false) })
+}
+
 /// Takes its tables out of what the gateway gave: the client's messages, the options of its Game Settings
 /// window, its keys, its emotions.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
+    CHAT_TABS.set(
+        js_sys::Array::from(&field(tables, "chat_tabs"))
+            .iter()
+            .map(|tab| js_sys::Array::from(&field(&tab, "shows")).iter().map(|shown| shown.as_bool().unwrap_or(false)).collect())
+            .collect(),
+    );
     MESSAGES.set(field(tables, "messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
     OPTIONS.set(
         field(tables, "options")

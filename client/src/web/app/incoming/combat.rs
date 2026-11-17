@@ -136,7 +136,7 @@ impl App {
                     let _ = worked;
                     let line = skills::failure(skill, value, cause).and_then(data::message).unwrap_or_else(|| "Skill has failed.".to_owned());
                     let named = data::skill(skill).map(|(_, name, _)| name).unwrap_or_default();
-                    self.chat_line(crate::i18n::tr(&line).replace("%s", &named), "#ff0000");
+                    self.chat_line_of(said::SKILL_FAILED, crate::i18n::tr(&line).replace("%s", &named), "#ff0000");
                 }
             }
             // ZC_ATTACK_RANGE (0x013a): `u16 range`: how far the weapon reaches.

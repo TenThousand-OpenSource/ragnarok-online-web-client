@@ -138,3 +138,24 @@ pub fn options(grf: &Grf) -> serde_json::Value {
         })
         .collect()
 }
+
+/// The chat window's tabs as the client starts with them (`Lua Files\\ChatWndInfo\\ChatWndInfo.lub`): `[{"name":
+/// "MSI_ST_CHAT", "shows": [true, …]}, …]`, in the file's order (`ChatSubWnd_1`, `ChatSubWnd_2`…), those the file
+/// has in the window ("On"). `shows` says, by the kind of a line (the number the client's code gives it: 0
+/// anything else, 1 what is said, 2 whispers, 3 party, 4 guild, 6 things obtained, 7 equipment, 8 status, 11
+/// skills that failed, 16 the fight, 18 experience…), whether the tab lists it: the file's `option<kind + 1>`.
+/// The file names the messages it uses by the client's own names for them (`MsgStrID.…`, a table the client makes
+/// for it); here each such name stands for itself.
+pub fn chat_tabs(grf: &Grf) -> serde_json::Value {
+    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let _ = lua.load("MsgStrID = setmetatable({}, { __index = function(_, name) return name end })").exec();
+    run_in(&lua, grf, &["chatwndinfo\\chatwndinfo"]);
+    (1..=10)
+        .filter_map(|tab| lua.globals().get::<Table>(format!("ChatSubWnd_{tab}")).ok())
+        .filter(|tab| tab.get::<String>("TabState").is_ok_and(|state| state == "On"))
+        .map(|tab| {
+            let shows: Vec<bool> = (1..=30).map_while(|option| tab.get::<Option<i64>>(format!("option{option}")).ok().flatten()).map(|shown| shown != 0).collect();
+            serde_json::json!({ "name": tab.get::<String>("TabName").unwrap_or_default(), "shows": shows })
+        })
+        .collect()
+}

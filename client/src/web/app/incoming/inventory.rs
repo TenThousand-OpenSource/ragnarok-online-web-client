@@ -107,7 +107,7 @@ impl App {
                     self.items_changed();
                 } else {
                     // The server would not have it worn (another job's thing, too low a level): the client says so.
-                    self.chat_line(crate::i18n::tr("You can't put this item on.").to_owned(), "#ff8484");
+                    self.chat_line_of(said::EQUIPMENT, crate::i18n::tr("You can't put this item on.").to_owned(), "#ff8484");
                 }
             }
             items::ZC_REQ_TAKEOFF_EQUIP_ACK => {

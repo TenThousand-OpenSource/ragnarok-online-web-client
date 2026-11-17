@@ -17,7 +17,7 @@ mod items;
 mod maps;
 mod skills;
 
-pub use interface::{emotions, hotkeys, options};
+pub use interface::{chat_tabs, emotions, hotkeys, options};
 pub use items::{translated, About, Items, Translated, Unidentified};
 pub use skills::skill_texts;
 use skills::{skill_tree, skills};
@@ -225,6 +225,7 @@ fn beside(client_dir: &std::path::Path, files: &[&str]) -> Option<Lua> {
 pub fn for_browser(grf: &Grf, client_dir: &std::path::Path, database: &std::path::Path) -> serde_json::Value {
     let mut tables = for_client(grf);
     if let Some(tables) = tables.as_object_mut() {
+        tables.insert("chat_tabs".to_owned(), chat_tabs(grf));
         tables.insert("maps".to_owned(), maps::maps(client_dir));
         tables.insert("towns".to_owned(), maps::towns(client_dir));
         tables.insert("guide".to_owned(), guide::guide(grf, database, client_dir));

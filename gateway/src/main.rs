@@ -99,6 +99,8 @@ fn config() -> Result<(Config, Option<String>), String> {
             "items" => command = Some(format!("items:{}", value()?)),
             // `tables`: prints what the browser client is given of the client's tables.
             "tables" => command = Some("tables:".to_owned()),
+            // `chat-tabs`: prints the client's table of the chat window's tabs.
+            "chat-tabs" => command = Some("chat-tabs:".to_owned()),
             _ => return Err(format!("unknown argument {arg}")),
         }
     }
@@ -149,6 +151,8 @@ async fn main() {
             }
         } else if filter == "tables:" {
             println!("{}", tables::for_browser(&grf, &config.client_dir, &config.item_database));
+        } else if filter == "chat-tabs:" {
+            println!("{}", tables::chat_tabs(&grf));
         } else if let Some(ids) = filter.strip_prefix("items:") {
             println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
         } else if let Some((files, global)) = filter.strip_prefix("dump:").and_then(|dump| dump.rsplit_once(':')) {

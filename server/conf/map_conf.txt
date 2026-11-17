@@ -2,3 +2,6 @@ char_ip: char
 map_ip: 127.0.0.1
 // What a player is told on entering the game.
 motd_txt: conf/import/motd.txt
+// The classic scripts place everyone by the old maps of Izlude, Alberta and Morroc; the client has the new ones.
+// This script moves them to their places on the new maps (see tools/client-tables/classic_overlay.py).
+npc: npc/custom/roweb_classic.txt

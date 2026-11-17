@@ -7,10 +7,20 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn status_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            // 0x019b: someone gains a level (0 base, 1 job).
+            // ZC_NOTIFY_EFFECT (0x019b): `u32 who, u32 kind`: someone gains a level (0 base, 1 job). The client
+            // (`ReceivePartyMemberEffect`) plays its effect on them: the angel for a base level (`EF_ANGEL`,
+            // `angel.str`), the light of a job level (`EF_JOBLVUP`, `JobLvUP.str`).
             0x019b => {
                 let own = self.account.as_ref().map(|account| account.account_id);
-                if npc::npc(id, packet) == own {
+                let who = npc::npc(id, packet);
+                let kind = packet.get(6..10).map_or(u32::MAX, |kind| u32::from_le_bytes([kind[0], kind[1], kind[2], kind[3]]));
+                let on = who.filter(|who| Some(*who) != own);
+                match kind {
+                    0 => world::effect("angel.str", on),
+                    1 => world::effect("joblvup.str", on),
+                    _ => {}
+                }
+                if who == own && who.is_some() {
                     sound::effect("levelup.wav", 1.0);
                     self.pet_feels(pets::moment::LEVEL_UP, None);
                 }

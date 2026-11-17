@@ -2,6 +2,7 @@
 
 pub mod bmp;
 pub mod effect;
+pub mod effect_tables;
 pub mod hotkeys;
 pub mod i18n;
 pub mod map;

@@ -4,12 +4,15 @@
 # Accounts are seeded from conf/accounts.sql on the first start.
 
 x-rathena: &rathena
-  image: roweb/rathena:20260219
+  image: roweb/rathena:20260219-prere
   build:
     context: ../../rathena
     dockerfile: ../roweb/server/Dockerfile
     args:
       PACKETVER: "20260219"
+      # The classic game (pre-renewal). "no" builds Renewal; the gateway's --item-database goes with it
+      # (../rathena/db/pre-re or ../rathena/db/re), and so does the image's name above.
+      PRERE: "yes"
   init: true
   restart: unless-stopped
   volumes:
@@ -20,6 +23,8 @@ x-rathena: &rathena
     - ./conf/packet_conf.txt:/rathena/conf/import/packet_conf.txt:ro
     - ./conf/battle_conf.txt:/rathena/conf/import/battle_conf.txt:ro
     - ./conf/motd.txt:/rathena/conf/import/motd.txt:ro
+    # The classic scripts put right for the maps the client has in their new form.
+    - ./npc/roweb_classic.txt:/rathena/npc/custom/roweb_classic.txt:ro
     # Where one can walk, made from the client's own maps (see the gateway's `mapcache` command).
     - ./mapcache/map_cache.dat:/rathena/db/import/map_cache.dat:ro
 

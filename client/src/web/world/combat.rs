@@ -12,6 +12,9 @@ pub fn struck(source: u32, target: u32, own: u32, lasts: f64, delay: f64, damage
         let (from, to) = (place(scene, source), place(scene, target));
         if source == own {
             state.own_struck = time;
+            // The blow's own motion (the server's `amotion`, sent with the blow): until it is over the character
+            // does not walk (see `striking`).
+            state.own_striking_until = time + lasts.max(0.0);
         }
         if let Some(striker) = if source == own { Some(&mut scene.player) } else { scene.units.get_mut(&source) } {
             // Characters have two attacks, and which one shows depends on the job and on what is held (see
@@ -217,6 +220,52 @@ pub fn aim_words(words: &str) {
 }
 
 /// Whether a skill is being aimed.
+/// A character uses a skill that strikes nobody (the server's ZC_USE_SKILL): it goes through the motion of using
+/// a skill once and stands again (the client's `CPlayer::SetState(ST_SKILL)`: action 96, the one it casts in; for
+/// the bards, dancers and crusaders and what they grow into, action 32, their stance). One who sits stays
+/// seated, and a monster has motions of its own, which are not shown here.
+pub fn uses_skill(who: u32, own: u32, body: u8) {
+    // Bard, Dancer, Crusader; their reborn and baby selves; Minstrel, Wanderer and Royal Guard with their reborn
+    // selves; and the two the client's code lists after them.
+    const STANCE: [u16; 17] = [19, 20, 14, 4020, 4021, 4015, 4042, 4043, 4037, 4068, 4075, 4069, 4076, 4073, 4066, 4263, 4264];
+    STATE.with_borrow_mut(|state| {
+        let Some(scene) = &mut state.scene else { return };
+        let Some(mover) = (if who == own { Some(&mut scene.player) } else { scene.units.get_mut(&who) }) else { return };
+        let Look::Character(figure) = &mover.look else { return };
+        if mover.sitting {
+            return;
+        }
+        // By the state the client's table gives the skill: the blow of an attack (2, 9), the stance of one (11),
+        // or else the motion of using a skill.
+        let action = match body {
+            2 | 9 => attack_action(figure),
+            11 => 32,
+            _ if STANCE.contains(&figure.job) => 32,
+            _ => 96,
+        };
+        figure::prepare(figure, action);
+        let lasts = figure::body_timing(figure.job, figure.sex, action).map_or(600.0, |(pictures, each)| pictures as f64 * each);
+        mover.motion = Some((action, now(), lasts.max(250.0)));
+    });
+}
+
+/// Someone used First Aid: its glitter shows over them (`effects::aid_glitter`). `on` is none for the player's own
+/// character.
+pub fn first_aid(on: Option<u32>) {
+    if !STATE.with_borrow(|state| state.options.effects) {
+        return;
+    }
+    let lot = |most: f64| (js_sys::Math::random() * most).floor() as f32;
+    STATE.with_borrow_mut(|state| state.aids.push((on, now(), lot(360.0), lot(360.0))));
+}
+
+/// Whether the player's own character is in the motion of a blow it deals. The original client asks for no walk
+/// during it (rAthena's `attack_walk_delay` is off for players because, as its comment says, "the client already
+/// blocks sending movement requests during this time"): one cannot strike and walk on at once.
+pub fn striking() -> bool {
+    STATE.with_borrow(|state| now() < state.own_striking_until)
+}
+
 /// Whether the player's own character is walking now.
 pub fn walking() -> bool {
     STATE.with_borrow(|state| state.scene.as_ref().is_some_and(|scene| scene.player.walk.is_some()))

@@ -61,7 +61,7 @@ options, and the paths in `server/docker-compose.yml`, say otherwise.
 cargo build --release -p roweb-gateway
 ./target/release/roweb-gateway mapcache server/mapcache/map_cache.dat
 
-# 2. rAthena (PACKETVER 20260219) and MariaDB.
+# 2. rAthena (PACKETVER 20260219, the classic pre-renewal rules) and MariaDB.
 docker compose -f server/docker-compose.yml up -d --build
 
 # 3. The browser client, into client/dist.
@@ -77,6 +77,10 @@ are for a server on your own machine only.
 What the gateway sends is compressed (gzip or Brotli, as the browser takes) and the client's own files, named by
 their build, are kept by the browser. Both can be switched off: `--compress off` where a proxy or a CDN in front
 does the compressing, `--cache-client off` to have the client asked for anew each time.
+
+The server plays by the classic (pre-renewal) rules: `PRERE: "yes"` in `server/docker-compose.yml`, and the
+gateway reads `../rathena/db/pre-re`. For Renewal set `PRERE: "no"`, give the image another name there, rebuild,
+and start the gateway with `--item-database ../rathena/db/re`.
 
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's
 `--smtp-url` at a real server for anything else.

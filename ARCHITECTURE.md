@@ -43,6 +43,9 @@ client/src/
   map.rs            .gat / .gnd: walkable cells, ground mesh, path finding
   model.rs          .rsw / .rsm: what stands on a map (its matrices in model/matrix.rs)
   effect.rs         .str: the client's effect files, frame by frame
+  effect_tables.rs  tables the client has compiled into it: which effect a skill or an item shows, which file
+                    and sound an effect is, how the body moves for a skill (the files in effect_tables/, written
+                    by tools/client-tables/skill_effects.py; effects_missing.txt lists what is not drawn yet)
   hotkeys.rs        the client's keys: key numbers, how a key is written, what a Mac lacks
   talk.rs           PetTalkTable.xml: what pets say
   net/
@@ -115,6 +118,7 @@ translations/
   ru/               Russian: items-*.json, skills-*.json  ({"<id>": {"name", "description"}})
 tools/
   packet-lengths    builds the packet length table from rAthena's sources
+  client-tables     writes out tables compiled into the original client (skills and their effects)
   split_module.py   moves functions of a file that grew too large into child modules
 ```
 

@@ -135,6 +135,11 @@ impl App {
                 if self.pets.menu_at.take().is_some() {
                     self.render();
                 }
+                // No walk is asked for while the character's own blow is in motion, as in the original client; a
+                // button held on the ground asks again once it is over.
+                if world::striking() {
+                    return;
+                }
                 if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
                     socket.send(&packets::walk_to(x, y));
                 }

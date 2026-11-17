@@ -1,0 +1,87 @@
+//===== roweb =================================================
+//= The classic (pre-renewal) NPCs on the new client's maps
+//= Written by tools/client-tables/classic_overlay.py: see it for
+//= what this does and why. Not to be edited by hand.
+//============================================================
+
+-	script	roweb_classic_maps	-1,{
+OnInit:
+	unloadnpc "alb02";
+	unloadnpc "iz01";
+	unloadnpc "iz02";
+	unloadnpc "iz03";
+	unloadnpc "iz001";
+	unloadnpc "iz04";
+	unloadnpc "iz02-1";
+	unloadnpc "iz03-1";
+	unloadnpc "iz01-1";
+	unloadnpc "iz04-1";
+	unloadnpc "izair1";
+	unloadnpc "lizair2";
+	unloadnpc "prtf005";
+	unloadnpc "welcome_arena";
+	unloadnpc "bye_arena";
+	movenpc "Airship Staff#izlude",202,75,3;	// izlude
+	movenpc "Sailor#izlude",197,205,1;	// izlude
+	movenpc "Bonne#izlude",71,92,2;	// izlude
+	movenpc "Charfri#izlude",172,215,4;	// izlude
+	movenpc "Cuskoal#izlude",174,164,4;	// izlude
+	movenpc "Dega#izlude",85,103,4;	// izlude
+	movenpc "Kylick#izlude",140,186,4;	// izlude
+	movenpc "Red#izlude",57,159,2;	// izlude
+	movenpc "Cebalis#izlude",55,159,2;	// izlude
+	movenpc "Soldier#izlude",165,156,2;	// izlude
+	movenpc "Honeymoon Helper#Izlude",180,224,3;	// izlude
+	movenpc "Kafra Employee#iz",128,148,6;	// izlude
+	movenpc "Butcher#iz",160,186,0;	// izlude
+	movenpc "Fruit Gardener#iz",124,165,4;	// izlude
+	movenpc "Vendor from Milk Ranch#i",128,158,7;	// izlude
+	movenpc "Bulletin Board#5",25,103,0;	// izlude
+	movenpc "Mercenary Manager#Sword",47,170,4;	// izlude
+	movenpc "Mercenary Merchant#Sword",55,170,4;	// izlude
+	movenpc "Smile Assistance#iz",125,175,4;	// izlude
+	movenpc "Promotional Staff#iz",102,171,6;	// izlude
+	movenpc "Edgar#izlude",179,219,2;	// izlude
+	movenpc "Scamp#iz",172,73,6;	// izlude
+	movenpc "Sea Captain#ama1",246,74,3;	// alberta
+	movenpc "Aibakthing#ayo",246,29,3;	// alberta
+	movenpc "Kunlun Envoy#gon",246,62,3;	// alberta
+	movenpc "Girl#0lou",246,40,3;	// alberta
+	movenpc "Moscovia P.R. Officer#1",246,51,4;	// alberta
+	movenpc "Sailor#tur",244,118,4;	// alberta
+	movenpc "Turtle Island Scholar",246,114,4;	// alberta
+	movenpc "Gershaun",232,103,6;	// alberta
+	movenpc "Continental Official#mor",176,101,3;	// morocc
+	end;
+}
+
+izlude,110,182,0	warp	iz01_n	2,2,izlude_in,65,87
+izlude,20,98,0	warp	iz001_n	3,3,prt_fild08,367,212
+izlude,52,172,0	warp	iz04_n	2,2,izlude_in,74,161
+izlude_in,116,46,0	warp	iz02-1_n	3,2,izlude,128,98
+izlude_in,148,127,0	warp	iz03-1_n	2,5,izlude,210,161
+izlude_in,65,84,0	warp	iz01-1_n	2,2,izlude,112,179
+izlude_in,74,158,0	warp	iz04-1_n	3,2,izlude,52,168
+prt_fild08,371,212,0	warp	prtf005_n	3,3,izlude,24,98
+izlude,213,161,0	warp	welcome_arena_n	1,1,arena_room,100,30
+arena_room,99,24,0	warp	bye_arena_n	2,2,izlude,209,161
+
+// Portals of the old maps taken away, the new maps having no place for them.
+// alberta: alb02 at 134,38 (npc/pre-re/warps/cities/alberta.txt)
+// izlude: iz02 at 148,148 (npc/pre-re/warps/cities/izlude.txt)
+// izlude: iz03 at 216,129 (npc/pre-re/warps/cities/izlude.txt)
+// izlude: izair1 at 149,39 (npc/pre-re/warps/cities/izlude.txt)
+// izlude: lizair2 at 176,56 (npc/pre-re/warps/cities/izlude.txt)
+// Left where the classic script put them: the renewal scripts have nobody of that name on the map.
+// izlude: Guide#iz at 121,87 (npc/pre-re/guides/guides_izlude.txt)
+// izlude: Magazine Dealer Kenny#iz at 171,127 (npc/pre-re/merchants/ammo_boxes.txt)
+// izlude: Bullet Dealer Tony#iz at 171,133 (npc/pre-re/merchants/ammo_dealer.txt)
+// izlude: Pet Groomer#iz at 164,138 (npc/pre-re/merchants/shops.txt)
+// izlude: Sign#Iz1 at 54,139 (npc/pre-re/other/msg_boards.txt)
+// izlude: Sign#Iz2 at 144,148 (npc/pre-re/other/msg_boards.txt)
+// alberta: AlbGuide at 23,238 (npc/pre-re/guides/guides_alberta.txt)
+// alberta: Guide#2alb at 120,60 (npc/pre-re/guides/guides_alberta.txt)
+// alberta: bdt at 118,160 (npc/pre-re/merchants/ammo_dealer.txt)
+// morocc: MocGuide at 153,286 (npc/pre-re/guides/guides_morroc.txt)
+// morocc: Guide#2moc at 54,97 (npc/pre-re/guides/guides_morroc.txt)
+// alberta_in: alb02-1 (portal) at 73,141 (npc/pre-re/warps/cities/alberta.txt)

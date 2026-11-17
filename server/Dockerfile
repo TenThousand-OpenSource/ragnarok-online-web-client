@@ -2,10 +2,13 @@
 FROM alpine:3.23 AS build
 RUN apk add --no-cache make gcc g++ zlib-dev mariadb-dev pcre-dev linux-headers bash
 ARG PACKETVER=20260219
+# The rules the server plays by: "yes" is the classic game (pre-renewal: its damage formulas, its monsters'
+# life and experience, `db/pre-re` and `npc/pre-re`), "no" is Renewal.
+ARG PRERE=yes
 COPY . /rathena
 WORKDIR /rathena
 # -j4: each map-server translation unit needs close to a gigabyte of RAM.
-RUN ./configure --enable-packetver=${PACKETVER} && make -j4 server
+RUN ./configure --enable-packetver=${PACKETVER} --enable-prere=${PRERE} && make -j4 server
 
 FROM alpine:3.23
 RUN apk add --no-cache libstdc++ zlib mariadb-connector-c pcre netcat-openbsd

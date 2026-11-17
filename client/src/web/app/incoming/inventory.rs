@@ -75,7 +75,7 @@ impl App {
                 if let Some((index, item, who, left)) = items::used(packet) {
                     let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
                     // What the item looks and sounds like when used, by the client's own tables.
-                    if let Some((file, sound)) = item_effect(item) {
+                    if let Some((file, sound)) = crate::effect_tables::item_effect(item) {
                         world::effect(file, (!own).then_some(who));
                         if let Some(sound) = sound {
                             sound::effect(sound, 1.0);

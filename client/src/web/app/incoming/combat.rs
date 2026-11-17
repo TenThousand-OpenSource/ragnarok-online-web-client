@@ -121,11 +121,30 @@ impl App {
                 if let Some((skill, _, target, who, _)) = skills::used(packet) {
                     let own = self.account.as_ref().map_or(0, |account| account.account_id);
                     world::cast_over(who, own, false);
-                    // Resurrection (skill 54) shows the client's effect on the one raised, with its sound
-                    // (`EF_RESURRECTION`: `Resurrection.str` and `priest_resurrection.wav`).
-                    if skill == 54 {
-                        world::effect("resurrection.str", (target != own).then_some(target));
-                        sound::effect("effect/priest_resurrection.wav", 1.0);
+                    // The one who used it goes through the motion the client has for that skill.
+                    world::uses_skill(who, own, effect_tables::skill_state(skill));
+                    // The effects the client shows for that skill (`ReceiveSkillUse`), on the one who used it or
+                    // on its target, each with the sound it starts with. An effect that is a `.str` file is
+                    // played from the file; of those the client draws by code, the ones drawn here too.
+                    for (on_target, effect) in effect_tables::skill_effects(skill) {
+                        let whom = if on_target { target } else { who };
+                        let on = (whom != own).then_some(whom);
+                        let shown = match (effect, effect_tables::effect_file(effect)) {
+                            (_, Some(file)) => {
+                                world::effect(&file.to_lowercase(), on);
+                                true
+                            }
+                            // `EF_FIRSTAID`: a glitter over the one who used it, and the sound of healing.
+                            (309, None) => {
+                                world::first_aid(on);
+                                sound::effect("_heal_effect.wav", 1.0);
+                                true
+                            }
+                            _ => false,
+                        };
+                        if let (true, Some(wave)) = (shown, effect_tables::effect_sound(effect)) {
+                            sound::effect(wave, 1.0);
+                        }
                     }
                 }
             }

@@ -103,7 +103,8 @@ struct Playing {
 }
 
 /// The pictures of the effects drawn by code: the rings around a caster and the mark on the one aimed at.
-const CAST_PICTURES: [&str; 13] = [
+const CAST_PICTURES: [&str; 14] = [
+    "pikapika2.bmp",
     "ring_blue.tga",
     "ring_yellow.tga",
     "ring_white.tga",
@@ -417,6 +418,8 @@ struct State {
     /// When the player's own character last struck, and when the server was last asked to strike: a fight that
     /// does not start is asked for again.
     own_struck: f64,
+    /// Until when the player's own character is in the motion of a blow it deals: it does not walk meanwhile.
+    own_striking_until: f64,
     /// Until when the player's own character cannot walk for a blow it took (the server's walk delay).
     own_stopped_until: f64,
     strike_asked: f64,
@@ -427,6 +430,9 @@ struct State {
     fetch: Option<(u32, f64)>,
     /// The flashes of blows that landed: where, and when.
     sparks: Vec<(Vector, f64)>,
+    /// The glitter of First Aid playing: on whom (none: the player's own character), since when, and the two
+    /// angles it starts at (how it is turned, and where its slow pulse is), which the client draws by lot.
+    aids: Vec<(Option<u32>, f64, f32, f32)>,
     /// The weapon the player's own character holds (kept across maps).
     weapon: u32,
     /// The player's own life and spirit, left and most: the bars under the character.

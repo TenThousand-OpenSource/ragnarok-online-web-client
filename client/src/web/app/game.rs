@@ -2,20 +2,6 @@
 
 use super::*;
 
-/// The effect an item shows on the one who uses it, and its sound: the client's own tables
-/// (`CGameMode::PlayItemUseEffect` for the effect of each item, `CEZ2STRScreenEffect::InitParticle` for its file).
-pub(super) fn item_effect(item: u32) -> Option<(&'static str, Option<&'static str>)> {
-    let found = |table: &'static str, wanted: u32| table.lines().filter_map(|line| line.split_once('\t')).find(|(id, _)| id.parse() == Ok(wanted)).map(|(_, value)| value.trim());
-    let effect: u32 = found(include_str!("../item_effects.txt"), item)?.parse().ok()?;
-    let file = found(include_str!("../effect_files.txt"), effect)?;
-    let sound = match effect {
-        204..=207 | 210 => Some("_heal_effect.wav"),
-        208 | 209 | 211 => Some("effect/흡기.wav"),
-        _ => None,
-    };
-    Some((file, sound))
-}
-
 impl App {
     /// Uses what was double-clicked or what a key stands for: `item:<index>`, `skill:<id>` or `slot:<number>`.
     pub(super) fn use_it(&mut self, what: &str) {

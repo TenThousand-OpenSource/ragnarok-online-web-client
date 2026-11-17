@@ -230,6 +230,19 @@ pub(super) fn frame() {
                 effects.1.extend(std::iter::repeat_n((binds.clone(), false), quads));
             }
         }
+        // First Aid's glitter over whoever used it, for as long as it shows (180 of the client's frames).
+        state.aids.retain(|(_, began, ..)| time - began < 180.0 * CAST_FRAME_MS);
+        if let Some(binds) = gpu.effect_pictures.get("pikapika2.bmp") {
+            for (on, began, turned, pulse) in &state.aids {
+                let Some(at) = (match on {
+                    Some(id) => scene.units.get(id).map(|unit| unit.at),
+                    None => Some(scene.player.at),
+                }) else { continue };
+                if aid_glitter(on_ground(&scene.gat, at), view.right, view.up, ((time - began) / CAST_FRAME_MS) as f32, *turned, *pulse, &mut effects.0) {
+                    effects.1.push((binds.clone(), true));
+                }
+            }
+        }
         // The bolts falling: each a picture turned along its fall, its tip ahead, until it reaches the ground.
         const BOLT_SPEED: f32 = 2.75;
         let mut falling = Vec::new();

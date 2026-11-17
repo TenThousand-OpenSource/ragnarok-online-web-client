@@ -12,6 +12,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Element, Event, HtmlInputElement, HtmlSelectElement, KeyboardEvent};
 
 use super::figure::{self, Figure};
+use crate::effect_tables;
 use super::socket::{Socket, SocketEvent};
 use super::view::{HAIR_COLOURS, SLOTS_PER_PAGE, WALLPAPER, hair_styles};
 use super::{asset_url, data, js_error, sound, world};
@@ -41,7 +42,6 @@ pub use wiring::*;
 pub(super) use page::*;
 pub(super) use hotkeys_set::PAGE;
 use account::*;
-use game::*;
 
 const LOGIN_PORT: u16 = 6900;
 /// How often the open connection is told the client is still there. The servers drop a silent one after a minute.

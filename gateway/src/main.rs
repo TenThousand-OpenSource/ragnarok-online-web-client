@@ -55,7 +55,8 @@ fn config() -> Result<(Config, Option<String>), String> {
         listen: "127.0.0.1:8080".parse().unwrap(),
         server_host: "127.0.0.1".into(),
         server_ports: vec![6900, 6121, 5121],
-        item_database: "../rathena/db/re".into(),
+        // The server is built for the classic game (see server/docker-compose.yml): its databases are these.
+        item_database: "../rathena/db/pre-re".into(),
         compress: true,
         cache_client: true,
         // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.

@@ -942,6 +942,8 @@ impl App {
                 (Server::Map, Some(socket), _) if self.game.is_some() => socket.send(&packets::tick(now())),
                 _ => {}
             },
+            // While a monster is being tamed nothing is struck: the slot machine comes first.
+            Action::Pressed(_, true) if self.taming.is_some() => world::stand_down(),
             Action::Pressed(id, monster) => {
                 if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
                     // A monster is fought until it or the character is down; anyone else is talked to.
@@ -952,6 +954,12 @@ impl App {
             Action::Aimed(Some(target), _) if self.aimed.is_some_and(|(skill, _)| skill == TAME) => {
                 self.aimed = None;
                 self.close_taming();
+                // The fight, if there was one, stops for the taming.
+                world::stand_down();
+                if let Some(socket) = &self.socket {
+                    // CZ_CANCEL_LOCKON (0x0118): the server stops the blows it was dealing on its own.
+                    socket.send(&0x0118u16.to_le_bytes());
+                }
                 let tick = Closure::<dyn FnMut()>::new(|| dispatch(Action::TamingTick));
                 let timer = web_sys::window().and_then(|window| window.set_interval_with_callback_and_timeout_and_arguments_0(tick.as_ref().unchecked_ref(), 16).ok()).unwrap_or(0);
                 tick.forget();
@@ -2591,6 +2599,11 @@ impl App {
             (Server::Map, 0x019e) => {
                 self.aimed = Some((TAME, 0));
                 world::aim(Some(false), 5);
+                // Taming and fighting do not go together: the fight stops as soon as the bait is in hand.
+                world::stand_down();
+                if let Some(socket) = &self.socket {
+                    socket.send(&0x0118u16.to_le_bytes());
+                }
             }
             // ZC_TRYCAPTURE_MONSTER (0x01a0): `u8 caught`. The reels slow down and stop on the picture of the
             // catch (the eighth) or of the miss (the fourth).

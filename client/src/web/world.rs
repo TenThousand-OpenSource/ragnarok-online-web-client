@@ -1148,6 +1148,16 @@ pub fn too_far(target: u32, range: i32) {
     });
 }
 
+/// The character stops going after anything: the monster it fought, the thing it meant to pick up, the place
+/// it meant to use a skill from.
+pub fn stand_down() {
+    STATE.with_borrow_mut(|state| {
+        state.chase = None;
+        state.fetch = None;
+        state.reach = None;
+    });
+}
+
 /// A skill starts or stops being aimed: at a place (`Some(true)`), at someone (`Some(false)`), or not at all.
 pub fn aim(at: Option<bool>, range: u16) {
     STATE.with_borrow_mut(|state| {

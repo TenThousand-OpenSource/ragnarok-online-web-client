@@ -126,6 +126,11 @@ impl App {
         let hint = if self.music_held { format!(r#"<span class="hint">{}</span>"#, self.text(Key::SoundHint)) } else { String::new() };
         // Leaving the game: the original has this in its Esc menu, which is not made yet.
         let leave = if matches!(self.screen, Screen::Game) { format!(r#"<button type="button" {}>{}</button>"#, click("logout", ""), self.text(Key::LogOut)) } else { String::new() };
+        // In the game the corner is the minimap's, as in the client: leaving is in the window of game options
+        // (Escape), the sound and the language in Game Settings.
+        if matches!(self.screen, Screen::Game) {
+            return format!("{window}{}", self.overlay(view));
+        }
         format!(r#"{title}<div class="lang">{hint}{leave}{speaker}{languages}</div>{window}{}"#, self.overlay(view))
     }
 
@@ -471,15 +476,27 @@ impl App {
         let map: String = game.map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
         // Under the minimap, as the original has it: the character's cell, and the minimap's buttons (which do
         // nothing yet).
-        let buttons: String = [("object", 1), ("plus", 73), ("minus", 87), ("mini", 101), ("viewon", 115)]
+        // Plus and minus bring the map nearer and take it back (the client's `UIMinimapZoomWnd`); the others
+        // (the marks, the world map) do nothing yet.
+        let buttons: String = [("object", 1, ""), ("plus", 73, "+"), ("minus", 87, "-"), ("mini", 101, ""), ("viewon", 115, "")]
             .iter()
-            .map(|(name, x)| format!(r#"<img src="{}" alt="" style="position:absolute;left:{x}px;top:0" onerror="this.remove()">"#, picture(&format!("minimap/i_{name}_1.bmp"))))
+            .map(|(name, x, zoom)| {
+                let press = if zoom.is_empty() { String::new() } else { format!(r#" data-click="map-zoom" data-arg="{zoom}""#) };
+                format!(
+                    r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;{}" onerror="this.remove()"{press}>"#,
+                    picture(&format!("minimap/i_{name}_1.bmp")),
+                    if zoom.is_empty() { "" } else { "pointer-events:auto;cursor:pointer" }
+                )
+            })
             .collect();
+        // The buttons under the minimap show when the player has them so (the client's `/minimap`).
+        let buttons = if self.option("TT_SHOW_MINIMAP_BUTTON_ONOFF") { buttons } else { String::new() };
+        let (pictured, marked) = minimap_place(game, self.minimap_zoom).unwrap_or_else(|| (String::new(), "display:none".to_owned()));
         format!(
-            r#"<div class="minimap"><img src="{}" alt="" onerror="this.remove()"><i id="marker" style="{}"></i></div>
+            r#"<div class="minimap" style="overflow:hidden"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i></div>
                <div class="mapname"><span id="position"> {}  {}</span>{buttons}</div>{}"#,
             picture(&format!("map/{map}.bmp")),
-            minimap_place(game).unwrap_or_else(|| "display:none".to_owned()),
+            marked,
             game.x,
             game.y,
             self.hud(view),
@@ -487,12 +504,20 @@ impl App {
     }
 }
 
-/// Where the character's mark goes on the minimap, as a style. The minimap is a square picture with the map
-/// centred in it at one scale for both axes; y grows upwards.
-pub(super) fn minimap_place(game: &Game) -> Option<String> {
+/// How the minimap's picture and the character's mark on it are placed, as styles. The minimap is a square
+/// picture with the map in its middle, north up; nearer than whole (the client's zoom, 1 to 4) it shows the
+/// part around the character, as much of it as fits, never past the picture's edge (`CGameMode::DrawMiniMap`).
+pub(super) fn minimap_place(game: &Game, zoom: f32) -> Option<(String, String)> {
     let (width, height) = game.map_size?;
+    let zoom = zoom.clamp(1.0, 4.0);
     let scale = 100.0 / width.max(height) as f32;
-    let left = 50.0 + (f32::from(game.x) - width as f32 / 2.0) * scale;
-    let top = 50.0 - (f32::from(game.y) - height as f32 / 2.0) * scale;
-    Some(format!("left:{left:.2}%;top:{top:.2}%"))
+    let (x, y) = (50.0 + (f32::from(game.x) - width as f32 / 2.0) * scale, 50.0 - (f32::from(game.y) - height as f32 / 2.0) * scale);
+    // What is shown is a square of the picture, this many hundredths of it a side, from here.
+    let shown = 100.0 / zoom;
+    let from = |at: f32| (at - shown / 2.0).clamp(0.0, 100.0 - shown);
+    let (left, top) = (from(x), from(y));
+    Some((
+        format!("position:absolute;width:{:.2}%;height:{:.2}%;left:{:.2}%;top:{:.2}%", zoom * 100.0, zoom * 100.0, -left * zoom, -top * zoom),
+        format!("left:{:.2}%;top:{:.2}%", (x - left) * zoom, (y - top) * zoom),
+    ))
 }

@@ -63,7 +63,12 @@ impl App {
                         packets::ZC_BROADCAST2 => packets::broadcast_colour(packet).map_or("#ff0".to_owned(), |[red, green, blue]| format!("rgb({red},{green},{blue})")),
                         _ => "#ff0".to_owned(),
                     };
-                    self.chat_line(words, &colour);
+                    // What others say near is kept out of the chat's list when the player has it so (the client's
+                    // `/notalkmsg` and `/notalkmsg2`); it still hangs over their heads.
+                    let muted = id == packets::ZC_NOTIFY_CHAT && (self.option("TT_NOTALKMSG_ON_OFF") || self.option("TT_NOTALKMSG2_ON_OFF"));
+                    if !muted {
+                        self.chat_line(words, &colour);
+                    }
                 }
             }
             npc::ZC_WHISPER => {

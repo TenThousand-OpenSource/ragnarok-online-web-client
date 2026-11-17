@@ -188,6 +188,11 @@ pub fn attack(target: u32) -> Vec<u8> {
     request(target, 7)
 }
 
+/// The same request for one blow only.
+pub fn attack_once(target: u32) -> Vec<u8> {
+    request(target, 0)
+}
+
 /// The same request to sit down (2) or to stand up (3): no target.
 pub fn sit(down: bool) -> Vec<u8> {
     request(0, if down { 2 } else { 3 })

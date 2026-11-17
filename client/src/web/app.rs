@@ -31,6 +31,7 @@ mod actions;
 mod clicks;
 mod keys;
 mod hotkeys_set;
+mod settings;
 mod incoming;
 mod game;
 mod screen;
@@ -107,6 +108,16 @@ pub(super) enum Action {
     WorldReady(Result<(), String>),
     /// The skill being aimed was pointed at someone (their ID) or at a cell.
     Aimed(Option<u32>, (u16, u16)),
+    /// The wheel was turned while a skill is aimed: a level up (1) or down (-1).
+    AimLevel(i32),
+    /// One blow at that monster.
+    StrikeOnce(u32),
+    /// The fight is called off.
+    StopFight,
+    /// A slot of the hotkey bar is used by the mouse.
+    Quick(usize),
+    /// A slider (`data-slide`) was moved: its name and where it stands, 0 to 100.
+    Slid(String, u8),
     /// The right button was pressed on someone on the map: their ID, and where on the page.
     Menu(u32, (f32, f32)),
     /// The slot machine's pictures were read.
@@ -297,6 +308,8 @@ pub(super) struct Skills {
     pub info: Option<u16>,
     /// The skill being aimed with the pointer, and its level.
     pub aimed: Option<(u16, u16)>,
+    /// The level each skill is used at when it is less than all it has (the arrows of the skill window).
+    pub use_level: HashMap<u16, u16>,
     pub hotkeys: Vec<Hotkey>,
     /// The hotkey bar is put away; how many of its rows show beyond the first (none to three).
     pub hotkeys_hidden: bool,
@@ -326,6 +339,21 @@ pub(super) struct Deal {
     pub storage: Option<Storage>,
     /// Which of the storage's tabs is open.
     pub storage_tab: usize,
+}
+
+/// The Game Settings window, and what the player has set in it.
+#[derive(Default)]
+pub(super) struct Settings {
+    /// The window is open, and which of its five pages.
+    pub open: bool,
+    pub tab: usize,
+    /// The options the player has switched otherwise than they start, by the client's name: kept in the browser.
+    pub set: HashMap<String, bool>,
+    /// How loud the music and the effects are (0 to 100), and whether each is off: kept in the browser.
+    pub music: u8,
+    pub effects: u8,
+    pub music_off: bool,
+    pub effects_off: bool,
 }
 
 /// The keys: what the player has bound otherwise than the client does, and the window that shows and sets them.
@@ -419,12 +447,19 @@ pub(super) struct App {
     pub deal: Deal,
     pub pets: Pets,
     pub keys: Keys,
+    pub settings: Settings,
     /// Which server of the list is picked.
     pub server_picked: usize,
     /// The window of game options: 0 closed, 1 open, 2 asking whether to go back to the save point.
     pub esc: u8,
     /// How many loading screens were shown: each takes the next of the client's pictures.
     loadings: usize,
+    /// How many play on the server, as it last said (ZC_USER_COUNT); and the keep-alive ticks counted, every
+    /// third of which asks again.
+    pub online: Option<u32>,
+    ticks: u32,
+    /// How near the minimap shows the map: 1 (all of it; also what 0 means) to 4.
+    pub minimap_zoom: f32,
     /// The window of the NPC being talked to.
     pub dialog: Option<Dialog>,
     /// The strip of menu icons is folded away.

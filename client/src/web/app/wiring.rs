@@ -57,6 +57,13 @@ pub fn start() -> Result<(), String> {
             dispatch(Action::Dropped(slot, dragged));
         }
     });
+    // A slider moved (`data-slide`): its name and where it stands.
+    let on_slide = Closure::<dyn FnMut(Event)>::new(|event: Event| {
+        let slider = event.target().and_then(|target| target.dyn_into::<HtmlInputElement>().ok());
+        if let Some((name, level)) = slider.and_then(|slider| Some((slider.get_attribute("data-slide")?, slider.value().parse::<u8>().ok()?))) {
+            dispatch(Action::Slid(name, level));
+        }
+    });
     let on_menu = Closure::<dyn FnMut(Event)>::new(|event: Event| {
         if let Some(slot) = pressed(&event, "data-slot").and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok()) {
             event.prevent_default();
@@ -110,6 +117,7 @@ pub fn start() -> Result<(), String> {
     ui.add_event_listener_with_callback("dragover", on_drag_over.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("drop", on_drop.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("contextmenu", on_menu.as_ref().unchecked_ref()).map_err(js_error)?;
+    ui.add_event_listener_with_callback("input", on_slide.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("keydown", on_key.as_ref().unchecked_ref()).map_err(js_error)?;
     for event in ["pointerdown", "keydown"] {
         document.add_event_listener_with_callback(event, on_press.as_ref().unchecked_ref()).map_err(js_error)?;
@@ -125,6 +133,7 @@ pub fn start() -> Result<(), String> {
     on_drag_over.forget();
     on_drop.forget();
     on_menu.forget();
+    on_slide.forget();
     on_key.forget();
     on_press.forget();
     on_resize.forget();
@@ -138,6 +147,7 @@ pub fn start() -> Result<(), String> {
         app.save_id = !app.saved_id.is_empty();
         app.sound = stored("roweb.sound").as_deref() != Some("off");
         app.load_keys();
+        app.load_settings();
         // A reset link from an e-mail: `/?reset=<token>`.
         let query = window.location().search().unwrap_or_default();
         // `/?mute` opens the page silent without changing what the player has chosen: for tests beside a player.

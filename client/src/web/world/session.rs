@@ -183,6 +183,17 @@ pub fn stand(cell: (u16, u16)) {
     });
 }
 
+/// The player's options the world goes by, as they are now.
+pub fn options(options: Options) {
+    STATE.with_borrow_mut(|state| state.options = options);
+}
+
+/// Whether the camera stays fixed on the character (the client's `TT_FIXED_CAMERA_ON_OFF`, which its
+/// `CameraState::Smooth` asks) or follows it a little at a time.
+pub fn camera_fixed(fixed: bool) {
+    STATE.with_borrow_mut(|state| state.camera_fixed = fixed);
+}
+
 /// The character's walking speed, in milliseconds per cell.
 pub fn speed(speed: i32) {
     STATE.with_borrow_mut(|state| {

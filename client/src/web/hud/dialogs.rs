@@ -25,7 +25,7 @@ impl App {
         match self.esc {
             1 => {
                 let buttons: &[(&str, &str)] =
-                    if self.hero.dead { &[("esc_10", "esc-save"), ("esc_02", "esc-close")] } else { &[("esc_01", "logout"), ("esc_001", ""), ("esc_08", "keys"), ("esc_09", "exit"), ("esc_02", "esc-close")] };
+                    if self.hero.dead { &[("esc_10", "esc-save"), ("esc_02", "esc-close")] } else { &[("esc_01", "logout"), ("esc_001", "settings"), ("esc_08", "keys"), ("esc_09", "exit"), ("esc_02", "esc-close")] };
                 let height = 17 + if self.hero.dead { 53 } else { 122 };
                 let mut window = title_bar(280, "Game Options");
                 window.push_str(&art("basic_interface/sys_base_off.bmp", 3, 3, 11, 11));

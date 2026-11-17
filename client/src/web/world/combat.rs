@@ -185,6 +185,13 @@ pub fn aim(at: Option<bool>, range: u16) {
         state.aim_range = f32::from(range);
         state.reach = None;
     });
+    aim_shown();
+}
+
+/// What is written by the pointer while a skill is aimed: its name and the level it will be used at.
+pub fn aim_words(words: &str) {
+    STATE.with_borrow_mut(|state| state.aim_words = words.to_owned());
+    aim_shown();
 }
 
 /// Whether a skill is being aimed.
@@ -205,6 +212,10 @@ pub fn recovered(amount: i32, spirit: bool) {
 /// Plays one of the client's effects (a `.str` file of `data/texture/effect`) on someone: `None` is the player's
 /// own character. The file and its pictures are read the first time it is wanted.
 pub fn effect(name: &str, on: Option<u32>) {
+    // Effects are not shown when the player has them off (the client's `/effect`).
+    if !STATE.with_borrow(|state| state.options.effects) {
+        return;
+    }
     if let Some(shown) = STATE.with_borrow(|state| state.effect_files.get(name).cloned()) {
         STATE.with_borrow_mut(|state| state.effects.push(Playing { shown, on, began: now() }));
         return;

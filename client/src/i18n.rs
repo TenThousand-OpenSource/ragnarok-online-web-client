@@ -228,6 +228,20 @@ pub fn tr(english: &str) -> &str {
 
 /// The phrases of the game's windows, in English and in Russian.
 const PHRASES: &[(&str, &str)] = &[
+    ("online", "в сети"),
+    ("Players online", "Игроков в сети"),
+    ("Language", "Язык"),
+    ("Game Settings", "Настройки игры"),
+    ("Basic", "Основное"),
+    ("Effects", "Эффекты"),
+    ("Controls", "Управление"),
+    ("Graphics", "Графика"),
+    ("Etc", "Прочее"),
+    ("Audio Settings", "Звук"),
+    ("BGM", "Музыка"),
+    ("SFX", "Звуки"),
+    ("Off", "Выкл."),
+    ("The browser sets the graphics; there is nothing to choose here.", "Графику задаёт браузер: выбирать здесь нечего."),
     ("Check Pet Status", "Сведения о питомце"),
     ("Shortcut Settings", "Настройка клавиш"),
     ("Hotkey Bar", "Панель"),

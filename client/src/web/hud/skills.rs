@@ -35,6 +35,8 @@ impl App {
                 let (icon, count, title) = self.hotkey_look(hotkey);
                 let key = if row == 0 { format!("F{} ", column + 1) } else { String::new() };
                 let skill = if hotkey.skill && hotkey.id != 0 { format!(r#" data-skill="{}""#, hotkey.id) } else { String::new() };
+                // What is on a slot can be dragged to another, or off the bar to take it away.
+                let skill = if hotkey.id != 0 { format!(r#"{skill} draggable="true" data-drag="slot:{slot}""#) } else { skill };
                 bar.push_str(&format!(
                     r#"<div class="a slot" style="{}" data-slot="{slot}" data-use="slot:{slot}"{skill} title="{key}{}">{icon}{count}</div>"#,
                     at(16 + 29 * column, row * 33 + 4, 24, 24),
@@ -121,7 +123,9 @@ impl App {
             window.push_str(&format!(r#"<div class="a" style="{};{ground}"></div>"#, at(x + 3, y + 43, 26, 26)));
             // Only a skill that is learned and does something can be used and put on the bar.
             let usable = learned.is_some_and(|skill| skill.level > 0 && !skill.passive());
-            let drag = if usable { format!(r#"draggable="true" data-drag="skill:{id}:{level}" data-use="skill:{id}""#) } else { String::new() };
+            // The level it is used at: what the player picked with the arrows by its level, or all it has.
+            let used = self.skills.use_level.get(&id).copied().filter(|used| (1..=level).contains(used)).unwrap_or(level);
+            let drag = if usable { format!(r#"draggable="true" data-drag="skill:{id}:{used}" data-use="skill:{id}""#) } else { String::new() };
             let dim = if level == 0 { "filter:grayscale(1) opacity(.55);" } else { "" };
             let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
             window.push_str(&format!(r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#, at(x + 4, y + 44, 24, 24), escape(&name)));
@@ -133,11 +137,24 @@ impl App {
                 escape(&name)
             ));
             if level > 0 {
-                let shown = if learned.is_some_and(|skill| !skill.passive()) { format!("{level} / {level}") } else { level.to_string() };
+                // "Used at / known at", the first in the client's pink when it is less than all (`0x7F3CFF`).
+                let shown = if usable { format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" }) } else { level.to_string() };
                 window.push_str(&format!(
                     r#"<div class="a" style="{};font:bold 11px Tahoma,Arial,sans-serif;color:{shade};text-align:center;white-space:nowrap;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff;pointer-events:none">{shown}</div>"#,
                     at(x - 8, y + 70, 48, 13)
                 ));
+            }
+            // The arrows at either side of the level pick the level it is used at, one down or up (the client's
+            // `m_btnSkills` and `m_btnSkillUps`: 20 left of the cell and 55 further right, level with the text).
+            if usable {
+                for (arrow, step, across) in [("arw_left", "-", -16), ("arw_right", "+", 39)] {
+                    window.push_str(&format!(
+                        r#"<img class="a" style="left:{}px;top:{}px;cursor:pointer" src="{}" alt="" draggable="false" data-click="skill-level" data-arg="{id}:{step}">"#,
+                        x + across,
+                        y + 70,
+                        picture(&format!("basic_interface/{arrow}.bmp"))
+                    ));
+                }
             }
             if raisable {
                 window.push_str(&format!(

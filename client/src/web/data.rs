@@ -37,6 +37,8 @@ thread_local! {
     static HOTKEYS: RefCell<Vec<Vec<(String, crate::hotkeys::Chord)>>> = const { RefCell::new(Vec::new()) };
     /// How the client writes each key, by the key's number.
     static KEY_NAMES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
+    /// The options of the client's Game Settings window, in its order.
+    static OPTIONS: RefCell<Vec<GameOption>> = const { RefCell::new(Vec::new()) };
     /// The client's message table, by line.
     static MESSAGES: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
     /// The client's emotions by their number: the sprite each is in, and which of its actions it is.
@@ -307,6 +309,31 @@ pub fn key_name(key: u16) -> Option<String> {
     KEY_NAMES.with_borrow(|names| names.get(&key).cloned())
 }
 
+/// One option of the client's Game Settings window (its `GameSettings.lub`).
+#[derive(Clone, Default)]
+pub struct GameOption {
+    /// The client's name for it (`TT_EFFECT_ON_OFF`).
+    pub id: String,
+    /// The page it stands on: 1 effects, 2 controls, 4 the rest.
+    pub tab: u8,
+    /// A thing done at a press, not switched on and off.
+    pub run: bool,
+    pub title: String,
+    pub description: String,
+    /// How it starts.
+    pub on: bool,
+}
+
+/// The options of one page of the Game Settings window.
+pub fn options(tab: u8) -> Vec<GameOption> {
+    OPTIONS.with_borrow(|options| options.iter().filter(|option| option.tab == tab).cloned().collect())
+}
+
+/// How an option starts, by the client's name for it; off for one the client's table does not have.
+pub fn option_starts(id: &str) -> bool {
+    OPTIONS.with_borrow(|options| options.iter().find(|option| option.id == id).is_some_and(|option| option.on))
+}
+
 /// A line of the client's message table, by the number the client's code knows it by.
 pub fn message(line: usize) -> Option<String> {
     MESSAGES.with_borrow(|messages| messages.get(line).cloned())
@@ -351,7 +378,7 @@ pub fn pet_line(job: u16, hunger: usize, moment: i32) -> Option<String> {
 /// headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=10").await?;
+    let tables = fetch_json("/tables.json?v=11").await?;
     let table = |name: &str| js_sys::Reflect::get(&tables, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
     let jobs = entries::<u16>(&table("jobs")).into_iter().filter_map(|(job, about)| Some((job, text_of(&about, "name")?))).collect();
     let headgear = entries::<u16>(&table("headgear")).into_iter().filter_map(|(view, name)| Some((view, name.as_string()?))).collect();
@@ -366,6 +393,25 @@ pub async fn load() -> Result<(), String> {
     PETS.set(entries::<u16>(&table("pets")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
     PET_ACTS.set(entries::<u16>(&table("pet_acts")).into_iter().filter_map(|(item, name)| Some((item, name.as_string()?.trim_end_matches(".act").to_owned()))).collect());
     MESSAGES.set(table("messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
+    OPTIONS.set(
+        table("options")
+            .dyn_into::<js_sys::Array>()
+            .map(|list| list.to_vec())
+            .unwrap_or_default()
+            .into_iter()
+            .map(|option| {
+                let flag = |name: &str| js_sys::Reflect::get(&option, &name.into()).ok().and_then(|flag| flag.as_bool()).unwrap_or(false);
+                GameOption {
+                    id: text_of(&option, "id").unwrap_or_default(),
+                    tab: js_sys::Reflect::get(&option, &"tab".into()).ok().and_then(|tab| tab.as_f64()).unwrap_or(0.0) as u8,
+                    run: flag("run"),
+                    title: text_of(&option, "title").unwrap_or_default(),
+                    description: text_of(&option, "description").unwrap_or_default(),
+                    on: flag("on"),
+                }
+            })
+            .collect(),
+    );
     let keys = table("hotkeys");
     let part = |of: &wasm_bindgen::JsValue, name: &str| js_sys::Reflect::get(of, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
     let listed = |of: wasm_bindgen::JsValue| of.dyn_into::<js_sys::Array>().map(|list| list.to_vec()).unwrap_or_default();

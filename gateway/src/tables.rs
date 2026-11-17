@@ -141,7 +141,7 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
         names(run_more(&lua, grf, &["petinfo"]), "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // Its `PetAccActNameTable`: by the accessory a pet wears (an item), the actions it is then drawn with.
     let pet_acts: serde_json::Map<String, serde_json::Value> = names(&lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf) })
+    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
 }
 
 /// The client's message table (`msgstringtable.txt`), line by line: what the client says, by the numbers its code
@@ -253,6 +253,38 @@ pub fn hotkeys(grf: &Grf) -> serde_json::Value {
         .collect();
     let names: serde_json::Map<String, serde_json::Value> = names(&lua, "KEYNAME").into_iter().map(|(key, name)| (key.to_string(), name.into())).collect();
     serde_json::json!({ "tables": tables, "names": names })
+}
+
+/// The options of the client's Game Settings window (`Lua Files\OptionInfo\GameSettings`, read as its
+/// `CGameSettingsMgr::LoadSettings` does): `[{"id": "TT_…", "tab": 1 | 2 | 4, "run": false, "title": …,
+/// "command": …, "description": …, "on": true}, …]`, in the file's order. The tab is the page it stands on
+/// (1 effects, 2 controls, 4 the rest); `run` is a thing done at a press instead of switched on and off; `on`
+/// is how it starts; the ID is the client's name for the option.
+pub fn options(grf: &Grf) -> serde_json::Value {
+    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    // The pages and kinds as the client numbers them; every other name (the options' own) stands for itself.
+    let prepared = lua.load("EFFECT, CONTROL, ETC, ONOFF, EXE = 1, 2, 4, 0, 1 setmetatable(_G, { __index = function(_, name) return name end })").exec();
+    if let Err(error) = prepared {
+        eprintln!("tables: options: {error}");
+    }
+    run_in(&lua, grf, &["optioninfo\\gamesettings"]);
+    let Ok(table) = lua.globals().raw_get::<Table>("OptionTbl") else { return serde_json::json!([]) };
+    let text = |entry: &Table, field: &str| entry.raw_get::<Option<mlua::String>>(field).ok().flatten().map(|text| korean(&text.as_bytes())).unwrap_or_default();
+    table
+        .sequence_values::<Table>()
+        .flatten()
+        .map(|entry| {
+            serde_json::json!({
+                "id": text(&entry, "ID"),
+                "tab": entry.raw_get::<Option<i64>>("Tab").ok().flatten().unwrap_or(0),
+                "run": entry.raw_get::<Option<i64>>("Type").ok().flatten().unwrap_or(0) == 1,
+                "title": text(&entry, "Title"),
+                "command": text(&entry, "Tooltip"),
+                "description": text(&entry, "Description"),
+                "on": entry.raw_get::<Option<bool>>("Default").ok().flatten().unwrap_or(false),
+            })
+        })
+        .collect()
 }
 
 /// Runs more files in a state that already holds others' tables.

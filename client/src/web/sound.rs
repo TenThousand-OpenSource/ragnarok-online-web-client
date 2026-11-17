@@ -27,6 +27,8 @@ struct Sounds {
     /// The music of the map the character is on: its track, and what plays it.
     track: Option<String>,
     map: Option<(String, HtmlAudioElement)>,
+    /// How loud the music and the effects are, each 0 to 1, as the player set them; full until set.
+    levels: Option<(f64, f64)>,
     /// The sounds of the game by file name, a few players each.
     effects: std::collections::HashMap<String, Vec<HtmlAudioElement>>,
 }
@@ -47,7 +49,7 @@ pub fn music(play: bool) {
         if sounds.music.is_none() {
             if let Ok(music) = HtmlAudioElement::new_with_src(TITLE_MUSIC) {
                 music.set_loop(true);
-                music.set_volume(MUSIC_VOLUME);
+                music.set_volume(MUSIC_VOLUME * sounds.levels.map_or(1.0, |levels| levels.0));
                 sounds.music = Some(music);
             }
         }
@@ -72,6 +74,17 @@ pub fn button() {
         if let Some(button) = &sounds.button {
             button.set_current_time(0.0);
             let _ = button.play();
+        }
+    });
+}
+
+/// How loud the music and the effects are from now on, each 0 to 1 (the Game Settings window's two sliders):
+/// the music playing changes at once.
+pub fn levels(music: f64, effects: f64) {
+    SOUNDS.with_borrow_mut(|sounds| {
+        sounds.levels = Some((music.clamp(0.0, 1.0), effects.clamp(0.0, 1.0)));
+        for playing in sounds.music.iter().chain(sounds.map.iter().map(|(_, music)| music)) {
+            playing.set_volume(MUSIC_VOLUME * music.clamp(0.0, 1.0));
         }
     });
 }
@@ -106,7 +119,7 @@ fn tune_map(sounds: &mut Sounds) {
         let url = format!("/{}", wanted.replace('\\', "/"));
         if let Ok(music) = HtmlAudioElement::new_with_src(&url) {
             music.set_loop(true);
-            music.set_volume(MUSIC_VOLUME);
+            music.set_volume(MUSIC_VOLUME * sounds.levels.map_or(1.0, |levels| levels.0));
             sounds.map = Some((wanted, music));
         }
     }
@@ -136,7 +149,7 @@ pub fn effect(name: &str, volume: f64) {
             }
             None => return,
         };
-        player.set_volume(volume.clamp(0.0, 1.0));
+        player.set_volume((volume * sounds.levels.map_or(1.0, |levels| levels.1)).clamp(0.0, 1.0));
         player.set_current_time(0.0);
         let _ = player.play();
     });

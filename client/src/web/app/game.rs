@@ -54,6 +54,9 @@ impl App {
                 if skill.level == 0 || skill.passive() {
                     return;
                 }
+                // From the bar it is used at the level it was put there with; from the skill window, at the
+                // level picked there.
+                let level = level.or_else(|| self.skills.use_level.get(&skill.id).copied());
                 if skill.on_self() {
                     socket.send(&items::use_skill(level.unwrap_or(skill.level).min(skill.level).max(1), skill.id, account.account_id));
                 } else {
@@ -61,6 +64,7 @@ impl App {
                     // says on whom or where.
                     self.skills.aimed = Some((skill.id, level.unwrap_or(skill.level).min(skill.level).max(1)));
                     world::aim(Some(skill.target == 2), skill.range);
+                    self.aim_words();
                 }
             }
             _ => {}
@@ -75,6 +79,17 @@ impl App {
             (Some("item"), Some(id), _) => Hotkey { skill: false, id, count: 0 },
             (Some("skill"), Some(id), Some(level)) => Hotkey { skill: true, id, count: level },
             (Some(""), ..) => Hotkey::default(),
+            // From another slot of the bar: what was there moves here, and that slot is left empty.
+            (Some("slot"), Some(from), _) => {
+                let from = from as usize;
+                let Some(moved) = self.skills.hotkeys.get(from).copied().filter(|moved| moved.id != 0 && from != slot && slot < items::HOTKEYS) else { return };
+                self.skills.hotkeys.resize(items::HOTKEYS, Hotkey::default());
+                self.skills.hotkeys[from] = Hotkey::default();
+                if let Some(socket) = &self.socket {
+                    socket.send(&items::set_hotkey(from as u16, Hotkey::default()));
+                }
+                moved
+            }
             _ => return,
         };
         if slot >= items::HOTKEYS {
@@ -232,6 +247,10 @@ impl App {
             ready: |outcome| dispatch(Action::WorldReady(outcome)),
             aimed: |whom, cell| dispatch(Action::Aimed(whom, cell)),
             menu: |id, at| dispatch(Action::Menu(id, at)),
+            aim_level: |step| dispatch(Action::AimLevel(step)),
+            strike_once: |id| dispatch(Action::StrikeOnce(id)),
+            stop: || dispatch(Action::StopFight),
+            quick: |slot| dispatch(Action::Quick(slot)),
         };
         sound::map_track(data::music(&game.map));
         world::enter(game.map.clone(), (game.x, game.y), figure, hooks);
@@ -242,5 +261,11 @@ impl App {
         self.wait = None;
         self.ask = None;
         self.render();
+    }
+
+    /// Writes the skill being aimed and the level it will be used at by the pointer.
+    pub(super) fn aim_words(&self) {
+        let words = self.skills.aimed.filter(|(skill, _)| *skill != TAME).map(|(skill, level)| format!("{} Lv {level}", data::skill(skill).map(|(_, name, _)| name).unwrap_or_default())).unwrap_or_default();
+        world::aim_words(&words);
     }
 }

@@ -15,6 +15,17 @@ impl App {
                     self.pet_feels(pets::moment::LEVEL_UP, None);
                 }
             }
+            // ZC_USER_COUNT (0x00c2): `u32 count`: how many play on the server. It is shown by the chat's tabs.
+            0x00c2 => {
+                if packet.len() >= 6 {
+                    self.online = Some(u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]));
+                    if let Some(shown) = element("online-count") {
+                        shown.set_text_content(self.online.map(|count| count.to_string()).as_deref());
+                    } else {
+                        self.render();
+                    }
+                }
+            }
             packets::ZC_PAR_CHANGE | packets::ZC_LONGPAR_CHANGE => {
                 if let Some((name, value)) = packets::parameter(packet) {
                     if name == packets::PARAMETER_SPEED {

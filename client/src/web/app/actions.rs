@@ -98,6 +98,12 @@ impl App {
                 _ => self.use_it(&what),
             },
             Action::Dropped(slot, dragged) => self.set_hotkey(slot, &dragged),
+            // What was on the hotkey bar, dragged off it and let go over the world: the slot is emptied.
+            Action::Thrown(dragged) if dragged.starts_with("slot:") => {
+                if let Some(slot) = dragged.strip_prefix("slot:").and_then(|slot| slot.parse::<usize>().ok()) {
+                    self.set_hotkey(slot, "");
+                }
+            }
             Action::Thrown(dragged) => {
                 // The first of that item carried without being worn. One is dropped at once; of more, the
                 // original asks how many.
@@ -160,7 +166,15 @@ impl App {
             },
             Action::KeepAlive => match (&self.server, &self.socket, &self.account) {
                 (Server::Char, Some(socket), Some(account)) => socket.send(&packets::ping(account.account_id)),
-                (Server::Map, Some(socket), _) if self.game.is_some() => socket.send(&packets::tick(now())),
+                (Server::Map, Some(socket), _) if self.game.is_some() => {
+                    socket.send(&packets::tick(now()));
+                    // Every half a minute, and at once on coming in: how many play (CZ_REQ_USER_COUNT, 0x00c1,
+                    // what the client's `/who` sends).
+                    if self.ticks % 3 == 0 {
+                        socket.send(&0x00c1u16.to_le_bytes());
+                    }
+                    self.ticks = self.ticks.wrapping_add(1);
+                }
                 _ => {}
             },
             // While a monster is being tamed nothing is struck: the slot machine comes first.
@@ -266,6 +280,28 @@ impl App {
                     });
                 }
             }
+            Action::Slid(name, level) => self.settings_slide(&name, level),
+            Action::StrikeOnce(id) => {
+                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
+                    socket.send(&units::attack_once(id));
+                }
+            }
+            // CZ_CANCEL_LOCKON (0x0118): the server stops the blows it was dealing on its own.
+            Action::StopFight => {
+                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
+                    socket.send(&0x0118u16.to_le_bytes());
+                }
+            }
+            Action::Quick(slot) => self.use_it(&format!("slot:{slot}")),
+            // The level the aimed skill is used at, one up or down, between 1 and the level it is known at
+            // (the client's `MM_USESKILL_LEVEL_PLUS`).
+            Action::AimLevel(step) => {
+                if let Some((skill, level)) = self.skills.aimed.filter(|(skill, _)| *skill != TAME) {
+                    let most = self.skills.known.iter().find(|known| known.id == skill).map_or(1, |known| known.level.max(1));
+                    self.skills.aimed = Some((skill, (i32::from(level) + step).clamp(1, i32::from(most)) as u16));
+                    self.aim_words();
+                }
+            }
             // The right button on someone. The client has a menu for the player's own pet (its status, feeding,
             // a trick, the accessory off, back into the egg), for a homunculus, a mercenary and other players;
             // for a monster or an NPC it has none. Here: the pet's.
@@ -298,8 +334,12 @@ impl App {
                     if let Some(position) = element("position") {
                         position.set_text_content(Some(&format!(" {x}  {y}")));
                     }
-                    if let (Some(marker), Some(place)) = (element("marker"), super::super::view::minimap_place(game)) {
-                        let _ = marker.set_attribute("style", &place);
+                    if let Some((pictured, marked)) = super::super::view::minimap_place(game, self.minimap_zoom) {
+                        for (id, style) in [("minimap", pictured), ("marker", marked)] {
+                            if let Some(shown) = element(id) {
+                                let _ = shown.set_attribute("style", &style);
+                            }
+                        }
                     }
                 }
             }
@@ -307,6 +347,8 @@ impl App {
                 if !matches!(self.screen, Screen::Game) {
                     return;
                 }
+                // The world goes by some of the player's options from its first frame.
+                self.apply_options();
                 if let Err(error) = outcome {
                     web_sys::console::error_1(&format!("world: {error}").into());
                     self.message = Some(error);

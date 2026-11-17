@@ -49,9 +49,13 @@ pub(super) fn listen() {
                         Some(())
                     });
                     let _ = aimed;
+                    aim_shown();
                 }
                 // The right button lets go of a skill being aimed.
-                2 if STATE.with_borrow(|state| state.aiming.is_some()) => STATE.with_borrow_mut(|state| state.aiming = None),
+                2 if STATE.with_borrow(|state| state.aiming.is_some()) => {
+                    STATE.with_borrow_mut(|state| state.aiming = None);
+                    aim_shown();
+                }
                 0 => {
                     // A press on someone talks to them or fights them; a press on the ground walks there.
                     let pressed = STATE.with_borrow(|state| {
@@ -73,8 +77,12 @@ pub(super) fn listen() {
                         // A monster is run after until it is down or the player presses somewhere else.
                         // The blow is asked for once the character is near enough for its weapon, not before
                         // (the client's `CPlayer::UpdatePendingAction`): the frame's code sees to it at once.
+                        // With Ctrl, or with the No Ctrl option, the monster is fought until it is down; else only
+                        // while the button is held (the client's `forcedAttack` and `AM_ATTACKCLICKUP`).
+                        let kept = event.ctrl_key();
                         STATE.with_borrow_mut(|state| {
                             state.chase = monster.then_some((id, 0.0, false));
+                            state.fight = u8::from(!(kept || state.options.no_ctrl));
                             state.reach = None;
                         });
                         if !monster {
@@ -117,6 +125,18 @@ pub(super) fn listen() {
                         walk_to(goal.0 as u16, goal.1 as u16);
                     }
                 }
+                // The right button uses the ninth slot of the hotkey bar, when the player has it so (the client's
+                // Quick Skill 1); the camera is not set back by two quick presses then, as in the client.
+                2 if STATE.with_borrow(|state| state.options.quick_right) => {
+                    let quick = STATE.with_borrow_mut(|state| {
+                        state.turning = Some((event.client_x() as f32, event.client_y() as f32));
+                        state.right_at = state.turning;
+                        state.hooks.as_ref().map(|hooks| hooks.quick)
+                    });
+                    if let Some(quick) = quick {
+                        quick(8);
+                    }
+                }
                 2 => STATE.with_borrow_mut(|state| {
                     let pressed = now();
                     if pressed - state.right_pressed < 350.0 {
@@ -140,6 +160,7 @@ pub(super) fn listen() {
         if event.buttons() == 0 {
             let over_world = event.target().and_then(|target| target.dyn_into::<web_sys::Element>().ok()).is_some_and(|target| target.id() == "game");
             STATE.with_borrow_mut(|state| state.pointer = over_world.then(|| (event.client_x() as f32, event.client_y() as f32)));
+            aim_shown();
             return;
         }
         STATE.with_borrow_mut(|state| {
@@ -171,7 +192,25 @@ pub(super) fn listen() {
     });
     let released = Closure::<dyn FnMut(MouseEvent)>::new(|event: MouseEvent| {
         if event.button() == 0 {
-            STATE.with_borrow_mut(|state| state.held = None);
+            // The button let go while a monster is fought only as long as it is held: the fight is called
+            // off if a blow was asked for, or one blow is still to come if none was.
+            let stop = STATE.with_borrow_mut(|state| {
+                state.held = None;
+                match (state.fight, state.chase) {
+                    (1, Some((_, _, true))) => {
+                        (state.chase, state.fight) = (None, 0);
+                        state.hooks.as_ref().map(|hooks| hooks.stop)
+                    }
+                    (1, Some(_)) => {
+                        state.fight = 2;
+                        None
+                    }
+                    _ => None,
+                }
+            });
+            if let Some(stop) = stop {
+                stop();
+            }
         }
         if event.button() == 2 {
             // Let go where it went down, on someone: their menu, if they have one (the client's
@@ -213,6 +252,24 @@ pub(super) fn listen() {
     });
     let wheel = Closure::<dyn FnMut(WheelEvent)>::new(|event: WheelEvent| {
         event.prevent_default();
+        // While a skill is aimed the wheel picks the level it is used at, up or down one a notch (the client's
+        // `MM_USESKILL_LEVEL_PLUS` and `_MINUS`), and the camera stays where it is.
+        // With Quick Skill 2 the wheel uses the eighth slot of the hotkey bar turned up and the seventh turned
+        // down, and moves nothing (the client's `ProcessMouseWheel`).
+        let quick = STATE.with_borrow(|state| state.hooks.as_ref().filter(|_| state.options.quick_wheel && state.aiming.is_none()).map(|hooks| hooks.quick));
+        if let Some(quick) = quick {
+            if event.delta_y() != 0.0 {
+                quick(if event.delta_y() < 0.0 { 7 } else { 6 });
+            }
+            return;
+        }
+        let level = STATE.with_borrow(|state| state.aiming.and(state.hooks.as_ref()).map(|hooks| hooks.aim_level));
+        if let Some(level) = level {
+            if event.delta_y() != 0.0 {
+                level(if event.delta_y() < 0.0 { 1 } else { -1 });
+            }
+            return;
+        }
         STATE.with_borrow_mut(|state| {
             if let Some(scene) = &mut state.scene {
                 // A notch of a mouse's wheel is about a hundred pixels, and one step of the camera. A touchpad sends
@@ -253,4 +310,19 @@ pub(super) fn listen() {
     released.forget();
     wheel.forget();
     menu.forget();
+}
+
+/// Writes the skill being aimed and its level by the pointer, or takes that away when nothing is aimed.
+pub(super) fn aim_shown() {
+    let Some(label) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("aim")) else { return };
+    let shown = STATE.with_borrow(|state| state.aiming.and(state.pointer).filter(|_| !state.aim_words.is_empty()).map(|at| (at, state.aim_words.clone())));
+    match shown {
+        Some((at, words)) => {
+            label.set_text_content(Some(&words));
+            let _ = label.set_attribute("style", &format!("display:block;left:{:.0}px;top:{:.0}px", at.0 + 18.0, at.1 + 18.0));
+        }
+        None => {
+            let _ = label.set_attribute("style", "display:none");
+        }
+    }
 }

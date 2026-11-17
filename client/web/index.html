@@ -7,6 +7,9 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   /* The name of whoever the pointer is on, over their head. */
+  /* The skill being aimed and its level, by the pointer. */
+  #aim { position: fixed; display: none; padding: 1px 4px; white-space: nowrap; pointer-events: none; z-index: 5;
+         font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
   #unit-name { position: fixed; display: none; transform: translateX(-50%); padding: 4px; white-space: nowrap; pointer-events: none;
                font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; z-index: 5;
                text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000, -1px -1px #000, 1px 1px #000, -1px 1px #000, 1px -1px #000; }
@@ -165,7 +168,15 @@
   #chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
   .chat-tab { padding: 0; border: 0; color: #fff; font: 12px Gulim, Tahoma, Arial, sans-serif; line-height: 15px; text-align: center; white-space: nowrap; overflow: hidden; cursor: var(--press, pointer); }
   #chat-input { background: #f0f0f0; }
-  .mapname { position: absolute; right: 17px; top: 164px; width: 128px; height: 14px; color: #fff; font-size: 12px; pointer-events: none; }
+  /* How many play, by the chat's tabs: a green light that breathes, the number, and the word. */
+  .online { display: flex; align-items: center; gap: 5px; padding: 0 8px 0 6px; border-radius: 8px; background: rgba(0, 0, 0, .45);
+            font: 12px Gulim, Tahoma, Arial, sans-serif; color: #dfe; white-space: nowrap; pointer-events: auto; }
+  .online i { width: 7px; height: 7px; border-radius: 50%; background: #5dff7a; box-shadow: 0 0 5px 1px #37e05a; animation: online 2.4s ease-in-out infinite; }
+  .online b { font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000; }
+  .online span { color: #b9f5c6; text-shadow: 1px 1px 0 #000; }
+  @keyframes online { 0%, 100% { opacity: 1; box-shadow: 0 0 5px 1px #37e05a; } 50% { opacity: .55; box-shadow: 0 0 2px 0 #37e05a; } }
+  /* Under the minimap, where the client's bar of it is: 145 from the right edge, the text 145 down. */
+  .mapname { position: absolute; right: 17px; top: 145px; width: 128px; height: 14px; color: #fff; font-size: 12px; pointer-events: none; }
   .mapname span { position: absolute; left: 20px; top: 0; white-space: pre; text-shadow: -1px 0 0 #000; }
                 border-radius: 9px; white-space: nowrap; pointer-events: none; }
 
@@ -197,12 +208,11 @@
        text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff; }
               display: flex; flex-direction: column; justify-content: flex-end; }
   #chat-input { background: #f0f0f0; }
-  .mapname { position: absolute; right: 8px; top: 168px; width: 130px; text-align: center; color: #fff; font-size: 11px;
-             text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; }
   .lang button:first-of-type { }
   /* The minimap, in the corner where the original client has it. */
-  .minimap { position: absolute; right: 17px; top: 36px; width: 128px; height: 128px; background: rgba(0, 0, 0, .35);
-             border: 1px solid rgba(255, 255, 255, .6); }
+  /* 128 by 128, 144 from the right edge and 16 down (`CGameMode::DrawMiniMap`); the client draws the map's
+     picture and nothing around it. */
+  .minimap { position: absolute; right: 16px; top: 16px; width: 128px; height: 128px; }
   .minimap img { width: 100%; height: 100%; display: block; opacity: .9; }
   .minimap i { position: absolute; width: 6px; height: 6px; margin: -4px 0 0 -4px; background: #fff; border: 1px solid #000;
                border-radius: 50%; box-shadow: 0 0 4px 1px #ff0; }
@@ -212,6 +222,7 @@
 <body>
 <canvas id="game"></canvas>
 <div id="unit-name"></div>
+<div id="aim"></div>
 <div id="bars"></div>
 <div id="fade"></div>
 <div id="loading"><div id="loading-bar"><i id="loading-fill"></i><span id="loading-figure"></span></div></div>

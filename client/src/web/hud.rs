@@ -23,6 +23,7 @@ mod chat;
 mod dialogs;
 mod pets;
 mod hotkeys_set;
+mod settings;
 mod trade;
 
 use basic::*;
@@ -199,6 +200,8 @@ impl App {
             Some((x, y)) => format!(r#"<div id="pet-menu" class="a hud" style="left:{x}px;top:{y}px;background:#fff;border:1px solid #9a9a9a;z-index:26">{}</div>"#, self.pet_menu()),
             None => String::new(),
         };
+        // The Game Settings window, in the middle of the view, as the client puts it.
+        let settings = if self.settings.open { format!(r#"<div id="settings" class="a hud" style="left:{}px;top:{}px;width:400px">{}</div>"#, ((view.0 as i32 - 400) / 2).max(0), ((view.1 as i32 - 350) / 2).max(0), self.settings_window()) } else { String::new() };
         // The Shortcut Settings window, in the middle of the view.
         let keys = if self.keys.open { format!(r#"<div id="keys" class="a hud" style="left:{}px;top:{}px;width:436px">{}</div>"#, ((view.0 as i32 - 436) / 2).max(0), ((view.1 as i32 - 432) / 2).max(0), self.key_window()) } else { String::new() };
         let taming = if self.pets.taming.is_some() {
@@ -213,7 +216,7 @@ impl App {
         // The menu hangs under the basic window, a little into it.
         let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.hero.basic_small { 55 } else { 134 } - 4, self.menu_icons());
         format!(
-            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{pet}{keys}{pet_menu}
+            r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{pet}{keys}{settings}{pet_menu}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,
             self.basic_info(),
             u8::from(self.chat.locked),

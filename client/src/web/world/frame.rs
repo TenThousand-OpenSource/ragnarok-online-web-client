@@ -24,6 +24,9 @@ pub(super) fn frame() {
         let (time, yaw) = (now(), scene.camera.yaw);
         let (position, key) = scene.player.now(time, yaw);
         let feet = on_ground(&scene.gat, position);
+        if state.camera_fixed {
+            scene.aim = None;
+        }
         let aim = scene.follow(feet, time);
         let view = scene.camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32);
 
@@ -55,10 +58,14 @@ pub(super) fn frame() {
         let mut sprites = Vec::with_capacity(scene.units.len() + 1);
         let gat = &scene.gat;
         let feet_cell = position;
+        let hide_players = state.options.hide_players;
+        let mut own = true;
         for (mover, position, wanted) in std::iter::once((&mut scene.player, position, key)).chain(scene.units.values_mut().map(|unit| {
             let (position, key) = unit.now(time, yaw);
             (unit, position, key)
         })) {
+            // The first is the player's own character.
+            let is_own = std::mem::replace(&mut own, false);
             // A frame of a monster's sprite may start a sound: the nearer the monster, the louder.
             if let SpriteKey::Creature(path, action, frame) = &wanted {
                 if mover.heard.replace((*action, *frame)) != Some((*action, *frame)) {
@@ -71,7 +78,9 @@ pub(super) fn frame() {
             if gpu.has_sprite(&wanted) {
                 mover.shown = Some(wanted);
             }
-            if let Some(shown) = &mover.shown {
+            // Other players are left out when the player has it so (the client's Hide other Players).
+            let hidden = hide_players && !is_own && matches!(mover.look, Look::Character(_));
+            if let Some(shown) = mover.shown.as_ref().filter(|_| !hidden) {
                 sprites.push((shown.clone(), on_ground(gat, position)));
             }
             // The emotion it shows: the pictures of that action, each for as long as the sprite says, once through.
@@ -323,14 +332,17 @@ pub(super) fn frame() {
             } else {
                 vec![SpriteKey::Creature("이팩트/msg".to_owned(), 0, 0)]
             };
-            state.flying.push(Flying { began: time, base: on_ground(&scene.gat, hurt.at), drift, pictures, miss: damage <= 0 });
+            // A miss is shown only when the player has it so (the client's `/miss`).
+            if damage > 0 || state.options.misses {
+                state.flying.push(Flying { began: time, base: on_ground(&scene.gat, hurt.at), drift, pictures, miss: damage <= 0 });
+            }
         }
         // The life of the monsters being fought, as a bar under each.
         let bars: String = scene
             .units
             .values()
             .filter_map(|unit| {
-                let (left, most) = unit.life.filter(|(left, most)| *most > 0 && left < most)?;
+                let (left, most) = unit.life.filter(|(left, most)| state.options.monster_life && *most > 0 && left < most)?;
                 let under = view.project(on_ground(&scene.gat, unit.at))?;
                 let full = (left.max(0) as f32 / most as f32 * 58.0).round();
                 // 12 pixels of a screen 480 high under the feet, nearer when the camera is (the client's place for
@@ -464,6 +476,7 @@ pub(super) fn frame() {
         }
         // The monster being fought is run after when it is out of reach, and struck again once it is near.
         let mut strike = None;
+        let mut once = None;
         if let Some((id, looked, told)) = state.chase {
             match scene.units.get(&id) {
                 None => state.chase = None,
@@ -487,8 +500,16 @@ pub(super) fn frame() {
                         // as after the player changed targets quickly), so the character does not stand idle.
                         strike = state.hooks.as_ref().map(|hooks| (hooks.press, id));
                         state.strike_asked = time;
+                        // One blow only, the button having been let go: asked for as that, and the fight is over.
+                        if state.fight == 2 {
+                            once = state.hooks.as_ref().map(|hooks| (hooks.strike_once, id));
+                            strike = None;
+                        }
                     }
-                    state.chase = Some((id, time, !far));
+                    state.chase = if once.is_some() { None } else { Some((id, time, !far)) };
+                    if once.is_some() {
+                        state.fight = 0;
+                    }
                 }
                 Some(_) => {}
             }
@@ -524,9 +545,12 @@ pub(super) fn frame() {
         let cell = scene.player.cell;
         let changed = cell != scene.told;
         scene.told = cell;
-        Some((state.hooks.as_ref().filter(|_| changed).map(|hooks| (hooks.moved, cell)), follow, strike, take, used))
+        Some((state.hooks.as_ref().filter(|_| changed).map(|hooks| (hooks.moved, cell)), follow, strike, take, used, once))
     });
-    if let Some((moved, follow, strike, take, used)) = told {
+    if let Some((moved, follow, strike, take, used, once)) = told {
+        if let Some((strike_once, id)) = once {
+            strike_once(id);
+        }
         if let Some((tell, whom, cell)) = used {
             tell(whom, cell);
         }

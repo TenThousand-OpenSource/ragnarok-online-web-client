@@ -312,6 +312,30 @@ struct Scene {
 }
 
 /// What the page is told, and what it is asked for.
+/// The options of the client's Game Settings window the world goes by.
+#[derive(Clone, Copy)]
+pub struct Options {
+    /// A press on a monster fights it until it is down (`/noctrl`); off, that takes Ctrl, and a plain press
+    /// fights only while the button is held.
+    pub no_ctrl: bool,
+    /// The right button uses the bar's ninth slot (`/q1`); the wheel its eighth and seventh (`/q2`).
+    pub quick_right: bool,
+    pub quick_wheel: bool,
+    /// Effects of skills and items are drawn (`/effect`); a miss is shown (`/miss`); a monster being fought
+    /// shows its life (`/monsterhp`).
+    pub effects: bool,
+    pub misses: bool,
+    pub monster_life: bool,
+    /// Other players are not drawn.
+    pub hide_players: bool,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false }
+    }
+}
+
 pub struct Hooks {
     /// The player pressed a cell to walk to.
     pub walk_to: fn(u16, u16),
@@ -327,6 +351,15 @@ pub struct Hooks {
     pub aimed: fn(Option<u32>, (u16, u16)),
     /// The right button was pressed and let go on someone without moving: their ID, and where on the page.
     pub menu: fn(u32, (f32, f32)),
+    /// The wheel was turned while a skill is aimed: up (1) or down (-1) a level.
+    pub aim_level: fn(i32),
+    /// One blow at a monster, not a fight until it is down (the client without Ctrl, when its No Ctrl option
+    /// is off).
+    pub strike_once: fn(u32),
+    /// The fight is called off: the server is told to stop striking.
+    pub stop: fn(),
+    /// A slot of the hotkey bar is used by the mouse (the client's Quick Skill options).
+    pub quick: fn(usize),
 }
 
 #[derive(Default)]
@@ -340,6 +373,15 @@ struct State {
     turning: Option<(f32, f32)>,
     /// When the right button was last pressed: twice in a moment puts the camera back.
     right_pressed: f64,
+    /// The player's options the world goes by.
+    options: Options,
+    /// How the monster being fought is fought: 0 until it is down, 1 while the left button is held, 2 with one
+    /// blow as soon as it is near enough (the button was let go before any blow was asked for).
+    fight: u8,
+    /// What is written by the pointer while a skill is aimed: the skill and the level it will be used at.
+    aim_words: String,
+    /// The camera stays on the character without following it gradually (the client's `/camera` option).
+    camera_fixed: bool,
     /// Where the right button went down, until it comes up.
     right_at: Option<(f32, f32)>,
     listening: bool,

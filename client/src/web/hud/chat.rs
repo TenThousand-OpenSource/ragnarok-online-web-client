@@ -41,6 +41,16 @@ impl App {
                     tr(name),
                 ));
             }
+            // How many play on the server, by the tabs. The client has no such thing (it answers `/who` in the
+            // chat): this is this client's own.
+            if let Some(count) = self.online {
+                window.push_str(&format!(
+                    r#"<div class="a online" style="left:{}px;top:0;height:15px" title="{}"><i></i><b id="online-count">{count}</b><span>{}</span></div>"#,
+                    tabs + 12,
+                    escape(tr("Players online")),
+                    escape(tr("online"))
+                ));
+            }
             // The list's see-through back, and the lines around it.
             window.push_str(&format!(r#"<div class="a" style="{};background:rgba(0,0,0,.4)"></div>"#, at(4, 17, 600 - 8, height - 16 - 24 - 1)));
             window.push_str(&format!(r#"<div class="a" style="{};background:#fff"></div>"#, at(3, 16, 1, height - 16)));

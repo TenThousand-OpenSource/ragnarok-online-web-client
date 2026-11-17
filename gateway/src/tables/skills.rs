@@ -18,6 +18,28 @@ pub(super) fn skill_tree(grf: &Grf) -> serde_json::Map<String, serde_json::Value
     tree
 }
 
+/// Which job each job grew out of, for every job the client's `jobinheritlist.lub` names: `{"<job>": <job>}`.
+/// As the client's `CSession::InheritedJob` reads it: the job of `JOB_INHERIT_LIST`, and in its place the one
+/// `JOB_INHERIT_LIST2` gives for that, where it gives one.
+pub(super) fn job_inherits(grf: &Grf) -> serde_json::Map<String, serde_json::Value> {
+    let lua = run(grf, &["skillinfoz\\jobinheritlist"]);
+    let mut inherits = serde_json::Map::new();
+    let Ok(list) = lua.globals().get::<Table>("JOB_INHERIT_LIST") else { return inherits };
+    let instead = lua.globals().get::<Table>("JOB_INHERIT_LIST2").ok();
+    // The table's numbers are whole, but not all of them are kept as whole numbers.
+    let whole = |value: &Value| match value {
+        Value::Integer(number) => Some(*number),
+        Value::Number(number) => Some(*number as i64),
+        _ => None,
+    };
+    let replaced: std::collections::HashMap<i64, i64> = instead.map(|instead| instead.pairs::<Value, Value>().flatten().filter_map(|(job, from)| Some((whole(&job)?, whole(&from)?))).collect()).unwrap_or_default();
+    for (job, from) in list.pairs::<Value, Value>().flatten() {
+        let (Some(job), Some(from)) = (whole(&job), whole(&from)) else { continue };
+        inherits.insert(job.to_string(), (*replaced.get(&from).unwrap_or(&from)).into());
+    }
+    inherits
+}
+
 /// What the client says of each skill when it is looked at (its `skilldescript.lub`): the lines, by skill ID.
 pub fn skill_texts(grf: &Grf) -> std::collections::HashMap<u32, Vec<String>> {
     let lua = run(grf, &["skillinfoz\\skillid", "skillinfoz\\skilldescript"]);

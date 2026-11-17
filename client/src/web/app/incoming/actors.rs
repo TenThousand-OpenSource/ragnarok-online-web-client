@@ -45,8 +45,8 @@ impl App {
                             // This client's own choice, asked for by its owner: the voice of dying. The
                             // client's data has the files (`die_male.wav` for men, `die_<first job>_female.wav`
                             // for women), but the 2026 client names none of them, in its code or in the bodies'
-                            // sprites: there a player dies without a sound. A woman of a job after the second
-                            // ones has no file of her line, and dies as silently as there.
+                            // sprites: there a player dies without a sound. A woman's file is that of the
+                            // first job hers grew out of; a Doram, who grew out of none of them, has none.
                             const WOMEN: [&str; 7] = ["novice", "swordman", "magician", "archer", "acolyte", "merchant", "thief"];
                             let figure = self.own_figure();
                             if figure.sex == 1 {

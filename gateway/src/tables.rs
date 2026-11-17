@@ -20,7 +20,7 @@ mod skills;
 pub use interface::{chat_tabs, emotions, hotkeys, options};
 pub use items::{translated, About, Items, Translated, Unidentified};
 pub use skills::skill_texts;
-use skills::{skill_tree, skills};
+use skills::{job_inherits, skill_tree, skills};
 
 /// What Lua itself puts in the globals.
 const BUILT_IN: [&str; 30] = [
@@ -187,7 +187,7 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
         names(run_more(&lua, grf, &["petinfo"]), "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // Its `PetAccActNameTable`: by the accessory a pet wears (an item), the actions it is then drawn with.
     let pet_acts: serde_json::Map<String, serde_json::Value> = names(&lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
+    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf), "inherits": job_inherits(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
 }
 
 /// The client's message table (`msgstringtable.txt`), line by line: what the client says, by the numbers its code

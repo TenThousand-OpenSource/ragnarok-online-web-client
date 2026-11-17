@@ -24,6 +24,16 @@ thread_local! {
     static HEADGEAR: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The sprite files of NPCs and monsters, by the number the server shows them under.
     static SPRITES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
+    /// The plain job of a mounted or re-dressed job, from the list taken out of the original client.
+    static BASES: HashMap<u16, u16> = include_str!("job_bases.txt")
+        .lines()
+        .filter_map(|line| {
+            let (job, base) = line.split_once('\t')?;
+            Some((job.parse().ok()?, base.parse().ok()?))
+        })
+        .collect();
+    /// The job each job grew out of (the client's `jobinheritlist.lub`).
+    static INHERITS: RefCell<HashMap<u16, u16>> = RefCell::new(HashMap::new());
     /// The ending of a weapon's sprite files, by the client's number for the kind of weapon.
     static WEAPONS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
 }
@@ -95,34 +105,23 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     JOB_NAMES.set(entries::<u16>(&field(tables, "jobs")).into_iter().filter_map(|(job, about)| Some((job, text_of(&about, "name")?))).collect());
     HEADGEAR.set(entries::<u16>(&field(tables, "headgear")).into_iter().filter_map(|(view, name)| Some((view, name.as_string()?))).collect());
     SPRITES.set(entries::<u16>(&field(tables, "sprites")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
+    INHERITS.set(entries::<u16>(&field(tables, "inherits")).into_iter().filter_map(|(job, from)| Some((job, from.as_f64()? as u16))).collect());
     WEAPONS.set(entries::<u16>(&field(tables, "weapons")).into_iter().filter_map(|(kind, name)| Some((kind, name.as_string()?))).collect());
 }
 
 /// The first job a job grew out of, among the classic ones (0 novice, 1 swordman, 2 magician, 3 archer,
-/// 4 acolyte, 5 merchant, 6 thief): for the first and second jobs, their high and their baby forms. The jobs
-/// after those are not told here.
+/// 4 acolyte, 5 merchant, 6 thief), by the client's own tables: a mounted job is its plain job
+/// (`JobNames::BaseJob`), and each job grew out of the one `jobinheritlist.lub` names for it. The jobs that
+/// table starts from a Novice (Taekwon, Ninja, Gunslinger, Super Novice) are of the Novice's line; a job it does
+/// not name at all (a Doram) has none.
 pub fn first_job(job: u16) -> Option<u16> {
-    // The same order in each of the three ranges of numbers: plain from 0, high from 4001, baby from 4023.
-    let plain = match job {
-        0..=20 => job,
-        4001..=4021 => job - 4001,
-        4023..=4043 => job - 4023,
-        _ => return None,
-    };
-    Some(match plain {
-        0..=6 => plain,
-        // Knight and crusader (13 is the knight on a bird).
-        7 | 13 | 14 => 1,
-        // Wizard and sage.
-        9 | 16 => 2,
-        // Hunter, bard and dancer.
-        11 | 19 | 20 => 3,
-        // Priest and monk.
-        8 | 15 => 4,
-        // Blacksmith and alchemist.
-        10 | 18 => 5,
-        // Assassin and rogue.
-        12 | 17 => 6,
-        _ => return None,
-    })
+    let mut job = BASES.with(|bases| bases.get(&job).copied()).unwrap_or(job);
+    // No line of jobs is ten long: a table gone wrong does not hold this up for ever.
+    for _ in 0..10 {
+        if job <= 6 {
+            return Some(job);
+        }
+        job = INHERITS.with_borrow(|inherits| inherits.get(&job).copied())?;
+    }
+    None
 }

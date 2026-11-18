@@ -5,3 +5,5 @@ server/mapcache/map_cache.dat
 .DS_Store
 # Which rules the server plays by: written by rules.sh.
 server/.env
+# What is made when the server is opened to invited friends (public.sh): the invitation word, changed passwords.
+server/public/

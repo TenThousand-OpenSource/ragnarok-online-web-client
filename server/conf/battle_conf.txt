@@ -6,3 +6,9 @@ pet_attack_support: yes
 pet_damage_support: yes
 // The line about the server's version on entering the game is not shown.
 display_version: no
+
+// A monster's blow counts on the server at the moment the client shows it land (the frame of the monster's
+// sprite that the blow is on), not at the end of the monster's swing. The one struck is stopped at that moment,
+// so the client and the server stop it in the same place: without this a character struck while it runs is
+// stopped later on the client's screen than on the server, and jumps back at its next step.
+synchronize_damage: yes

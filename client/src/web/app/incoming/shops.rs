@@ -42,7 +42,7 @@ impl App {
             trade::ZC_SELECT_DEALTYPE => {
                 if let Some(npc) = npc::npc(id, packet) {
                     self.deal.shop = Some(Shop::Choose(npc));
-                    self.refresh_trade();
+                    self.redraw(&[&wnd::TRADE]);
                 }
             }
             trade::ZC_PC_PURCHASE_ITEMLIST => {
@@ -51,13 +51,13 @@ impl App {
                 self.deal.basket.clear();
                 self.deal.picked = None;
                 self.deal.shop = Some(Shop::Buy(offers));
-                self.refresh_trade();
+                self.redraw(&[&wnd::TRADE]);
             }
             trade::ZC_PC_SELL_ITEMLIST => {
                 self.deal.basket.clear();
                 self.deal.picked = None;
                 self.deal.shop = Some(Shop::Sell(trade::bids(packet)));
-                self.refresh_trade();
+                self.redraw(&[&wnd::TRADE]);
             }
             trade::ZC_PC_PURCHASE_RESULT | trade::ZC_PC_SELL_RESULT => {
                 let words = match (id, packet.get(2).copied().unwrap_or(0)) {

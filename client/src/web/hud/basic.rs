@@ -68,51 +68,55 @@ impl App {
     /// The strip of icons that open the windows, as the original lays it out: five to a row, under a bar that
     /// folds it away. The icons of windows not made yet are there, faded, and do nothing.
     pub(in crate::web) fn menu_icons(&self) -> String {
-        const ICONS: [(&str, &str, &str); 23] = [
-            ("status", "status", "Status (Alt+A)"),
-            ("equip", "equipment", "Equipment (Alt+Q)"),
-            ("item", "inventory", "Inventory (Alt+E)"),
-            ("skill", "skills", "Skills (Alt+S)"),
-            ("party", "", "Party (Alt+Z)"),
-            ("guild", "", "Guild (Alt+G)"),
-            ("battle", "", "Battlegrounds"),
-            ("quest", "", "Quests (Alt+U)"),
-            ("map", "", "World map (Ctrl+~)"),
-            ("navigation", "", "Navigation"),
-            ("option", "", "Options (Alt+O)"),
-            ("bank", "", "Bank"),
-            ("rec", "", "Replay"),
-            ("mail", "", "Mail"),
-            ("achievement", "", "Achievements"),
-            ("tip", "", "Tips"),
-            ("shop", "", "Cash shop"),
-            ("keyboard", "", "Shortcut settings"),
-            ("attendance", "", "Attendance"),
-            ("adventurerAgency", "", "Adventurer agency"),
-            ("repute", "", "Reputation"),
-            ("adventureguide", "guide", "Adventure guide"),
-            ("probability", "", "Probabilities"),
+        // What an icon does is written as its tag has it: a press, or nothing for a window not made.
+        use crate::press::{guide, inventory, skills, status};
+        let none = || r#"data-click="""#.to_owned();
+        let icons: [(&str, String, &str); 23] = [
+            ("status", pressed(status::Press::Window), "Status (Alt+A)"),
+            ("equip", pressed(inventory::Press::Equipment), "Equipment (Alt+Q)"),
+            ("item", pressed(inventory::Press::Window), "Inventory (Alt+E)"),
+            ("skill", pressed(skills::Press::Window), "Skills (Alt+S)"),
+            ("party", none(), "Party (Alt+Z)"),
+            ("guild", none(), "Guild (Alt+G)"),
+            ("battle", none(), "Battlegrounds"),
+            ("quest", none(), "Quests (Alt+U)"),
+            ("map", none(), "World map (Ctrl+~)"),
+            ("navigation", none(), "Navigation"),
+            ("option", none(), "Options (Alt+O)"),
+            ("bank", none(), "Bank"),
+            ("rec", none(), "Replay"),
+            ("mail", none(), "Mail"),
+            ("achievement", none(), "Achievements"),
+            ("tip", none(), "Tips"),
+            ("shop", none(), "Cash shop"),
+            ("keyboard", none(), "Shortcut settings"),
+            ("attendance", none(), "Attendance"),
+            ("adventurerAgency", none(), "Adventurer agency"),
+            ("repute", none(), "Reputation"),
+            ("adventureguide", pressed(guide::Press::Open), "Adventure guide"),
+            ("probability", none(), "Probabilities"),
         ];
         let bar = |name: &str| {
             format!(
-                r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" data-click="menu" title="Menu"></button>"#,
+                r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {} title="Menu"></button>"#,
                 at(0, 4, 219, 9),
                 picture(&format!("menu_icon/bt_menu_{name}normal.bmp")),
                 picture(&format!("menu_icon/bt_menu_{name}over.bmp")),
-                picture(&format!("menu_icon/bt_menu_{name}press.bmp"))
+                picture(&format!("menu_icon/bt_menu_{name}press.bmp")),
+                pressed(crate::press::general::Press::Menu)
             )
         };
         if self.menu_closed {
             return bar("");
         }
         let mut strip = bar("close_");
-        for (position, (name, click, title)) in ICONS.iter().enumerate() {
+        for (position, (name, click, title)) in icons.iter().enumerate() {
             let name = if *name == "status" && self.game.as_ref().is_some_and(|game| data::is_doram(game.job)) { "status_doram" } else { name };
             let (x, y) = ((position % 5 * 42 + 9) as i32, (position / 5 * 43 + 23) as i32);
             let (normal, pressed) = (picture(&format!("menu_icon/bt_{name}.bmp")), picture(&format!("menu_icon/bt_{name}_press.bmp")));
-            let dim = if click.is_empty() { " dim" } else { "" };
+            let dim = if *click == none() { " dim" } else { "" };
             strip.push_str(&format!(
-                r#"<button type="button" class="a b{dim}" style="{};--n:url('{normal}');--o:url('{normal}');--p:url('{pressed}')" data-click="{click}" title="{}"></button>"#,
+                r#"<button type="button" class="a b{dim}" style="{};--n:url('{normal}');--o:url('{normal}');--p:url('{pressed}')" {click} title="{}"></button>"#,
                 at(x, y, 32, 34),
                 tr(title)
             ));
@@ -152,7 +156,7 @@ impl App {
                    <div class="a t" style="left:9px;top:36px"><span style="color:{}">HP. {hp} / {max_hp}</span> | <span style="color:{}">SP. {sp} / {max_sp}</span></div>{}"#,
                 at(0, 17, 220, if ap.is_some() { 54 } else { 38 }),
                 title_bar(220, &game.name),
-                button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", "basic-size", ""),
+                press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize),
                 text(9, 20, BLACK, &format!("{lv}{base_level:2} / {job} / {lv}{job_level:2} / {} {exp:.1} %", tr("Exp."), lv = tr("Lv."))),
                 low(hp, max_hp),
                 low(sp, max_sp),
@@ -166,7 +170,7 @@ impl App {
             None => art("basic_interface/basewin_bg2.bmp", 0, 0, 220, 134),
         };
         window.push_str(&format!(r#"<div class="a t titled" style="left:17px;top:2px">{}</div>"#, tr("Basic Information")));
-        window.push_str(&button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", "basic-size", ""));
+        window.push_str(&press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize));
         window.push_str(&text(9, 22, BLACK, &game.name));
         window.push_str(&text(9, 36, BLACK, &job));
         window.push_str(&text(17, 51, BLACK, "HP"));

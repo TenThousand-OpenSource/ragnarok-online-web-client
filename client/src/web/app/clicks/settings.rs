@@ -3,47 +3,46 @@
 use super::*;
 
 impl App {
-    /// What a press on one of these does; `false` when the thing pressed is not of this kind.
-    pub(super) fn settings_click(&mut self, what: &str, arg: &str) -> bool {
-        match what {
+    /// A press of this system (`crate::press::settings`).
+    pub(super) fn settings_pressed(&mut self, press: crate::press::settings::Press) {
+        use crate::press::settings::{Press, Sound};
+        match press {
             // From the window of game options, and the window's own close buttons: it opens, or closes if it
             // was open (the client's `ID_OPEN_GAME_SETTINGS`).
-            "settings" => {
+            Press::Open => {
                 self.settings.open = !self.settings.open;
                 self.render();
             }
-            "settings-tab" => {
-                self.settings.tab = arg.parse().unwrap_or(0);
-                self.refresh_settings();
+            Press::Tab(tab) => {
+                self.settings.tab = tab;
+                self.redraw(&[&wnd::SETTINGS]);
             }
-            "settings-switch" => {
-                self.switch_option(arg);
-                self.refresh_settings();
+            Press::Switch(option) => {
+                self.switch_option(&option);
+                self.redraw(&[&wnd::SETTINGS]);
             }
             // A row that does something at a press (the client's `CUIOptionItem::RunFunction`).
-            "settings-run" => {
-                if arg == "TT_EX_SIT" {
+            Press::Run(option) => {
+                if option == "TT_EX_SIT" {
                     // Sits down or stands up, whichever it is not doing (the client's `ToggleSitStand`).
                     self.command(if self.hero.sitting { "/stand" } else { "/sit" });
-                } else if let Some(command) = Self::command_of(arg) {
+                } else if let Some(command) = Self::command_of(&option) {
                     self.command(command);
                 }
             }
-            "settings-off" => {
-                match arg {
-                    "music" => self.settings.music_off = !self.settings.music_off,
-                    _ => self.settings.effects_off = !self.settings.effects_off,
+            Press::Off(sound) => {
+                match sound {
+                    Sound::Music => self.settings.music_off = !self.settings.music_off,
+                    Sound::Effects => self.settings.effects_off = !self.settings.effects_off,
                 }
                 self.sound_levels();
-                self.refresh_settings();
+                self.redraw(&[&wnd::SETTINGS]);
             }
-            "settings-reset" => {
+            Press::Reset => {
                 self.reset_settings();
-                self.refresh_settings();
+                self.redraw(&[&wnd::SETTINGS]);
             }
-            _ => return false,
         }
-        true
     }
 
     /// A slider of the window was moved: how loud the music or the effects are, 0 to 100.

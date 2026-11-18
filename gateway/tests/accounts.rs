@@ -59,7 +59,7 @@ fn urlencode(value: &str) -> String {
 }
 
 async fn register(api: &Router, userid: &str, password: &str, email: &str) -> (StatusCode, String) {
-    post(api, "/api/register", &[("userid", userid), ("password", password), ("email", email), ("sex", "F")]).await
+    post(api, "/api/register", &[("userid", userid), ("password", password), ("email", email)]).await
 }
 
 async fn database() -> MySqlPool {
@@ -155,16 +155,15 @@ async fn live_a_new_account_can_log_in() {
 async fn live_registration_refuses_bad_input() {
     let api = api(generous());
     let id = unique();
-    for (userid, password, email, sex) in [
-        ("ab", "good-Pass1", "a@example.test", "F"),
-        ("bad name", "good-Pass1", "a@example.test", "F"),
-        (id.as_str(), "short", "a@example.test", "F"),
-        (id.as_str(), "good-Pass1", "not-an-address", "F"),
-        (id.as_str(), "good-Pass1", "a@example.test", "S"),
-        ("x' OR '1'='1", "good-Pass1", "a@example.test", "M"),
+    for (userid, password, email) in [
+        ("ab", "good-Pass1", "a@example.test"),
+        ("bad name", "good-Pass1", "a@example.test"),
+        (id.as_str(), "short", "a@example.test"),
+        (id.as_str(), "good-Pass1", "not-an-address"),
+        ("x' OR '1'='1", "good-Pass1", "a@example.test"),
     ] {
-        let (status, _) = post(&api, "/api/register", &[("userid", userid), ("password", password), ("email", email), ("sex", sex)]).await;
-        assert_eq!(status, StatusCode::BAD_REQUEST, "{userid} / {password} / {email} / {sex}");
+        let (status, _) = post(&api, "/api/register", &[("userid", userid), ("password", password), ("email", email)]).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{userid} / {password} / {email}");
     }
     let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM `login` WHERE `userid` = ?").bind(&id).fetch_one(&database().await).await.unwrap();
     assert_eq!(count, 0);
@@ -283,7 +282,7 @@ async fn live_other_websites_cannot_use_the_forms() {
             .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
             .header(header::HOST, "game.test")
             .header(header::ORIGIN, "https://evil.example")
-            .body(Body::from("userid=abcd&password=good-Pass1&email=a%40example.test&sex=F&token=x"))
+            .body(Body::from("userid=abcd&password=good-Pass1&email=a%40example.test&token=x"))
             .unwrap();
         assert_eq!(api.clone().oneshot(request).await.unwrap().status(), StatusCode::FORBIDDEN, "{path}");
     }

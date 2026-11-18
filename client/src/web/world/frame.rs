@@ -96,15 +96,14 @@ pub(super) fn next_frame() {
     });
 }
 
-/// Shows a name on the page, its middle at a place, or takes it away. Monsters' names are pink, as the original's.
-pub(super) fn name_shown(named: Option<(&str, bool, (f32, f32))>) {
+/// Shows a name on the page in a colour, its middle at a place, or takes it away.
+pub(super) fn name_shown(named: Option<(&str, &str, (f32, f32))>) {
     let Some(label) = crate::web::by_id("unit-name") else { return };
     match named {
-        Some((name, monster, (x, y))) => {
+        Some((name, colour, (x, y))) => {
             if label.text_content().as_deref() != Some(name) {
                 label.set_text_content(Some(name));
             }
-            let colour = if monster { "#ffc3c3" } else { "#fff" };
             let _ = label.set_attribute("style", &format!("display:block;left:{x:.0}px;top:{y:.0}px;color:{colour}"));
         }
         None => {

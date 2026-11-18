@@ -17,12 +17,14 @@ The short of it:
   (`../rodecomp`) and the client's own files (`../Feb-Client-CLEAN`), and say in the comment where from. Do not
   invent interfaces or behaviour; when something was not found in the client, say so plainly — in the comment
   and to the user.
+- **Name nothing on the page by hand.** A button is a value of `crate::press` drawn with `pressed(..)`; a
+  window is an entry of `hud/windows.rs`. See rule 12 and "How to… add a button / a window".
 - **Game data comes through the gateway** (`gateway/src/tables/<kind>.rs` ↔ `client/src/web/data/<kind>.rs`),
   never typed into the code.
 - **Test what can be tested, look at the rest in the game**, and report honestly which is which.
 - **Keep `ARCHITECTURE.md` true**: add new files to its directory map.
 
-Before finishing: `cargo test`, `./build-web.sh` (no warnings), and check the largest files:
-`find client/src gateway/src -name '*.rs' | xargs wc -l | sort -rn | head`.
+Before finishing, and before any commit: `./check.sh`. It runs the tests, the build for the browser (no
+warnings) and the sizes of files and functions (`tools/limits.py`), and must end with "all checks passed".
 
 Reply to the user in Russian. Commit only when asked.

@@ -4,11 +4,10 @@ use super::*;
 
 /// Tells the page how far the map is read: the bar of the loading screen fills, with the figure on it.
 pub(super) fn progress(percent: u32) {
-    let Some(document) = crate::web::document() else { return };
-    if let Some(fill) = document.get_element_by_id("loading-fill") {
+    if let Some(fill) = crate::web::by_id("loading-fill") {
         let _ = fill.set_attribute("style", &format!("width:{}px", 238 * percent / 100));
     }
-    if let Some(figure) = document.get_element_by_id("loading-figure") {
+    if let Some(figure) = crate::web::by_id("loading-figure") {
         figure.set_text_content(Some(&format!("{percent:3}%")));
     }
 }
@@ -237,6 +236,10 @@ pub(super) fn pointers() {
         ) {
             let _ = root.style().set_property("--point", plain);
             let _ = root.style().set_property("--press", &press);
+            // The pointer of a skill being aimed (the client's cursor action 10), for over the windows.
+            if let Ok(aim) = figure::cursor(10, 0).await {
+                let _ = root.style().set_property("--aim", &aim);
+            }
             // The finger down: the last picture of that action, which the client runs to while the button is held.
             if let Ok(pressed) = figure::cursor(2, 2).await {
                 let _ = root.style().set_property("--pressed", &pressed);

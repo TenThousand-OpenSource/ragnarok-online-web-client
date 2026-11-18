@@ -2,25 +2,18 @@
 //! and the window that asks how many to drop.
 
 use super::*;
+use crate::press::inventory::Press;
 
 impl App {
     /// Redraws the window that asks how many to drop, where it is on the page, and puts the typing into it.
-    pub(in crate::web) fn refresh_throw(&self) {
-        let Some(window) = crate::web::by_id("throw") else { return };
-        window.set_inner_html(&self.throw_window());
-        if let Some(count) = window.query_selector("input").ok().flatten().and_then(|count| wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlInputElement>(count).ok()) {
-            let _ = count.focus();
-            count.select();
-        }
-    }
-
     /// How many of a stack to drop: the original's small box (`UIItemDropCntWnd`, 182 by 46) with the item's
     /// name, the number to type over (all of them at first; a plain field of six characters) and OK.
     pub(in crate::web) fn throw_window(&self) -> String {
         let Some((index, most)) = self.bag.throwing else { return String::new() };
         let name = self.bag.items.iter().find(|item| item.index == index).map(Self::item_name).unwrap_or_default();
+        let throw = sent(Form::Throw);
         format!(
-            r#"{}<form data-submit="throw" class="a" style="{}">
+            r#"{}<form {throw} class="a" style="{}">
                  <div class="a t" style="left:15px;top:6px;width:104px;overflow:hidden;white-space:nowrap">{}</div>
                  <input id="throw-count" class="a in" style="{};background:#e8e8e8" type="text" inputmode="numeric" maxlength="6" autocomplete="off" value="{most}">
                  {}
@@ -29,7 +22,7 @@ impl App {
             at(0, 0, 182, 46),
             escape(&name),
             at(15, 22, 80, 16),
-            picture_button(127, 14, "btn_ok", "throw-ok").replace(r#"type="button""#, r#"type="submit""#),
+            picture_press(127, 14, "btn_ok", Press::ThrowOk).replace(r#"type="button""#, r#"type="submit""#),
         )
     }
 
@@ -76,7 +69,7 @@ impl App {
             at(90, 10, 170, 14),
             escape(&name),
             at(91, 31, 182, 80),
-            button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "item-info-close", ""),
+            press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::InfoClose),
         )
     }
 
@@ -105,7 +98,7 @@ impl App {
         let width = 40 + 32 * ITEM_COLUMNS + 16;
         let body = 32 * ITEM_ROWS;
         let mut window = title_bar(width, "Inventory");
-        window.push_str(&button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "inventory", ""));
+        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
         // The body: the tabs' strip, the cells, and the pieces at their sides.
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c3c3c3"></div>"#, at(0, 17, 40, body)));
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(20, 17, 20, body), picture("basic_interface/itemwin_left.bmp")));
@@ -114,8 +107,9 @@ impl App {
             let open = if tab == self.bag.tab { " open" } else { "" };
             let letters: String = tr(label).chars().map(|letter| format!("<span>{letter}</span>")).collect();
             window.push_str(&format!(
-                r#"<button type="button" class="a tab{open}" style="{}" data-click="inventory-tab" data-arg="{index}">{letters}</button>"#,
-                at(3, 18 + index as i32 * 51, 17, 52)
+                r#"<button type="button" class="a tab{open}" style="{}" {}>{letters}</button>"#,
+                at(3, 18 + index as i32 * 51, 17, 52),
+                pressed(Press::Tab(index))
             ));
         }
         let mut cells = String::new();
@@ -126,12 +120,12 @@ impl App {
             let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
             let worn = if item.worn != 0 { " worn" } else { "" };
             cells.push_str(&format!(
-                r#"<div class="a cell{worn}" style="left:{}px;top:{}px" data-drag="item:{}" data-use="{}:{}" data-info="{info}" title="{} : {} {}">{}<span class="n">{}</span></div>"#,
+                r#"<div class="a cell{worn}" style="left:{}px;top:{}px" {} {} data-info="{info}" title="{} : {} {}">{}<span class="n">{}</span></div>"#,
                 column * 32,
                 row * 32,
-                item.id,
-                if self.deal.storage.is_some() { "put" } else { "item" },
-                item.index,
+                dragged(Drag::Item(item.id)),
+                // With the storage open a double click puts the thing into it.
+                used(if self.deal.storage.is_some() { Use::Put(item.index) } else { Use::Item(item.index) }),
                 escape(&Self::item_name(item)),
                 item.amount,
                 tr("ea"),

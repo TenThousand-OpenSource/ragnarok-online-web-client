@@ -37,6 +37,8 @@ pub(super) struct State {
     pub(super) start: Option<(i32, i32)>,
     /// Where on the page the pointer is, while it is over the world with no button held.
     pub(super) pointer: Option<(f32, f32)>,
+    /// Where on the page the pointer is, over the world or over a window.
+    pub(super) mouse: Option<(f32, f32)>,
     /// Who the pointer is on: their ID, and whether it is a monster.
     pub(super) over: Option<(u32, bool)>,
     /// The left button is held on the ground: where the pointer is, and when a walk was last asked for.
@@ -44,6 +46,9 @@ pub(super) struct State {
     /// When the left button went down.
     pub(super) held_since: f64,
     pub(super) held_asked: f64,
+    /// A place pressed that is farther than the server walks in one go, and the cell last asked for on the way
+    /// to it: the character goes on from there when it gets there.
+    pub(super) journey: Option<((i32, i32), (i32, i32))>,
     /// The monster being fought: its ID, when it was last looked after, and whether the server was told to strike
     /// since it came near.
     pub(super) chase: Option<(u32, f64, bool)>,
@@ -52,8 +57,6 @@ pub(super) struct State {
     pub(super) own_struck: f64,
     /// Until when the player's own character is in the motion of a blow it deals: it does not walk meanwhile.
     pub(super) own_striking_until: f64,
-    /// Until when the player's own character cannot walk for a blow it took (the server's walk delay).
-    pub(super) own_stopped_until: f64,
     pub(super) strike_asked: f64,
     /// How near the character must stand to strike with what it holds, in cells, once the server has said so
     /// (it says when a blow was asked for from too far).
@@ -73,8 +76,9 @@ pub(super) struct State {
     pub(super) own: [i64; 4],
     /// Whether life bars are on the page.
     pub(super) bars: bool,
-    /// Blows on their way: when each lands, on whom, the player's own ID, how much, and what it sounds like.
-    pub(super) landing: Vec<(f64, u32, u32, i32, Option<String>)>,
+    /// Blows on their way: when each lands, on whom, the player's own ID, how much, what it sounds like, and
+    /// whether it is a critical one.
+    pub(super) landing: Vec<(f64, u32, u32, i32, Option<String>, bool)>,
     /// Where the turning marks in the world stand this frame: at the feet of the monster being fought, and of
     /// another monster the pointer is on.
     pub(super) target_at: [Option<Vector>; 2],
@@ -90,7 +94,7 @@ pub(super) struct State {
     pub(super) effects: Vec<Playing>,
     pub(super) effect_files: HashMap<String, Rc<Shown>>,
     /// Hits to show as numbers: on whom, and how much.
-    pub(super) hits: Vec<(u32, i32)>,
+    pub(super) hits: Vec<(u32, i32, bool)>,
     /// A skill is being aimed: at a place (`true`) or at someone.
     pub(super) aiming: Option<bool>,
     /// How far the skill being aimed reaches, in cells.

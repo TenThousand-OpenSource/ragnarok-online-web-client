@@ -6,8 +6,11 @@
 //! - `GET /ws/<port>`: a WebSocket bridged to a TCP connection to the game server (see `bridge`).
 //! - `POST /api/register`, `/api/recover`, `/api/reset`: accounts and lost passwords (see `accounts`).
 //! - everything else: the built web client (static files).
+//!
+//! Reached from outside (a tunnel, a proxy), it asks for an invitation word and counts visitors by their own
+//! addresses (see `public`).
 
-use roweb_gateway::{accounts, bridge, grf, images, mapcache, tables};
+use roweb_gateway::{accounts, bridge, grf, images, mapcache, public, tables};
 
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -42,6 +45,12 @@ struct Config {
     /// Whether the client's own files, asked for by their build (`?v=…`), may be kept by the browser for good
     /// (`--cache-client on|off`). Off, they are asked for anew each time, as the page always is.
     cache_client: bool,
+    /// The word a browser must give before anything is served to it (`--invite-file <file>`: the file holds
+    /// the word, so that it is not in the list of running programs); none, and everyone is served.
+    invite: Option<String>,
+    /// Whether a proxy or a tunnel stands in front (`--behind-proxy on|off`): then a visitor's address is the
+    /// one it reports, not its own.
+    behind_proxy: bool,
 }
 
 struct App {
@@ -66,6 +75,8 @@ fn config() -> Result<(Config, Option<String>), String> {
         item_database: rules_database(),
         compress: true,
         cache_client: true,
+        invite: None,
+        behind_proxy: false,
         // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.
         accounts: accounts::Config {
             database_url: "mysql://ragnarok:ragnarok@127.0.0.1:3306/ragnarok".into(),
@@ -90,6 +101,15 @@ fn config() -> Result<(Config, Option<String>), String> {
             "--item-database" => config.item_database = value()?.into(),
             "--compress" => config.compress = switch(&arg, &value()?)?,
             "--cache-client" => config.cache_client = switch(&arg, &value()?)?,
+            "--behind-proxy" => config.behind_proxy = switch(&arg, &value()?)?,
+            "--invite-file" => {
+                let file = value()?;
+                let word = std::fs::read_to_string(&file).map_err(|error| format!("--invite-file {file}: {error}"))?;
+                if word.trim().len() < 8 {
+                    return Err(format!("--invite-file {file}: the word must be at least 8 characters"));
+                }
+                config.invite = Some(word);
+            }
             "--database-url" => config.accounts.database_url = value()?,
             "--smtp-url" => config.accounts.smtp_url = value()?,
             "--mail-from" => config.accounts.mail_from = value()?,
@@ -216,6 +236,13 @@ async fn main() {
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
         .merge(client);
+    // What is asked of a visitor from outside comes before everything else: first who they are, then whether
+    // they were invited.
+    let router = match &config.invite {
+        Some(word) => router.layer(axum::middleware::from_fn_with_state(Arc::new(public::Invite::new(word, config.behind_proxy)), public::invited)),
+        None => router,
+    };
+    let router = if config.behind_proxy { router.layer(axum::middleware::from_fn(public::behind_proxy)) } else { router };
     // Compressed as it is sent, and quickly: the maps are megabytes of mostly the same bytes.
     let router = if config.compress {
         router.layer(tower_http::compression::CompressionLayer::new().quality(tower_http::CompressionLevel::Fastest).compress_when(worth_compressing()))

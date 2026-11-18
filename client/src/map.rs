@@ -13,6 +13,9 @@ use std::collections::BinaryHeap;
 pub const CELL: f32 = 5.0;
 /// The longest path, in cells, the server walks in one go (rAthena's `MAX_WALKPATH`).
 pub const MAX_WALK_PATH: usize = 32;
+/// The longest path, in cells, a player may ask the server to walk in one go (rAthena's `max_walk_path`, 17 as
+/// on the official servers): a longer one is refused without a word.
+pub const MAX_ASKED_PATH: usize = 17;
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -162,14 +165,25 @@ impl Gat {
         Vec::new()
     }
 
-    /// The walkable cell nearest to `to` on the straight line towards it from `from` that a path reaches: where a
-    /// click too far away, or on a wall, sends the character.
-    pub fn reachable_towards(&self, from: (i32, i32), to: (i32, i32)) -> Option<(i32, i32)> {
+    /// Whether the server would walk a player from one cell to another when asked: there is a path, and it is
+    /// no longer than a player may ask for.
+    fn askable(&self, from: (i32, i32), to: (i32, i32)) -> bool {
+        (1..=MAX_ASKED_PATH).contains(&self.path(from, to).len())
+    }
+
+    /// Where a press on `to` sends a character standing on `from`: there, if the server would walk it there
+    /// when asked; else the cell nearest to it on the straight line towards it that the server would walk to (a
+    /// press too far away, or on a wall). None when there is nowhere to go that way.
+    pub fn goal_towards(&self, from: (i32, i32), to: (i32, i32)) -> Option<(i32, i32)> {
+        if self.askable(from, to) {
+            return Some(to);
+        }
         let steps = (to.0 - from.0).abs().max((to.1 - from.1).abs());
-        (1..=steps).rev().find_map(|step| {
+        // Nothing farther than a player may ask for is worth trying: a path is at least as long as the way is.
+        (1..=steps.min(MAX_ASKED_PATH as i32)).rev().find_map(|step| {
             let along = step as f32 / steps as f32;
             let cell = (from.0 + ((to.0 - from.0) as f32 * along).round() as i32, from.1 + ((to.1 - from.1) as f32 * along).round() as i32);
-            (!self.path(from, cell).is_empty()).then_some(cell)
+            self.askable(from, cell).then_some(cell)
         })
     }
 }

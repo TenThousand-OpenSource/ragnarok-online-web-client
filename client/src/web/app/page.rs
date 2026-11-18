@@ -33,6 +33,10 @@ pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
             return;
         }
         let Some(target) = event.target().and_then(|target| target.dyn_into::<Element>().ok()) else { return };
+        // A window pressed anywhere comes over the others.
+        if let Some(window) = target.closest(".hud").ok().flatten() {
+            dispatch(Action::WindowPressed(window.id()));
+        }
         // Buttons, fields and the things in the windows keep their own presses.
         if target.closest("button, input, select, [data-click], [data-use], [data-drag], .scroll").ok().flatten().is_some() {
             return;
@@ -57,17 +61,13 @@ pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
             return DRAG.set(None);
         }
         // The stage may be enlarged: the window moves as far as the pointer does on the screen.
-        let scale = web_sys::window().map_or(1.0, |window| {
-            let size = |value: Result<JsValue, JsValue>, fallback: f64| value.ok().and_then(|value| value.as_f64()).unwrap_or(fallback);
-            (size(window.inner_width(), 1024.0) / 1024.0).min(size(window.inner_height(), 768.0) / 768.0).max(1.0)
-        });
+        let scale = crate::web::stage_scale();
         let to = (was.0 + (f64::from(event.client_x()) - from.0) / scale, was.1 + (f64::from(event.client_y()) - from.1) / scale);
         MOVED.with_borrow_mut(|moved| moved.insert(id.clone(), to));
         place_moved();
         // No window leaves the screen: one pushed past an edge is put back against it.
-        if let (Some(window), Some(page)) = (element(&id), web_sys::window()) {
-            let size = |value: Result<JsValue, JsValue>, fallback: f64| value.ok().and_then(|value| value.as_f64()).unwrap_or(fallback);
-            let (wide, tall) = (size(page.inner_width(), 1024.0), size(page.inner_height(), 768.0));
+        if let Some(window) = element(&id) {
+            let (wide, tall) = crate::web::page_size();
             let rect = window.get_bounding_client_rect();
             let back = |low: f64, high: f64, most: f64| if low < 0.0 { -low } else if high > most { (most - high).max(-low) } else { 0.0 };
             let (dx, dy) = (back(rect.left(), rect.right(), wide), back(rect.top(), rect.bottom(), tall));
@@ -114,10 +114,7 @@ pub(super) fn loading(picture: Option<usize>) {
     let style = screen.style();
     match picture {
         Some(picture) => {
-            let scale = web_sys::window().map_or(1.0, |window| {
-                let size = |value: Result<JsValue, JsValue>| value.ok().and_then(|value| value.as_f64()).unwrap_or(0.0);
-                (size(window.inner_width()) / 1024.0).min(size(window.inner_height()) / 768.0).max(1.0)
-            });
+            let scale = crate::web::stage_scale();
             let _ = style.set_property("--s", &scale.to_string());
             let _ = style.set_property("background-image", &format!("url('{}')", super::super::image_url(&format!("data/texture/유저인터페이스/loading{:02}.jpg", picture % LOADING_PICTURES))));
             let _ = style.set_property("display", "block");

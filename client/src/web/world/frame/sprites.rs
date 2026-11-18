@@ -10,22 +10,38 @@ pub(super) fn landings(state: &mut State, time: f64) {
         if blow.0 > time {
             return true;
         }
-        landed.push((blow.1, blow.2, blow.3, blow.4.clone()));
+        landed.push((blow.1, blow.2, blow.3, blow.4.clone(), blow.5));
         false
     });
-    for (target, own, damage, heard) in landed {
+    for (target, own, damage, heard, critical) in landed {
         let Some(hurt) = (if target == own { Some(&mut scene.player) } else { scene.units.get_mut(&target) }) else { continue };
         if damage > 0 {
+            // A blow that hurts stops the one struck where it walks, as it lands: the client puts it in its
+            // struck state there and then (`ST_DAMAGE`, in `CGameActor::SendMsg`), and the server stops it at
+            // that moment without a word, on the middle of the nearest cell (rAthena's `unit_set_walkdelay`,
+            // with `synchronize_damage` on so that its moment is the client's). The player's own character
+            // walks on only when asked again; a held button asks again a moment later.
+            if target == own && hurt.walk.take().is_some() {
+                state.held_asked = time;
+            }
             if hurt.motion.is_none() && hurt.dying.is_none() && !hurt.dead {
                 hurt.motion = Some((if matches!(hurt.look, Look::Character(_)) { 48 } else { 24 }, time, 280.0));
             }
             // The ring of a blow that lands (the client's `EF_HIT1`).
             state.bursts.extend(prims::burst(0, (target != own).then_some(target), time).map(|(burst, _)| burst));
+            // A critical blow lands with the flare of a skill's hit over that (the client's `EF_HIT2`, what its
+            // `ProcessHitMessage` gives a `DMG_CRITICAL`), and with that effect's own sound.
+            if critical {
+                if let Some((burst, sound)) = prims::burst(1, (target != own).then_some(target), time) {
+                    state.bursts.push(burst);
+                    sound::effect(sound, 1.0);
+                }
+            }
             if let Some(heard) = heard {
                 sound::effect(&heard, 1.0);
             }
         }
-        state.hits.push((target, damage));
+        state.hits.push((target, damage, critical && damage > 0));
     }
 }
 
@@ -89,7 +105,7 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         }
     }
     // What lies on the ground, once the item's picture is known.
-    for (id, (_, item, at, identified)) in &scene.drops {
+    for (id, Lying { item, at, identified, .. }) in &scene.drops {
         // One not identified lies there as what the client's table shows it as until it is.
         let Some((_, resource)) = data::item_as(*item, *identified) else { continue };
         let key = SpriteKey::Creature(format!("아이템/{}", if resource.is_empty() { "사과" } else { resource.as_str() }), 0, 0);

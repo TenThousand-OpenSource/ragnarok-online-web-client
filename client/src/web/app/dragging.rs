@@ -11,7 +11,7 @@ use super::*;
 
 thread_local! {
     /// What is being dragged (as its `data-drag` says), while the button is down.
-    static DRAGGED: RefCell<Option<String>> = const { RefCell::new(None) };
+    static DRAGGED: RefCell<Option<Drag>> = const { RefCell::new(None) };
 }
 
 /// Puts what follows the pointer on the page: `picture` with `origin` of it at the pointer, `scale` times its size.
@@ -36,7 +36,7 @@ pub(super) fn wire(window: &web_sys::Window, ui: &Element) -> Result<(), String>
     let on_down = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(|event: web_sys::MouseEvent| {
         let taken = event.target().and_then(|target| target.dyn_into::<Element>().ok()).and_then(|target| target.closest("[data-drag]").ok().flatten());
         let Some(taken) = taken.filter(|_| event.button() == 0) else { return };
-        let Some(dragged) = taken.get_attribute("data-drag") else { return };
+        let Some(dragged) = taken.get_attribute("data-drag").and_then(|dragged| things::read::<Drag>(&dragged)) else { return };
         // The browser neither drags the picture itself nor marks text while the thing is carried.
         event.prevent_default();
         // The windows may be drawn larger than their own measures: what is carried is as much larger.
@@ -49,12 +49,12 @@ pub(super) fn wire(window: &web_sys::Window, ui: &Element) -> Result<(), String>
         place(&event, true);
         DRAGGED.set(Some(dragged.clone()));
         // An item: its sprite, by what the cell says it is (`data-info`: the item, with a `?` if not identified).
-        let about = taken.get_attribute("data-info").filter(|_| dragged.starts_with("item:"));
+        let about = taken.get_attribute("data-info").filter(|_| matches!(dragged, Drag::Item(_)));
         if let Some((id, identified)) = about.and_then(|about| Some((about.trim_end_matches('?').parse::<u32>().ok()?, !about.ends_with('?')))) {
             wasm_bindgen_futures::spawn_local(async move {
                 let resource = data::item_as(id, identified).map(|(_, resource)| resource).filter(|resource| !resource.is_empty()).unwrap_or_else(|| "사과".to_owned());
                 if let Ok((picture, _, origin)) = figure::frame_picture(&format!("아이템/{resource}"), 0, 0).await {
-                    if DRAGGED.with_borrow(|now| now.as_deref() == Some(dragged.as_str())) {
+                    if DRAGGED.with_borrow(|now| now.as_ref() == Some(&dragged)) {
                         show(&picture, origin, scale);
                     }
                 }
@@ -73,7 +73,7 @@ pub(super) fn wire(window: &web_sys::Window, ui: &Element) -> Result<(), String>
         let Some(under) = under else { return };
         let slot = under.closest("[data-slot]").ok().flatten().and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok());
         match slot {
-            Some(slot) => dispatch(Action::Dropped(slot, dragged)),
+            Some(slot) => dispatch(Action::Dropped(slot, Some(dragged))),
             // Over the world itself, not over a window on it.
             None if under.id() == "game" => dispatch(Action::Thrown(dragged)),
             None => {}

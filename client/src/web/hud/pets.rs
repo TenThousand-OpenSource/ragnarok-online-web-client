@@ -2,26 +2,10 @@
 
 use super::*;
 use crate::net::pets::{hunger_word, intimacy_word};
+use crate::press::pets::{Order, Press};
 
 impl App {
     /// Redraws the pet window, where it is on the page; a name being typed into it stays.
-    pub(in crate::web) fn refresh_pet(&self) {
-        let Some(document) = crate::web::document() else { return };
-        use wasm_bindgen::JsCast;
-        let name = || document.get_element_by_id("pet-name").and_then(|input| input.dyn_into::<web_sys::HtmlInputElement>().ok());
-        let typed = document.active_element().filter(|active| active.id() == "pet-name").and_then(|_| name()).map(|input| input.value());
-        if let Some(window) = document.get_element_by_id("pet") {
-            window.set_inner_html(&self.pet_window());
-        }
-        if let (Some(typed), Some(input)) = (typed, name()) {
-            input.set_value(&typed);
-            let _ = input.focus();
-        }
-        if let Some(asked) = document.get_element_by_id("pet-asks") {
-            asked.set_inner_html(&self.pet_question());
-        }
-    }
-
     /// The client's `UIPetInfoWnd`, 280 by 180: the pet's picture 5 in and 21 down; from 100 across its name
     /// (to type a new one, with the button that sets it), level, hunger, intimacy with a bar of how far through
     /// that stage it is, and its accessory; `< Command >` opens the menu of feeding, performance, taking the
@@ -34,7 +18,7 @@ impl App {
         // where the two corner pieces lie over it.
         let mut window = title_bar(280, "");
         window.push_str(&text(5, 2, BLACK, tr("Pet Info")));
-        window.push_str(&button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "pet", ""));
+        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
         window.push_str(&format!(
             r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;border-radius:0 0 3px 3px;box-sizing:border-box"></div>"#,
             at(0, 17, 280, 163)
@@ -52,21 +36,23 @@ impl App {
             at(135, 24, 80, 16),
             escape(&pet.name)
         ));
-        window.push_str(&picture_button(230, 21, "btn_rewrite", "pet-rename"));
+        window.push_str(&picture_press(230, 21, "btn_rewrite", Press::Rename));
         window.push_str(&text(135, 44, BLACK, &pet.level.to_string()));
         // The box that opens the menu, and the arrow at its right end; the client's unseen button over it starts
         // 10 further left (120 by 18 at 150, 44).
-        window.push_str(&format!(r#"<div class="a" style="{}" data-click="pet-menu"></div>"#, at(150, 44, 10, 18)));
+        window.push_str(&format!(r#"<div class="a" style="{}" {}></div>"#, at(150, 44, 10, 18), pressed(Press::Menu)));
         window.push_str(&format!(
-            r#"<div class="a t" style="{};background:#e6e6fa;text-align:center;line-height:18px;cursor:default" data-click="pet-menu">&lt; Command &gt;</div>"#,
-            at(160, 44, 92, 18)
+            r#"<div class="a t" style="{};background:#e6e6fa;text-align:center;line-height:18px;cursor:default" {}>&lt; Command &gt;</div>"#,
+            at(160, 44, 92, 18),
+            pressed(Press::Menu)
         ));
         window.push_str(&format!(
-            r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" data-click="pet-menu"></button>"#,
+            r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {}></button>"#,
             at(252, 44, 18, 18),
             picture("basic_interface/txtbox_btn_a.bmp"),
             picture("basic_interface/txtbox_btn_b.bmp"),
-            picture("basic_interface/txtbox_btn_c.bmp")
+            picture("basic_interface/txtbox_btn_c.bmp"),
+            pressed(Press::Menu)
         ));
         window.push_str(&text(145, 69, BLACK, tr(hunger_word(pet.hunger))));
         let (close, through) = intimacy_word(pet.intimacy);
@@ -84,9 +70,9 @@ impl App {
         }
         window.push_str(&text(100, 139, BLACK, tr(if pet.accessory == 0 { "Unequipped" } else { "Equipped" })));
         if self.pets.menu {
-            let rows: String = [("Feed Pet", "feed"), ("Performance", "perform"), ("Unequip Accessory", "unequip"), ("Return to Egg", "egg")]
+            let rows: String = [("Feed Pet", Order::Feed), ("Performance", Order::Perform), ("Unequip Accessory", Order::Unequip), ("Return to Egg", Order::Egg)]
                 .iter()
-                .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding-left:3px;cursor:default" data-click="pet-do" data-arg="{order}">{}</div>"#, escape(tr(words))))
+                .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding-left:3px;cursor:default" {}>{}</div>"#, pressed(Press::Do(*order)), escape(tr(words))))
                 .collect();
             window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:content-box;z-index:2">{rows}</div>"#, at(160, 44, 110, 64)));
         }
@@ -96,9 +82,9 @@ impl App {
     /// The menu the right button opens on the player's own pet (the client's `OpenActorMenu`): its status,
     /// feeding, a trick, the accessory off, back into the egg; each a row 16 high, as the pet window's own.
     pub(in crate::web) fn pet_menu(&self) -> String {
-        [("Check Pet Status", "info"), ("Feed Pet", "feed"), ("Performance", "perform"), ("Unequip Accessory", "unequip"), ("Return to Egg", "egg")]
+        [("Check Pet Status", Order::Info), ("Feed Pet", Order::Feed), ("Performance", Order::Perform), ("Unequip Accessory", Order::Unequip), ("Return to Egg", Order::Egg)]
             .iter()
-            .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default;white-space:nowrap" data-click="pet-do" data-arg="{order}">{}</div>"#, escape(tr(words))))
+            .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default;white-space:nowrap" {}>{}</div>"#, pressed(Press::Do(*order)), escape(tr(words))))
             .collect()
     }
 
@@ -115,8 +101,8 @@ impl App {
             art("win_msgbox.bmp", 0, 0, 280, 120),
             at(12, 30, 256, 56),
             escape(&words),
-            picture_button(189, 96, "btn_ok", "pet-yes"),
-            picture_button(235, 96, "btn_cancel", "pet-no")
+            picture_press(189, 96, "btn_ok", Press::Yes),
+            picture_press(235, 96, "btn_cancel", Press::No)
         )
     }
 }

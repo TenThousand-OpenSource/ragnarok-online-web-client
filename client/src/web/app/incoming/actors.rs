@@ -18,11 +18,11 @@ impl App {
                 }
             }
             units::ZC_ITEM_FALL_ENTRY | units::ZC_ITEM_ENTRY => {
-                if let Some((drop, item, cell, within, identified)) = units::dropped(id, packet) {
+                if let Some((drop, item, cell, within, identified, count)) = units::dropped(id, packet) {
                     // Its picture is drawn once the item's name is known. One that falls now (not one that
                     // already lay there) is seen falling.
                     data::want_items(std::iter::once(item), || {});
-                    world::drop_shown(drop, item, identified, cell, within, id == units::ZC_ITEM_FALL_ENTRY);
+                    world::drop_shown(drop, (item, identified, count), cell, within, id == units::ZC_ITEM_FALL_ENTRY);
                 }
             }
             units::ZC_ITEM_DISAPPEAR => {
@@ -72,7 +72,7 @@ impl App {
                     self.hero.dead = false;
                     self.esc = 0;
                     world::own_dead(false);
-                    self.refresh_dialog();
+                    self.redraw(&[&wnd::DIALOG]);
                     self.refresh_values();
                 }
             }
@@ -104,7 +104,7 @@ impl App {
                     self.esc = u8::from(self.esc == 0);
                     self.dialog = None;
                     world::own_dead(true);
-                    self.refresh_dialog();
+                    self.redraw(&[&wnd::DIALOG]);
                     self.refresh_values();
                 }
             } else {

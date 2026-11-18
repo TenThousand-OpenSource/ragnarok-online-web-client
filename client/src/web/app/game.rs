@@ -3,34 +3,38 @@
 use super::*;
 
 impl App {
-    /// Uses what was double-clicked or what a key stands for: `item:<index>`, `skill:<id>` or `slot:<number>`.
-    pub(super) fn use_it(&mut self, what: &str) {
+    /// Uses what was double-clicked or what a key stands for: an item carried, a skill, a slot of the bar.
+    pub(super) fn use_it(&mut self, what: Use) {
         // A double click on a row of a list to pick from is picking it and pressing OK (the client's
         // `UIItemIdentifyWnd::OnLBtnDblClk`).
-        if let Some((list @ ("egg" | "identify"), row)) = what.split_once(':') {
-            self.click(&format!("{list}-pick"), row);
-            self.click(&format!("{list}-ok"), "");
-            return;
+        match what {
+            Use::Egg(row) => {
+                self.pressed(crate::press::pets::Press::EggPick(row));
+                return self.pressed(crate::press::pets::Press::EggOk);
+            }
+            Use::Identify(row) => {
+                self.pressed(crate::press::inventory::Press::IdentifyPick(row));
+                return self.pressed(crate::press::inventory::Press::IdentifyOk);
+            }
+            _ => {}
         }
-        let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };
-        let Some((kind, number)) = what.split_once(':') else { return };
-        let Ok(number) = number.parse::<u32>() else { return };
         // A slot of the bar stands for its item or its skill.
-        let (kind, number, level) = match kind {
-            "slot" => match self.skills.hotkeys.get(number as usize).copied().filter(|hotkey| hotkey.id != 0) {
-                Some(hotkey) if hotkey.skill => ("skill", hotkey.id, Some(hotkey.count)),
+        let (what, level) = match what {
+            Use::Slot(slot) => match self.skills.hotkeys.get(slot).copied().filter(|hotkey| hotkey.id != 0) {
+                Some(hotkey) if hotkey.skill => (Use::Skill(hotkey.id as u16), Some(hotkey.count)),
                 // The first of that item the character carries without wearing it.
                 Some(hotkey) => match self.bag.items.iter().find(|item| item.id == hotkey.id && item.worn == 0) {
-                    Some(item) => ("item", u32::from(item.index), None),
+                    Some(item) => (Use::Item(item.index), None),
                     None => return,
                 },
                 None => return,
             },
-            other => (other, number, None),
+            other => (other, None),
         };
-        match kind {
-            "item" => {
-                let Some(item) = self.bag.items.iter().find(|item| u32::from(item.index) == number) else { return };
+        let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };
+        match what {
+            Use::Item(index) => {
+                let Some(item) = self.bag.items.iter().find(|item| item.index == index) else { return };
                 if item.usable() {
                     socket.send(&items::use_item(item.index, account.account_id));
                 } else if item.worn != 0 {
@@ -42,8 +46,8 @@ impl App {
                     socket.send(&items::wear(item.index, item.wearable));
                 }
             }
-            "skill" => {
-                let Some(skill) = self.skills.known.iter().find(|skill| u32::from(skill.id) == number).cloned() else { return };
+            Use::Skill(id) => {
+                let Some(skill) = self.skills.known.iter().find(|skill| skill.id == id).cloned() else { return };
                 if skill.level == 0 || skill.passive() {
                     return;
                 }
@@ -67,30 +71,27 @@ impl App {
 
     /// Puts what was dragged on a slot of the hotkey bar, or empties the slot (for nothing dragged), and tells
     /// the server, which keeps the bar.
-    pub(super) fn set_hotkey(&mut self, slot: usize, dragged: &str) {
-        let mut parts = dragged.split(':');
-        let hotkey = match (parts.next(), parts.next().and_then(|id| id.parse::<u32>().ok()), parts.next().and_then(|level| level.parse().ok())) {
+    pub(super) fn set_hotkey(&mut self, slot: usize, dragged: Option<Drag>) {
+        let hotkey = match dragged {
             // Not every item may go on the bar (`Item::fits_hotkeys`): anything else is let go of and nothing
             // happens.
-            (Some("item"), Some(id), _) => {
+            Some(Drag::Item(id)) => {
                 let fits = self.bag.items.iter().find(|item| item.id == id).is_some_and(Item::fits_hotkeys);
                 if !fits {
                     return;
                 }
                 Hotkey { skill: false, id, count: 0 }
             }
-            (Some("skill"), Some(id), Some(level)) => Hotkey { skill: true, id, count: level },
-            (Some(""), ..) => Hotkey::default(),
+            Some(Drag::Skill(skill)) => Hotkey { skill: true, id: skill.id, count: skill.level },
+            None => Hotkey::default(),
             // From another slot of the bar: what was there moves here, and that slot is left empty.
-            (Some("slot"), Some(from), _) => {
-                let from = from as usize;
+            Some(Drag::Slot(from)) => {
                 let Some(moved) = self.skills.hotkeys.get(from).copied().filter(|moved| moved.id != 0 && from != slot && slot < items::HOTKEYS) else { return };
                 self.skills.hotkeys.resize(items::HOTKEYS, Hotkey::default());
                 self.skills.hotkeys[from] = Hotkey::default();
                 self.send(&items::set_hotkey(from as u16, Hotkey::default()));
                 moved
             }
-            _ => return,
         };
         if slot >= items::HOTKEYS {
             return;

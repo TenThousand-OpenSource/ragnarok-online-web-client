@@ -1,6 +1,7 @@
 //! The chat window: its tabs, its lines and the line to type in.
 
 use super::*;
+use crate::press::chat::Press;
 
 impl App {
     /// Redraws the chat's lines, the newest at the bottom.
@@ -36,9 +37,10 @@ impl App {
             for (index, name) in TABS.iter().enumerate() {
                 let open = index == self.chat.tab;
                 window.push_str(&format!(
-                    r#"<button type="button" class="a chat-tab" style="{};background:rgba(0,0,0,{})" data-click="chat-tab" data-arg="{index}">{}</button>"#,
+                    r#"<button type="button" class="a chat-tab" style="{};background:rgba(0,0,0,{})" {}>{}</button>"#,
                     at(4 + TAB * index as i32, if open { 1 } else { 2 }, TAB - 1, if open { 16 } else { 15 }),
                     if open { ".4" } else { ".6" },
+                    pressed(Press::Tab(index)),
                     tr(name),
                 ));
             }
@@ -65,34 +67,38 @@ impl App {
             // From the right: the lock, then the small buttons, each 2 from the next (`ApplyHeaderLayout`).
             let lock = if self.chat.locked { ("lock_dragwnd", 9) } else { ("unlock_dragwnd", 15) };
             window.push_str(&format!(
-                r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" data-click="chat-lock" title="Lock the window in place"></button>"#,
+                r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {} title="Lock the window in place"></button>"#,
                 at(600 - 20, 4, lock.1, 9),
                 picture(&format!("basic_interface/{}.bmp", lock.0)),
                 picture(&format!("basic_interface/{}.bmp", lock.0)),
                 picture(&format!("basic_interface/{}.bmp", lock.0)),
+                pressed(Press::Lock),
             ));
             let mut right = 600 - 20;
-            for (name, width, tall, click, title) in [("wnd_mini", 8, 8, "chat-mini", "Hide the log"), ("battle_option", 8, 8, "", "Add a tab"), ("stickoff", 14, 9, "", "Detach"), ("battle_option2", 9, 9, "", "Options")] {
+            // Only the first of them does something here: the others are drawn dim and are pressed for nothing.
+            for (name, width, tall, press, title) in [("wnd_mini", 8, 8, Some(Press::Mini), "Hide the log"), ("battle_option", 8, 8, None, "Add a tab"), ("stickoff", 14, 9, None, "Detach"), ("battle_option2", 9, 9, None, "Options")] {
                 right -= width + 2;
                 window.push_str(&format!(
-                    r#"<button type="button" class="a b{}" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" data-click="{click}" title="{title}"></button>"#,
-                    if click.is_empty() { " dim" } else { "" },
+                    r#"<button type="button" class="a b{}" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {} title="{title}"></button>"#,
+                    if press.is_none() { " dim" } else { "" },
                     at(right, 4, width, tall),
                     picture(&format!("basic_interface/{name}_a.bmp")),
                     picture(&format!("basic_interface/{name}_b.bmp")),
                     picture(&format!("basic_interface/{name}_b.bmp")),
+                    press.map_or_else(|| r#"data-click="""#.to_owned(), |press| pressed(press)),
                     title = tr(title),
                 ));
             }
         }
         window.push_str(&format!(r#"<div class="a" style="{};background:#8e8e8e"></div>"#, at(4, base, 600 - 8, 1)));
+        let chat = sent(Form::Chat);
         window.push_str(&format!(
-            r#"<form data-submit="chat" class="a" style="{};background:url('{}') 0 0 no-repeat">
+            r#"<form {chat} class="a" style="{};background:url('{}') 0 0 no-repeat">
                 <input class="a in" id="chat-to" maxlength="23" autocomplete="off" style="{};background:#f0f0f0" title="Whisper to">
                 <div class="a" style="{};background:url('{}') 0 0 no-repeat"></div>
                 <input class="a in" id="chat-input" maxlength="70" autocomplete="off" style="{}">
-                <button type="button" class="a b" style="{};--n:url('{off}');--o:url('{on}');--p:url('{on}')" data-click="chat-size" title="Change the size (F10)"></button>
-                <button type="button" class="a b" style="{};--n:url('{off}');--o:url('{on}');--p:url('{on}')" data-click="chat-mini" title="Hide or show the log"></button>
+                <button type="button" class="a b" style="{};--n:url('{off}');--o:url('{on}');--p:url('{on}')" {size} title="Change the size (F10)"></button>
+                <button type="button" class="a b" style="{};--n:url('{off}');--o:url('{on}');--p:url('{on}')" {mini} title="Hide or show the log"></button>
                 <button type="submit" hidden></button>
             </form>"#,
             at(0, base, 600, 24),
@@ -105,6 +111,8 @@ impl App {
             at(586, 7, 11, 11),
             off = picture("basic_interface/sys_base_off.bmp"),
             on = picture("basic_interface/sys_base_on.bmp"),
+            size = pressed(Press::Size),
+            mini = pressed(Press::Mini),
         ));
         window
     }

@@ -82,12 +82,20 @@ fn finds_no_path_to_walls_closed_rooms_or_too_far() {
 #[test]
 fn a_click_out_of_reach_goes_as_far_as_it_can() {
     let mut gat = Gat::open(60, 6);
-    // Too far: the cell 32 steps along the line.
-    assert_eq!(gat.reachable_towards((0, 5), (50, 5)), Some((32, 5)));
+    // Too far: the cell as many steps along the line as a player may ask the server for (its `max_walk_path`).
+    assert_eq!(gat.goal_towards((0, 5), (50, 5)), Some((17, 5)));
+    // And on from there, a stretch at a time, to the place itself.
+    assert_eq!(gat.goal_towards((17, 5), (50, 5)), Some((34, 5)));
+    assert_eq!(gat.goal_towards((34, 5), (50, 5)), Some((50, 5)));
+    // Just within reach: the place itself; a step past it: the last cell within.
+    assert_eq!(gat.goal_towards((0, 5), (17, 5)), Some((17, 5)));
+    assert_eq!(gat.goal_towards((0, 5), (18, 5)), Some((17, 5)));
     // On a wall: the cell before it.
     gat.block(5, 0);
-    assert_eq!(gat.reachable_towards((0, 0), (5, 0)), Some((4, 0)));
-    assert_eq!(gat.reachable_towards((0, 0), (3, 0)), Some((3, 0)));
+    assert_eq!(gat.goal_towards((0, 0), (5, 0)), Some((4, 0)));
+    assert_eq!(gat.goal_towards((0, 0), (3, 0)), Some((3, 0)));
+    // Where it stands already: nowhere.
+    assert_eq!(gat.goal_towards((0, 0), (0, 0)), None);
 }
 
 #[test]

@@ -3,26 +3,27 @@
 use super::*;
 
 impl App {
-    /// What a press on one of these does; `false` when the thing pressed is not of this kind.
-    pub(super) fn trade_click(&mut self, what: &str, arg: &str) -> bool {
-        match what {
-            "shop-pick" => {
-                self.deal.picked = arg.parse().ok();
-                self.refresh_trade();
+    /// A press of this system (`crate::press::shops`).
+    pub(super) fn trade_pressed(&mut self, press: crate::press::shops::Press) {
+        use crate::press::shops::Press;
+        match press {
+            Press::Pick(row) => {
+                self.deal.picked = Some(row);
+                self.redraw(&[&wnd::TRADE]);
             }
-            "shop-buy" | "shop-sell" | "shop-cancel" | "shop-ok" => {
-                let (Some(shop), Some(socket)) = (self.deal.shop.take(), &self.socket) else { return true };
+            Press::Buy | Press::Sell | Press::Cancel | Press::Ok => {
+                let (Some(shop), Some(socket)) = (self.deal.shop.take(), &self.socket) else { return };
                 let basket = std::mem::take(&mut self.deal.basket);
                 self.deal.picked = None;
-                match (what, shop) {
-                    ("shop-buy", Shop::Choose(npc)) => socket.send(&trade::deal(npc, false)),
-                    ("shop-sell", Shop::Choose(npc)) => socket.send(&trade::deal(npc, true)),
+                match (press, shop) {
+                    (Press::Buy, Shop::Choose(npc)) => socket.send(&trade::deal(npc, false)),
+                    (Press::Sell, Shop::Choose(npc)) => socket.send(&trade::deal(npc, true)),
                     (_, Shop::Choose(_)) => {}
-                    ("shop-ok", Shop::Buy(offers)) => {
+                    (Press::Ok, Shop::Buy(offers)) => {
                         let wanted: Vec<(u32, u16)> = basket.iter().filter_map(|(row, amount)| Some((offers.get(*row)?.id, *amount))).collect();
                         socket.send(&trade::buy(&wanted));
                     }
-                    ("shop-ok", Shop::Sell(bids)) => {
+                    (Press::Ok, Shop::Sell(bids)) => {
                         let sold: Vec<(u16, u16)> = basket.iter().filter_map(|(row, amount)| Some((bids.get(*row)?.0, *amount))).collect();
                         socket.send(&trade::sell(&sold));
                     }
@@ -30,17 +31,15 @@ impl App {
                     (_, Shop::Buy(_)) => socket.send(&trade::buy(&[])),
                     (_, Shop::Sell(_)) => socket.send(&trade::sell(&[])),
                 }
-                self.refresh_trade();
+                self.redraw(&[&wnd::TRADE]);
             }
-            "storage-tab" => {
-                self.deal.storage_tab = arg.parse().unwrap_or(0);
+            Press::StorageTab(tab) => {
+                self.deal.storage_tab = tab;
                 self.refresh_items();
             }
-            "storage-close" => {
+            Press::StorageClose => {
                 self.send(&trade::close_storage());
             }
-            _ => return false,
         }
-        true
     }
 }

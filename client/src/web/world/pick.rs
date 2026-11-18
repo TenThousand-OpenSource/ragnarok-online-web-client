@@ -50,7 +50,7 @@ pub(super) fn lying_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32
     scene
         .drops
         .iter()
-        .filter_map(|(id, (_, item, at, identified))| {
+        .filter_map(|(id, Lying { item, at, identified, .. })| {
             let feet = on_ground(&scene.gat, *at);
             let under = view.project(feet)?;
             // The picture's own rectangle, where the picture is known; a point at the thing's place otherwise.

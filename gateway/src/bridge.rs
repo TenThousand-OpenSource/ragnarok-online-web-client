@@ -104,12 +104,18 @@ async fn connect(
     upgrade: WebSocketUpgrade,
 ) -> Response {
     let bridge = &shared.bridge;
+    // Who was let through to the game server and who was not is said, a line each: on a server others reach,
+    // that is how a player who cannot get in is told from one who never arrived.
     if !bridge.ports.contains(&port) || !same_origin(&headers) {
+        let said = |name: header::HeaderName| headers.get(name).and_then(|value| value.to_str().ok()).unwrap_or("-").to_owned();
+        eprintln!("bridge: {} refused on port {port}: origin {} is not host {}", peer.ip(), said(header::ORIGIN), said(header::HOST));
         return StatusCode::FORBIDDEN.into_response();
     }
     if shared.connections.attempt(&address_key(peer.ip()), Instant::now()).is_err() {
+        eprintln!("bridge: {} refused on port {port}: too many connections", peer.ip());
         return StatusCode::TOO_MANY_REQUESTS.into_response();
     }
+    eprintln!("bridge: {} connects to port {port}", peer.ip());
     let watch = bridge.login_guard.clone().filter(|guard| guard.port == port).map(|guard| Watch { guard, address: address_key(peer.ip()), account: Mutex::new(None) });
     let target = format!("{}:{port}", bridge.host);
     upgrade.max_message_size(MAX_MESSAGE).on_upgrade(move |mut socket| async move {
@@ -120,7 +126,8 @@ async fn connect(
             Ok(Ok(tcp)) => {
                 // Game packets are small and time-critical: never wait to batch them.
                 let _ = tcp.set_nodelay(true);
-                pump(socket, tcp, watch).await;
+                let (from_player, to_player) = pump(socket, tcp, watch).await;
+                eprintln!("bridge: {} leaves port {port}: {from_player} bytes from the player, {to_player} to the player", peer.ip());
             }
             failed => {
                 let reason = match failed {
@@ -165,8 +172,11 @@ fn login_name(request: &[u8]) -> String {
 }
 
 /// Copies bytes both ways until either side closes, then closes the other. With a `watch`, a login request for an
-/// account that is out of attempts is not passed on, and the server's answer is counted.
-async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>) {
+/// account that is out of attempts is not passed on, and the server's answer is counted. Gives back how many
+/// bytes went each way, from the player and to the player.
+async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>) -> (usize, usize) {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    let (from_player, to_player) = (AtomicUsize::new(0), AtomicUsize::new(0));
     let (mut ws_tx, mut ws_rx) = socket.split();
     let (mut tcp_rx, mut tcp_tx) = tcp.into_split();
     let watch = watch.as_ref();
@@ -196,6 +206,7 @@ async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>) {
                         }
                         _ => bytes.to_vec(),
                     };
+                    from_player.fetch_add(passed.len(), Ordering::Relaxed);
                     if tcp_tx.write_all(&passed).await.is_err() {
                         break;
                     }
@@ -221,6 +232,7 @@ async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>) {
                             answer = None;
                         }
                     }
+                    to_player.fetch_add(read, Ordering::Relaxed);
                     if ws_tx.send(Message::Binary(buffer[..read].to_vec().into())).await.is_err() {
                         return;
                     }
@@ -237,6 +249,7 @@ async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>) {
     if let Some(wait) = blocked {
         turn_away(&mut ws_tx, wait).await;
     }
+    (from_player.into_inner(), to_player.into_inner())
 }
 
 /// Counts the login server's answer once enough of it has arrived. Returns whether it is done with it.

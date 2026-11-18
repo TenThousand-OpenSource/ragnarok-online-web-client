@@ -91,7 +91,7 @@ impl App {
             }
             self.keys.edited.insert((table, place), chord);
         }
-        self.refresh_keys();
+        self.redraw(&[&wnd::KEYS]);
     }
 
     /// The player agreed: the key is taken from the entry that had it and given to the one it was pressed for.

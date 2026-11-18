@@ -11,6 +11,8 @@ thread_local! {
     static KEY_NAMES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The options of the client's Game Settings window, in its order.
     static OPTIONS: RefCell<Vec<GameOption>> = const { RefCell::new(Vec::new()) };
+    /// Whether the server plays by Renewal's rules, not the classic game's.
+    static RENEWAL: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
     /// The client's message table, by line.
     static MESSAGES: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
     /// The client's emotions by their number: the sprite each is in, and which of its actions it is.
@@ -56,6 +58,11 @@ pub fn option_starts(id: &str) -> bool {
 }
 
 /// A line of the client's message table, by the number the client's code knows it by.
+/// Whether the server plays by Renewal's rules; by the classic game's until the tables are read.
+pub fn renewal() -> bool {
+    RENEWAL.get()
+}
+
 pub fn message(line: usize) -> Option<String> {
     MESSAGES.with_borrow(|messages| messages.get(line).cloned())
 }
@@ -87,6 +94,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .map(|tab| js_sys::Array::from(&field(&tab, "shows")).iter().map(|shown| shown.as_bool().unwrap_or(false)).collect())
             .collect(),
     );
+    RENEWAL.set(field(tables, "renewal").as_bool().unwrap_or(false));
     MESSAGES.set(field(tables, "messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
     OPTIONS.set(
         field(tables, "options")

@@ -12,11 +12,13 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Element, Event, HtmlInputElement, HtmlSelectElement, KeyboardEvent};
 
 use super::figure::{self, Figure};
+use super::hud::windows as wnd;
 use crate::effect_tables;
 use super::socket::{Socket, SocketEvent};
 use super::view::{HAIR_COLOURS, SLOTS_PER_PAGE, WALLPAPER, hair_styles};
 use super::{asset_url, data, js_error, sound, world};
 use crate::hotkeys::{self, Chord};
+use crate::press::things::{self, Drag, Form, Use};
 use crate::i18n::{Key, Lang, fill};
 use crate::net::skills;
 use crate::net::items::{self, Hotkey, Item, Skill, Tab};
@@ -39,6 +41,7 @@ mod commands;
 mod incoming;
 mod game;
 mod screen;
+mod windows;
 
 pub(in crate::web) use state::*;
 
@@ -75,16 +78,18 @@ thread_local! {
 }
 
 pub(super) enum Action {
-    /// A form was sent: its `data-submit`.
-    Submit(String),
+    /// A form was sent.
+    Submit(Form),
     /// Something with `data-click` was pressed: that, and its `data-arg`.
     Click(String, String),
     /// A character slot was double-clicked.
     Open(u8),
-    /// Something of the game was double-clicked: `item:<index>`, `skill:<id>` or `slot:<number>`.
-    Use(String),
-    /// What was dragged (`item:<id>` or `skill:<id>:<level>`) was dropped on a slot of the hotkey bar.
-    Dropped(usize, String),
+    /// Something of the game was double-clicked.
+    Use(Use),
+    /// What was dragged was dropped on a slot of the hotkey bar; nothing dragged empties the slot.
+    Dropped(usize, Option<Drag>),
+    /// A window of the game was pressed, anywhere on it: its element's ID.
+    WindowPressed(String),
     /// The gateway told what some items are called.
     ItemsKnown,
     Resized,
@@ -97,8 +102,8 @@ pub(super) enum Action {
     KeepAlive,
     /// The player pressed a cell of the map to walk to.
     WalkTo(u16, u16),
-    /// An item was dragged out of the inventory onto the ground: what was dragged (`item:<id>`).
-    Thrown(String),
+    /// Something was dragged out of its window and let go over the world.
+    Thrown(Drag),
     /// A skill was pressed with the right button: show its description.
     SkillInfo(u16),
     /// An item was pressed with the right button: show what is known of it.
@@ -172,6 +177,9 @@ enum Server {
 
 #[derive(Default)]
 pub(super) struct App {
+    /// The order the game's windows lie in (`windows.rs`). Drawing the windows settles it, and drawing only
+    /// reads the App: hence the cell.
+    pub windows: RefCell<crate::stack::Stack>,
     pub lang: Lang,
     pub screen: Screen,
     /// A message to confirm, shown over the window.

@@ -40,7 +40,7 @@ impl App {
                     }
                     self.pets.hunger_before = self.pets.pet.as_ref().map_or(pet.hunger, |before| before.hunger);
                     self.pets.pet = Some(pet);
-                    self.refresh_pet();
+                    self.redraw(&[&wnd::PET, &wnd::PET_ASKS]);
                 }
             }
             pets::ZC_CHANGESTATE_PET => self.pet_changed(packet),
@@ -140,7 +140,7 @@ impl App {
             }
             _ => {}
         }
-        self.refresh_pet();
+        self.redraw(&[&wnd::PET, &wnd::PET_ASKS]);
     }
 
     /// ZC_PET_ACT: a pet shows an emotion, or says one of its lines (the client's `ReceivePetAct`): the line

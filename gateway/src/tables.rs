@@ -229,6 +229,10 @@ pub fn for_browser(grf: &Grf, client_dir: &std::path::Path, database: &std::path
         tables.insert("maps".to_owned(), maps::maps(client_dir));
         tables.insert("towns".to_owned(), maps::towns(client_dir));
         tables.insert("guide".to_owned(), guide::guide(grf, database, client_dir));
+        // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
+        // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ
+        // in what a player may do.
+        tables.insert("renewal".to_owned(), database.file_name().is_some_and(|folder| folder == "re").into());
     }
     tables
 }

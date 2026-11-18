@@ -136,7 +136,21 @@ struct Flying {
     drift: (f32, f32),
     /// Its pictures, left to right: the digits, or the one word.
     pictures: Vec<SpriteKey>,
-    miss: bool,
+    flight: Flight,
+}
+
+/// How a thing flies off someone struck, by what it is (the client's kinds of `CMsgEffect`).
+#[derive(Clone, Copy, PartialEq)]
+enum Flight {
+    /// The number of a blow (`MET_NUMBER`).
+    Number,
+    /// The number of a critical blow (`MET_NUMBER_CRITICAL`): yellow, and it stays a little larger.
+    Critical,
+    /// The mark that goes with a critical blow (`MET_CRITICAL_EFFECT`): the pictures of an action of the
+    /// numbers' sprite, one after another, greyed.
+    Mark,
+    /// The word for a blow that missed (`MET_MISS`).
+    Miss,
 }
 
 type Vector = [f32; 3];
@@ -177,6 +191,16 @@ struct View {
 enum Look {
     Character(Figure),
     Creature(String),
+}
+
+/// A thing lying on the ground: its cell and where in the cell it lies (in cells), which item it is, whether it
+/// is identified, and how many there are.
+struct Lying {
+    cell: (i32, i32),
+    item: u32,
+    at: (f32, f32),
+    identified: bool,
+    count: u16,
 }
 
 /// Someone on the map: the player's own character, another player, an NPC or a monster.
@@ -297,8 +321,8 @@ struct Scene {
     player: Mover,
     /// Everyone else in sight, by the server's ID.
     units: HashMap<u32, Mover>,
-    /// The things lying on the ground, by the server's ID: the cell, and which item.
-    drops: HashMap<u32, ((i32, i32), u32, (f32, f32), bool)>,
+    /// The things lying on the ground, by the server's ID.
+    drops: HashMap<u32, Lying>,
     /// When each thing that fell out of a monster began to fall.
     falls: HashMap<u32, f64>,
     /// Where the camera looks, and when it was last moved: it follows the character a tenth of the way each of
@@ -375,9 +399,7 @@ fn now() -> f64 {
 }
 
 fn canvas() -> Result<HtmlCanvasElement, String> {
-    web_sys::window()
-        .and_then(|window| window.document())
-        .and_then(|document| document.get_element_by_id("game"))
+    crate::web::by_id("game")
         .ok_or("no #game canvas")?
         .dyn_into()
         .map_err(js_error)

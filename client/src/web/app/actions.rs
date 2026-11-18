@@ -14,21 +14,18 @@ mod travel;
 impl App {
     pub(super) fn handle(&mut self, action: Action) {
         match action {
-            Action::Submit(form) => self.submitted(&form),
+            Action::Submit(form) => self.submitted(form),
             Action::Click(what, arg) => self.click(&what, &arg),
             Action::Open(slot) => {
                 self.chime();
                 self.open(slot)
             }
-            Action::Use(what) => self.used(&what),
-            Action::Dropped(slot, dragged) => self.set_hotkey(slot, &dragged),
+            Action::Use(what) => self.used(what),
+            Action::Dropped(slot, dragged) => self.set_hotkey(slot, dragged),
+            Action::WindowPressed(window) => self.window_pressed(&window),
             // What was on the hotkey bar, dragged off it and let go over the world: the slot is emptied.
-            Action::Thrown(dragged) if dragged.starts_with("slot:") => {
-                if let Some(slot) = dragged.strip_prefix("slot:").and_then(|slot| slot.parse::<usize>().ok()) {
-                    self.set_hotkey(slot, "");
-                }
-            }
-            Action::Thrown(dragged) => self.thrown(&dragged),
+            Action::Thrown(Drag::Slot(slot)) => self.set_hotkey(slot, None),
+            Action::Thrown(dragged) => self.thrown(dragged),
             Action::SkillInfo(id) => {
                 self.skills.info = Some(id);
                 data::want_skill(id, || dispatch(Action::ItemsKnown));
@@ -43,8 +40,8 @@ impl App {
                 self.tell_obtained();
                 self.tell_fed();
                 self.refresh_items();
-                self.refresh_trade();
-                self.refresh_guide();
+                self.redraw(&[&wnd::TRADE]);
+                self.redraw(&[&wnd::GUIDE]);
                 self.paint_figures();
             }
             Action::Resized => self.render(),
@@ -77,7 +74,7 @@ impl App {
             Action::Aimed(None, _) if self.skills.aimed.is_some_and(|(skill, _)| skill == TAME) => self.skills.aimed = None,
             Action::GuideRead(id, picture) => {
                 self.guide.pictures.insert(id, picture);
-                self.refresh_guide();
+                self.redraw(&[&wnd::GUIDE]);
             }
             Action::TamingRead(waiting, turning) => {
                 if let Some(taming) = &mut self.pets.taming {
@@ -108,7 +105,7 @@ impl App {
             Action::StopFight => {
                 self.send_on_map(&0x0118u16.to_le_bytes());
             }
-            Action::Quick(slot) => self.use_it(&format!("slot:{slot}")),
+            Action::Quick(slot) => self.use_it(Use::Slot(slot as usize)),
             // The level the aimed skill is used at, one up or down, between 1 and the level it is known at
             // (the client's `MM_USESKILL_LEVEL_PLUS`).
             Action::AimLevel(step) => {

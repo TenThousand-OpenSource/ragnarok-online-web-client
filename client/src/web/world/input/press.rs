@@ -143,6 +143,7 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             state.fetch = None;
             state.chase = None;
             state.reach = None;
+            state.journey = None;
             state.held = Some((event.client_x() as f32, event.client_y() as f32));
             state.held_since = now();
             state.held_asked = now();
@@ -154,10 +155,12 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
             let picked = view.pick(&scene.gat, at)?;
             // A press on a wall, or too far away, walks as far towards it as the way is open.
-            let goal = if scene.gat.path(player.cell, picked).is_empty() { scene.gat.reachable_towards(player.cell, picked)? } else { picked };
-            state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal))
+            let goal = scene.gat.goal_towards(player.cell, picked)?;
+            state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal, picked))
         });
-        if let Some((walk_to, goal)) = request {
+        if let Some((walk_to, goal, picked)) = request {
+            // A place farther than the server walks in one go is walked to in stretches (`pursuit::journey`).
+            STATE.with_borrow_mut(|state| state.journey = (goal != picked).then_some((picked, goal)));
             walk_to(goal.0 as u16, goal.1 as u16);
         }
 }

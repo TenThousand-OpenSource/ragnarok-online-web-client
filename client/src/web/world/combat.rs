@@ -3,13 +3,16 @@
 use super::*;
 
 /// Someone strikes someone: the one turns to the other and swings, the other flinches, and the damage shows as
-/// a number over it. `own` is the player's own ID, who is not among the others.
-pub fn struck(source: u32, target: u32, own: u32, lasts: f64, delay: f64, damage: i32, sound: Option<String>) {
+/// a number over it. `own` is the player's own ID, who is not among the others. `lasts` is the speed of the swing
+/// and `flinch` the time the one struck flinches, as the server sends them. Gives back how long from now the blow
+/// lands (milliseconds). A critical blow lands with a flare and a mark of its own (see `frame/sprites.rs`).
+pub fn struck(source: u32, target: u32, own: u32, (lasts, flinch): (f64, f64), (damage, critical): (i32, bool), sound: Option<String>) -> f64 {
     STATE.with_borrow_mut(|state| {
-        let Some(scene) = &mut state.scene else { return };
+        let Some(scene) = &mut state.scene else { return 0.0 };
         let time = now();
         let place = |scene: &Scene, id: u32| if id == own { Some(scene.player.cell) } else { scene.units.get(&id).map(|unit| unit.cell) };
         let (from, to) = (place(scene, source), place(scene, target));
+        let mut lands = flinch.clamp(0.0, 1500.0);
         if source == own {
             state.own_struck = time;
             // The blow's own motion (the server's `amotion`, sent with the blow): until it is over the character
@@ -24,26 +27,28 @@ pub fn struck(source: u32, target: u32, own: u32, lasts: f64, delay: f64, damage
                 Look::Creature(_) => 16,
             };
             striker.motion = Some((action, time, lasts.clamp(250.0, 2000.0)));
+            lands = lands_after(striker, action, lasts, flinch);
             if let (Some(from), Some(to)) = (from, to) {
                 if from != to {
                     striker.facing = crate::map::direction(to.0 - from.0, to.1 - from.1);
                 }
             }
         }
-        // A blow that hurts stops the player's own character where it walks, on the middle of the nearest cell,
-        // for as long as its flinch lasts; the server does so without a word (rAthena's `unit_set_walkdelay`:
-        // no packet tells of it), and goes on from that cell when it is next asked to walk. One just stopped is
-        // not stopped again for twice that long. Walking on here would be walking where the server is not, and
-        // being put back at the next thing it says.
-        if target == own && damage > 0 && delay > 0.0 && state.own_stopped_until <= time - delay {
-            state.own_stopped_until = time + delay;
-            if scene.player.walk.take().is_some() {
-                state.held_asked = time;
-            }
-        }
-        // The blow lands a moment into the swing: then the one struck flinches, and the number rises.
-        state.landing.push((time + delay.clamp(0.0, 1500.0), target, own, damage, sound));
-    });
+        // The blow lands a moment into the swing: then the one struck flinches and stops, and the number rises.
+        state.landing.push((time + lands, target, own, damage, sound, critical));
+        lands
+    })
+}
+
+/// How long into a swing its blow lands (milliseconds), as the client has it (`crate::blow`): by the frame of
+/// the striker's sprite that the blow is on and the speed the server sent with the blow. Until the sprite is
+/// read that frame is not known: then it is `otherwise`.
+fn lands_after(striker: &Mover, action: usize, speed: f64, otherwise: f64) -> f64 {
+    let frame = match &striker.look {
+        Look::Character(figure) => figure::body_strike_frame(figure.job, figure.sex, action),
+        Look::Creature(path) => figure::strike_frame(path, action),
+    };
+    frame.map_or(otherwise, |frame| crate::blow::lands_after(frame, speed, striker.job)).clamp(0.0, 1500.0)
 }
 
 /// The action of a character bending down for a thing on the ground (the client's `ST_PICKUP`).
@@ -55,7 +60,7 @@ const PICKING_UP: usize = 24;
 pub fn picks_up(id: u32, own: u32, thing: u32) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        let lies = scene.drops.get(&thing).map(|(cell, ..)| *cell);
+        let lies = scene.drops.get(&thing).map(|lying| lying.cell);
         let Some(mover) = (if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) }) else { return };
         let Look::Character(figure) = &mover.look else { return };
         figure::prepare(figure, PICKING_UP);
@@ -118,7 +123,7 @@ pub fn cast_over(source: u32, own: u32, broken: bool) {
 
 /// Another hit of a blow already struck (a skill that hits several times): it lands after `delay` milliseconds.
 pub fn lands(target: u32, own: u32, delay: f64, damage: i32, sound: Option<String>) {
-    STATE.with_borrow_mut(|state| state.landing.push((now() + delay.clamp(0.0, 5000.0), target, own, damage, sound)));
+    STATE.with_borrow_mut(|state| state.landing.push((now() + delay.clamp(0.0, 5000.0), target, own, damage, sound, false)));
 }
 
 /// Bolts of fire or of ice fall on someone, one for each hit (the client's `FireArrow` and `IceArrow`): the
@@ -295,7 +300,7 @@ pub fn recovered(amount: i32, spirit: bool) {
         let Some(scene) = &state.scene else { return };
         let sprite = if spirit { "이팩트/숫자#0000ff" } else { "이팩트/숫자#00ff00" };
         let pictures = amount.to_string().bytes().map(|digit| SpriteKey::Creature(sprite.to_owned(), 0, usize::from(digit - b'0'))).collect();
-        state.flying.push(Flying { began: now(), base: on_ground(&scene.gat, scene.player.at), drift: (0.0, 0.0), pictures, miss: true });
+        state.flying.push(Flying { began: now(), base: on_ground(&scene.gat, scene.player.at), drift: (0.0, 0.0), pictures, flight: Flight::Miss });
     });
 }
 

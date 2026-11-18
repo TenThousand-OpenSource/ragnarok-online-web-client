@@ -104,7 +104,7 @@ impl App {
         };
         match problem {
             Some(problem) => self.say(problem),
-            None => self.request(Request::Register, "/api/register", vec![("userid", id), ("password", password), ("email", email), ("sex", field("reg-sex"))]),
+            None => self.request(Request::Register, "/api/register", vec![("userid", id), ("password", password), ("email", email)]),
         }
     }
 

@@ -66,18 +66,16 @@ impl App {
         // Plus and minus bring the map nearer and take it back (the client's `UIMinimapZoomWnd`), the first
         // button shows and hides the marks of who stands where in a town; the others (the small map's window,
         // the world map) do nothing yet.
-        let buttons: String = [("object", 1, "marks"), ("plus", 73, "+"), ("minus", 87, "-"), ("mini", 101, ""), ("viewon", 115, "")]
-            .iter()
-            .map(|(name, x, zoom)| {
-                let press = match *zoom {
-                    "" => String::new(),
-                    "marks" => r#" data-click="map-marks""#.to_owned(),
-                    zoom => format!(r#" data-click="map-zoom" data-arg="{zoom}""#),
-                };
+        use crate::press::{Step, general::Press};
+        let buttons: String = [("object", 1, Some(Press::MapMarks)), ("plus", 73, Some(Press::MapZoom(Step::More))), ("minus", 87, Some(Press::MapZoom(Step::Less))), ("mini", 101, None), ("viewon", 115, None)]
+            .into_iter()
+            .map(|(name, x, does)| {
+                let lives = does.is_some();
+                let press = does.map(|does| format!(" {}", pressed(does))).unwrap_or_default();
                 format!(
                     r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;{}" onerror="this.remove()"{press}>"#,
                     picture(&format!("minimap/i_{name}_1.bmp")),
-                    if zoom.is_empty() { "" } else { "pointer-events:auto;cursor:pointer" }
+                    if lives { "pointer-events:auto;cursor:pointer" } else { "" }
                 )
             })
             .collect();

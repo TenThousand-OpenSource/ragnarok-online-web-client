@@ -1,6 +1,7 @@
 //! The Adventure Guide (the client's `CUIAdventureGuide`): what the game recommends to a character of its level.
 
 use super::*;
+use crate::press::guide::Press;
 
 /// The client's words for a monster's element, race and size, by what the server's database calls them: lines
 /// of the client's message table (those its navigation shows a monster with).
@@ -51,7 +52,7 @@ impl App {
         let guide = data::guide();
         let mut window = art("adventureguide/bg_guide.bmp", 0, 0, 750, 468);
         window.push_str(&title_bar(750, &data::message(4053).unwrap_or_else(|| "Adventure Guide".to_owned())));
-        window.push_str(&button(736, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "guide", ""));
+        window.push_str(&press_button(736, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Open));
         let (base_level, job_level) = (self.value(parameter::BASE_LEVEL), self.value(parameter::JOB_LEVEL));
         window.push_str(&text(47, 25, BLACK, &format!("{} {base_level}", tr("Lv."))));
         window.push_str(&text(98, 25, BLACK, &format!("{} {job_level}", tr("Job"))));
@@ -81,16 +82,18 @@ impl App {
         let mut strip = String::new();
         for (index, name) in tabs.iter().enumerate() {
             let state = if index == self.guide.tab { "press" } else { "normal" };
+            let press = pressed(Press::Tab(index));
             strip.push_str(&format!(
-                r#"<button type="button" class="t" style="display:block;width:98px;height:40px;padding:0;font-weight:bold;color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:40px;cursor:default" data-click="guide-tab" data-arg="{index}">{}</button>"#,
+                r#"<button type="button" class="t" style="display:block;width:98px;height:40px;padding:0;font-weight:bold;color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:40px;cursor:default" {press}>{}</button>"#,
                 picture(&format!("adventureguide/tab_btn_{state}.bmp")),
                 escape(name)
             ));
             if index == self.guide.tab && !self.guide.folded {
                 for (kind, name, ..) in &kinds {
                     let state = if Some(*kind) == picked_kind { "press" } else { "normal" };
+                    let press = pressed(Press::Kind(*kind));
                     strip.push_str(&format!(
-                        r#"<button type="button" class="t" style="display:block;width:98px;height:26px;padding:0 6px 0 0;box-sizing:border-box;font-weight:bold;font-size:10.5px;letter-spacing:-0.3px;color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:26px;cursor:default;white-space:nowrap;overflow:hidden" data-click="guide-kind" data-arg="{kind}">{}</button>"#,
+                        r#"<button type="button" class="t" style="display:block;width:98px;height:26px;padding:0 6px 0 0;box-sizing:border-box;font-weight:bold;font-size:10.5px;letter-spacing:-0.3px;color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:26px;cursor:default;white-space:nowrap;overflow:hidden" {press}>{}</button>"#,
                         picture(&format!("adventureguide/tab_btn_sub_{state}.bmp")),
                         escape(name)
                     ));
@@ -113,8 +116,8 @@ impl App {
                     .enumerate()
                     .map(|(index, (name, about))| {
                         format!(
-                            r#"<div style="position:relative;width:603px;height:44px;cursor:pointer" data-click="guide-tab" data-arg="{}">{}<div class="a t" style="left:32px;top:0;width:100px;line-height:44px;font-weight:bold;color:#485a81;white-space:nowrap">{}</div><div class="a t" style="left:140px;top:0;width:442px;line-height:44px;color:#5d432a;white-space:nowrap;overflow:hidden">{}</div></div>"#,
-                            index + 1,
+                            r#"<div style="position:relative;width:603px;height:44px;cursor:pointer" {}>{}<div class="a t" style="left:32px;top:0;width:100px;line-height:44px;font-weight:bold;color:#485a81;white-space:nowrap">{}</div><div class="a t" style="left:140px;top:0;width:442px;line-height:44px;color:#5d432a;white-space:nowrap;overflow:hidden">{}</div></div>"#,
+                            pressed(Press::Tab(index + 1)),
                             art("adventureguide/list_1.bmp", 0, 0, 603, 44),
                             escape(name),
                             escape(about)
@@ -179,8 +182,9 @@ impl App {
                 let key = quest.id.to_string();
                 let picked = self.guide.picked.as_deref() == Some(key.as_str());
                 let rewards: String = quest.rewards.iter().map(|line| format!("<div>{}</div>", Self::guide_line(line))).collect();
+                let press = pressed(Press::Pick(key));
                 format!(
-                    r#"<div style="position:relative;width:603px;height:97px" data-click="guide-pick" data-arg="{key}">{}<div class="a t" style="{};white-space:normal;overflow:hidden;line-height:18px"><b>{}</b><br>{}</div><div class="a t" style="{};white-space:nowrap;overflow:hidden;color:#666">{}</div><div class="a t" style="{};white-space:normal;overflow:hidden;line-height:18px;font-weight:bold">{rewards}</div></div>"#,
+                    r#"<div style="position:relative;width:603px;height:97px" {press}>{}<div class="a t" style="{};white-space:normal;overflow:hidden;line-height:18px"><b>{}</b><br>{}</div><div class="a t" style="{};white-space:nowrap;overflow:hidden;color:#666">{}</div><div class="a t" style="{};white-space:normal;overflow:hidden;line-height:18px;font-weight:bold">{rewards}</div></div>"#,
                     art(&format!("adventureguide/list_2_{}.bmp", if picked { "press" } else { "normal" }), 0, 0, 603, 97),
                     at(25, 13, 360, 57),
                     escape(&quest.title),
@@ -217,8 +221,9 @@ impl App {
                 let lines: String = data::about(item.id).map(|(lines, _)| lines).unwrap_or_default().iter().filter(|line| line.contains("^777777") || line.to_ascii_lowercase().contains("^0000cc")).take(7).map(|line| format!("<div>{}</div>", coloured(line))).collect();
                 let can: String = item.can.iter().zip(CAN).map(|(can, (yes, no))| format!(r#"<div style="color:{}">{}</div>"#, if *can { "#6464c8" } else { "#c86464" }, escape(tr(if *can { yes } else { no })))).collect();
                 let from: String = item.from.iter().map(|line| format!("<div>{}</div>", Self::guide_line(line))).collect();
+                let press = pressed(Press::Pick(key));
                 format!(
-                    r#"<div style="position:relative;width:603px;height:128px" data-click="guide-pick" data-arg="{key}" data-info="{}">{}<div class="a" style="{}">{large}</div><div class="a t" style="left:165px;top:13px;font-weight:bold;color:#526bce;white-space:nowrap">{}</div><div class="a t" style="{};white-space:nowrap;overflow:hidden;line-height:14px">{lines}</div><div class="a t" style="{};white-space:normal;line-height:18px">{can}</div><div class="a t" style="{};white-space:normal;overflow:hidden;line-height:16px">{from}</div></div>"#,
+                    r#"<div style="position:relative;width:603px;height:128px" {press} data-info="{}">{}<div class="a" style="{}">{large}</div><div class="a t" style="left:165px;top:13px;font-weight:bold;color:#526bce;white-space:nowrap">{}</div><div class="a t" style="{};white-space:nowrap;overflow:hidden;line-height:14px">{lines}</div><div class="a t" style="{};white-space:normal;line-height:18px">{can}</div><div class="a t" style="{};white-space:normal;overflow:hidden;line-height:16px">{from}</div></div>"#,
                     item.id,
                     art(&format!("adventureguide/list_3_{}.bmp", if picked { "press" } else { "normal" }), 0, 0, 603, 128),
                     at(45, 14, 75, 100),
@@ -289,7 +294,7 @@ impl App {
                     })
                     .collect();
                 row.push_str(&format!(r#"<div class="a" style="{};line-height:0">{rewards}</div>"#, at(480, 11, 108, 112)));
-                format!(r#"<div style="position:relative;width:603px;height:128px" data-click="guide-pick" data-arg="{}">{row}</div>"#, escape(&monster.key))
+                format!(r#"<div style="position:relative;width:603px;height:128px" {}>{row}</div>"#, pressed(Press::Pick(monster.key.clone())))
             })
             .collect();
         format!(r#"<div id="guide-list" class="a viewer" style="{}">{rows}</div>"#, at(122, 81, 627, 355))

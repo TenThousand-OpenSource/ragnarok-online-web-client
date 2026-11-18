@@ -26,6 +26,21 @@ impl Lang {
     }
 }
 
+/// A language is written on the page as its code, and read back from it.
+impl std::fmt::Display for Lang {
+    fn fmt(&self, to: &mut std::fmt::Formatter) -> std::fmt::Result {
+        to.write_str(self.code())
+    }
+}
+
+impl std::str::FromStr for Lang {
+    type Err = ();
+
+    fn from_str(code: &str) -> Result<Self, ()> {
+        Self::from_code(code).ok_or(())
+    }
+}
+
 macro_rules! texts {
     ($($key:ident: $en:literal, $ru:literal;)*) => {
         #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -81,9 +96,6 @@ texts! {
     PasswordLabel: "Password", "Пароль";
     RepeatPassword: "Repeat", "Ещё раз";
     Email: "E-mail", "E-mail";
-    Sex: "Sex", "Пол";
-    Male: "Male", "Мужской";
-    Female: "Female", "Женский";
     Ok: "OK", "OK";
     Cancel: "Cancel", "Отмена";
     BadId: "An ID is 4 to 23 letters, digits and underscores.", "ID — от 4 до 23 латинских букв, цифр и знаков подчёркивания.";

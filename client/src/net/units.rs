@@ -178,13 +178,13 @@ pub const ZC_ITEM_FALL_ENTRY: u16 = 0x0add;
 pub const ZC_ITEM_ENTRY: u16 = 0x009d;
 pub const ZC_ITEM_DISAPPEAR: u16 = 0x00a1;
 
-/// `(id, item, cell, where within the cell in sixteenths)` of a thing on the ground, from either packet (the
-/// count stands before the place within the cell in the one, after it in the other).
-pub fn dropped(id: u16, packet: &[u8]) -> Option<(u32, u32, (u16, u16), (u8, u8), bool)> {
-    let (at, within, identified) = if id == ZC_ITEM_FALL_ENTRY { (13, 17, 12) } else { (11, 17, 10) };
+/// `(id, item, cell, where within the cell in sixteenths, identified, how many)` of a thing on the ground, from
+/// either packet (the count stands after the place within the cell in the one, before it in the other).
+pub fn dropped(id: u16, packet: &[u8]) -> Option<(u32, u32, (u16, u16), (u8, u8), bool, u16)> {
+    let (at, within, identified, count) = if id == ZC_ITEM_FALL_ENTRY { (13, 17, 12, 19) } else { (11, 17, 10, 15) };
     let short = |at: usize| Some(u16::from_le_bytes(packet.get(at..at + 2)?.try_into().ok()?));
     let long = |at: usize| Some(u32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?));
-    Some((long(2)?, long(6)?, (short(at)?, short(at + 2)?), (*packet.get(within)?, *packet.get(within + 1)?), *packet.get(identified)? != 0))
+    Some((long(2)?, long(6)?, (short(at)?, short(at + 2)?), (*packet.get(within)?, *packet.get(within + 1)?), *packet.get(identified)? != 0, short(count)?))
 }
 
 /// CZ_ITEM_PICKUP (0x0362): `u32 id`.
@@ -225,6 +225,29 @@ fn request(target: u32, action: u8) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_thing_on_the_ground_says_how_many_lie_there() {
+        // ZC_ITEM_FALL_ENTRY: the count after the place within the cell.
+        let mut falls = vec![0u8; 24];
+        falls[2..6].copy_from_slice(&77u32.to_le_bytes());
+        falls[6..10].copy_from_slice(&512u32.to_le_bytes());
+        falls[12] = 1;
+        falls[13..15].copy_from_slice(&150u16.to_le_bytes());
+        falls[15..17].copy_from_slice(&160u16.to_le_bytes());
+        (falls[17], falls[18]) = (3, 9);
+        falls[19..21].copy_from_slice(&11u16.to_le_bytes());
+        assert_eq!(dropped(ZC_ITEM_FALL_ENTRY, &falls), Some((77, 512, (150, 160), (3, 9), true, 11)));
+        // ZC_ITEM_ENTRY: the count before it.
+        let mut lies = vec![0u8; 19];
+        lies[2..6].copy_from_slice(&78u32.to_le_bytes());
+        lies[6..10].copy_from_slice(&909u32.to_le_bytes());
+        lies[11..13].copy_from_slice(&150u16.to_le_bytes());
+        lies[13..15].copy_from_slice(&160u16.to_le_bytes());
+        lies[15..17].copy_from_slice(&2u16.to_le_bytes());
+        (lies[17], lies[18]) = (5, 6);
+        assert_eq!(dropped(ZC_ITEM_ENTRY, &lies), Some((78, 909, (150, 160), (5, 6), false, 2)));
+    }
 
     /// A packet of `length` bytes with the fields the three kinds share at their fixed places.
     fn base(id: u16, length: usize, object: u8) -> Vec<u8> {

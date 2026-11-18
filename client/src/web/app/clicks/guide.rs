@@ -4,22 +4,22 @@ use super::*;
 use crate::web::app::packets::parameter;
 
 impl App {
-    /// What a press on one of these does; `false` when the thing pressed is not of this kind.
-    pub(super) fn guide_click(&mut self, what: &str, arg: &str) -> bool {
-        match what {
+    /// A press of this system (`crate::press::guide`).
+    pub(super) fn guide_pressed(&mut self, press: crate::press::guide::Press) {
+        use crate::press::guide::Press;
+        match press {
             // The guide's icon in the menu, and the window's own close button.
-            "guide" => {
+            Press::Open => {
                 self.guide.open = !self.guide.open;
                 self.guide_wants();
                 self.render();
             }
-            "guide-tab" => {
-                let tab = arg.parse().unwrap_or(0);
+            Press::Tab(tab) => {
                 // The tab that is open already folds its kinds away, or unfolds them; the page stays.
                 if tab == self.guide.tab {
                     self.guide.folded = !self.guide.folded;
                     self.render();
-                    return true;
+                    return;
                 }
                 self.guide.tab = tab;
                 self.guide.folded = false;
@@ -28,31 +28,20 @@ impl App {
                 self.guide_wants();
                 self.render();
             }
-            "guide-kind" => {
-                self.guide.kind = arg.parse().ok();
+            Press::Kind(kind) => {
+                self.guide.kind = Some(kind);
                 self.guide.picked = None;
                 self.guide_wants();
                 self.render();
             }
-            "guide-pick" => {
-                self.guide.picked = Some(arg.to_owned());
-                self.refresh_guide();
+            Press::Pick(key) => {
+                self.guide.picked = Some(key);
+                self.redraw(&[&wnd::GUIDE]);
             }
-            _ => return false,
         }
-        true
     }
 
     /// Redraws the window where it is on the page; its list keeps its place.
-    pub(in crate::web) fn refresh_guide(&self) {
-        let Some(window) = element("guide") else { return };
-        let scrolled = element("guide-list").map(|list| list.scroll_top());
-        window.set_inner_html(&self.guide_window());
-        if let (Some(scrolled), Some(list)) = (scrolled, element("guide-list")) {
-            list.set_scroll_top(scrolled);
-        }
-    }
-
     /// Asks for what the monsters' page shows and is not here yet: the monsters' pictures (the first picture of
     /// each one's standing) and the names and pictures of the items they are shown with.
     fn guide_wants(&mut self) {

@@ -4,17 +4,17 @@ use super::*;
 
 impl App {
     /// A form of the page was sent: logging in and the account's forms, how many to drop, a line of chat.
-    pub(super) fn submitted(&mut self, form: &str) {
+    pub(super) fn submitted(&mut self, form: Form) {
         match form {
-            "login" => {
+            Form::Login => {
                 self.chime();
                 self.login()
             }
-            "register" => self.register(),
-            "recover" => self.recover(),
-            "reset" => self.reset(),
-            "create" => self.create_character(),
-            "throw" => {
+            Form::Register => self.register(),
+            Form::Recover => self.recover(),
+            Form::Reset => self.reset(),
+            Form::Create => self.create_character(),
+            Form::Throw => {
                 if let (Some((index, most)), Some(socket)) = (self.bag.throwing.take(), &self.socket) {
                     // As the client's window does: a number that is none, or more than there is, drops
                     // nothing, and the window goes away without a word.
@@ -23,9 +23,9 @@ impl App {
                         socket.send(&items::throw(index, count as u16));
                     }
                 }
-                self.refresh_throw();
+                self.redraw(&[&wnd::THROW]);
             }
-            "chat" => {
+            Form::Chat => {
                 let words = field("chat-input");
                 let words = words.trim();
                 // The client's own commands come first; everything else is said (the server reads its
@@ -48,7 +48,6 @@ impl App {
                     set_field("chat-input", "");
                 }
             }
-            _ => {}
         }
     }
 }

@@ -53,7 +53,7 @@ impl App {
             npc::ZC_CLOSE_DIALOG if dialog.lines.is_empty() && dialog.menu.is_empty() && dialog.asks.is_none() => {
                 self.send(&npc::close(from));
                 self.dialog = None;
-                self.refresh_dialog();
+                self.redraw(&[&wnd::DIALOG]);
                 return;
             }
             npc::ZC_CLOSE_DIALOG => dialog.button = Some(false),
@@ -64,7 +64,7 @@ impl App {
             }
             asks => dialog.asks = Some(asks == npc::ZC_OPEN_EDITDLGSTR),
         }
-        self.refresh_dialog();
+        self.redraw(&[&wnd::DIALOG]);
     }
 
     /// What the character says comes back from the server in green; what others say is white; the

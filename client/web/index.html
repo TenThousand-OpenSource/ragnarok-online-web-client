@@ -18,7 +18,7 @@
   #mapsign .title { position: absolute; left: 0; width: 100%; top: 10vh; font-size: 4.63vh; line-height: 1; }
   @keyframes mapsign { 0%, 95.15% { opacity: 1; } 100% { opacity: 0; } }
   /* The skill being aimed and its level, by the pointer. */
-  #aim { position: fixed; display: none; padding: 1px 4px; white-space: nowrap; pointer-events: none; z-index: 5;
+  #aim { position: fixed; display: none; padding: 1px 4px; white-space: nowrap; pointer-events: none; z-index: 35;
          font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
   /* What is dragged out of a window, under the pointer (the client draws it a touch see-through: 0xFA of 0xFF). */
   #drag { position: fixed; display: none; z-index: 40; width: 0; height: 0; pointer-events: none; opacity: .98; }
@@ -75,6 +75,9 @@
      a window (items, skills) it stays the plain one: the client's item windows ask for no other. */
   #ui button, #ui .b, #ui [data-click] { cursor: var(--press, pointer); }
   #ui button:active, #ui .b:active, #ui [data-click]:active { cursor: var(--pressed, var(--press, pointer)); }
+  /* While a skill is aimed the pointer is the skill's everywhere, over the windows too: the client's pointer is one
+     picture drawn over all of its screen. */
+  html[data-aiming] #ui, html[data-aiming] #ui * { cursor: var(--aim, crosshair) !important; }
   canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: none; }
   #ui { position: fixed; inset: 0; overflow: hidden; background: #000 center / cover no-repeat;
         font: 12px/1.25 Tahoma, Arial, sans-serif; color: #000; user-select: none; }
@@ -143,6 +146,8 @@
 
   /* Character creation. */
   .race { padding: 0; border: 0; background: no-repeat 0 0; font: inherit; text-align: left; cursor: pointer; }
+  /* A race the server does not offer: there to see, not to press. */
+  .race:disabled { cursor: var(--point, default); filter: grayscale(.6) opacity(.75); }
   .race b { position: absolute; left: 45px; top: 20px; color: #fff; }
   .race p { position: absolute; left: 110px; top: 20px; width: 230px; margin: 0; line-height: 15px; color: #555; max-height: 60px; overflow: hidden; }
 
@@ -159,6 +164,10 @@
 
   /* The game's own windows. */
   .hud { z-index: 10; }
+  /* A window that is closed is on the page all the same, empty and out of sight (hud/windows.rs). */
+  #ui [hidden] { display: none !important; }
+  /* The windows that lie in an order take 11 and up from it (app/windows.rs); those that ask something are over them. */
+  #dialog, #trade, #throw, #eggs, #identify, #pet-asks { z-index: 24; }
   .t { white-space: nowrap; line-height: 13px; }
   .t.titled { color: #000; text-shadow: 1px 1px 0 #fff; }
   #chat { z-index: 9; }
@@ -194,37 +203,7 @@
   /* Under the minimap, where the client's bar of it is: 145 from the right edge, the text 145 down. */
   .mapname { position: absolute; right: 17px; top: 145px; width: 128px; height: 14px; color: #fff; font-size: 12px; pointer-events: none; }
   .mapname span { position: absolute; left: 20px; top: 0; white-space: pre; text-shadow: -1px 0 0 #000; }
-                border-radius: 9px; white-space: nowrap; pointer-events: none; }
 
-  .w.top { z-index: 25; }
-  .w form { margin: 0; }
-  .a { position: absolute; margin: 0; }
-  .pass { pointer-events: none; }
-       cursor: pointer; white-space: nowrap; overflow: hidden; }
-  .b:hover { background-image: var(--o); }
-  .in.centre { text-align: center; }
-  .in::placeholder { color: #9c9c9c; }
-  .small { font-size: 11px; }
-  .centre { text-align: center; }
-  .w p.a.tight { line-height: 14px; }
-  .w p.a { line-height: 16px; }
-
-  /* Character select. */
-  .start:disabled { color: #dc747f; }
-
-  /* Character creation. */
-
-           box-shadow: 0 1px 4px rgba(40, 50, 110, .45); }
-  .panel .rows { margin: 0 14px; }
-                                background: #fff; border: 1px solid #b9bfdc; border-radius: 9px; outline: 0; user-select: text; }
-
-  /* The game's own windows. */
-  .hud { z-index: 10; }
-  #chat { z-index: 9; }
-       text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff; }
-              display: flex; flex-direction: column; justify-content: flex-end; }
-  #chat-input { background: #f0f0f0; }
-  .lang button:first-of-type { }
   /* The minimap, in the corner where the original client has it. */
   /* 128 by 128, 144 from the right edge and 16 down (`CGameMode::DrawMiniMap`); the client draws the map's
      picture and nothing around it. */

@@ -43,6 +43,11 @@ client/src/
   map.rs            .gat / .gnd: walkable cells, ground mesh, path finding
   model.rs          .rsw / .rsm: what stands on a map (its matrices in model/matrix.rs)
   effect.rs         .str: the client's effect files, frame by frame
+  blow.rs           when a blow lands: the frame of the swing and the time to it (the client's timings)
+  press.rs          what can be pressed on the page, as values: the one place its text is written and read
+                    ── children in press/, a file a system (as app/clicks/), and things.rs: what is
+                    double-clicked, dragged, and the forms ──
+  stack.rs          the order the game's windows lie in: one opened or pressed in front, Escape closes it
   cursor.rs         the game's mouse pointer: which of its pictures shows when (the client's timings)
   mounts.rs         what a job is drawn as in a state: on its mount, in its machine (job_mounts.txt)
   prim.rs           the client's effect primitives: their figures, how each lives and is shaped
@@ -70,6 +75,7 @@ client/src/
                       each kind of table: what it keeps, how it is read (`read`), how it is asked (`data::…`)
     figure.rs       sprites put together into pictures (a character = body + head + headgear + weapon)
     sound.rs        music and sound effects
+    parts.rs        what every window is made of: places, pictures, and the marks of what can be pressed
     view.rs         the page outside the game's own windows: shared pieces    ── children in view/ ──
       accounts.rs     logging in, registering, recovering          characters.rs   server and character select, creation
       game.rs         the game's screen: the minimap and the character's place
@@ -79,7 +85,7 @@ client/src/
       dragging.rs     taking a thing out of a window and letting it go, as the client does (its sprite under the pointer)
       actions.rs      which code sees to each Action (the one place everything arrives at); the longer ones in actions/
         forms.rs  bag.rs  link.rs  taming.rs  travel.rs
-      clicks.rs       what each `data-click` does; split by kind in clicks/, as incoming/ is
+      clicks.rs       what each press does (crate::press): handed to its system in clicks/, as incoming/ is
       keys.rs         the keyboard
       hotkeys_set.rs  which key does what for this player; setting keys (kept in the browser)
       account.rs      login, registration, recovery
@@ -91,10 +97,13 @@ client/src/
       commands.rs     what is typed after a slash
       game.rs         using items and skills, hotkeys, chat lines, entering a map
       screen.rs       which screen shows; painting characters into windows
+      windows.rs      the windows' order on the page (stack.rs), and Escape closing the one in front; which
+                      windows have a part in it is read from hud/windows.rs
       page.rs         DOM helpers, storage, fade and loading screen, dragging windows
     hud.rs          the in-game windows: shared pieces         ── children in hud/ ──
       basic.rs  inventory.rs  equipment.rs  skills.rs  status.rs  chat.rs  dialogs.rs  trade.rs  pets.rs
       hotkeys_set.rs  settings.rs  guide.rs
+      windows.rs      the list of the screen's windows: one interface for drawing, redrawing, order, Escape
     world.rs        the world: its types and what all of it needs     ── children in world/ ──
       state.rs        what the world keeps between frames
       session.rs      entering/leaving a map, the player's own character      (called by the app)
@@ -111,7 +120,8 @@ client/src/
       pick.rs         what the pointer is on: someone, or a thing on the ground
       input.rs        the mouse over the world: which event goes where   ── children in input/ ──
         press.rs  pointer.rs  wheel.rs   a button down; the pointer moved or a button up; the wheel
-      gpu.rs          pipelines, textures, the draw call
+      gpu.rs          pipelines, textures and buffers   ── child ──
+        draw.rs         the drawing of one frame, step by step: the map, the sprites and numbers, the effects
       loading.rs      reading a map's files
       camera.rs  mover.rs  effects.rs  shaders.rs  math.rs
       prims.rs        an effect made of the client's primitives (`crate::prim`) under way on someone   ── child ──
@@ -125,13 +135,19 @@ gateway/src/
   bridge.rs         WebSocket <-> TCP, only to the configured server ports
   accounts.rs       registration and password recovery
   limiter.rs        limits on attempts
+  public.rs         reached from outside: the invitation word before anything is served, and visitors counted
+                    by their own addresses behind a tunnel or a proxy
   mapcache.rs       rAthena's map cache
 translations/
   GLOSSARY.md       terms, so that translators agree
   src/              English sources of the translated batches
   ru/               Russian: items-*.json, skills-*.json  ({"<id>": {"name", "description"}})
+public.sh           opens the local server to invited friends: the gateway asking for the invitation word,
+                    and a Cloudflare quick tunnel to it
+check.sh            what a change passes before it is committed: tests, the browser build, tools/limits.py
 tools/
   packet-lengths    builds the packet length table from rAthena's sources
+  limits.py         the sizes of rules 4 and 10: no file past about 500 lines, no function past about 100
   client-tables     writes out tables compiled into the original client (skill_effects.py: skills and their
                     effects; job_bases.py: the plain job of each mounted job, data/job_bases.txt; job_mounts.py: the
                     mounted job of each job and state, job_mounts.txt), the classic server's scripts put right for the client's maps (classic_overlay.py
@@ -158,9 +174,13 @@ going on in it. The app only *tells* it things through the public functions in `
 animation frame.
 
 **The windows.** They are HTML strings built by `hud.rs` and `hud/*.rs` from the App's state and from the
-original client's bitmaps, placed at the original's coordinates. `App::render` writes the whole page; the
-`refresh_*` functions rewrite one part (items, values, chat, a dialog) so that typing and scrolling survive.
-Elements carry `data-click`, `data-use` (double click), `data-info` / `data-skill` (right click), `data-drag`.
+original client's bitmaps, placed at the original's coordinates. `App::render` writes the whole page. The game's
+windows are one list (`hud/windows.rs`): each entry has its element, when it is open, where it stands, what
+draws it and its part in the order; the screen is written from the list, `App::redraw` draws some of them anew
+where they are (typing and scrolling survive; a closed one is emptied and hidden), and the order and Escape are
+read from it. What can be pressed is a value (`crate::press`): its element carries the value's name
+(`data-click`, `data-use` for a double click, `data-drag`, `data-submit`), written only by `web/parts.rs`, and
+the app reads the value back and matches on it. `data-info` / `data-skill` (right click) carry numbers.
 
 **One system, one name.** A system of the game (pets, shops, skills…) is the same word in every layer:
 `net/pets.rs` (its packets), `app/incoming/pets.rs` (what the server says of it), `app/clicks/pets.rs` (what its
@@ -184,7 +204,9 @@ These hold for everyone who writes here, people and agents alike. A change that 
 4. **No file grows past about 500 lines.** One that does is cut by responsibility *in the same change* — not
    later.
 5. **One state, owned in one place.** What the game remembers is a field of its system's group in `App`
-   (`app.rs`), or of the world's `State`. No second copy, no hidden global except the tables in `data/`.
+   (`app.rs`), or of the world's `State`. No second copy, no hidden global except the tables in `data/` and
+   a pointer's gesture while it lasts and what it left on the page: the window being dragged and where each
+   was dragged to (`app/page.rs`), the thing being dragged (`app/dragging.rs`).
 6. **The original client is the reference, and the comment says where from.** Behaviour, sizes and texts come
    from the client's code and files; the comment names the function or file (`UIItemIdentifyWnd`,
    `Guide_Monster.lub`). What was not found there, or was decided here against it, says so in the comment.
@@ -203,9 +225,14 @@ These hold for everyone who writes here, people and agents alike. A change that 
     used: `crate::web::document()` and `by_id()` for the page; `App::send` and `App::send_on_map` for packets;
     `Scene::place_of` for where someone is; `Quads` and `nearer` for an effect's quads. Before writing a helper,
     look for one.
+12. **Nothing on the page is named by hand.** What can be pressed is a value of `crate::press`, drawn through
+    `web/parts.rs` (`pressed`, `used`, `dragged`, `sent`) and matched as a value where it is handled, with no
+    arm for "anything else": a press nobody handles, or a name nobody draws, does not compile. A window is an
+    entry of `hud/windows.rs`. `tools/limits.py` refuses a `data-click="…"` written out.
 
-Before finishing: `cargo test`, `./build-web.sh` with no warnings, the largest files checked
-(`find client/src gateway/src -name '*.rs' | xargs wc -l | sort -rn | head`).
+Before finishing, and before any commit: `./check.sh`. It runs the tests, the build for the browser with no
+warnings, and `tools/limits.py`, which holds rules 4 and 10 (a function that is a plain dispatcher is named in
+its `DISPATCHERS`, with the reason there). A change is not committed until it ends with "all checks passed".
 
 ## How to…
 
@@ -222,9 +249,16 @@ Before finishing: `cargo test`, `./build-web.sh` with no warnings, the largest f
 **…send a packet**: a builder function next to the parsers in `net/`, called from `app/clicks/*.rs`, `app/keys.rs`
 or `app/actions.rs` as `socket.send(&…)`.
 
-**…add or change a window**: the HTML in `hud/<window>.rs`; its place in `App::hud` (`hud.rs`); its state as a
-field of its system's group in `App` (`app.rs`: `Hero`, `Bag`, `Skills`, `Chat`, `Deal`, `Pets`; a new system
-gets a group of its own); what its buttons do in `app/clicks/<system>.rs`; its texts through `i18n::tr`.
+**…add or change a window**: what is in it in `hud/<window>.rs`; an entry for it in the list of windows
+(`hud/windows.rs`: its element, when it is open, where it stands, what draws it, and what Escape does to it if
+it is to lie in the order) — nothing else has to know of it; its state as a field of its system's group in `App`
+(`app.rs`: `Hero`, `Bag`, `Skills`, `Chat`, `Deal`, `Pets`; a new system gets a group of its own); its texts
+through `i18n::tr`. To show a change in it, `self.redraw(&[&wnd::<WINDOW>])`; `render()` writes the whole screen.
+
+**…add a button, a tab, a row that is pressed**: a variant in the system's list in `client/src/press/<system>.rs`
+(name it as nothing else is named: a test holds that); draw it with `pressed(Press::…)` or a helper that takes a
+press (`picture_press`, `press_button`); the compiler then asks for its arm in `app/clicks/<system>.rs`. What is
+double-clicked, dragged or sent as a form is in `press/things.rs`, drawn with `used`, `dragged` and `sent`.
 
 **…add an effect**: a `.str` effect needs no code — `world::effect("name.str", on_whom)`. An effect the original
 draws by code goes to `world/effects.rs` (geometry) or `world/prims.rs` (the client's primitives) and is fed to
@@ -258,10 +292,10 @@ Test accounts for the local server are in `server/conf/accounts.sql`.
 
 ## Known debts
 
-- Eleven functions are still over 100 lines. Some only hand work out or set things up (`wiring::start`,
-  `incoming::packet`, `actions::handle`, `Gpu::new`); the others are to be cut: `Gpu::draw`, the gateway's
-  `tables::guide`, `account_click`, `skill_window`, `char_select_window`, `pursue`.
+- Two functions are over 100 lines, both plain dispatchers (`incoming::packet`, `actions::handle`): they are
+  named in `tools/limits.py`, which lets no other through.
 - What needs no page is being moved out of `web/` so that it can be tested (`cursor.rs`, `prim.rs`, the rules
   in `net/`); the windows and the world's drawing are still checked by hand in the game.
-- Clicks are matched by text (`data-click="…"`), not by a type the compiler checks.
-- Windows are rebuilt as strings; there is no component model, by choice so far.
+- A window's inside is still written as a string of HTML by its drawing function, and written whole when it
+  changes: there is a list of windows with one interface (`hud/windows.rs`), not a tree of elements compared and
+  patched. By choice: the windows are small, and each is placed by the client's own coordinates.

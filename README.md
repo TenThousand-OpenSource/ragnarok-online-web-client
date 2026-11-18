@@ -93,9 +93,25 @@ wall on any map.
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's
 `--smtp-url` at a real server for anything else.
 
-## Tests
+## Letting friends in
 
 ```sh
+./public.sh        # the gateway behind an invitation word, and a Cloudflare quick tunnel to it
+```
+
+It prints an address on `trycloudflare.com` that lasts until it is stopped, and is new every time; `cloudflared`
+must be installed. Nothing is served to a browser that has not given the invitation word
+(`server/public/invite.txt`, made on the first run and not committed): not the page, not the client's files, not
+the bridge to the game server. Friends make their own accounts on the login page.
+
+Before the first time, change the passwords of the test accounts of `server/conf/accounts.sql` in the database:
+they are written in this repository. This is for a handful of invited people. The game's files are Gravity's;
+serving them to the public is not what this is for.
+
+## Tests, and before a commit
+
+```sh
+./check.sh                                   # all of it: tests, the browser build with no warnings, sizes
 cargo test                                   # client and gateway
 cargo test -p roweb-gateway -- --ignored     # against the running rAthena, database and mailbox
 ```

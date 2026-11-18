@@ -102,9 +102,10 @@ impl App {
                 } else {
                     None
                 };
-                world::struck(act.source, act.target, own, f64::from(act.speed), f64::from(act.delay), act.damage, heard);
+                // A critical blow (the server's DMG_CRITICAL, 10) is shown as one.
+                let lands = world::struck(act.source, act.target, own, (f64::from(act.speed), f64::from(act.delay)), (act.damage, act.kind == 10), heard);
                 // One who holds a bow sends an arrow, which arrives as the blow lands.
-                world::arrow(act.source, act.target, own, f64::from(act.delay));
+                world::arrow(act.source, act.target, own, lands);
             }
             // Someone bends down for a thing on the ground.
             Some(act) if act.kind == 1 => world::picks_up(act.source, own, act.target),
@@ -148,7 +149,7 @@ impl App {
             // Each hit of a skill sounds as one of the client's four plain blows (its
             // `GetWeaponHitWaveName(-1)` for the hits of skills).
             let blow = || Some(format!("_enemy_hit_normal{}.wav", 1 + (js_sys::Math::random() * 4.0) as u32));
-            world::struck(landed.source, landed.target, own, f64::from(landed.attack_motion), delay, each, blow());
+            world::struck(landed.source, landed.target, own, (f64::from(landed.attack_motion), delay), (each, false), blow());
             // The hits follow one another 200 milliseconds apart (the client's `g_multiHitInterval`).
             for hit in 1..hits {
                 world::lands(landed.target, own, delay + f64::from(hit) * 200.0, each, blow());

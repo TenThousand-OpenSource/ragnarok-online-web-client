@@ -12,16 +12,54 @@ use super::*;
 pub fn guide(grf: &Grf, database: &std::path::Path, client_dir: &std::path::Path) -> serde_json::Value {
     let lua = run(grf, &["adventureguide\\availablejoblist", "adventureguide\\availablejoblist_f", "adventureguide\\adventureguide_f", "adventureguide\\guide_intro", "adventureguide\\guide_monster", "adventureguide\\guide_episode", "adventureguide\\guide_quest", "adventureguide\\guide_dungeon", "adventureguide\\guide_weapon", "adventureguide\\guide_armor"]);
     let tips = tips(client_dir);
-    let global = |name: &str| lua.globals().get::<Value>(name).map(|value| json_of(&value)).unwrap_or_default();
-    let intro = global("GuideIntro");
+    let intro = global(&lua, "GuideIntro");
+    let tabs = tabs(&intro);
+    let monsters = monsters(&global(&lua, "GuideMonster"), &known_monsters(database));
+    // Who can wear an item: a number the client's `GetEquipJob` gives for it (`AvailableJobList.lub`), which
+    // stands for a set of jobs (see `job_codes.json`).
+    let wearers = lua.globals().get::<mlua::Function>("GetEquipJob").ok();
+    let quests = |name: &str| quest_page(&global(&lua, name), &tips);
+    let items = |name: &str| item_page(&global(&lua, name), wearers.as_ref());
+    serde_json::json!({
+        "intro": intro["TitleText"],
+        "menu": intro["MainMenuTitle"],
+        "tabs": tabs,
+        "monsters": monsters,
+        "episode": quests("GuideEpisode"),
+        "quest": quests("GuideQuest"),
+        "dungeon": quests("GuideDungeon"),
+        "weapon": items("GuideWeapon"),
+        "armor": items("GuideArmor"),
+        // Which jobs each of those numbers stands for. The client has this compiled into it
+        // (`CJobCodeForItem::InitJobGroups` and `InitJobCodes`); the file is that table, written out from the
+        // decompiled client: `{"novices": [jobs], "codes": {"<number>": [jobs]}}`. 0xFFFFF is everyone, 0xFFFFE
+        // everyone but the novices.
+        "job_codes": serde_json::from_str::<serde_json::Value>(include_str!("job_codes.json")).unwrap_or_default(),
+    })
+}
+
+/// One of the guide's tables, by the name the client's files give it.
+fn global(lua: &Lua, name: &str) -> serde_json::Value {
+    lua.globals().get::<Value>(name).map(|value| json_of(&value)).unwrap_or_default()
+}
+
+/// The guide's tabs, each its name and description, in the guide's own order.
+fn tabs(intro: &serde_json::Value) -> Vec<serde_json::Value> {
     let mut tabs: Vec<(i64, serde_json::Value)> = intro["Contents"]
         .as_object()
         .map(|contents| contents.iter().filter_map(|(at, tab)| Some((at.parse().ok()?, serde_json::json!([tab["Name"], tab["Desc"]])))).collect())
         .unwrap_or_default();
     tabs.sort_by_key(|(at, _)| *at);
-    // The server's monsters, by the name its database knows each by.
-    let mut known: std::collections::HashMap<String, serde_json::Map<String, serde_json::Value>> = std::collections::HashMap::new();
-    let mut entry: Option<(String, serde_json::Map<String, serde_json::Value>)> = None;
+    tabs.into_iter().map(|(_, tab)| tab).collect()
+}
+
+/// What the server's database says of a monster.
+type Monster = serde_json::Map<String, serde_json::Value>;
+
+/// The server's monsters (`mob_db.yml`), by the name its database knows each by.
+fn known_monsters(database: &std::path::Path) -> std::collections::HashMap<String, Monster> {
+    let mut known: std::collections::HashMap<String, Monster> = std::collections::HashMap::new();
+    let mut entry: Option<(String, Monster)> = None;
     let mut id = None;
     for line in std::fs::read_to_string(database.join("mob_db.yml")).unwrap_or_default().lines() {
         // Only the entry's own lines, not those of what it drops and the like, which lie deeper.
@@ -49,7 +87,12 @@ pub fn guide(grf: &Grf, database: &std::path::Path, client_dir: &std::path::Path
     if let Some((name, about)) = entry.take() {
         known.insert(name, about);
     }
-    let guided = global("GuideMonster");
+    known
+}
+
+/// The monsters of `Guide_Monster.lub`, each with what the server knows of it, the levels it is recommended for
+/// and its rewards, in the order of those levels.
+fn monsters(guided: &serde_json::Value, known: &std::collections::HashMap<String, Monster>) -> Vec<serde_json::Value> {
     let mut monsters: Vec<serde_json::Value> = guided["Contents"]
         .as_object()
         .map(|contents| {
@@ -75,79 +118,71 @@ pub fn guide(grf: &Grf, database: &std::path::Path, client_dir: &std::path::Path
         })
         .unwrap_or_default();
     monsters.sort_by_key(|monster| (monster["min"].as_i64().unwrap_or(0), monster["key"].as_str().unwrap_or_default().to_owned()));
-    // The other pages: each a table with its kinds (`SubMenu`, by number) and its entries (`Contents`).
-    let kinds = |table: &serde_json::Value| -> Vec<serde_json::Value> {
-        let mut kinds: Vec<(i64, serde_json::Value)> = table["SubMenu"]
-            .as_object()
-            .map(|kinds| kinds.iter().filter_map(|(at, kind)| Some((at.parse().ok()?, serde_json::json!({ "at": at.parse::<i64>().ok()?, "title": kind["SubMenuTitle"], "min": kind["SubMenuMinLevel"], "max": kind["SubMenuMaxLevel"] })))).collect())
-            .unwrap_or_default();
-        kinds.sort_by_key(|(at, _)| *at);
-        kinds.into_iter().map(|(_, kind)| kind).collect()
-    };
-    let lines = |lines: &serde_json::Value| -> Vec<String> { lines.as_array().into_iter().flatten().filter_map(|line| line.as_str()).map(plain).collect() };
-    let entries = |table: &serde_json::Value, entry: &dyn Fn(u32, &serde_json::Value) -> serde_json::Value| -> Vec<serde_json::Value> {
-        let mut entries: Vec<(i64, u32, serde_json::Value)> = table["Contents"]
-            .as_object()
-            .map(|contents| contents.iter().filter_map(|(id, about)| Some((about["RequireMinLevel"].as_i64().unwrap_or(0), id.parse().ok()?, entry(id.parse().ok()?, about)))).collect())
-            .unwrap_or_default();
-        entries.sort_by_key(|(least, id, _)| (*least, *id));
-        entries.into_iter().map(|(_, _, entry)| entry).collect()
-    };
-    // Who can wear an item: a number the client's `GetEquipJob` gives for it (`AvailableJobList.lub`), which
-    // stands for a set of jobs (see `job_codes.json`).
-    let wearers = lua.globals().get::<mlua::Function>("GetEquipJob").ok();
-    let worn_by = |id: u32| wearers.as_ref().and_then(|wearers| wearers.call::<i64>(id).ok()).unwrap_or(0);
-    // An item: its number, its kind, the levels it is for, whether it can be refined, enchanted and enchanted
-    // by grade, where it is had from, and the number that says who can wear it.
-    let items = |name: &str| {
-        let table = global(name);
-        serde_json::json!({
-            "kinds": kinds(&table),
-            "list": entries(&table, &|id, about| serde_json::json!({
-                "id": id, "kind": about["SubMenu"], "min": about["RequireMinLevel"], "max": about["RequireMaxLevel"],
-                "can": [about["Refining"] == 1, about["Enchant"] == 1, about["GradeEnchant"] == 1],
-                "from": lines(&about["ObtainGuide"]),
-                "jobs": worn_by(id),
-            })),
-        })
-    };
-    // A quest, an episode's part or a dungeon: the entry is a tip of the client's tip box, shown by the tip's
-    // title and the first line of what it says (`CUIQuestInfo::SetTitle`: of a title like `Q Hello!(1)` only
-    // what is between the `Q` and the bracket; of any other, what stands before a `#`).
-    let quests = |name: &str| {
-        let table = global(name);
-        serde_json::json!({
-            "kinds": kinds(&table),
-            "list": entries(&table, &|id, about| {
-                let (title, says) = tips.get(&id).cloned().unwrap_or_else(|| (id.to_string(), String::new()));
-                let title = match (title.strip_prefix('Q'), title.rfind('(')) {
-                    (Some(_), Some(bracket)) if bracket > 1 => title[1..bracket].trim().to_owned(),
-                    _ => title.split('#').next().unwrap_or_default().trim().to_owned(),
-                };
-                serde_json::json!({
-                    "id": id, "kind": about["SubMenu"], "min": about["RequireMinLevel"], "max": about["RequireMaxLevel"],
-                    "title": title, "says": says.lines().next().map(plain).unwrap_or_default(),
-                    "needs": about["Prerequisite"].as_str().map(plain).unwrap_or_default(),
-                    "rewards": lines(&about["Reward"]),
-                })
-            }),
-        })
-    };
+    monsters
+}
+
+/// The other pages: each a table with its kinds (`SubMenu`, by number) and its entries (`Contents`). These are
+/// the kinds, in the order of their numbers.
+fn kinds(table: &serde_json::Value) -> Vec<serde_json::Value> {
+    let mut kinds: Vec<(i64, serde_json::Value)> = table["SubMenu"]
+        .as_object()
+        .map(|kinds| kinds.iter().filter_map(|(at, kind)| Some((at.parse().ok()?, serde_json::json!({ "at": at.parse::<i64>().ok()?, "title": kind["SubMenuTitle"], "min": kind["SubMenuMinLevel"], "max": kind["SubMenuMaxLevel"] })))).collect())
+        .unwrap_or_default();
+    kinds.sort_by_key(|(at, _)| *at);
+    kinds.into_iter().map(|(_, kind)| kind).collect()
+}
+
+/// The lines of a list of the guide's, each without its marks.
+fn lines(lines: &serde_json::Value) -> Vec<String> {
+    lines.as_array().into_iter().flatten().filter_map(|line| line.as_str()).map(plain).collect()
+}
+
+/// A page's entries, each made by `entry` from its number and what the table says of it, in the order of the
+/// levels they are for and then of their numbers.
+fn entries(table: &serde_json::Value, entry: &dyn Fn(u32, &serde_json::Value) -> serde_json::Value) -> Vec<serde_json::Value> {
+    let mut entries: Vec<(i64, u32, serde_json::Value)> = table["Contents"]
+        .as_object()
+        .map(|contents| contents.iter().filter_map(|(id, about)| Some((about["RequireMinLevel"].as_i64().unwrap_or(0), id.parse().ok()?, entry(id.parse().ok()?, about)))).collect())
+        .unwrap_or_default();
+    entries.sort_by_key(|(least, id, _)| (*least, *id));
+    entries.into_iter().map(|(_, _, entry)| entry).collect()
+}
+
+/// A page of items. An item: its number, its kind, the levels it is for, whether it can be refined, enchanted
+/// and enchanted by grade, where it is had from, and the number that says who can wear it (what the client's
+/// `GetEquipJob`, here `wearers`, gives for it).
+fn item_page(table: &serde_json::Value, wearers: Option<&mlua::Function>) -> serde_json::Value {
+    let worn_by = |id: u32| wearers.and_then(|wearers| wearers.call::<i64>(id).ok()).unwrap_or(0);
     serde_json::json!({
-        "intro": intro["TitleText"],
-        "menu": intro["MainMenuTitle"],
-        "tabs": tabs.into_iter().map(|(_, tab)| tab).collect::<Vec<_>>(),
-        "monsters": monsters,
-        "episode": quests("GuideEpisode"),
-        "quest": quests("GuideQuest"),
-        "dungeon": quests("GuideDungeon"),
-        "weapon": items("GuideWeapon"),
-        "armor": items("GuideArmor"),
-        // Which jobs each of those numbers stands for. The client has this compiled into it
-        // (`CJobCodeForItem::InitJobGroups` and `InitJobCodes`); the file is that table, written out from the
-        // decompiled client: `{"novices": [jobs], "codes": {"<number>": [jobs]}}`. 0xFFFFF is everyone, 0xFFFFE
-        // everyone but the novices.
-        "job_codes": serde_json::from_str::<serde_json::Value>(include_str!("job_codes.json")).unwrap_or_default(),
+        "kinds": kinds(table),
+        "list": entries(table, &|id, about| serde_json::json!({
+            "id": id, "kind": about["SubMenu"], "min": about["RequireMinLevel"], "max": about["RequireMaxLevel"],
+            "can": [about["Refining"] == 1, about["Enchant"] == 1, about["GradeEnchant"] == 1],
+            "from": lines(&about["ObtainGuide"]),
+            "jobs": worn_by(id),
+        })),
+    })
+}
+
+/// A page of quests, of an episode's parts or of dungeons: the entry is a tip of the client's tip box, shown by
+/// the tip's title and the first line of what it says (`CUIQuestInfo::SetTitle`: of a title like `Q Hello!(1)`
+/// only what is between the `Q` and the bracket; of any other, what stands before a `#`).
+fn quest_page(table: &serde_json::Value, tips: &std::collections::HashMap<u32, (String, String)>) -> serde_json::Value {
+    serde_json::json!({
+        "kinds": kinds(table),
+        "list": entries(table, &|id, about| {
+            let (title, says) = tips.get(&id).cloned().unwrap_or_else(|| (id.to_string(), String::new()));
+            let title = match (title.strip_prefix('Q'), title.rfind('(')) {
+                (Some(_), Some(bracket)) if bracket > 1 => title[1..bracket].trim().to_owned(),
+                _ => title.split('#').next().unwrap_or_default().trim().to_owned(),
+            };
+            serde_json::json!({
+                "id": id, "kind": about["SubMenu"], "min": about["RequireMinLevel"], "max": about["RequireMaxLevel"],
+                "title": title, "says": says.lines().next().map(plain).unwrap_or_default(),
+                "needs": about["Prerequisite"].as_str().map(plain).unwrap_or_default(),
+                "rewards": lines(&about["Reward"]),
+            })
+        }),
     })
 }
 

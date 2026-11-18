@@ -70,7 +70,7 @@ impl App {
         self.esc = 0;
         self.dialog = None;
         self.refresh_values();
-        self.refresh_dialog();
+        self.redraw(&[&wnd::DIALOG]);
         if same {
             // The map is already drawn: the character is only put elsewhere on it.
             world::jump((x, y));

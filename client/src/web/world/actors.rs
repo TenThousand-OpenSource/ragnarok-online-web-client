@@ -44,9 +44,10 @@ pub fn unit_shown(unit: &Unit) {
         let cell = (i32::from(unit.cell.0), i32::from(unit.cell.1));
         let mover = scene.units.entry(unit.id).or_insert_with(|| Mover::new(look.clone(), cell));
         mover.look = look;
-        // A player's own job and state: what it rides shows at once.
+        // Who it is (a monster's kind too: `crate::blow` asks), and a player's state: what it rides shows at once.
+        mover.job = unit.job;
         if unit.kind == Kind::Player {
-            (mover.job, mover.state) = (unit.job, unit.state);
+            mover.state = unit.state;
             mover.dress();
         }
         // What follows a # in the name of an NPC or a monster tells the server's scripts apart, and is not shown.
@@ -87,13 +88,13 @@ pub fn unit_life(id: u32, left: i32, most: i32) {
 }
 
 /// Something lies on the ground, or is gone from it.
-pub fn drop_shown(id: u32, item: u32, identified: bool, cell: (u16, u16), within: (u8, u8), falling: bool) {
+pub fn drop_shown(id: u32, (item, identified, count): (u32, bool, u16), cell: (u16, u16), within: (u8, u8), falling: bool) {
     STATE.with_borrow_mut(|state| {
         if let Some(scene) = &mut state.scene {
             // The thing lies where the server put it within its cell, in sixteenths from the cell's corner (the
             // client's `SubcellPosition`): things on one cell do not lie on top of each other.
             let at = (f32::from(cell.0) + f32::from(within.0) / 16.0 - 0.5, f32::from(cell.1) + f32::from(within.1) / 16.0 - 0.5);
-            scene.drops.insert(id, ((i32::from(cell.0), i32::from(cell.1)), item, at, identified));
+            scene.drops.insert(id, Lying { cell: (i32::from(cell.0), i32::from(cell.1)), item, at, identified, count });
             if falling {
                 scene.falls.insert(id, now());
             }

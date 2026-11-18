@@ -3,6 +3,7 @@
 use super::*;
 
 pub(super) fn moved(event: &MouseEvent) {
+    STATE.with_borrow_mut(|state| state.mouse = Some((event.client_x() as f32, event.client_y() as f32)));
     // With no button held, the pointer shows the name of whoever it is on.
     if event.buttons() == 0 {
         let over_world = event.target().and_then(|target| target.dyn_into::<web_sys::Element>().ok()).is_some_and(|target| target.id() == "game");

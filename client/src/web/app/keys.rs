@@ -132,12 +132,12 @@ impl App {
             },
             // A slot of the hotkey bar: the first table's places are the bar's slots, row after row.
             (Some((hotkeys::table::BAR, slot)), _) => {
-                self.use_it(&format!("slot:{slot}"));
+                self.use_it(Use::Slot(slot));
                 return true;
             }
             (_, "Escape") if self.bag.throwing.is_some() => {
                 self.bag.throwing = None;
-                self.refresh_throw();
+                self.redraw(&[&wnd::THROW]);
                 return true;
             }
             // Enter goes to the chat's line; from there it sends (the form does that).
@@ -157,10 +157,14 @@ impl App {
                 self.skills.aimed = None;
                 return true;
             }
-            // Escape opens the window of game options and closes it, unless an NPC is being talked to.
+            // Escape closes the window in front, and with none open it opens the window of game options (or
+            // closes that), unless an NPC is being talked to: the client's `UIWindowMgr`, at `VK_ESCAPE`.
             (_, "Escape") if !writing && self.dialog.is_none() => {
+                if self.close_front() {
+                    return true;
+                }
                 self.esc = u8::from(self.esc == 0);
-                self.refresh_dialog();
+                self.redraw(&[&wnd::DIALOG]);
                 return true;
             }
             (_, "Escape") if writing => {

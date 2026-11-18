@@ -112,6 +112,9 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
     // Sprites differ in how many actions they have: one too many starts over.
     let action = action % actions.actions.len().max(1);
     let shown = frame(&actions, action, frame_number)?;
+    STRIKES.with_borrow_mut(|strikes| {
+        strikes.entry(path.to_owned()).or_insert_with(|| lands_at(&actions));
+    });
     VOICES.with_borrow_mut(|voices| {
         voices.entry(path.to_owned()).or_insert_with(|| actions.actions.iter().map(|frames| frames.iter().map(|frame| frame.sound.and_then(|sound| actions.sounds.get(sound)).filter(|name| name.as_str() != "atk" && !name.is_empty()).cloned()).collect()).collect());
     });
@@ -190,6 +193,26 @@ pub fn timing(path: &str, action: usize) -> Option<(usize, f64)> {
     })
 }
 
+/// The frame at which the blow of each action of a sprite lands (`crate::blow::frame`).
+fn lands_at(actions: &crate::sprite::Act) -> Vec<usize> {
+    let named = |frame: &crate::sprite::Frame| frame.sound.and_then(|sound| actions.sounds.get(sound)).map(String::as_str);
+    actions.actions.iter().map(|frames| crate::blow::frame(frames.iter().map(named))).collect()
+}
+
+/// The frame of an action of a creature's sprite at which its blow lands, once the sprite has been read.
+pub fn strike_frame(path: &str, action: usize) -> Option<usize> {
+    STRIKES.with_borrow(|strikes| {
+        let actions = strikes.get(path)?;
+        actions.get(action % actions.len().max(1)).copied()
+    })
+}
+
+/// The frame of an action of a character's body at which its blow lands, once a figure of that job and sex has
+/// been put together.
+pub fn body_strike_frame(job: u16, sex: u8, action: usize) -> Option<usize> {
+    BODY_STRIKES.with_borrow(|strikes| strikes.get(&(job, sex))?.get(action).copied())
+}
+
 /// How many actions a sprite has, once it was read.
 pub fn actions_of(path: &str) -> Option<usize> {
     TIMES.with_borrow(|times| times.get(path).map(Vec::len))
@@ -230,12 +253,17 @@ thread_local! {
     static TIMES: RefCell<HashMap<String, Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
     /// By job and sex: how many frames each action of the body has, and how long each shows.
     static BODIES: RefCell<HashMap<(u16, u8), Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
+    /// By sprite path, and by job and sex: for each action, the frame at which its blow lands.
+    static STRIKES: RefCell<HashMap<String, Vec<usize>>> = RefCell::new(HashMap::new());
+    static BODY_STRIKES: RefCell<HashMap<(u16, u8), Vec<usize>>> = RefCell::new(HashMap::new());
     /// By sprite path: for each action, the sound each of its frames starts.
     static VOICES: RefCell<HashMap<String, Vec<Vec<Option<String>>>>> = RefCell::new(HashMap::new());
     static CREATURES: RefCell<HashMap<SpriteKey, Option<Picture>>> = RefCell::new(HashMap::new());
     /// Game files by path; `None` for one that is not there.
     static FILES: RefCell<HashMap<String, Option<Rc<Vec<u8>>>>> = RefCell::new(HashMap::new());
     static PAINTED: RefCell<HashMap<Figure, Rc<Canvas>>> = RefCell::new(HashMap::new());
+    /// By canvas on the page: the figure it is to show, and the picture it shows.
+    static ON_PAGE: RefCell<HashMap<String, (Figure, Option<Rc<Canvas>>)>> = RefCell::new(HashMap::new());
     /// Figures being put together right now.
     static PENDING: RefCell<std::collections::HashSet<Figure>> = RefCell::new(std::collections::HashSet::new());
 }
@@ -275,16 +303,38 @@ pub fn forget() {
 /// Paints the figure on the canvas element with that ID: at once if it was painted before, else once its files
 /// have arrived (if the element is still there then).
 pub fn paint(canvas_id: &str, figure: Figure) {
+    // Which figure this canvas is to show now: one asked for earlier and put together later does not take its
+    // place.
+    let before = ON_PAGE.with_borrow_mut(|on_page| {
+        let entry = on_page.entry(canvas_id.to_owned()).or_insert_with(|| (figure.clone(), None));
+        entry.0 = figure.clone();
+        entry.1.clone()
+    });
     if let Some(painted) = PAINTED.with_borrow(|painted| painted.get(&figure).cloned()) {
+        ON_PAGE.with_borrow_mut(|on_page| on_page.insert(canvas_id.to_owned(), (figure, Some(painted.clone()))));
         return show(canvas_id, &painted);
+    }
+    // Until the new one is put together (its files may be yet to come), the canvas, written anew with the page,
+    // shows what it showed last: the character does not blink away while another hair is fetched.
+    if let Some(before) = before {
+        show(canvas_id, &before);
     }
     let canvas_id = canvas_id.to_owned();
     wasm_bindgen_futures::spawn_local(async move {
         match compose(&figure).await {
             Ok(canvas) => {
                 let canvas = Rc::new(canvas);
-                PAINTED.with_borrow_mut(|painted| painted.insert(figure, canvas.clone()));
-                show(&canvas_id, &canvas);
+                PAINTED.with_borrow_mut(|painted| painted.insert(figure.clone(), canvas.clone()));
+                let wanted = ON_PAGE.with_borrow_mut(|on_page| match on_page.get_mut(&canvas_id) {
+                    Some((wanted, shown)) if *wanted == figure => {
+                        *shown = Some(canvas.clone());
+                        true
+                    }
+                    _ => false,
+                });
+                if wanted {
+                    show(&canvas_id, &canvas);
+                }
             }
             Err(error) if error == LATER => {}
             Err(error) => web_sys::console::warn_1(&format!("figure: {error}").into()),
@@ -298,6 +348,8 @@ fn show(canvas_id: &str, picture: &Canvas) {
     let Ok(Some(context)) = canvas.get_context("2d") else { return };
     let context: CanvasRenderingContext2d = context.unchecked_into();
     if let Ok(data) = ImageData::new_with_u8_clamped_array_and_sh(Clamped(&picture.rgba), picture.width as u32, picture.height as u32) {
+        // Whatever it showed before goes first: the pictures are not all of one size.
+        context.clear_rect(0.0, 0.0, f64::from(canvas.width()), f64::from(canvas.height()));
         let _ = context.put_image_data(&data, 0.0, 0.0);
     }
 }
@@ -345,6 +397,9 @@ async fn compose(figure: &Figure) -> Result<Canvas, String> {
     let (body_sprite, body_act) = sprite(&format!("data/sprite/{race}/몸통/{sex}/{job}_{sex}")).await?;
     BODIES.with_borrow_mut(|bodies| {
         bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
+    });
+    BODY_STRIKES.with_borrow_mut(|strikes| {
+        strikes.entry((figure.job, figure.sex)).or_insert_with(|| lands_at(&body_act));
     });
     let (head_sprite, head_act) = sprite(&format!("data/sprite/{race}/머리통/{sex}/{hair}_{sex}")).await?;
     // Colour 0 is the sprite's own; the others are palettes of their own.

@@ -57,10 +57,17 @@ pub(super) fn listen() {
     menu.forget();
 }
 
-/// Writes the skill being aimed and its level by the pointer, or takes that away when nothing is aimed.
+/// Writes the skill being aimed and its level by the pointer, or takes that away when nothing is aimed. The
+/// pointer of a skill and these words are the client's mouse pointer itself, drawn over everything: they show
+/// over the windows too (a skill aimed from the skill window is aimed with that window still open), which the
+/// page does for a root marked `data-aiming`.
 pub(super) fn aim_shown() {
+    let aiming = STATE.with_borrow(|state| state.aiming.is_some());
+    if let Some(root) = crate::web::document().and_then(|document| document.document_element()) {
+        let _ = if aiming { root.set_attribute("data-aiming", "") } else { root.remove_attribute("data-aiming") };
+    }
     let Some(label) = crate::web::by_id("aim") else { return };
-    let shown = STATE.with_borrow(|state| state.aiming.and(state.pointer).filter(|_| !state.aim_words.is_empty()).map(|at| (at, state.aim_words.clone())));
+    let shown = STATE.with_borrow(|state| state.aiming.and(state.mouse).filter(|_| !state.aim_words.is_empty()).map(|at| (at, state.aim_words.clone())));
     match shown {
         Some((at, words)) => {
             label.set_text_content(Some(&words));

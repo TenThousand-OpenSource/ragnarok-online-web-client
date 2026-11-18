@@ -6,4 +6,5 @@ pub mod grf;
 pub mod images;
 pub mod limiter;
 pub mod mapcache;
+pub mod public;
 pub mod tables;

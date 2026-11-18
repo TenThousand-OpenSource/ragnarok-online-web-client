@@ -32,25 +32,44 @@ pub(super) fn ground(state: &State, view: &View, time: f64) -> (Vec<f32>, Vec<f3
 /// rises, and fades over 80.
 pub(super) fn numbers(state: &mut State, time: f64) -> Vec<(SpriteKey, Vector, f32, f32, f32)> {
     let Some(gpu) = &mut state.gpu else { return Vec::new() };
-    state.flying.retain(|flying| (time - flying.began) / EFFECT_FRAME_MS <= if flying.miss { 80.0 } else { 70.0 });
+    state.flying.retain(|flying| (time - flying.began) / EFFECT_FRAME_MS <= if flying.flight == Flight::Miss { 80.0 } else { 70.0 });
     let mut numbers = Vec::new();
     for flying in &state.flying {
         let elapsed = ((time - flying.began) / EFFECT_FRAME_MS) as f32;
-        let (at, scale, alpha) = if flying.miss {
-            (along(flying.base, [0.0, 1.0, 0.0], 12.0 + elapsed * 0.54), 1.0, (250.0 - elapsed * 3.0) / 255.0)
-        } else {
+        // What rises and falls back as it drifts (the client's `MsgEffectDrift`).
+        let drifting = || {
             let aside = elapsed / 3.0 + 3.0;
             let up = 12.0 - 8.0 + (2.0 - elapsed / 30.0) * elapsed;
-            ([flying.base[0] + flying.drift.0 * aside, flying.base[1] + up, flying.base[2] + flying.drift.1 * aside], (5.0 - elapsed * 0.24).max(1.2), (250.0 - elapsed * 3.4) / 255.0)
+            [flying.base[0] + flying.drift.0 * aside, flying.base[1] + up, flying.base[2] + flying.drift.1 * aside]
         };
-        let mut across = 0.0;
-        for key in &flying.pictures {
-            if !gpu.has_sprite(key) {
-                continue;
+        // Where it is, how large and how much of it is left: each kind by the client's own figures
+        // (`CMsgEffect::OnProcess`).
+        let (at, scale, alpha) = match flying.flight {
+            Flight::Miss => (along(flying.base, [0.0, 1.0, 0.0], 12.0 + elapsed * 0.54), 1.0, (250.0 - elapsed * 3.0) / 255.0),
+            Flight::Number => (drifting(), (5.0 - elapsed * 0.24).max(1.2), (250.0 - elapsed * 3.4) / 255.0),
+            Flight::Critical => (drifting(), (5.0 - elapsed * 0.24).max(1.3), (250.0 - elapsed * 3.4) / 255.0),
+            Flight::Mark => (drifting(), (3.0 - elapsed * 0.24 * 0.6).max(1.0), (255.0 - elapsed * 3.45) / 255.0),
+        };
+        // The mark runs through the pictures of its action, one every two frames, and stays on the last.
+        if flying.flight == Flight::Mark {
+            if let Some(SpriteKey::Creature(sprite, action, _)) = flying.pictures.first() {
+                // The sprite's own name, without the colour it is tinted with.
+                let last = figure::frames_of(sprite.split('#').next().unwrap_or(sprite), *action).map_or(0, |frames| frames.saturating_sub(1));
+                let key = SpriteKey::Creature(sprite.clone(), *action, ((elapsed * 0.5) as usize).min(last));
+                if gpu.has_sprite(&key) {
+                    numbers.push((key, at, scale, alpha, 0.0));
+                }
             }
-            let wide = gpu.sprite_textures[key].size.0;
-            numbers.push((key.clone(), at, scale, alpha, across - (flying.pictures.len() as f32 - 1.0) * wide * 0.4));
-            across += wide * 0.8;
+            continue;
+        }
+        // Each digit stands 8 pixels of the sprite from the next, whatever its own width, the number's middle on
+        // its place (the client's `CGameActor::MakeNumber`: the digit `index` places from the last is put
+        // `(count - index * 2) * 4 - 4` across, and that grows with the number as it is drawn larger).
+        let count = flying.pictures.len();
+        for (place, key) in flying.pictures.iter().enumerate() {
+            if gpu.has_sprite(key) {
+                numbers.push((key.clone(), at, scale, alpha, crate::blow::digit_across(count, count - 1 - place)));
+            }
         }
     }
     numbers

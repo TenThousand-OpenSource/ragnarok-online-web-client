@@ -1,12 +1,13 @@
 //! The Status window: the six stats, what they give, and the points to raise them.
 
 use super::*;
+use crate::press::status::Press;
 
 impl App {
     pub(in crate::web) fn status_window(&self) -> String {
         let width = 280;
         let mut window = title_bar(width, "Status");
-        window.push_str(&button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "status", ""));
+        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
         window.push_str(&art("statuswnd/w_statwin_bg.bmp", 0, 17, 280, 124));
         let points = self.value(parameter::STATUS_POINTS);
         for stat in 0..6u16 {
@@ -18,7 +19,7 @@ impl App {
             }
             // A stat can be raised while the points for it are there.
             if cost > 0 && cost <= points {
-                window.push_str(&button(78, top + 1, 11, "basic_interface/arw_right.bmp", "basic_interface/arw_right.bmp", "raise", &stat.to_string()));
+                window.push_str(&press_button(78, top + 1, 11, "basic_interface/arw_right.bmp", "basic_interface/arw_right.bmp", Press::Raise(stat)));
             }
             if cost > 0 {
                 window.push_str(&text_ending(101, width, top, BLACK, &cost.to_string()));

@@ -3,23 +3,24 @@
 use super::*;
 
 impl App {
-    /// What a press on one of these does; `false` when the thing pressed is not of this kind.
-    pub(super) fn chat_click(&mut self, what: &str, arg: &str) -> bool {
-        match what {
-            "chat-tab" => {
-                self.chat.tab = arg.parse().unwrap_or(0);
+    /// A press of this system (`crate::press::chat`).
+    pub(super) fn chat_pressed(&mut self, press: crate::press::chat::Press) {
+        use crate::press::chat::Press;
+        match press {
+            Press::Tab(tab) => {
+                self.chat.tab = tab;
                 self.render();
             }
-            "chat-lock" => {
+            Press::Lock => {
                 self.chat.locked = !self.chat.locked;
                 self.render();
             }
-            "chat-size" => {
+            Press::Size => {
                 self.chat_resize();
                 self.render();
             }
             // Hides the log, leaving the input line, or brings it back as tall as it was.
-            "chat-mini" => {
+            Press::Mini => {
                 if self.chat.rows > 0 {
                     self.chat.rows_kept = self.chat.rows;
                     self.chat.rows = 0;
@@ -28,8 +29,6 @@ impl App {
                 }
                 self.render();
             }
-            _ => return false,
         }
-        true
     }
 }

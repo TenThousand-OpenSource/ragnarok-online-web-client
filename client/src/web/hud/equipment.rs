@@ -1,6 +1,7 @@
 //! The Equipment window: what is worn, around the character.
 
 use super::*;
+use crate::press::inventory::Press;
 
 impl App {
     /// What the character wears, laid out as the original's window (its sizes as rustnarok-client lists them):
@@ -9,7 +10,7 @@ impl App {
         // Where a thing is worn (the server's bits) and where that shows: column and row.
         const PLACES: [(u32, i32, i32); 10] = [(256, 0, 0), (512, 1, 0), (1, 0, 1), (16, 1, 1), (2, 0, 2), (32, 1, 2), (4, 0, 3), (64, 1, 3), (8, 0, 4), (128, 1, 4)];
         let mut window = title_bar(280, "Equipment");
-        window.push_str(&button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "equipment", ""));
+        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Equipment));
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 280, 20)));
         window.push_str(&art("basic_interface/equipwin_bg2.bmp", 0, 37, 280, 150));
         // The character stands on the shadow drawn into the picture.
@@ -26,9 +27,10 @@ impl App {
         if let (_, Some(says)) = crate::mounts::off(self.hero.state) {
             let tip = data::message(says).map(|line| format!(r#" data-tip="{}""#, escape(tr(&line)))).unwrap_or_default();
             window.push_str(&format!(
-                r#"<button type="button" class="a" style="{};border:0;padding:0;background:url('{}') no-repeat" data-click="mount-off"{tip}></button>"#,
+                r#"<button type="button" class="a" style="{};border:0;padding:0;background:url('{}') no-repeat" {}{tip}></button>"#,
                 at(122, 127, 36, 36),
-                picture("basic_interface/btn_off.bmp")
+                picture("basic_interface/btn_off.bmp"),
+                pressed(Press::MountOff)
             ));
         }
         for (place, column, row) in PLACES {
@@ -37,10 +39,10 @@ impl App {
             let resource = data::item(item.id).map(|(_, resource)| resource);
             let (icon_x, name_x) = if column == 0 { (6, 33) } else { (251, 172) };
             window.push_str(&format!(
-                r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" data-use="item:{}" data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
+                r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" {} data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
                    <div class="a t" style="left:{name_x}px;top:{}px;width:74px;line-height:12px;white-space:normal;overflow:hidden;max-height:24px;{}">{}</div>"#,
                 38 + row * 26,
-                item.index,
+                used(Use::Item(item.index)),
                 item.id,
                 escape(&Self::item_name(item)),
                 Self::icon(resource.as_deref()),
@@ -54,9 +56,9 @@ impl App {
         if let Some(item) = self.bag.items.iter().find(|item| item.kind == 10 && item.worn != 0) {
             let resource = data::item(item.id).map(|(_, resource)| resource);
             window.push_str(&format!(
-                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" data-use="item:{}" data-info="{}" title="{} : {} {}"><div style="position:absolute;left:-4px;top:-4px">{}</div><span class="n">{}</span></div>
+                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{} : {} {}"><div style="position:absolute;left:-4px;top:-4px">{}</div><span class="n">{}</span></div>
                    <div class="a t" style="left:107px;top:88px;width:40px;line-height:12px;text-align:center;white-space:nowrap;overflow:hidden">{}</div>"#,
-                item.index,
+                used(Use::Item(item.index)),
                 item.id,
                 escape(&Self::item_name(item)),
                 item.amount,

@@ -8,6 +8,8 @@
 
 use super::app::{App, Ask, Game, Screen, epoch, escape};
 use super::{data, figure};
+use super::parts::{at, picture, pressed, sent};
+use crate::press::things::Form;
 use crate::i18n::{Key, Lang};
 use crate::net::packets::Character;
 
@@ -20,7 +22,6 @@ pub(super) use game::*;
 /// The name shown over the login picture.
 pub const SERVER_NAME: &str = "Ragnarok 2026";
 
-const UI: &str = "data/texture/유저인터페이스/";
 /// The login picture of this client, stretched over the whole view as the original does.
 pub const WALLPAPER: &str = "data/texture/유저인터페이스/t_login.jpg";
 
@@ -36,17 +37,9 @@ const SPEAKER_ON: &str = r#"<svg viewBox="0 0 16 16" width="14" height="14" aria
 const SPEAKER_OFF: &str = r#"<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M11.2 6l3.6 4M14.8 6l-3.6 4"/></svg>"#;
 
 /// The URL of one of the interface's pictures, as a PNG.
-fn picture(name: &str) -> String {
-    format!("/image/{}", String::from(js_sys::encode_uri(&format!("{UI}{name}"))))
-}
-
 /// One of the eight pictures of the frame around a chosen character.
 pub(super) fn chosen_frame(frame: u8) -> String {
     picture(&format!("select_character_ver3/img_slot_select{frame}.bmp"))
-}
-
-fn at(x: i32, y: i32, width: i32, height: i32) -> String {
-    format!("left:{x}px;top:{y}px;width:{width}px;height:{height}px")
 }
 
 fn background(name: &str) -> String {
@@ -70,10 +63,6 @@ fn states_ab(base: &str) -> String {
 
 fn button(place: &str, pictures: &str, attributes: &str, label: &str) -> String {
     format!(r#"<button type="button" class="a b" style="{place};{pictures}" {attributes}>{label}</button>"#)
-}
-
-fn click(what: &str, arg: impl std::fmt::Display) -> String {
-    format!(r#"data-click="{what}" data-arg="{arg}""#)
 }
 
 /// A window of the original's size at the original's place, shrunk to fit a smaller view.
@@ -116,7 +105,7 @@ impl App {
         };
         let languages: String = Lang::ALL
             .into_iter()
-            .map(|lang| format!(r#"<button type="button" class="{}" {}>{}</button>"#, if lang == self.lang { "on" } else { "" }, click("lang", lang.code()), lang.code().to_uppercase()))
+            .map(|lang| format!(r#"<button type="button" class="{}" {}>{}</button>"#, if lang == self.lang { "on" } else { "" }, pressed(crate::press::general::Press::Language(lang)), lang.code().to_uppercase()))
             .collect();
         // The server's name stands over the login picture; the larger windows cover that place.
         let titled = matches!(self.screen, Screen::Login | Screen::ServerSelect | Screen::Register | Screen::Recover | Screen::Reset(_));
@@ -126,12 +115,12 @@ impl App {
             if self.sound { "on" } else { "" },
             self.text(Key::Sound),
             self.text(Key::Sound),
-            click("sound", ""),
+            pressed(crate::press::general::Press::Sound),
             if self.sound { SPEAKER_ON } else { SPEAKER_OFF }
         );
         let hint = if self.music_held { format!(r#"<span class="hint">{}</span>"#, self.text(Key::SoundHint)) } else { String::new() };
         // Leaving the game: the original has this in its Esc menu, which is not made yet.
-        let leave = if matches!(self.screen, Screen::Game) { format!(r#"<button type="button" {}>{}</button>"#, click("logout", ""), self.text(Key::LogOut)) } else { String::new() };
+        let leave = if matches!(self.screen, Screen::Game) { format!(r#"<button type="button" {}>{}</button>"#, pressed(crate::press::account::Press::Logout), self.text(Key::LogOut)) } else { String::new() };
         // In the game the corner is the minimap's, as in the client: leaving is in the window of game options
         // (Escape), the sound and the language in Game Settings.
         if matches!(self.screen, Screen::Game) {
@@ -148,7 +137,7 @@ impl App {
                 r#"<p class="a" style="{}">{}</p>{}"#,
                 at(20, 40, 240, 52),
                 escape(message),
-                button(&at(235, 96, 42, 20), &states_ab("btn_ok"), &format!("{} autofocus", click("ok", "")), "")
+                button(&at(235, 96, 42, 20), &states_ab("btn_ok"), &format!("{} autofocus", pressed(crate::press::general::Press::Ok)), "")
             )
         } else if let Some(ask) = self.ask {
             let name = |char_id: u32| self.characters.iter().find(|character| character.char_id == char_id).map(|character| escape(&character.name)).unwrap_or_default();
@@ -169,15 +158,15 @@ impl App {
             format!(
                 r#"<p class="a tight" style="{}">{text}</p>{field}{}{}"#,
                 at(14, 24, 252, 66),
-                button(&at(189, 96, 42, 20), &states_ab("btn_ok"), &format!("{} {focus}", click("yes", "")), ""),
-                button(&at(235, 96, 42, 20), &states_ab("btn_cancel"), &click("no", ""), "")
+                button(&at(189, 96, 42, 20), &states_ab("btn_ok"), &format!("{} {focus}", pressed(crate::press::account::Press::Yes)), ""),
+                button(&at(235, 96, 42, 20), &states_ab("btn_cancel"), &pressed(crate::press::account::Press::No), "")
             )
         } else if let Some(wait) = self.wait {
             format!(
                 r#"<p class="a" style="{}">{}</p>{}"#,
                 at(10, 22, 260, 60),
                 self.text(wait),
-                button(&at(119, 95, 42, 20), &states_ab("btn_cancel"), &click("cancel-wait", ""), "")
+                button(&at(119, 95, 42, 20), &states_ab("btn_cancel"), &pressed(crate::press::account::Press::CancelWait), "")
             )
         } else {
             return String::new();

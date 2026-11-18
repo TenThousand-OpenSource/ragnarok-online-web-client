@@ -1,6 +1,8 @@
 //! Accounts, for players who have none or lost their password: the game protocol itself has neither.
 //!
-//! - `POST /api/register` (`userid`, `password`, `email`, `sex`): makes an account in rAthena's `login` table.
+//! - `POST /api/register` (`userid`, `password`, `email`): makes an account in rAthena's `login` table. The
+//!   table wants a sex for the account; nothing asks the player for one, because with this client each
+//!   character has its own, chosen as it is made (`CH_MAKE_CHAR`, 0x0a39), and the account's is used for nothing.
 //! - `POST /api/recover` (`userid`, `email`): e-mails a link to set a new password, if the two match an account.
 //! - `POST /api/reset` (`token`, `password`): sets the new password with the token from that link.
 //!
@@ -151,7 +153,6 @@ struct RegisterForm {
     userid: String,
     password: String,
     email: String,
-    sex: String,
 }
 
 async fn register(State(accounts): State<Arc<Accounts>>, ConnectInfo(peer): ConnectInfo<SocketAddr>, headers: HeaderMap, Form(form): Form<RegisterForm>) -> Response {
@@ -162,10 +163,6 @@ async fn register(State(accounts): State<Arc<Accounts>>, ConnectInfo(peer): Conn
     if let Some(wait) = accounts.register.blocked_for(&address, Instant::now()) {
         return too_many(wait);
     }
-    let sex = match form.sex.as_str() {
-        "M" | "F" => form.sex.as_str(),
-        _ => return answer(StatusCode::BAD_REQUEST, "Please choose a sex.").into_response(),
-    };
     if let Err(problem) = valid_id(&form.userid).and(valid_password(&form.password)).and(valid_email(&form.email)) {
         return answer(StatusCode::BAD_REQUEST, problem).into_response();
     }
@@ -175,11 +172,10 @@ async fn register(State(accounts): State<Arc<Accounts>>, ConnectInfo(peer): Conn
     // One statement, so two requests for the same ID cannot both pass the check.
     let inserted = sqlx::query(
         "INSERT INTO `login` (`userid`, `user_pass`, `sex`, `email`) \
-         SELECT ?, MD5(?), ?, ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `login` WHERE `userid` = ?)",
+         SELECT ?, MD5(?), 'M', ? FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `login` WHERE `userid` = ?)",
     )
     .bind(&form.userid)
     .bind(&form.password)
-    .bind(sex)
     .bind(&form.email)
     .bind(&form.userid)
     .execute(&accounts.db)

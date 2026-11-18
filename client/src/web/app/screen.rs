@@ -22,10 +22,7 @@ impl App {
 
     pub(in super::super) fn render(&self) {
         let Ok(ui) = ui() else { return };
-        let view = web_sys::window().map_or((1024.0, 768.0), |window| {
-            let size = |value: Result<JsValue, JsValue>, fallback: f64| value.ok().and_then(|value| value.as_f64()).unwrap_or(fallback);
-            (size(window.inner_width(), 1024.0), size(window.inner_height(), 768.0))
-        });
+        let view = crate::web::page_size();
         // A window redrawn (a message shown, the view resized) keeps what was typed into it.
         let typed = KEPT_FIELDS.map(|id| (id, field(id)));
         // The windows are laid out for the original client's screen, 1024 by 768, and enlarged together on a
@@ -61,6 +58,7 @@ impl App {
         }
         self.paint_figures();
         place_moved();
+        self.order_windows();
     }
 
     pub(in super::super) fn paint_figures(&self) {

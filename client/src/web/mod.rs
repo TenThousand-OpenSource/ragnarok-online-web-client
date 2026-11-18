@@ -4,6 +4,7 @@ mod app;
 mod data;
 mod figure;
 mod hud;
+mod parts;
 mod socket;
 mod sound;
 mod view;
@@ -47,6 +48,19 @@ pub(crate) fn document() -> Option<web_sys::Document> {
 /// The thing on the page with that ID.
 pub(crate) fn by_id(id: &str) -> Option<web_sys::Element> {
     document()?.get_element_by_id(id)
+}
+
+/// How wide and tall the page is, in its pixels (1024 by 768 where the browser will not say).
+pub(crate) fn page_size() -> (f64, f64) {
+    let size = |value: Result<JsValue, JsValue>, otherwise: f64| value.ok().and_then(|value| value.as_f64()).unwrap_or(otherwise);
+    web_sys::window().map_or((1024.0, 768.0), |window| (size(window.inner_width(), 1024.0), size(window.inner_height(), 768.0)))
+}
+
+/// How much the stage is enlarged on a page larger than the client's 1024 by 768: by the lesser of the two
+/// sides, never made smaller.
+pub(crate) fn stage_scale() -> f64 {
+    let (wide, tall) = page_size();
+    (wide / 1024.0).min(tall / 768.0).max(1.0)
 }
 
 fn js_error(value: impl Into<JsValue>) -> String {

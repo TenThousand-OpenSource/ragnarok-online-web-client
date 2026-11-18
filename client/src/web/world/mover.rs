@@ -51,7 +51,15 @@ impl Scene {
 
 impl Mover {
     pub(super) fn new(look: Look, cell: (i32, i32)) -> Self {
-        Self { look, name: String::new(), lively: false, companion: false, cell, at: (cell.0 as f32, cell.1 as f32), facing: 0, walk: None, speed: DEFAULT_SPEED, shown: None, sitting: false, dead: false, dying: None, says: None, emotion: None, life: None, heard: None, motion: None, casting: None }
+        let job = if let Look::Character(figure) = &look { figure.job } else { 0 };
+        Self { look, job, state: 0, name: String::new(), lively: false, companion: false, cell, at: (cell.0 as f32, cell.1 as f32), facing: 0, walk: None, speed: DEFAULT_SPEED, shown: None, sitting: false, dead: false, dying: None, says: None, emotion: None, life: None, heard: None, motion: None, casting: None }
+    }
+
+    /// Dresses a character as its job is drawn in the state it is in: on its mount, in its machine.
+    pub(super) fn dress(&mut self) {
+        if let Look::Character(figure) = &mut self.look {
+            figure.job = crate::mounts::drawn_job(self.job, self.state);
+        }
     }
 
     /// Starts a walk from one cell to another, along the path this map gives.

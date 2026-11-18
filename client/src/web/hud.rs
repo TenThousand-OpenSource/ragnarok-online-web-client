@@ -221,7 +221,7 @@ impl App {
         };
         let obtained = format!(r#"<div id="obtained" class="a" style="left:{}px;top:{}px;width:260px;pointer-events:none">{}</div>"#, (view.0 as i32 - 260) / 2, 75, self.obtained_note());
         // The menu hangs under the basic window, a little into it.
-        let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, if self.hero.basic_small { 55 } else { 134 } - 4, self.menu_icons());
+        let menu = format!(r#"<div id="menu" class="a hud" style="left:0;top:{}px;width:220px">{}</div>"#, self.basic_height() - 4, self.menu_icons());
         format!(
             r#"<div id="basic" class="a hud" style="left:0;top:0;width:220px">{}</div>{menu}{hotkeys}{status}{inventory}{skills}{storage}{equipment}{dialog}{trade}{info}{obtained}{throw}{taming}{eggs}{identify}{pet}{keys}{settings}{guide}{pet_menu}
                <div id="chat" class="a hud" data-locked="{}" style="{}">{}</div>"#,

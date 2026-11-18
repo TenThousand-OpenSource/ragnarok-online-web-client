@@ -36,6 +36,16 @@ impl App {
                 }
             }
             units::ZC_NOTIFY_VANISH => self.unit_vanished(packet),
+            units::ZC_STATE_CHANGE => {
+                if let Some((who, bits)) = units::state_changed(packet) {
+                    let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
+                    world::stated((!own).then_some(who), bits, None);
+                    if own {
+                        self.hero.state = bits;
+                        self.render();
+                    }
+                }
+            }
             // ZC_NPCSPRITE_CHANGE (0x01b0): `u32 who, u8 kind, u32 class`. A monster becomes another (the server has
             // a Fabre turn into a Pupa and a Pupa into a Creamy by itself, as a skill of theirs).
             0x01b0 => {
@@ -122,6 +132,14 @@ impl App {
             let char_id = self.zone.as_ref().map(|zone| zone.char_id);
             if let Some(character) = self.characters.iter_mut().find(|character| own && Some(character.char_id) == char_id) {
                 match kind {
+                    // The job changed: the character, its name in the Basic Information window and its
+                    // pages of skills are those of the new one.
+                    0 => {
+                        character.job = value as u16;
+                        if let Some(game) = &mut self.game {
+                            game.job = value as u16;
+                        }
+                    }
                     1 => character.hair_style = value as _,
                     3 => character.headgear[0] = value as u16,
                     4 => character.headgear[1] = value as u16,
@@ -131,6 +149,7 @@ impl App {
                     _ => {}
                 }
                 self.refresh_items();
+                self.refresh_values();
             }
         }
     }

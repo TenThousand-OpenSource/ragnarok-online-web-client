@@ -7,6 +7,33 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn status_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
+            // ZC_MSG_STATE_CHANGE (0x0196) and its later form with a time (0x0983): `u16 status, u32 who, u8 on, …`.
+            // A status goes on or off. Two of them say what someone rides, which is how the server tells a
+            // player of its own mount as it comes into a map: riding (27: a bird or a dragon, by the job) and
+            // riding a wolf (357).
+            0x0196 | 0x0983 => {
+                if let (Some(status), Some(who), Some(&on)) = (packet.get(2..4), packet.get(4..8), packet.get(8)) {
+                    let who = u32::from_le_bytes([who[0], who[1], who[2], who[3]]);
+                    // The bits of the state the client's table of mounts goes by: 5 a bird, 19 a dragon, 21 a wolf.
+                    let mask = match u16::from_le_bytes([status[0], status[1]]) {
+                        27 => 1 << 5 | 1 << 19,
+                        357 => 1 << 21,
+                        _ => 0,
+                    };
+                    if mask != 0 {
+                        let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
+                        world::stated((!own).then_some(who), if on != 0 { mask } else { 0 }, Some(mask));
+                        if own {
+                            // The character's own state keeps the one bit its job rides by: a dragon if the
+                            // client's table has one for the job, else a bird.
+                            let job = self.own_figure().job;
+                            let rides = if mask == 1 << 21 || crate::mounts::drawn_job(job, 1 << 19) == job { mask & !(1 << 19) } else { 1 << 19 };
+                            self.hero.state = self.hero.state & !mask | if on != 0 { rides } else { 0 };
+                            self.render();
+                        }
+                    }
+                }
+            }
             0x019b => self.level_gained(id, packet),
             // ZC_USER_COUNT (0x00c2): `u32 count`: how many play on the server. It is shown by the chat's tabs.
             0x00c2 => {

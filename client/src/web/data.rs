@@ -74,7 +74,7 @@ fn field(object: &wasm_bindgen::JsValue, name: &str) -> wasm_bindgen::JsValue {
 /// built-in names and nobody wears headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=18").await?;
+    let tables = fetch_json("/tables.json?v=19").await?;
     jobs::read(&tables);
     skills::read(&tables);
     pets::read(&tables);

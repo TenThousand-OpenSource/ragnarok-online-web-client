@@ -9,10 +9,12 @@ pub(super) fn skill_tree(grf: &Grf) -> serde_json::Map<String, serde_json::Value
     let lua = run(grf, &["skillinfoz\\jobinheritlist", "skillinfoz\\skillid", "skillinfoz\\skilltreeview"]);
     let mut tree = serde_json::Map::new();
     let Ok(views) = lua.globals().get::<Table>("SKILL_TREEVIEW_FOR_JOB") else { return tree };
-    let inherits = lua.globals().get::<Table>("JOB_INHERIT_LIST").ok();
+    // Which job each grew out of, as the client reads it (`job_inherits`): the high form of a third job, which
+    // has no page of its own, gives way to the plain one.
+    let inherits = job_inherits(grf);
     for (job, slots) in views.pairs::<i64, Table>().flatten() {
         let slots: serde_json::Map<String, serde_json::Value> = slots.pairs::<i64, i64>().flatten().map(|(place, skill)| (place.to_string(), skill.into())).collect();
-        let from = inherits.as_ref().and_then(|inherits| inherits.get::<i64>(job).ok());
+        let from = inherits.get(&job.to_string()).and_then(serde_json::Value::as_i64);
         tree.insert(job.to_string(), serde_json::json!({ "from": from, "slots": slots }));
     }
     tree

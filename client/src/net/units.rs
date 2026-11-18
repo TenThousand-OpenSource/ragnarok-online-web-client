@@ -10,6 +10,14 @@ pub const ZC_NOTIFY_NEWENTRY: u16 = 0x09fe;
 /// A unit that is walking: one that walks into sight, or one in sight that starts to walk.
 pub const ZC_NOTIFY_MOVEENTRY: u16 = 0x09fd;
 pub const ZC_NOTIFY_VANISH: u16 = 0x0080;
+/// ZC_STATE_CHANGE (0x0229): `u32 id, u16 body state, u16 health state, u32 effect state, u8 pk`. Someone's
+/// state changed: the effect state says what they ride, among other things.
+pub const ZC_STATE_CHANGE: u16 = 0x0229;
+
+/// Whose state changed, and the bits of the state they are in now.
+pub fn state_changed(packet: &[u8]) -> Option<(u32, u32)> {
+    (packet.len() >= 14).then(|| (u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]), u32::from_le_bytes([packet[10], packet[11], packet[12], packet[13]])))
+}
 
 fn u16_at(bytes: &[u8], at: usize) -> u16 {
     u16::from_le_bytes([bytes[at], bytes[at + 1]])
@@ -35,6 +43,8 @@ pub struct Unit {
     pub kind: Kind,
     /// The job of a player, or the number of a monster's or an NPC's sprite.
     pub job: u16,
+    /// The bits of the state it is in (the server's `option`): mounted, hidden, and so on.
+    pub state: u32,
     /// Milliseconds per cell walked.
     pub speed: u16,
     pub sex: u8,
@@ -99,6 +109,7 @@ pub fn unit(id: u16, packet: &[u8]) -> Option<Unit> {
         kind: kind(packet[4]),
         speed: u16_at(packet, 13),
         job: u16_at(packet, 23),
+        state: u32_at(packet, 19),
         hair_style: u16_at(packet, 25),
         headgear: [u16_at(packet, 35), u16_at(packet, after_headgear), u16_at(packet, after_headgear + 2)],
         hair_colour: u16_at(packet, after_headgear + 4),

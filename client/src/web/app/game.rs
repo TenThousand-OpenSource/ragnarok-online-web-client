@@ -237,6 +237,12 @@ impl App {
         }
     }
 
+    /// The same as the windows show it: on its mount, in its machine, by the state it is in.
+    pub(in super::super) fn shown_figure(&self) -> Figure {
+        let figure = self.own_figure();
+        Figure { job: crate::mounts::drawn_job(figure.job, self.hero.state), ..figure }
+    }
+
     /// Draws the map the character is on. The wait box stays until it shows.
     pub(super) fn enter_world(&mut self) {
         let (Some(game), Some(zone)) = (&self.game, &self.zone) else { return };

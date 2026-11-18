@@ -56,6 +56,9 @@ pub mod parameter {
     /// The six stats follow each other from here: Str, Agi, Vit, Int, Dex, Luk.
     pub const STR: u16 = 13;
     pub const ZENY: u16 = 20;
+    /// Activity Points, which the fourth jobs have, and the most of them.
+    pub const AP: u16 = 232;
+    pub const MAX_AP: u16 = 233;
     pub const NEXT_BASE_EXP: u16 = 22;
     pub const NEXT_JOB_EXP: u16 = 23;
     /// Tenths of a unit of weight.

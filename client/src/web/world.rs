@@ -182,6 +182,10 @@ enum Look {
 /// Someone on the map: the player's own character, another player, an NPC or a monster.
 struct Mover {
     look: Look,
+    /// A character's own job and the bits of the state it is in: the job its look is drawn as follows from the
+    /// two (`crate::mounts`).
+    job: u16,
+    state: u32,
     name: String,
     /// Whether it moves while standing still, as monsters do.
     lively: bool,

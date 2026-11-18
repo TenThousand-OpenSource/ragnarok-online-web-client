@@ -35,6 +35,8 @@ impl App {
                 self.bag.throwing = None;
                 self.refresh_throw();
             }
+            // CZ_UNINSTALLATION (0x0b35): `u8 what`. The Equipment window's "off" button.
+            "mount-off" => self.send_on_map(&[0x35, 0x0b, crate::mounts::off(self.hero.state).0]),
             "equipment" => {
                 self.bag.equipment_open = !self.bag.equipment_open;
                 self.render();

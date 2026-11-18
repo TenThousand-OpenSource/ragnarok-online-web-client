@@ -1,0 +1,43 @@
+# What a job is drawn as in a state (mounted, in its machine, in the air, dressed for a wedding), as the
+# original client (Ragexe 2026-02-19) has it: its `CGameActor::GetEffectiveJob`, written out by
+# tools/client-tables/job_mounts.py. Bit of the state, job (* for any), the job drawn; the first that fits holds.
+12	*	22
+16	*	26
+18	*	27
+27	*	28
+28	*	29
+5	7	13
+5	14	21
+5	4008	4014
+5	4015	4022
+5	4030	4036
+5	4037	4044
+5	4066	4082
+5	4073	4083
+5	4102	4110
+5	4258	4281
+19	4054	4080
+19	4060	4081
+19	4096	4109
+19	4252	4280
+23	4054	4088
+23	4060	4089
+24	4054	4090
+24	4060	4091
+25	4054	4092
+25	4060	4093
+26	4054	4094
+26	4060	4095
+21	4056	4084
+21	4062	4085
+21	4098	4111
+21	4257	4278
+22	4058	4086
+22	4064	4087
+22	4100	4112
+22	4253	4279
+15	4047	4048
+15	4226	4238
+15	4239	4243
+15	4241	4244
+15	4302	4316

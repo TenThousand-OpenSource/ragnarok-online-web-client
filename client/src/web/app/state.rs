@@ -116,6 +116,8 @@ pub(in crate::web) struct Hero {
     /// The character lies dead, until it is returned to its save point.
     pub dead: bool,
     pub sitting: bool,
+    /// The bits of the state the character is in (the server's `option`): what it rides.
+    pub state: u32,
     /// Basic Information is in its small form; the Status window is open.
     pub basic_small: bool,
     pub status_open: bool,

@@ -19,6 +19,18 @@ impl App {
             super::super::figure::WIDTH,
             super::super::figure::HEIGHT
         ));
+        // The "off" button under the character (the client's `UIEquipWnd`: `btn_off.bmp`, 36 square, 18 left of the
+        // window's middle and 40 above its 167): it takes the character off its mount or out of its machine, or
+        // lets its falcon go, and says which when pointed at. It is there only while there is one of those to
+        // take away (the client's `IsEquipViewHidden` moves it out of the window otherwise).
+        if let (_, Some(says)) = crate::mounts::off(self.hero.state) {
+            let tip = data::message(says).map(|line| format!(r#" data-tip="{}""#, escape(tr(&line)))).unwrap_or_default();
+            window.push_str(&format!(
+                r#"<button type="button" class="a" style="{};border:0;padding:0;background:url('{}') no-repeat" data-click="mount-off"{tip}></button>"#,
+                at(122, 127, 36, 36),
+                picture("basic_interface/btn_off.bmp")
+            ));
+        }
         for (place, column, row) in PLACES {
             // A thing worn in two places (a two-handed weapon) shows in both.
             let Some(item) = self.bag.items.iter().find(|item| item.worn & place != 0) else { continue };

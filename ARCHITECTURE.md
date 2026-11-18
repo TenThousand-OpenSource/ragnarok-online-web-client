@@ -44,6 +44,7 @@ client/src/
   model.rs          .rsw / .rsm: what stands on a map (its matrices in model/matrix.rs)
   effect.rs         .str: the client's effect files, frame by frame
   cursor.rs         the game's mouse pointer: which of its pictures shows when (the client's timings)
+  mounts.rs         what a job is drawn as in a state: on its mount, in its machine (job_mounts.txt)
   prim.rs           the client's effect primitives: their figures, how each lives and is shaped
   effect_tables.rs  tables the client has compiled into it: which effect a skill or an item shows, which file
                     and sound an effect is, how the body moves for a skill (the files in effect_tables/, written
@@ -132,7 +133,8 @@ translations/
 tools/
   packet-lengths    builds the packet length table from rAthena's sources
   client-tables     writes out tables compiled into the original client (skill_effects.py: skills and their
-                    effects; job_bases.py: the plain job of each mounted job, data/job_bases.txt), the classic server's scripts put right for the client's maps (classic_overlay.py
+                    effects; job_bases.py: the plain job of each mounted job, data/job_bases.txt; job_mounts.py: the
+                    mounted job of each job and state, job_mounts.txt), the classic server's scripts put right for the client's maps (classic_overlay.py
                     writes server/npc/roweb_classic*), and a check that everyone the scripts place stands where the
                     client's map lets one stand (placement_check.py)
   split_module.py   moves functions of a file that grew too large into child modules

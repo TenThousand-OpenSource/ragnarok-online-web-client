@@ -44,6 +44,11 @@ pub fn unit_shown(unit: &Unit) {
         let cell = (i32::from(unit.cell.0), i32::from(unit.cell.1));
         let mover = scene.units.entry(unit.id).or_insert_with(|| Mover::new(look.clone(), cell));
         mover.look = look;
+        // A player's own job and state: what it rides shows at once.
+        if unit.kind == Kind::Player {
+            (mover.job, mover.state) = (unit.job, unit.state);
+            mover.dress();
+        }
         // What follows a # in the name of an NPC or a monster tells the server's scripts apart, and is not shown.
         mover.name = if unit.kind == Kind::Player { unit.name.clone() } else { unit.name.split('#').next().unwrap_or_default().trim().to_owned() };
         mover.lively = unit.kind == Kind::Monster;
@@ -141,7 +146,13 @@ pub fn looked(id: Option<u32>, kind: u8, value: u32) {
             None => Some(&mut scene.player),
             Some(id) => scene.units.get_mut(&id),
         };
-        let Some(Look::Character(figure)) = mover.map(|mover| &mut mover.look) else { return };
+        let Some(mover) = mover else { return };
+        // The body itself: the job changed (the server's `LOOK_BASE`).
+        if kind == 0 {
+            mover.job = value as u16;
+            mover.dress();
+        }
+        let Look::Character(figure) = &mut mover.look else { return };
         match kind {
             1 => figure.hair_style = value as u16,
             2 => figure.weapon = value,
@@ -151,6 +162,26 @@ pub fn looked(id: Option<u32>, kind: u8, value: u32) {
             6 => figure.hair_colour = value as u16,
             7 => figure.body_palette = value as u16,
             _ => {}
+        }
+    });
+}
+
+/// Someone's state changed (none named: the player's own character): the bits say what they ride, and they are
+/// drawn so from now on. With a `mask`, only those bits are set or cleared and the rest stay as they were.
+pub fn stated(id: Option<u32>, bits: u32, mask: Option<u32>) {
+    STATE.with_borrow_mut(|state| {
+        let merged = |was: u32| mask.map_or(bits, |mask| was & !mask | bits & mask);
+        if id.is_none() {
+            state.own_state = merged(state.own_state);
+        }
+        let Some(scene) = &mut state.scene else { return };
+        let mover = match id {
+            None => Some(&mut scene.player),
+            Some(id) => scene.units.get_mut(&id),
+        };
+        if let Some(mover) = mover {
+            mover.state = merged(mover.state);
+            mover.dress();
         }
     });
 }

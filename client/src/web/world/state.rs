@@ -65,6 +65,8 @@ pub(super) struct State {
     pub(super) aids: Vec<(Option<u32>, f64, f32, f32)>,
     /// The effects the client draws by code that are under way.
     pub(super) bursts: Vec<prims::Burst>,
+    /// The bits of the state the player's own character is in (kept across maps): what it rides.
+    pub(super) own_state: u32,
     /// The weapon the player's own character holds (kept across maps).
     pub(super) weapon: u32,
     /// The player's own life and spirit, left and most: the bars under the character.

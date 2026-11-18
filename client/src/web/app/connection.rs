@@ -3,6 +3,20 @@
 use super::*;
 
 impl App {
+    /// Sends a packet to the server the client is connected to, if it is connected.
+    pub(super) fn send(&self, packet: &[u8]) {
+        if let Some(socket) = &self.socket {
+            socket.send(packet);
+        }
+    }
+
+    /// Sends a packet that only the map server takes: nothing is sent while the client is with another server.
+    pub(super) fn send_on_map(&self, packet: &[u8]) {
+        if self.server == Server::Map {
+            self.send(packet);
+        }
+    }
+
     /// Closes the connection and goes back to the login window, saying why if there is a reason.
     pub(super) fn leave(&mut self, error: Option<String>) {
         self.socket = None;

@@ -6,6 +6,19 @@
 
 -	script	roweb_classic_maps	-1,{
 OnInit:
+	if (checkre(0)) {
+		unloadnpc "iz01_n";
+		unloadnpc "iz001_n";
+		unloadnpc "iz04_n";
+		unloadnpc "iz02-1_n";
+		unloadnpc "iz03-1_n";
+		unloadnpc "iz01-1_n";
+		unloadnpc "iz04-1_n";
+		unloadnpc "prtf005_n";
+		unloadnpc "welcome_arena_n";
+		unloadnpc "bye_arena_n";
+		end;
+	}
 	unloadnpc "Sign#Iz1";
 	unloadnpc "Sign#Iz2";
 	unloadnpc "alb02";

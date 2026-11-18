@@ -6,7 +6,7 @@ use super::*;
 impl App {
     /// Redraws the window that asks how many to drop, where it is on the page, and puts the typing into it.
     pub(in crate::web) fn refresh_throw(&self) {
-        let Some(window) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("throw")) else { return };
+        let Some(window) = crate::web::by_id("throw") else { return };
         window.set_inner_html(&self.throw_window());
         if let Some(count) = window.query_selector("input").ok().flatten().and_then(|count| wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlInputElement>(count).ok()) {
             let _ = count.focus();

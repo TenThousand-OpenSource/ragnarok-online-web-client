@@ -68,6 +68,13 @@ impl Item {
     pub fn usable(&self) -> bool {
         self.tab() == Tab::Usable
     }
+
+    /// Whether it may be put on the hotkey bar (the client's shortcut window, where a drag ends on it): one that
+    /// is identified and is used up (the kinds 0, 1 and 2), shot or thrown (10, 16, 17, 19), or worn (4, 5, 8, 9,
+    /// 11 to 15) with a place to wear it.
+    pub fn fits_hotkeys(&self) -> bool {
+        self.identified && (matches!(self.kind, 0 | 1 | 2 | 10 | 16 | 17 | 19) || (matches!(self.kind, 4 | 5 | 8 | 9 | 11..=15) && self.wearable != 0))
+    }
 }
 
 fn cards(bytes: &[u8], at: usize) -> [u32; 4] {
@@ -413,4 +420,18 @@ mod tests {
         assert_eq!(bar[2], Hotkey::default());
         assert_eq!(set_hotkey(9, bar[0]), [0x21, 0x0b, 0, 0, 9, 0, 1, 142, 0, 0, 0, 1, 0]);
     }
+
+    #[test]
+    fn only_what_is_used_shot_or_worn_goes_on_the_hotkey_bar() {
+        let item = |kind: u8, wearable: u32, identified: bool| Item { index: 2, id: 501, kind, amount: 1, wearable, worn: 0, refine: 0, identified, cards: [0; 4] };
+        // A potion and an arrow do; loot does not.
+        assert!(item(0, 0, true).fits_hotkeys());
+        assert!(item(10, 0, true).fits_hotkeys());
+        assert!(!item(3, 0, true).fits_hotkeys());
+        // A weapon does if it has a place to be worn, and nothing does until it is identified.
+        assert!(item(5, 2, true).fits_hotkeys());
+        assert!(!item(5, 0, true).fits_hotkeys());
+        assert!(!item(5, 2, false).fits_hotkeys());
+    }
+
 }

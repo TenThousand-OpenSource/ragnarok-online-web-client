@@ -6,7 +6,7 @@ use crate::net::pets::{hunger_word, intimacy_word};
 impl App {
     /// Redraws the pet window, where it is on the page; a name being typed into it stays.
     pub(in crate::web) fn refresh_pet(&self) {
-        let Some(document) = web_sys::window().and_then(|window| window.document()) else { return };
+        let Some(document) = crate::web::document() else { return };
         use wasm_bindgen::JsCast;
         let name = || document.get_element_by_id("pet-name").and_then(|input| input.dyn_into::<web_sys::HtmlInputElement>().ok());
         let typed = document.active_element().filter(|active| active.id() == "pet-name").and_then(|_| name()).map(|input| input.value());

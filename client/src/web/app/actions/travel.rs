@@ -81,8 +81,6 @@ impl App {
         } else {
             self.enter_world();
         }
-        if let Some(socket) = &self.socket {
-            socket.send(&packets::map_loaded());
-        }
+        self.send(&packets::map_loaded());
     }
 }

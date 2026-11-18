@@ -85,7 +85,7 @@ impl App {
     pub(super) fn unit_menu(&mut self, id: u32, at: (f32, f32)) {
         if id == self.pets.unit && self.pets.pet.is_some() {
             // The page's place, in the stage's own measure: the stage may be drawn larger or smaller.
-            let stage = web_sys::window().and_then(|window| window.document()).and_then(|document| document.query_selector(".stage").ok().flatten());
+            let stage = crate::web::document().and_then(|document| document.query_selector(".stage").ok().flatten());
             let scale = stage.as_ref().and_then(|stage| Some(stage.get_bounding_client_rect().width() / f64::from(stage.clone().dyn_into::<web_sys::HtmlElement>().ok()?.offset_width().max(1)))).filter(|scale| *scale > 0.0).unwrap_or(1.0);
             self.pets.menu_at = Some(((f64::from(at.0) / scale) as i32 + 1, (f64::from(at.1) / scale) as i32 + 1));
             self.render();

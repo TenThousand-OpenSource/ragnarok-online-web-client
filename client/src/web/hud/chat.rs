@@ -5,7 +5,7 @@ use super::*;
 impl App {
     /// Redraws the chat's lines, the newest at the bottom.
     pub(in crate::web) fn refresh_chat(&self) {
-        if let Some(log) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("chat-lines")) {
+        if let Some(log) = crate::web::by_id("chat-lines") {
             log.set_inner_html(&self.chat_lines(self.chat.rows));
         }
     }

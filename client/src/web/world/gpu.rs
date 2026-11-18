@@ -252,14 +252,14 @@ impl Gpu {
     }
 
     /// Draws the map and, on it, each sprite standing on its feet's place.
-    pub(super) fn draw(&mut self, scene: &Scene, view: &View, sprites: &mut Vec<(SpriteKey, Vector, f32)>, rings: &[f32], marks: &[f32], numbers: &[(SpriteKey, Vector, f32, f32, f32)], effects: &(Vec<f32>, Vec<(Rc<[wgpu::BindGroup; 2]>, bool)>)) {
+    pub(super) fn draw(&mut self, scene: &Scene, view: &View, sprites: &mut Vec<(SpriteKey, Vector, f32)>, rings: &[f32], marks: &[f32], numbers: &[(SpriteKey, Vector, f32, f32, f32)], effects: &Quads) {
         self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&view.matrix));
-        if effects.1.len() > self.effect_room {
-            self.effect_room = effects.1.len().next_power_of_two();
+        if effects.pictures.len() > self.effect_room {
+            self.effect_room = effects.pictures.len().next_power_of_two();
             self.effect_vertices = effect_buffer(&self.device, self.effect_room);
         }
-        if !effects.1.is_empty() {
-            self.queue.write_buffer(&self.effect_vertices, 0, bytemuck::cast_slice(&effects.0));
+        if !effects.pictures.is_empty() {
+            self.queue.write_buffer(&self.effect_vertices, 0, bytemuck::cast_slice(&effects.corners));
         }
 
         // The farthest first, so that nearer ones cover them where their see-through edges overlap.
@@ -372,9 +372,9 @@ impl Gpu {
                     pass.draw(first..first + 6, 0..1);
                 }
             }
-            if !effects.1.is_empty() {
+            if !effects.pictures.is_empty() {
                 pass.set_vertex_buffer(0, self.effect_vertices.slice(..));
-                for (index, (binds, adds)) in effects.1.iter().enumerate() {
+                for (index, (binds, adds)) in effects.pictures.iter().enumerate() {
                     let which = usize::from(*adds);
                     pass.set_pipeline(&self.effect_pipelines[which]);
                     pass.set_bind_group(0, &self.effect_camera_binds[which], &[]);

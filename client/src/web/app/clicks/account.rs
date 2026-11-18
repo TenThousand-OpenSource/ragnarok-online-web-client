@@ -103,9 +103,7 @@ impl App {
             "logout" if matches!(self.screen, Screen::Game) => {
                 self.esc = 0;
                 self.refresh_dialog();
-                if let Some(socket) = &self.socket {
-                    socket.send(&npc::restart(true));
-                }
+                self.send(&npc::restart(true));
             }
             "logout" => self.leave(None),
             _ => return false,

@@ -87,7 +87,7 @@ impl App {
     /// key for one a Mac lacks, does the same; Enter and Escape are the client's own, bound nowhere.
     pub(super) fn game_key(&mut self, key: &str, code: &str, with: u16) -> bool {
         let chat = element("chat-input").and_then(|input| input.dyn_into::<web_sys::HtmlElement>().ok());
-        let writing = chat.as_ref().is_some_and(|input| web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active == **input));
+        let writing = chat.as_ref().is_some_and(|input| crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active == **input));
         let chord = Chord { key: hotkeys::key_of(code).unwrap_or(0), with };
         // A row of the Shortcut Settings window is picked: the key is its new key, whatever it did before.
         if self.keys.open && self.keys.row.is_some() {
@@ -95,7 +95,7 @@ impl App {
             return true;
         }
         // Letters and digits typed into a line of text are text, not keys of the game.
-        let typing = web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT");
+        let typing = crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT");
         let bound = self.bound_to(chord).filter(|_| !(typing && with == 0 && !(112..=123).contains(&chord.key)));
         match (bound, key) {
             (Some((hotkeys::table::INTERFACE, place)), _) => match place {
@@ -112,9 +112,7 @@ impl App {
                     if world::walking() && !self.hero.sitting {
                         return true;
                     }
-                    if let Some(socket) = &self.socket {
-                        socket.send(&units::sit(!self.hero.sitting));
-                    }
+                    self.send(&units::sit(!self.hero.sitting));
                     return true;
                 }
                 // The bar runs through its sizes, as the client's does: a row more each time, then away, then
@@ -144,7 +142,7 @@ impl App {
             }
             // Enter goes to the chat's line; from there it sends (the form does that).
             // In a field of some window Enter belongs to that window.
-            (_, "Enter") if web_sys::window().and_then(|window| window.document()).and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT" && active.id() != "chat-input") => {
+            (_, "Enter") if crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT" && active.id() != "chat-input") => {
                 return false;
             }
             (_, "Enter") if !writing => {

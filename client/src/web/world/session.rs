@@ -75,7 +75,7 @@ pub fn leave() {
         state.bursts.clear();
     });
     // What the game drew over the page goes with it: the bars, the names, the numbers of blows.
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
+    if let Some(document) = crate::web::document() {
         if let Some(bars) = document.get_element_by_id("bars") {
             bars.set_inner_html("");
         }

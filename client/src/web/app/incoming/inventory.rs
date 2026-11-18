@@ -37,86 +37,11 @@ impl App {
                 self.bag.identify_picked = None;
                 self.render();
             }
-            // ZC_ACK_ITEMIDENTIFY (0x0179): `u16 index, u8 result`. Identified (0): the client says so in yellow
-            // and the item is what it is from now on, name and picture; failed (1): it says so in red.
-            0x0179 => {
-                let index = packet.get(2..4).map_or(0, |index| u16::from_le_bytes([index[0], index[1]]));
-                match packet.get(4) {
-                    Some(0) => {
-                        self.chat_line(data::message(491).unwrap_or_else(|| "Item appraisal has completed successfully.".to_owned()), "#ffff00");
-                        if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
-                            item.identified = true;
-                            // Its description, if open, is the identified one now.
-                            if self.bag.info == Some((item.id, false)) {
-                                self.bag.info = Some((item.id, true));
-                            }
-                        }
-                        self.items_changed();
-                    }
-                    Some(1) => self.chat_line(data::message(492).unwrap_or_else(|| "Item appraisal has failed.".to_owned()), "#ff0000"),
-                    _ => {}
-                }
-            }
-            items::ZC_ITEM_PICKUP_ACK => {
-                if let Some(gained) = items::gained(packet) {
-                    // What was picked up is told in the chat and shown for a moment, as the original does.
-                    self.bag.obtained = Some((gained.id, gained.amount, gained.identified));
-                    self.bag.obtained_at = js_sys::Date::now();
-                    match self.bag.items.iter_mut().find(|item| item.index == gained.index) {
-                        Some(item) => item.amount += gained.amount,
-                        None => self.bag.items.push(gained),
-                    }
-                    self.items_changed();
-                    self.bag.told_obtained = false;
-                    self.tell_obtained();
-                }
-            }
-            items::ZC_USE_ITEM_ACK => {
-                if let Some((index, item, who, left)) = items::used(packet) {
-                    let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
-                    // What the item looks and sounds like when used, by the client's own tables.
-                    if let Some((file, sound)) = crate::effect_tables::item_effect(item) {
-                        world::effect(file, (!own).then_some(who));
-                        if let Some(sound) = sound {
-                            sound::effect(sound, 1.0);
-                        }
-                    }
-                    if own {
-                        if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
-                            item.amount = left;
-                        }
-                        self.bag.items.retain(|item| item.amount > 0);
-                        self.refresh_items();
-                    }
-                }
-            }
-            items::ZC_DELETE_ITEM_FROM_BODY | items::ZC_ITEM_THROW_ACK => {
-                if let Some((index, count)) = items::lost(id, packet) {
-                    // Something thrown away is told of in the chat, among the lines about items (the client's
-                    // `ZC_ITEM_THROW_ACK`: its message 1609, "You dropped %s (%d).", in its 0xFFFF00, which
-                    // read as blue, green, red is cyan).
-                    let thrown = self.bag.items.iter().find(|item| id == items::ZC_ITEM_THROW_ACK && item.index == index && count > 0);
-                    if let Some((name, line)) = thrown.and_then(|item| Some((data::item_as(item.id, item.identified)?.0, data::message(1609)?))) {
-                        self.chat_line_of(said::ITEM, crate::i18n::tr(&line).replacen("%s", &name, 1).replacen("%d", &count.to_string(), 1), "#00ffff");
-                    }
-                    if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
-                        item.amount = item.amount.saturating_sub(count);
-                    }
-                    self.bag.items.retain(|item| item.amount > 0);
-                    self.refresh_items();
-                }
-            }
-            items::ZC_REQ_WEAR_EQUIP_ACK => {
-                if let Some((index, place)) = items::put_on(packet) {
-                    if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
-                        item.worn = place;
-                    }
-                    self.items_changed();
-                } else {
-                    // The server would not have it worn (another job's thing, too low a level): the client says so.
-                    self.chat_line_of(said::EQUIPMENT, crate::i18n::tr("You can't put this item on.").to_owned(), "#ff8484");
-                }
-            }
+            0x0179 => self.identified(packet),
+            items::ZC_ITEM_PICKUP_ACK => self.picked_up(packet),
+            items::ZC_USE_ITEM_ACK => self.item_used(packet),
+            items::ZC_DELETE_ITEM_FROM_BODY | items::ZC_ITEM_THROW_ACK => self.item_lost(id, packet),
+            items::ZC_REQ_WEAR_EQUIP_ACK => self.put_on(packet),
             items::ZC_REQ_TAKEOFF_EQUIP_ACK => {
                 if let Some(index) = items::taken_off(packet) {
                     if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
@@ -151,5 +76,90 @@ impl App {
             _ => return false,
         }
         true
+    }
+
+    /// ZC_ACK_ITEMIDENTIFY (0x0179): `u16 index, u8 result`. Identified (0): the client says so in yellow
+    /// and the item is what it is from now on, name and picture; failed (1): it says so in red.
+    fn identified(&mut self, packet: &[u8]) {
+        let index = packet.get(2..4).map_or(0, |index| u16::from_le_bytes([index[0], index[1]]));
+        match packet.get(4) {
+            Some(0) => {
+                self.chat_line(data::message(491).unwrap_or_else(|| "Item appraisal has completed successfully.".to_owned()), "#ffff00");
+                if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                    item.identified = true;
+                    // Its description, if open, is the identified one now.
+                    if self.bag.info == Some((item.id, false)) {
+                        self.bag.info = Some((item.id, true));
+                    }
+                }
+                self.items_changed();
+            }
+            Some(1) => self.chat_line(data::message(492).unwrap_or_else(|| "Item appraisal has failed.".to_owned()), "#ff0000"),
+            _ => {}
+        }
+    }
+
+    fn picked_up(&mut self, packet: &[u8]) {
+        if let Some(gained) = items::gained(packet) {
+            // What was picked up is told in the chat and shown for a moment, as the original does.
+            self.bag.obtained = Some((gained.id, gained.amount, gained.identified));
+            self.bag.obtained_at = js_sys::Date::now();
+            match self.bag.items.iter_mut().find(|item| item.index == gained.index) {
+                Some(item) => item.amount += gained.amount,
+                None => self.bag.items.push(gained),
+            }
+            self.items_changed();
+            self.bag.told_obtained = false;
+            self.tell_obtained();
+        }
+    }
+
+    fn item_used(&mut self, packet: &[u8]) {
+        if let Some((index, item, who, left)) = items::used(packet) {
+            let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
+            // What the item looks and sounds like when used, by the client's own tables.
+            if let Some((file, sound)) = crate::effect_tables::item_effect(item) {
+                world::effect(file, (!own).then_some(who));
+                if let Some(sound) = sound {
+                    sound::effect(sound, 1.0);
+                }
+            }
+            if own {
+                if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                    item.amount = left;
+                }
+                self.bag.items.retain(|item| item.amount > 0);
+                self.refresh_items();
+            }
+        }
+    }
+
+    fn item_lost(&mut self, id: u16, packet: &[u8]) {
+        if let Some((index, count)) = items::lost(id, packet) {
+            // Something thrown away is told of in the chat, among the lines about items (the client's
+            // `ZC_ITEM_THROW_ACK`: its message 1609, "You dropped %s (%d).", in its 0xFFFF00, which
+            // read as blue, green, red is cyan).
+            let thrown = self.bag.items.iter().find(|item| id == items::ZC_ITEM_THROW_ACK && item.index == index && count > 0);
+            if let Some((name, line)) = thrown.and_then(|item| Some((data::item_as(item.id, item.identified)?.0, data::message(1609)?))) {
+                self.chat_line_of(said::ITEM, crate::i18n::tr(&line).replacen("%s", &name, 1).replacen("%d", &count.to_string(), 1), "#00ffff");
+            }
+            if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                item.amount = item.amount.saturating_sub(count);
+            }
+            self.bag.items.retain(|item| item.amount > 0);
+            self.refresh_items();
+        }
+    }
+
+    fn put_on(&mut self, packet: &[u8]) {
+        if let Some((index, place)) = items::put_on(packet) {
+            if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                item.worn = place;
+            }
+            self.items_changed();
+        } else {
+            // The server would not have it worn (another job's thing, too low a level): the client says so.
+            self.chat_line_of(said::EQUIPMENT, crate::i18n::tr("You can't put this item on.").to_owned(), "#ff8484");
+        }
     }
 }

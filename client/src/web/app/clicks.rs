@@ -62,9 +62,7 @@ impl App {
                     _ => 0,
                 };
                 if what == "esc-yes" {
-                    if let Some(socket) = &self.socket {
-                        socket.send(&npc::restart(false));
-                    }
+                    self.send(&npc::restart(false));
                 }
                 self.refresh_dialog();
             }

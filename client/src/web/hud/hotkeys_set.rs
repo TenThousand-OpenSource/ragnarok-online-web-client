@@ -7,7 +7,7 @@ use crate::web::app::PAGE;
 impl App {
     /// Redraws the window where it is on the page.
     pub(in crate::web) fn refresh_keys(&self) {
-        if let Some(window) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("keys")) {
+        if let Some(window) = crate::web::by_id("keys") {
             window.set_inner_html(&self.key_window());
         }
     }

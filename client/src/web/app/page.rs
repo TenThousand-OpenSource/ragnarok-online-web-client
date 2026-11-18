@@ -142,7 +142,7 @@ pub(super) fn ui() -> Result<Element, String> {
 }
 
 pub(super) fn element(id: &str) -> Option<Element> {
-    web_sys::window()?.document()?.get_element_by_id(id)
+    crate::web::by_id(id)
 }
 
 /// What is typed into (or picked in) the form field with that ID.

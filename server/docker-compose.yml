@@ -4,7 +4,8 @@
 # Accounts are seeded from conf/accounts.sql on the first start.
 
 x-rathena: &rathena
-  image: roweb/rathena:20260219-prere
+  # Which rules the server plays by is set in `.env` beside this file, written by `../rules.sh`.
+  image: roweb/rathena:20260219-${ROWEB_IMAGE:-prere}
   build:
     context: ../../rathena
     dockerfile: ../roweb/server/Dockerfile
@@ -12,7 +13,7 @@ x-rathena: &rathena
       PACKETVER: "20260219"
       # The classic game (pre-renewal). "no" builds Renewal; the gateway's --item-database goes with it
       # (../rathena/db/pre-re or ../rathena/db/re), and so does the image's name above.
-      PRERE: "yes"
+      PRERE: "${ROWEB_PRERE:-yes}"
   init: true
   restart: unless-stopped
   volumes:
@@ -81,4 +82,6 @@ services:
     ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
 
 volumes:
+  # Each set of rules has its own characters: an item or a job of one does not exist in the other.
   db:
+    name: ${ROWEB_DB_VOLUME:-server_db}

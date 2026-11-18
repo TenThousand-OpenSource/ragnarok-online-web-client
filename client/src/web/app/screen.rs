@@ -14,7 +14,7 @@ impl App {
     /// The title music plays in every window before the game, if sound is on and the page is the one looked at:
     /// a tab left in the background falls silent.
     pub(super) fn tune(&self) {
-        let hidden = web_sys::window().and_then(|window| window.document()).is_some_and(|document| document.hidden());
+        let hidden = crate::web::document().is_some_and(|document| document.hidden());
         sound::music(self.sound && !hidden && !matches!(self.screen, Screen::Game));
         // In the game the map has its own music, and everything its sound.
         sound::game(self.sound && !hidden && matches!(self.screen, Screen::Game));

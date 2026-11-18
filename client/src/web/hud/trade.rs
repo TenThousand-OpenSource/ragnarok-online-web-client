@@ -5,7 +5,7 @@ use super::*;
 impl App {
     /// Redraws the shop's window, where it is on the page.
     pub(in crate::web) fn refresh_trade(&self) {
-        if let Some(trade) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("trade")) {
+        if let Some(trade) = crate::web::by_id("trade") {
             trade.set_inner_html(&self.trade_window());
         }
     }

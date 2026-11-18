@@ -11,6 +11,8 @@ The short of it:
   because it is open.
 - **Keep files under about 500 lines.** If your change pushes one over, split it by responsibility in the same
   change.
+- **Keep functions under about 100 lines** (a plain `match` that hands work out is the exception), and
+  **write nothing twice**: look for the helper first (`ARCHITECTURE.md`, rule 11, names the common ones).
 - **The original Windows client is the reference.** Take behaviour, sizes and texts from the decompiled client
   (`../rodecomp`) and the client's own files (`../Feb-Client-CLEAN`), and say in the comment where from. Do not
   invent interfaces or behaviour; when something was not found in the client, say so plainly — in the comment

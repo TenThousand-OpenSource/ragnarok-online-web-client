@@ -69,7 +69,7 @@ pub(super) fn wire(window: &web_sys::Window, ui: &Element) -> Result<(), String>
     let on_up = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(|event: web_sys::MouseEvent| {
         let Some(dragged) = DRAGGED.take() else { return };
         place(&event, false);
-        let under = web_sys::window().and_then(|window| window.document()).and_then(|document| document.element_from_point(event.client_x() as f32, event.client_y() as f32));
+        let under = crate::web::document().and_then(|document| document.element_from_point(event.client_x() as f32, event.client_y() as f32));
         let Some(under) = under else { return };
         let slot = under.closest("[data-slot]").ok().flatten().and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok());
         match slot {

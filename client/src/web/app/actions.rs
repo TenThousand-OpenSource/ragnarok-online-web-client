@@ -49,7 +49,7 @@ impl App {
             }
             Action::Resized => self.render(),
             Action::CheckMusic => {
-                let hidden = web_sys::window().and_then(|window| window.document()).is_some_and(|document| document.hidden());
+                let hidden = crate::web::document().is_some_and(|document| document.hidden());
                 let held = self.sound && !hidden && !matches!(self.screen, Screen::Game) && !sound::music_playing();
                 if held != self.music_held {
                     self.music_held = held;
@@ -69,10 +69,8 @@ impl App {
             // While a monster is being tamed nothing is struck: the slot machine comes first.
             Action::Pressed(_, true) if self.pets.taming.is_some() => world::stand_down(),
             Action::Pressed(id, monster) => {
-                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
-                    // A monster is fought until it or the character is down; anyone else is talked to.
-                    socket.send(&if monster { units::attack(id) } else { npc::contact(id) });
-                }
+                // A monster is fought until it or the character is down; anyone else is talked to.
+                self.send_on_map(&if monster { units::attack(id) } else { npc::contact(id) });
             }
             // A monster was picked to tame: the slot machine opens for it (not for players, as in the client).
             Action::Aimed(Some(target), _) if self.skills.aimed.is_some_and(|(skill, _)| skill == TAME) => self.taming_begins(target),
@@ -104,15 +102,11 @@ impl App {
             }
             Action::Slid(name, level) => self.settings_slide(&name, level),
             Action::StrikeOnce(id) => {
-                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
-                    socket.send(&units::attack_once(id));
-                }
+                self.send_on_map(&units::attack_once(id));
             }
             // CZ_CANCEL_LOCKON (0x0118): the server stops the blows it was dealing on its own.
             Action::StopFight => {
-                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
-                    socket.send(&0x0118u16.to_le_bytes());
-                }
+                self.send_on_map(&0x0118u16.to_le_bytes());
             }
             Action::Quick(slot) => self.use_it(&format!("slot:{slot}")),
             // The level the aimed skill is used at, one up or down, between 1 and the level it is known at
@@ -126,9 +120,7 @@ impl App {
             }
             Action::Menu(id, at) => self.unit_menu(id, at),
             Action::Take(id) => {
-                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
-                    socket.send(&units::pick_up(id));
-                }
+                self.send_on_map(&units::pick_up(id));
             }
             Action::WalkTo(x, y) => {
                 // A press elsewhere puts the pet's menu away.
@@ -140,9 +132,7 @@ impl App {
                 if world::striking() {
                     return;
                 }
-                if let (Server::Map, Some(socket)) = (self.server, &self.socket) {
-                    socket.send(&packets::walk_to(x, y));
-                }
+                self.send_on_map(&packets::walk_to(x, y));
             }
             Action::Moved(x, y) => self.moved(x, y),
             Action::WorldReady(outcome) => self.world_ready(outcome),

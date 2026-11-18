@@ -78,15 +78,16 @@ What the gateway sends is compressed (gzip or Brotli, as the browser takes) and 
 their build, are kept by the browser. Both can be switched off: `--compress off` where a proxy or a CDN in front
 does the compressing, `--cache-client off` to have the client asked for anew each time.
 
-The server plays by the classic (pre-renewal) rules: `PRERE: "yes"` in `server/docker-compose.yml`, and the
-gateway reads `../rathena/db/pre-re`. For Renewal set `PRERE: "no"`, give the image another name there, rebuild,
-and start the gateway with `--item-database ../rathena/db/re`.
+The server plays by the classic (pre-renewal) rules unless told otherwise. `./rules.sh renewal` rebuilds and
+restarts it for Renewal (third and fourth jobs, their monsters, items, skills and NPCs), and `./rules.sh classic`
+goes back; restart the gateway after either. The choice is kept in `server/.env`, which the gateway reads too for
+the item database that goes with the rules. Each set of rules has its own database of characters.
 
 rAthena's classic scripts place the NPCs and portals of Izlude, Alberta and Morroc by their old maps, and the
 client has the new ones. `server/npc/roweb_classic.txt` moves them, and `roweb_classic_warps.sed` puts right the
 cells the scripts themselves send players to; both are written by `tools/client-tables/classic_overlay.py
-../rathena server/npc/roweb_classic.txt server/npc/roweb_classic_warps.sed` (for Renewal, take both out of
-`docker-compose.yml` and `conf/map_conf.txt`). `tools/client-tables/placement_check.py` lists who stands in a
+../rathena server/npc/roweb_classic.txt server/npc/roweb_classic_warps.sed`. Under the Renewal rules both do
+nothing. `tools/client-tables/placement_check.py` lists who stands in a
 wall on any map.
 
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's

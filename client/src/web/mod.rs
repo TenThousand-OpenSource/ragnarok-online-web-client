@@ -39,6 +39,16 @@ async fn fetch_asset(path: &str) -> Result<Vec<u8>, String> {
     Ok(js_sys::Uint8Array::new(&buffer).to_vec())
 }
 
+/// The page.
+pub(crate) fn document() -> Option<web_sys::Document> {
+    web_sys::window().and_then(|window| window.document())
+}
+
+/// The thing on the page with that ID.
+pub(crate) fn by_id(id: &str) -> Option<web_sys::Element> {
+    document()?.get_element_by_id(id)
+}
+
 fn js_error(value: impl Into<JsValue>) -> String {
     format!("{:?}", value.into())
 }

@@ -37,9 +37,7 @@ impl App {
                 self.refresh_items();
             }
             "storage-close" => {
-                if let Some(socket) = &self.socket {
-                    socket.send(&trade::close_storage());
-                }
+                self.send(&trade::close_storage());
             }
             _ => return false,
         }

@@ -127,6 +127,9 @@ for path, where, x, y, facing, kind, name, rest in classic:
         again.append(f'{new[1]},{new[2]},{new[3]},{new[4]}\twarp\t{name}_n\t{new[7]}')
 
 lines += ['-\tscript\troweb_classic_maps\t-1,{', 'OnInit:']
+# A server that plays by the Renewal rules has its own scripts for these maps: there only the portals this file
+# puts again are taken away, and nothing is moved.
+lines += ['\tif (checkre(0)) {'] + [f'\t\tunloadnpc "{line.split(chr(9))[2]}";' for line in again] + ['\t\tend;', '\t}']
 lines += [f'\tunloadnpc "{name}";' for name in gone]
 lines += [f'\tmovenpc "{name}",{x},{y},{facing};\t// {at}' for at, name, x, y, facing in moves]
 lines += ['\tend;', '}', ''] + again + ['']

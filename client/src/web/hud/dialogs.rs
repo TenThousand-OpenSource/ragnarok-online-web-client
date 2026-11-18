@@ -6,7 +6,7 @@ use super::*;
 impl App {
     /// Redraws the NPC's window, where it is on the page.
     pub(in crate::web) fn refresh_dialog(&self) {
-        if let Some(dialog) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("dialog")) {
+        if let Some(dialog) = crate::web::by_id("dialog") {
             dialog.set_inner_html(&self.dialog_window());
             if let Ok(Some(text)) = dialog.query_selector(".said") {
                 text.set_scroll_top(text.scroll_height());

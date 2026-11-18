@@ -39,6 +39,16 @@ pub(super) fn on_ground(gat: &Gat, (x, y): (f32, f32)) -> Vector {
     [(x + 0.5) * CELL, gat.height_at(x + 0.5, y + 0.5), (y + 0.5) * CELL]
 }
 
+impl Scene {
+    /// Where someone is now, in cells: no one named is the player's own character; nothing for one out of sight.
+    pub(super) fn place_of(&self, who: Option<u32>) -> Option<(f32, f32)> {
+        match who {
+            Some(id) => self.units.get(&id).map(|unit| unit.at),
+            None => Some(self.player.at),
+        }
+    }
+}
+
 impl Mover {
     pub(super) fn new(look: Look, cell: (i32, i32)) -> Self {
         Self { look, name: String::new(), lively: false, companion: false, cell, at: (cell.0 as f32, cell.1 as f32), facing: 0, walk: None, speed: DEFAULT_SPEED, shown: None, sitting: false, dead: false, dying: None, says: None, emotion: None, life: None, heard: None, motion: None, casting: None }

@@ -23,52 +23,8 @@ impl App {
                     sound::effect("_heal_effect.wav", 1.0);
                 }
             }
-            units::ZC_NOTIFY_ACT => {
-                let own = self.account.as_ref().map_or(0, |account| account.account_id);
-                // Hits of every kind; sitting down, picking up and the like are not shown yet.
-                match units::act(packet) {
-                    Some(act) if matches!(act.kind, 0 | 4 | 8 | 9 | 10 | 11 | 13) => {
-                        // The sound of the blow, heard when it lands: the weapon's when the character strikes,
-                        // the common one when it is struck. A monster's own sounds are in its sprite.
-                        let heard = if act.source == own {
-                            Some(self.weapon_sound().to_owned())
-                        } else if act.target == own {
-                            Some(format!("_enemy_hit_normal{}.wav", 1 + packet.get(10).copied().unwrap_or(0) % 4))
-                        } else {
-                            None
-                        };
-                        world::struck(act.source, act.target, own, f64::from(act.speed), f64::from(act.delay), act.damage, heard);
-                        // One who holds a bow sends an arrow, which arrives as the blow lands.
-                        world::arrow(act.source, act.target, own, f64::from(act.delay));
-                    }
-                    // Someone bends down for a thing on the ground.
-                    Some(act) if act.kind == 1 => world::picks_up(act.source, own, act.target),
-                    Some(act) if matches!(act.kind, 2 | 3) => {
-                        if act.source == own {
-                            self.hero.sitting = act.kind == 2;
-                        }
-                        world::sat(act.source, own, act.kind == 2);
-                    }
-                    _ => {}
-                }
-            }
-            // Someone starts to cast (the client's `NotifySkillCasting`). A skill with no casting time shows
-            // nothing here. The rings are those of the cast's element (`GetSkillActionInfo`).
-            skills::ZC_USESKILL_ACK => {
-                if let Some(cast) = skills::casting(packet).filter(|cast| cast.milliseconds > 0) {
-                    let own = self.account.as_ref().map_or(0, |account| account.account_id);
-                    let effect = match cast.element {
-                        1 => 54,
-                        2 => 56,
-                        3 => 55,
-                        4 => 57,
-                        5 => 59,
-                        6 => 58,
-                        _ => 12,
-                    };
-                    world::cast(cast.source, own, cast.target, cast.cell, f64::from(cast.milliseconds), effect);
-                }
-            }
+            units::ZC_NOTIFY_ACT => self.act_seen(packet),
+            skills::ZC_USESKILL_ACK => self.cast_begun(packet),
             // ZC_DISPEL (0x01b9): `u32 who`. A cast is broken off (the caster was struck, or moved).
             0x01b9 => {
                 if packet.len() >= 6 {
@@ -76,73 +32,8 @@ impl App {
                     world::cast_over(u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]), own, true);
                 }
             }
-            // A skill lands: the caster strikes, and each of its hits shows its share of the damage, one after
-            // another.
-            skills::ZC_NOTIFY_SKILL => {
-                if let Some(landed) = skills::landing(packet) {
-                    let own = self.account.as_ref().map_or(0, |account| account.account_id);
-                    world::cast_over(landed.source, own, false);
-                    let hits = i32::from(landed.hits.max(1));
-                    let each = landed.damage / hits;
-                    let delay = f64::from(landed.attack_motion.clamp(0, 1500));
-                    // Each hit of a skill sounds as one of the client's four plain blows (its
-                    // `GetWeaponHitWaveName(-1)` for the hits of skills).
-                    let blow = || Some(format!("_enemy_hit_normal{}.wav", 1 + (js_sys::Math::random() * 4.0) as u32));
-                    world::struck(landed.source, landed.target, own, f64::from(landed.attack_motion), delay, each, blow());
-                    // The hits follow one another 200 milliseconds apart (the client's `g_multiHitInterval`).
-                    for hit in 1..hits {
-                        world::lands(landed.target, own, delay + f64::from(hit) * 200.0, each, blow());
-                    }
-                    // What the skill looks and sounds like on the one struck (the client's `PlaySkillEffect`
-                    // for the bolts themselves, and the effect of each hit by the skill's element).
-                    let on = (landed.target != own).then_some(landed.target);
-                    let pick = |most: f64| 1 + (js_sys::Math::random() * most) as u32;
-                    match landed.skill {
-                        // Fire Bolt and Cold Bolt: a bolt for each hit.
-                        19 => world::bolts(landed.target, hits as u32, true),
-                        14 => world::bolts(landed.target, hits as u32, false),
-                        // Lightning Bolt: the client's lightning, once.
-                        // (Its sound is the client's `EF_LightBolt.wav`; where the client starts it was not
-                        // found in its code.)
-                        20 => world::effect_later("lightning.str", on, 0.0, Some("effect/ef_lightbolt.wav")),
-                        _ => {}
-                    }
-                    // Any other skill: what the client's table has for it (`CSession::PlaySkillEffect`), shown as
-                    // the skill lands, as the client does.
-                    if !matches!(landed.skill, 14 | 19 | 20) {
-                        self.skill_shown(&effect_tables::skill_hits(landed.skill), landed.source, landed.target, own);
-                    }
-                    // What the striker launches as it strikes, and what follows on the one struck as the blow
-                    // lands (the client's two tables, `CGameActor::ProcessSkillMessage`). The bolts of fire and
-                    // of lightning have their hits shown above.
-                    if let Some(effect) = effect_tables::skill_launch(landed.skill) {
-                        self.effect_shown(effect, landed.source, own, 0.0);
-                    }
-                    if let Some(effect) = effect_tables::skill_follow(landed.skill).filter(|_| !matches!(landed.skill, 19 | 20)) {
-                        self.effect_shown(effect, landed.target, own, delay);
-                    }
-                    for hit in 0..hits {
-                        let when = delay + f64::from(hit) * 200.0;
-                        match landed.skill {
-                            19 => world::effect_later(&format!("firehit{}.str", pick(3.0)), on, when, Some(&format!("_enemy_hit_fire{}.wav", pick(2.0)))),
-                            20 => world::effect_later(&format!("windhit{}.str", pick(3.0)), on, when, None),
-                            _ => {}
-                        }
-                    }
-                }
-            }
-            skills::ZC_USE_SKILL => {
-                if let Some((skill, _, target, who, _)) = skills::used(packet) {
-                    let own = self.account.as_ref().map_or(0, |account| account.account_id);
-                    world::cast_over(who, own, false);
-                    // The one who used it goes through the motion the client has for that skill.
-                    world::uses_skill(who, own, effect_tables::skill_state(skill));
-                    // The effects the client shows for that skill (`ReceiveSkillUse`), on the one who used it or
-                    // on its target, each with the sound it starts with. An effect that is a `.str` file is
-                    // played from the file; of those the client draws by code, the ones drawn here too.
-                    self.skill_shown(&effect_tables::skill_effects(skill), who, target, own);
-                }
-            }
+            skills::ZC_NOTIFY_SKILL => self.skill_landed(packet),
+            skills::ZC_USE_SKILL => self.skill_used(packet),
             // A skill could not be used: the client says why in the chat, in red, with the line of its message
             // table for the cause (`ReceiveSkillFailure`). A cause this has no line for says the plain one.
             skills::ZC_ACK_TOUSESKILL => {
@@ -194,6 +85,123 @@ impl App {
             _ => {
                 world::burst(effect, on, delay);
             }
+        }
+    }
+
+    fn act_seen(&mut self, packet: &[u8]) {
+        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        // Hits of every kind; sitting down, picking up and the like are not shown yet.
+        match units::act(packet) {
+            Some(act) if matches!(act.kind, 0 | 4 | 8 | 9 | 10 | 11 | 13) => {
+                // The sound of the blow, heard when it lands: the weapon's when the character strikes,
+                // the common one when it is struck. A monster's own sounds are in its sprite.
+                let heard = if act.source == own {
+                    Some(self.weapon_sound().to_owned())
+                } else if act.target == own {
+                    Some(format!("_enemy_hit_normal{}.wav", 1 + packet.get(10).copied().unwrap_or(0) % 4))
+                } else {
+                    None
+                };
+                world::struck(act.source, act.target, own, f64::from(act.speed), f64::from(act.delay), act.damage, heard);
+                // One who holds a bow sends an arrow, which arrives as the blow lands.
+                world::arrow(act.source, act.target, own, f64::from(act.delay));
+            }
+            // Someone bends down for a thing on the ground.
+            Some(act) if act.kind == 1 => world::picks_up(act.source, own, act.target),
+            Some(act) if matches!(act.kind, 2 | 3) => {
+                if act.source == own {
+                    self.hero.sitting = act.kind == 2;
+                }
+                world::sat(act.source, own, act.kind == 2);
+            }
+            _ => {}
+        }
+    }
+
+    /// Someone starts to cast (the client's `NotifySkillCasting`). A skill with no casting time shows
+    /// nothing here. The rings are those of the cast's element (`GetSkillActionInfo`).
+    fn cast_begun(&mut self, packet: &[u8]) {
+        if let Some(cast) = skills::casting(packet).filter(|cast| cast.milliseconds > 0) {
+            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            let effect = match cast.element {
+                1 => 54,
+                2 => 56,
+                3 => 55,
+                4 => 57,
+                5 => 59,
+                6 => 58,
+                _ => 12,
+            };
+            world::cast(cast.source, own, cast.target, cast.cell, f64::from(cast.milliseconds), effect);
+        }
+    }
+
+    /// A skill lands: the caster strikes, and each of its hits shows its share of the damage, one after
+    /// another.
+    fn skill_landed(&mut self, packet: &[u8]) {
+        if let Some(landed) = skills::landing(packet) {
+            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            world::cast_over(landed.source, own, false);
+            let hits = i32::from(landed.hits.max(1));
+            let each = landed.damage / hits;
+            let delay = f64::from(landed.attack_motion.clamp(0, 1500));
+            // Each hit of a skill sounds as one of the client's four plain blows (its
+            // `GetWeaponHitWaveName(-1)` for the hits of skills).
+            let blow = || Some(format!("_enemy_hit_normal{}.wav", 1 + (js_sys::Math::random() * 4.0) as u32));
+            world::struck(landed.source, landed.target, own, f64::from(landed.attack_motion), delay, each, blow());
+            // The hits follow one another 200 milliseconds apart (the client's `g_multiHitInterval`).
+            for hit in 1..hits {
+                world::lands(landed.target, own, delay + f64::from(hit) * 200.0, each, blow());
+            }
+            // What the skill looks and sounds like on the one struck (the client's `PlaySkillEffect`
+            // for the bolts themselves, and the effect of each hit by the skill's element).
+            let on = (landed.target != own).then_some(landed.target);
+            let pick = |most: f64| 1 + (js_sys::Math::random() * most) as u32;
+            match landed.skill {
+                // Fire Bolt and Cold Bolt: a bolt for each hit.
+                19 => world::bolts(landed.target, hits as u32, true),
+                14 => world::bolts(landed.target, hits as u32, false),
+                // Lightning Bolt: the client's lightning, once.
+                // (Its sound is the client's `EF_LightBolt.wav`; where the client starts it was not
+                // found in its code.)
+                20 => world::effect_later("lightning.str", on, 0.0, Some("effect/ef_lightbolt.wav")),
+                _ => {}
+            }
+            // Any other skill: what the client's table has for it (`CSession::PlaySkillEffect`), shown as
+            // the skill lands, as the client does.
+            if !matches!(landed.skill, 14 | 19 | 20) {
+                self.skill_shown(&effect_tables::skill_hits(landed.skill), landed.source, landed.target, own);
+            }
+            // What the striker launches as it strikes, and what follows on the one struck as the blow
+            // lands (the client's two tables, `CGameActor::ProcessSkillMessage`). The bolts of fire and
+            // of lightning have their hits shown above.
+            if let Some(effect) = effect_tables::skill_launch(landed.skill) {
+                self.effect_shown(effect, landed.source, own, 0.0);
+            }
+            if let Some(effect) = effect_tables::skill_follow(landed.skill).filter(|_| !matches!(landed.skill, 19 | 20)) {
+                self.effect_shown(effect, landed.target, own, delay);
+            }
+            for hit in 0..hits {
+                let when = delay + f64::from(hit) * 200.0;
+                match landed.skill {
+                    19 => world::effect_later(&format!("firehit{}.str", pick(3.0)), on, when, Some(&format!("_enemy_hit_fire{}.wav", pick(2.0)))),
+                    20 => world::effect_later(&format!("windhit{}.str", pick(3.0)), on, when, None),
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    fn skill_used(&mut self, packet: &[u8]) {
+        if let Some((skill, _, target, who, _)) = skills::used(packet) {
+            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            world::cast_over(who, own, false);
+            // The one who used it goes through the motion the client has for that skill.
+            world::uses_skill(who, own, effect_tables::skill_state(skill));
+            // The effects the client shows for that skill (`ReceiveSkillUse`), on the one who used it or
+            // on its target, each with the sound it starts with. An effect that is a `.str` file is
+            // played from the file; of those the client draws by code, the ones drawn here too.
+            self.skill_shown(&effect_tables::skill_effects(skill), who, target, own);
         }
     }
 }

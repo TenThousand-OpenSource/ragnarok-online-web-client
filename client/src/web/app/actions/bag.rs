@@ -55,9 +55,7 @@ impl App {
         let Some(id) = dragged.strip_prefix("item:").and_then(|id| id.parse::<u32>().ok()) else { return };
         let Some(item) = self.bag.items.iter().find(|item| item.id == id && item.worn == 0) else { return };
         if item.amount <= 1 {
-            if let Some(socket) = &self.socket {
-                socket.send(&items::throw(item.index, 1));
-            }
+            self.send(&items::throw(item.index, 1));
         } else {
             self.bag.throwing = Some((item.index, item.amount));
             self.refresh_throw();

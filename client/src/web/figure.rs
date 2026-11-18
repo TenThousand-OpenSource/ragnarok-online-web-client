@@ -144,7 +144,7 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
 /// A frame of a sprite as a picture for the page: its data URL, its size, and where in it the sprite's origin is.
 pub async fn frame_picture(path: &str, action: usize, frame: usize) -> Result<(String, (usize, usize), (f32, f32)), String> {
     let picture = creature(path, action, frame).await?;
-    let document = web_sys::window().and_then(|window| window.document()).ok_or("no document")?;
+    let document = crate::web::document().ok_or("no document")?;
     let element: HtmlCanvasElement = document.create_element("canvas").map_err(|_| "no canvas")?.dyn_into().map_err(|_| "no canvas")?;
     let canvas = &picture.canvas;
     element.set_width(canvas.width as u32);
@@ -159,7 +159,7 @@ pub async fn frame_picture(path: &str, action: usize, frame: usize) -> Result<(S
 /// pointer's tip is.
 pub async fn cursor(action: usize, frame: usize) -> Result<String, String> {
     let picture = creature("cursors", action, frame).await?;
-    let document = web_sys::window().and_then(|window| window.document()).ok_or("no document")?;
+    let document = crate::web::document().ok_or("no document")?;
     let element: HtmlCanvasElement = document.create_element("canvas").map_err(|_| "no canvas")?.dyn_into().map_err(|_| "no canvas")?;
     let canvas = &picture.canvas;
     element.set_width(canvas.width as u32);
@@ -293,7 +293,7 @@ pub fn paint(canvas_id: &str, figure: Figure) {
 }
 
 fn show(canvas_id: &str, picture: &Canvas) {
-    let element = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id(canvas_id));
+    let element = crate::web::document().and_then(|document| document.get_element_by_id(canvas_id));
     let Some(Ok(canvas)) = element.map(|element| element.dyn_into::<HtmlCanvasElement>()) else { return };
     let Ok(Some(context)) = canvas.get_context("2d") else { return };
     let context: CanvasRenderingContext2d = context.unchecked_into();

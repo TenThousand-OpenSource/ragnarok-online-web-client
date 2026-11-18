@@ -43,6 +43,8 @@ client/src/
   map.rs            .gat / .gnd: walkable cells, ground mesh, path finding
   model.rs          .rsw / .rsm: what stands on a map (its matrices in model/matrix.rs)
   effect.rs         .str: the client's effect files, frame by frame
+  cursor.rs         the game's mouse pointer: which of its pictures shows when (the client's timings)
+  prim.rs           the client's effect primitives: their figures, how each lives and is shaped
   effect_tables.rs  tables the client has compiled into it: which effect a skill or an item shows, which file
                     and sound an effect is, how the body moves for a skill (the files in effect_tables/, written
                     by tools/client-tables/skill_effects.py; effects_missing.txt lists what is not drawn yet)
@@ -70,7 +72,8 @@ client/src/
     view.rs         the page outside the game's own windows: shared pieces    ── children in view/ ──
       accounts.rs     logging in, registering, recovering          characters.rs   server and character select, creation
       game.rs         the game's screen: the minimap and the character's place
-    app.rs          the App: its state and types          ── children in app/ ──
+    app.rs          the App and what the whole of it needs       ── children in app/ ──
+      state.rs        what the App keeps, in groups (the bag, the skills, the chat, a deal, the pets…)
       wiring.rs       page events (click, key, timer) -> Action
       dragging.rs     taking a thing out of a window and letting it go, as the client does (its sprite under the pointer)
       actions.rs      which code sees to each Action (the one place everything arrives at); the longer ones in actions/
@@ -91,20 +94,27 @@ client/src/
     hud.rs          the in-game windows: shared pieces         ── children in hud/ ──
       basic.rs  inventory.rs  equipment.rs  skills.rs  status.rs  chat.rs  dialogs.rs  trade.rs  pets.rs
       hotkeys_set.rs  settings.rs  guide.rs
-    world.rs        the world: its state and types             ── children in world/ ──
+    world.rs        the world: its types and what all of it needs     ── children in world/ ──
+      state.rs        what the world keeps between frames
       session.rs      entering/leaving a map, the player's own character      (called by the app)
       actors.rs       everyone else and the loot                                (called by the app)
       combat.rs       blows, casts, effects                                     (called by the app)
-      frame.rs        one frame: move everyone, advance effects, draw
-      overlays.rs     what is laid over the picture: names, bars, numbers of blows, the pointer
+      frame.rs        one frame: its steps in order                ── children in frame/ ──
+        sprites.rs      who and what stands in the world; the blows that land
+        marks.rs        the cell under the pointer, the portals' rings, the numbers in the air
+        effects.rs      each kind of effect turned into quads
+      quads.rs        the effects' quads of a frame, as the renderer takes them
+      overlays.rs     what is laid over the picture: its steps, the name, the numbers   ── children in overlays/ ──
+        bars.rs  pointer.rs    the bars and words over heads; which pointer the mouse is and its picture
       pursuit.rs      what the character does by itself: walk on, fetch a thing, chase and strike, walk into reach
       pick.rs         what the pointer is on: someone, or a thing on the ground
-      input.rs        the mouse over the world
+      input.rs        the mouse over the world: which event goes where   ── children in input/ ──
+        press.rs  pointer.rs  wheel.rs   a button down; the pointer moved or a button up; the wheel
       gpu.rs          pipelines, textures, the draw call
       loading.rs      reading a map's files
       camera.rs  mover.rs  effects.rs  shaders.rs  math.rs
-      prims.rs        the effects the client draws by code: its primitives (CEffectPrim), kind by kind, and
-                      the effects made of them (CRagEffect), as far as they are ported
+      prims.rs        an effect made of the client's primitives (`crate::prim`) under way on someone   ── child ──
+        effects.rs      the effects made of them (CRagEffect), each run every tick of its life
 gateway/src/
   main.rs           routes and start-up
   grf.rs            reading files out of GRF archives
@@ -184,6 +194,13 @@ These hold for everyone who writes here, people and agents alike. A change that 
    and the report says what was and was not looked at.
 9. **A change leaves the documents true.** A new file is added to the directory map below; a new kind of thing
    to "How to…".
+10. **No function grows past about 100 lines**, unless all it does is hand work out by kind (a `match` over
+    packets or actions, whose arms are a line or two each). A longer one is cut into its steps, each a function
+    named for what it does: `world/frame.rs` is the pattern, a list of steps and nothing else.
+11. **Nothing is written twice.** What two places need is a function both call. Some that exist and are to be
+    used: `crate::web::document()` and `by_id()` for the page; `App::send` and `App::send_on_map` for packets;
+    `Scene::place_of` for where someone is; `Quads` and `nearer` for an effect's quads. Before writing a helper,
+    look for one.
 
 Before finishing: `cargo test`, `./build-web.sh` with no warnings, the largest files checked
 (`find client/src gateway/src -name '*.rs' | xargs wc -l | sort -rn | head`).
@@ -208,7 +225,8 @@ field of its system's group in `App` (`app.rs`: `Hero`, `Bag`, `Skills`, `Chat`,
 gets a group of its own); what its buttons do in `app/clicks/<system>.rs`; its texts through `i18n::tr`.
 
 **…add an effect**: a `.str` effect needs no code — `world::effect("name.str", on_whom)`. An effect the original
-draws by code goes to `world/effects.rs` (geometry) and is fed to the GPU in `world/frame.rs`.
+draws by code goes to `world/effects.rs` (geometry) or `world/prims.rs` (the client's primitives) and is fed to
+the GPU in `world/frame/effects.rs`.
 
 **…translate**: interface texts are in `client/src/i18n.rs`. Items and skills are JSON files in
 `translations/ru/`; the gateway reads every `items-*.json` and `skills-*.json` at start.
@@ -238,9 +256,10 @@ Test accounts for the local server are in `server/conf/accounts.sql`.
 
 ## Known debts
 
-- `world/frame.rs`'s `frame` is still one function of some 350 lines (moving everyone and building what is
-  drawn share too many values to part cheaply).
-- `app.rs` and `world.rs` hold all the types of their layer and stand at the limit of 500 lines.
-- The upper layers (windows, clicks, the world) have no tests: they are checked by hand in the game.
+- Eleven functions are still over 100 lines. Some only hand work out or set things up (`wiring::start`,
+  `incoming::packet`, `actions::handle`, `Gpu::new`); the others are to be cut: `Gpu::draw`, the gateway's
+  `tables::guide`, `account_click`, `skill_window`, `char_select_window`, `pursue`.
+- What needs no page is being moved out of `web/` so that it can be tested (`cursor.rs`, `prim.rs`, the rules
+  in `net/`); the windows and the world's drawing are still checked by hand in the game.
 - Clicks are matched by text (`data-click="…"`), not by a type the compiler checks.
 - Windows are rebuilt as strings; there is no component model, by choice so far.

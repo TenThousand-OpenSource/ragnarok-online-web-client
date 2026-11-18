@@ -27,9 +27,7 @@ impl App {
                     ("identify-ok", None) => return true,
                     _ => 0xffff,
                 };
-                if let Some(socket) = &self.socket {
-                    socket.send(&items::identify(index));
-                }
+                self.send(&items::identify(index));
                 self.bag.identify = None;
                 self.render();
             }

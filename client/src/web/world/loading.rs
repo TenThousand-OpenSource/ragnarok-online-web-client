@@ -4,7 +4,7 @@ use super::*;
 
 /// Tells the page how far the map is read: the bar of the loading screen fills, with the figure on it.
 pub(super) fn progress(percent: u32) {
-    let Some(document) = web_sys::window().and_then(|window| window.document()) else { return };
+    let Some(document) = crate::web::document() else { return };
     if let Some(fill) = document.get_element_by_id("loading-fill") {
         let _ = fill.set_attribute("style", &format!("width:{}px", 238 * percent / 100));
     }
@@ -114,7 +114,7 @@ pub(super) async fn picture(name: &str) -> Result<bmp::Image, String> {
     image.set_src(&image_url(&path));
     wasm_bindgen_futures::JsFuture::from(image.decode()).await.map_err(|_| format!("{path} could not be read"))?;
     let (width, height) = (image.natural_width(), image.natural_height());
-    let document = web_sys::window().and_then(|window| window.document()).ok_or("no document")?;
+    let document = crate::web::document().ok_or("no document")?;
     let canvas: HtmlCanvasElement = document.create_element("canvas").map_err(js_error)?.dyn_into().map_err(js_error)?;
     canvas.set_width(width);
     canvas.set_height(height);
@@ -229,7 +229,7 @@ pub(super) fn pointers() {
         }
         // Everything pressable on the page has the game's pointers too: the plain one, and the pressing one.
         if let (Some(root), Some(plain), Some(press)) = (
-            web_sys::window().and_then(|window| window.document()).and_then(|document| document.document_element()).and_then(|root| root.dyn_into::<web_sys::HtmlElement>().ok()),
+            crate::web::document().and_then(|document| document.document_element()).and_then(|root| root.dyn_into::<web_sys::HtmlElement>().ok()),
             read.first().and_then(|(pictures, _)| pictures.first()),
             figure::cursor(2, 0).await.ok(),
         ) {
@@ -243,7 +243,7 @@ pub(super) fn pointers() {
         // Every picture of every pointer is read by the browser ahead of its use and kept on the page, out of
         // sight: a pointer whose picture the browser has yet to read shows as the plain arrow for a moment, which
         // made the pointer flicker the first time it ran over a monster.
-        if let Some(document) = web_sys::window().and_then(|window| window.document()) {
+        if let Some(document) = crate::web::document() {
             if let (Ok(keep), Some(body)) = (document.create_element("div"), document.body()) {
                 let _ = keep.set_attribute("style", "position:fixed;left:-99px;top:-99px;width:1px;height:1px;overflow:hidden;pointer-events:none");
                 for picture in read.iter().flat_map(|(pictures, _)| pictures) {

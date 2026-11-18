@@ -20,6 +20,13 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use tower_http::services::ServeDir;
 
+/// The server's item database that goes with the rules it plays by: `server/.env`, written by `rules.sh`, says
+/// which (`ROWEB_PRERE=no` is Renewal); without it, the classic one.
+fn rules_database() -> PathBuf {
+    let renewal = std::fs::read_to_string("server/.env").is_ok_and(|env| env.lines().any(|line| line.trim() == "ROWEB_PRERE=no"));
+    if renewal { "../rathena/db/re" } else { "../rathena/db/pre-re" }.into()
+}
+
 struct Config {
     client_dir: PathBuf,
     web_dir: PathBuf,
@@ -56,7 +63,7 @@ fn config() -> Result<(Config, Option<String>), String> {
         server_host: "127.0.0.1".into(),
         server_ports: vec![6900, 6121, 5121],
         // The server is built for the classic game (see server/docker-compose.yml): its databases are these.
-        item_database: "../rathena/db/pre-re".into(),
+        item_database: rules_database(),
         compress: true,
         cache_client: true,
         // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.

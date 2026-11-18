@@ -234,7 +234,7 @@ impl App {
 
     /// Redraws the windows that show the character's values, where they are on the page.
     pub(super) fn refresh_values(&self) {
-        let document = web_sys::window().and_then(|window| window.document());
+        let document = crate::web::document();
         let Some(document) = document else { return };
         super::world::own_life(self.value(parameter::HP), self.value(parameter::MAX_HP), self.value(parameter::SP), self.value(parameter::MAX_SP));
         if let Some(basic) = document.get_element_by_id("basic") {
@@ -247,7 +247,7 @@ impl App {
 
     /// Redraws the windows that show items and skills, where they are on the page.
     pub(super) fn refresh_items(&self) {
-        let Some(document) = web_sys::window().and_then(|window| window.document()) else { return };
+        let Some(document) = crate::web::document() else { return };
         for (id, html) in [("inventory", self.inventory_window()), ("skills", self.skill_window()), ("hotkeys", self.hotkeys()), ("storage", self.storage_window()), ("iteminfo", self.item_info_window()), ("skillinfo", self.skill_info_window()), ("equipment", self.equipment_window())] {
             if let Some(element) = document.get_element_by_id(id) {
                 // The lists keep their place when they are redrawn.

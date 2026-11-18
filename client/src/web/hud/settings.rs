@@ -15,7 +15,7 @@ fn page_of(tab: usize) -> Option<u8> {
 impl App {
     /// Redraws the window where it is on the page; a list keeps its place.
     pub(in crate::web) fn refresh_settings(&self) {
-        let Some(window) = web_sys::window().and_then(|window| window.document()).and_then(|document| document.get_element_by_id("settings")) else { return };
+        let Some(window) = crate::web::by_id("settings") else { return };
         let scrolled = window.query_selector(".scroll").ok().flatten().map_or(0, |list| list.scroll_top());
         window.set_inner_html(&self.settings_window());
         if let Ok(Some(list)) = window.query_selector(".scroll") {

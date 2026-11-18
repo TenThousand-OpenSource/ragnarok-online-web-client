@@ -103,8 +103,8 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
             sprites.push((key, along(on_ground(gat, *at), [0.0, 1.0, 0.0], above), 1.0));
         }
     }
-    // Last frame's place of the pointer in the world: its pictures turn at two of the client's frames each.
-    if let Some(at) = state.target_at {
+    // Last frame's places of the marks in the world: their pictures turn at two of the client's frames each.
+    for at in state.target_at.into_iter().flatten() {
         let pictures = figure::timing("cursors", 3).map_or(1, |(count, _)| count.max(1));
         let key = SpriteKey::Creature("cursors".to_owned(), 3, (time / EFFECT_FRAME_MS / 2.0) as usize % pictures);
         if gpu.has_sprite(&key) {

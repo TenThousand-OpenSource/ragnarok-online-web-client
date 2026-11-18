@@ -161,7 +161,7 @@ pub fn jump(cell: (u16, u16)) {
         state.fetch = None;
         state.reach = None;
         state.held = None;
-        state.target_at = None;
+        state.target_at = [None; 2];
         state.flying.clear();
         state.arrows.clear();
         state.bolts.clear();

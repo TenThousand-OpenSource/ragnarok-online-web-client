@@ -73,8 +73,9 @@ pub(super) struct State {
     pub(super) bars: bool,
     /// Blows on their way: when each lands, on whom, the player's own ID, how much, and what it sounds like.
     pub(super) landing: Vec<(f64, u32, u32, i32, Option<String>)>,
-    /// Where the pointer in the world stands this frame (see the frame's code).
-    pub(super) target_at: Option<Vector>,
+    /// Where the turning marks in the world stand this frame: at the feet of the monster being fought, and of
+    /// another monster the pointer is on.
+    pub(super) target_at: [Option<Vector>; 2],
     /// The numbers in the air.
     pub(super) flying: Vec<Flying>,
     /// Bolts falling, and the effects and sounds that are to start at a moment yet to come.

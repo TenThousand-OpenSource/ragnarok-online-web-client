@@ -20,15 +20,20 @@ pub(super) fn overlays(state: &mut State, view: &View, time: f64, feet: Vector, 
 }
 
 /// Whoever the pointer is on (and where on the page their feet are): the nearest of those whose picture it
-/// touches. Kept with it: the place in the world of the client's turning mark (at the feet of that one if it is
-/// a monster, or else of the monster being fought, never at an NPC's), and whether it is a creature to press.
+/// touches. Kept with it: the places in the world of the turning marks, and whether it is a creature to press.
 /// Nothing at all when there is no world.
+///
+/// The marks are the client's (the third of its pointers, at a monster's feet, never at an NPC's), but the
+/// client has one: on whoever the pointer is on, or else on the monster being fought
+/// (`CGameMode::UpdateHoverNameBalloon`). Here, by this project's owner's wish, the monster being fought keeps
+/// its mark while the pointer is on another, which gets a second for as long as the pointer is there.
 fn pointed(state: &mut State, view: &View) -> Option<Option<(u32, (f32, f32))>> {
     let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
     let over = state.pointer.and_then(|pointer| pointed_at(gpu, scene, view, pointer)).filter(|(id, _)| scene.units.contains_key(id));
     let unit = over.and_then(|(id, _)| Some((id, scene.units.get(&id)?)));
-    let marked = unit.filter(|(_, unit)| unit.lively).map(|(id, _)| id).or(state.chase.map(|(id, ..)| id)).and_then(|id| scene.units.get(&id)).filter(|unit| unit.dying.is_none());
-    state.target_at = marked.map(|unit| on_ground(&scene.gat, unit.at));
+    let fought = state.chase.map(|(id, ..)| id);
+    let pointed = unit.filter(|(id, unit)| unit.lively && Some(*id) != fought).map(|(id, _)| id);
+    state.target_at = [fought, pointed].map(|id| id.and_then(|id| scene.units.get(&id)).filter(|unit| unit.dying.is_none()).map(|unit| on_ground(&scene.gat, unit.at)));
     state.over = unit.filter(|(_, unit)| matches!(unit.look, Look::Creature(_))).map(|(id, unit)| (id, unit.lively));
     Some(over)
 }

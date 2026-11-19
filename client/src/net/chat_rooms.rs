@@ -31,8 +31,8 @@ pub const ZC_ROLE_CHANGE: u16 = 0x00e1;
 pub const OWNER: u32 = 0;
 pub const MEMBER: u32 = 1;
 
-/// What a room is and the rules of one that are no packet, kept at the path they had.
-pub use crate::chat_rooms::{LIMITS, Room, Setting, kind, not_made, refused, wrong};
+// What a room is and the rules of one that are no packet are in `crate::chat_rooms`.
+use crate::chat_rooms::{Room, Setting};
 
 /// The longest title the client keeps of a room it is told of (`ReceiveChatRoomCreate`: 60 bytes).
 const TITLE_KEPT: usize = 60;
@@ -121,6 +121,7 @@ pub fn leave() -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chat_rooms::kind;
     use crate::net::bytes::{name24, testing::assert_lengths};
 
     fn sign(id: u16, kind: u8, title: &[u8]) -> Vec<u8> {

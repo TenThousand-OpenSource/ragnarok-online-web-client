@@ -41,7 +41,7 @@ impl App {
 
     /// The map the character is on is of this kind now: the world goes by it for whom a press fights, and the
     /// standing of the map before means nothing here.
-    fn zoned(&mut self, zone: pvp::Zone) {
+    fn zoned(&mut self, zone: crate::pvp::Zone) {
         self.pvp.zone = zone;
         (self.pvp.rank, self.pvp.total) = (0, 0);
         world::zone(zone);
@@ -69,7 +69,7 @@ impl App {
         }
         let before = self.pvp.rank;
         if before != rank {
-            if let Some(line) = pvp::rank_message(before, rank) {
+            if let Some(line) = crate::pvp::rank_message(before, rank) {
                 let name = self.game.as_ref().map(|game| game.name.clone()).unwrap_or_default();
                 let words = Self::words(line, if line == 582 { "Congratulations! %s's rank has gone up to %d." } else { "What a pity! %s's rank has gone down to %d." });
                 self.chat_line(words.replacen("%s", &name, 1).replacen("%d", &rank.to_string(), 1), YELLOW);
@@ -88,7 +88,7 @@ impl App {
             self.pvp.reading = true;
             wasm_bindgen_futures::spawn_local(async {
                 let mut digits = Vec::new();
-                for action in 0..=pvp::STROKE {
+                for action in 0..=crate::pvp::STROKE {
                     match figure::frame_picture("이팩트/RankFont", action, 0).await {
                         Ok(picture) => digits.push(picture),
                         Err(_) => return,

@@ -4,8 +4,8 @@
 //! (`UIJoinFriendAcceptWnd` and the client's `Confirm`).
 
 use super::*;
-use super::party::{bar_back, bar_button};
-use crate::net::friends::{Friend, MOST, colour};
+use crate::net::friends::Friend;
+use crate::friends::{MOST, colour};
 use crate::press::friends::{Entry, Press};
 use crate::press::things::Menu;
 use crate::web::app::FriendAsk;

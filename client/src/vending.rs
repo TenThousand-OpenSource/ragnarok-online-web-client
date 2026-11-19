@@ -4,10 +4,6 @@
 //! The rules are the client's (`UI/Shop/PriceColor.cpp`, `PriceCommission.cpp`, `UIMerchantShopMakeWnd`,
 //! `UIMerchantItemPurchaseWnd`). The packets of a shop are in `net/vending.rs`.
 
-/// The colour the client writes a price in, and the colour of the rim it gives its figures where it gives
-/// one (`PriceColor`, `UIWindow::DrawAmount`): by how many figures the price has.
-pub use crate::figures::price_colour;
-
 /// The most the client lets a thing cost, the most of one thing a shop sells or a basket takes, and the
 /// longest title it lets be typed (`UIMerchantShopMakeWnd`).
 pub const MOST_PRICE: u32 = 1_000_000_000;
@@ -42,12 +38,13 @@ pub fn after_commission(price: u32) -> u32 {
 /// A price as it was typed into the window of a shop being made: its figures with the commas between them
 /// left out; none for anything that is not a number (the client's line 602), and never more than the most.
 pub fn price_typed(typed: &str) -> Option<u32> {
-    crate::figures::typed(typed).map(|price| price.min(u64::from(MOST_PRICE)) as u32)
+    crate::numbers::typed(typed).map(|price| price.min(u64::from(MOST_PRICE)) as u32)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::numbers::price_colour;
 
     #[test]
     fn a_purchase_that_failed_is_told_of() {

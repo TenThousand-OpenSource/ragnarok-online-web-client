@@ -46,7 +46,7 @@ thread_local! {
 
 /// The lines of a JSON list of texts.
 fn lines_of(list: &wasm_bindgen::JsValue) -> Vec<String> {
-    list.clone().dyn_into::<js_sys::Array>().map(|lines| lines.iter().filter_map(|line| line.as_string()).collect()).unwrap_or_default()
+    listed(list).iter().filter_map(|line| line.as_string()).collect()
 }
 
 /// What the client's table says of a quest; none for a quest it does not have, and while the gateway is one
@@ -58,7 +58,7 @@ pub fn quest_text(quest: u32) -> Option<QuestText> {
             return None;
         }
         let text = |name: &str| text_of(&about, name).unwrap_or_default();
-        let rewards = field(&about, "rewards").dyn_into::<js_sys::Array>().map(|rewards| rewards.to_vec()).unwrap_or_default();
+        let rewards = listed(&field(&about, "rewards"));
         Some(QuestText {
             title: text("title"),
             summary: text("summary"),
@@ -114,7 +114,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         .collect();
     recommended.sort_by_key(|(number, _)| *number);
     RECOMMENDED.set(recommended);
-    TOOLTIPS.set(entries::<String>(&field(&quests, "tooltips")).into_iter().filter_map(|(icon, words)| Some((icon, words.as_string()?))).collect());
+    TOOLTIPS.set(names::<String>(&field(&quests, "tooltips")).into_iter().collect());
     let mut filters: Vec<(u32, String, Vec<String>)> =
         entries::<u32>(&field(&quests, "filters")).into_iter().map(|(number, about)| (number, text_of(&about, "name").unwrap_or_default(), lines_of(&field(&about, "icons")))).collect();
     filters.sort_by_key(|(number, ..)| *number);

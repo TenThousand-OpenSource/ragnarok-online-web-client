@@ -1,6 +1,7 @@
-//! The tests of `net/units.rs`.
+//! The tests of `net/actors.rs`.
 
 use super::*;
+use crate::net::spirits::{told as spirits, ZC_SPIRITS, ZC_SPIRITS2};
 
 #[test]
 fn stopping_the_fight_is_the_number_alone() {
@@ -173,7 +174,7 @@ fn refuses_what_is_not_a_unit() {
     assert_eq!(vanished(&[0x80, 0, 1, 0, 0, 0, 0]), Some((1, false)));
 }
 
-/// The tests that stood in `net/units.rs` itself: a name told, a blow dealt.
+/// The tests that stood in `net/actors.rs` itself: a name told, a blow dealt.
 mod act_tests {
     use super::*;
 

@@ -1,9 +1,9 @@
 //! The inventory as rules: its tabs and which a thing is under, what the window shows of what is carried, what
 //! can be used or set on the hotkey bar, what a count typed means, the order of the "Fav" tab, and (in
-//! `weight`) the lines the chat says of the weight carried. The packets of it are in `net::items`, whose
+//! `weight`) the lines the chat says of the weight carried. The packets of it are in `net::inventory`, whose
 //! `Item` is the thing these rules are about.
 
-use crate::net::items::Item;
+use crate::net::inventory::Item;
 
 pub mod weight;
 
@@ -14,7 +14,7 @@ pub enum Tab {
     Usable,
     Equipment,
     Other,
-    /// "Fav": what the player keeps under it, whatever kind it is of (`net::items::favourites`). No thing is
+    /// "Fav": what the player keeps under it, whatever kind it is of (`net::inventory::favourites`). No thing is
     /// under it by its kind: `Item::tab` never says it.
     Favourite,
 }

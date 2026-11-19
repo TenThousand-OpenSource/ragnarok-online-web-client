@@ -2,7 +2,8 @@
 //! entered, who comes and goes in the room the character sits in, and what is said there.
 
 use super::*;
-use crate::net::chat_rooms::{self, OWNER, Room};
+use crate::net::chat_rooms::{self, OWNER};
+use crate::chat_rooms::Room;
 
 /// The colours the client writes the room's lines in (blue first there): what others say (`0x222222`), what
 /// the player says (`0x7800`), someone coming in (`0x808000`), someone leaving (`0x80`).
@@ -43,7 +44,7 @@ impl App {
             // `ReceiveChatRoomEnterRefused`: why, in red.
             chat_rooms::ZC_REFUSE_ENTER_ROOM => {
                 self.chat_rooms.enter_asked = 0.0;
-                if let Some((line, otherwise)) = chat_rooms::result(packet).and_then(chat_rooms::refused) {
+                if let Some((line, otherwise)) = chat_rooms::result(packet).and_then(crate::chat_rooms::refused) {
                     self.chat_line(Self::words(line, otherwise), RED);
                 }
             }
@@ -95,7 +96,7 @@ impl App {
         self.chat_rooms.enter_asked = 0.0;
         let Some(result) = chat_rooms::result(packet) else { return };
         let asked = self.chat_rooms.asked.take();
-        match chat_rooms::not_made(result) {
+        match crate::chat_rooms::not_made(result) {
             Some((line, otherwise)) => self.chat_line(Self::words(line, otherwise), RED),
             None => {
                 self.chat_line(Self::words(64, "Room has been successfully created."), CYAN);

@@ -16,29 +16,29 @@ impl App {
             Press::Next => {
                 dialog.button = None;
                 dialog.stale = true;
-                socket.send(&npc::next(npc));
+                socket.send(&net::talk::next(npc));
             }
             Press::Close => {
-                socket.send(&npc::close(npc));
+                socket.send(&net::talk::close(npc));
                 self.dialog = None;
             }
             Press::Pick(choice) => dialog.picked = choice,
             Press::Item(_) => {}
             Press::Ok if !dialog.menu.is_empty() => {
                 // The choices are counted from 1.
-                socket.send(&npc::choose(npc, dialog.picked as u8 + 1));
+                socket.send(&net::talk::choose(npc, dialog.picked as u8 + 1));
                 dialog.menu.clear();
                 dialog.stale = true;
             }
             Press::Ok => {
                 let typed = field("dialog-input");
-                socket.send(&if dialog.asks == Some(true) { npc::words(npc, &typed) } else { npc::number(npc, typed.trim().parse().unwrap_or(0)) });
+                socket.send(&if dialog.asks == Some(true) { net::talk::words(npc, &typed) } else { net::talk::number(npc, typed.trim().parse().unwrap_or(0)) });
                 dialog.asks = None;
                 dialog.stale = true;
             }
             Press::Cancel => {
                 // Turning a menu down ends the talk.
-                socket.send(&npc::choose(npc, 255));
+                socket.send(&net::talk::choose(npc, 255));
                 self.dialog = None;
             }
         }

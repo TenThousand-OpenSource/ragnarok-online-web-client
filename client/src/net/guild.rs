@@ -136,8 +136,8 @@ pub struct Skill {
 
 impl Skill {
     /// The same skill as the skills of the character are kept, for using it as they are used.
-    pub fn as_known(&self) -> crate::net::items::Skill {
-        crate::net::items::Skill { id: self.id, target: self.kind, level: self.level, sp: self.sp, range: self.range, raisable: self.raisable }
+    pub fn as_known(&self) -> crate::net::inventory::Skill {
+        crate::net::inventory::Skill { id: self.id, target: self.kind, level: self.level, sp: self.sp, range: self.range, raisable: self.raisable }
     }
 }
 

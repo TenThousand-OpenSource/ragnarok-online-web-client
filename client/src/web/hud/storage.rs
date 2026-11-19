@@ -3,7 +3,7 @@
 //! found (`UIItemStoreFindWnd`), and the box that asks how many go in or out.
 
 use super::*;
-use crate::net::storage::{Sorted, TABS, TAB_LINES, tab_of};
+use crate::storage::{Sorted, TABS, TAB_LINES, tab_of};
 use crate::press::storage::Press;
 use crate::web::app::Stowing;
 

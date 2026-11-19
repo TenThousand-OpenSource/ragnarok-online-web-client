@@ -102,9 +102,6 @@ pub fn read(text: &str) -> Option<(Vec<Tab>, bool)> {
     (!tabs.is_empty()).then_some((tabs, locked))
 }
 
-/// The links to items in a line of chat, where the chat's files have always named them.
-pub use crate::links::items::{Link, Piece, link, link_to, pieces};
-
 #[cfg(test)]
 mod tests {
     use super::*;

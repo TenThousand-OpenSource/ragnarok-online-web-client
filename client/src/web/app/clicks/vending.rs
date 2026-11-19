@@ -4,8 +4,9 @@
 //! `UIMerchantItemPurchaseMSGWnd`), with the states 9 to 12 of the box that asks how many.
 
 use super::*;
-use crate::net::trade::{Asked, bought_singly, count_asked};
-use crate::net::vending::{self, MOST_AMOUNT};
+use crate::shops::{Asked, bought_singly, count_asked};
+use crate::net::vending;
+use crate::vending::MOST_AMOUNT;
 
 /// How long the client waits before it asks for a vendor's list again (`MM_REQ_BUY_FROMMC`).
 const ASK_AGAIN_MS: f64 = 1000.0;
@@ -260,7 +261,7 @@ impl App {
     /// boxes; here the chat says them, in red.
     fn stall_opened(&mut self, free: bool) {
         let Some(making) = &self.vending.making else { return };
-        let prices: Option<Vec<u32>> = making.rows.iter().map(|stalled| vending::price_typed(&stalled.price)).collect();
+        let prices: Option<Vec<u32>> = making.rows.iter().map(|stalled| crate::vending::price_typed(&stalled.price)).collect();
         let unidentified = making.rows.iter().any(|stalled| self.cart.items.iter().any(|item| item.index == stalled.index && !item.identified));
         let zeny = self.hero.zeny().max(0) as u64;
         let refused = match &prices {

@@ -32,7 +32,7 @@ impl App {
     /// The items a line of chat links to (`<ITEML>`) are asked about, so that the line can be written with
     /// their names.
     pub(in crate::web::app) fn chat_links_wanted(&mut self, words: &str) {
-        let items: Vec<u32> = chat_tabs::pieces(words).into_iter().filter_map(|piece| if let chat_tabs::Piece::Item(link) = piece { Some(link.item) } else { None }).collect();
+        let items: Vec<u32> = crate::links::items::pieces(words).into_iter().filter_map(|piece| if let crate::links::items::Piece::Item(link) = piece { Some(link.item) } else { None }).collect();
         if !items.is_empty() {
             self.chat.linked = true;
             data::want_items(items.into_iter(), || dispatch(Action::ItemsKnown));

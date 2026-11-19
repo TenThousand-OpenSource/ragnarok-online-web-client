@@ -118,7 +118,7 @@ impl Sight {
             v::SKILL_RANGE | v::SKILL_RANGE_AT_LEVEL => vec![f64::from(self.skill_range(skill))],
             // Lif is 1: the homunculi count from 6001.
             v::HOMUNCULUS_TYPE if kind == Kind::Homunculus => vec![seen.map_or(-1.0, |seen| f64::from(seen.job % 6000))],
-            v::MERCENARY_TYPE if kind == Kind::Mercenary => vec![seen.map_or(-1.0, |seen| f64::from(crate::net::mercenary::kind(seen.job)))],
+            v::MERCENARY_TYPE if kind == Kind::Mercenary => vec![seen.map_or(-1.0, |seen| f64::from(crate::mercenary::kind(seen.job)))],
             v::HP => vec![of_life(|life| life.hp)],
             v::SP => vec![of_life(|life| life.sp)],
             v::MAX_HP => vec![of_life(|life| life.max_hp)],

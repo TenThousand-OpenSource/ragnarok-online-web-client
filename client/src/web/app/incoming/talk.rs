@@ -6,14 +6,14 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn talk_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            npc::ZC_SAY_DIALOG | npc::ZC_SAY_DIALOG2 | npc::ZC_WAIT_DIALOG | npc::ZC_WAIT_DIALOG2 | npc::ZC_CLOSE_DIALOG | npc::ZC_MENU_LIST | npc::ZC_CLEAR_DIALOG | npc::ZC_OPEN_EDITDLG | npc::ZC_OPEN_EDITDLGSTR => self.npc_spoke(id, packet),
+            net::talk::ZC_SAY_DIALOG | net::talk::ZC_SAY_DIALOG2 | net::talk::ZC_WAIT_DIALOG | net::talk::ZC_WAIT_DIALOG2 | net::talk::ZC_CLOSE_DIALOG | net::talk::ZC_MENU_LIST | net::talk::ZC_CLEAR_DIALOG | net::talk::ZC_OPEN_EDITDLG | net::talk::ZC_OPEN_EDITDLGSTR => self.npc_spoke(id, packet),
             packets::ZC_NOTIFY_PLAYERCHAT | packets::ZC_NOTIFY_CHAT => self.chat_heard(id, packet),
             // A line in a colour of its own (`CGameMode::ReceiveActorColorChat`): into the chat, and over the
             // head of whoever says it when they are in sight. The server refuses some things this way.
-            npc::ZC_NPC_CHAT => {
-                if let Some((who, [red, green, blue], words)) = npc::coloured_line(packet) {
+            net::talk::ZC_NPC_CHAT => {
+                if let Some((who, [red, green, blue], words)) = net::talk::coloured_line(packet) {
                     world::said(who, self.own_account(), &words);
-                    self.chat_line(words, &format!("rgb({red},{green},{blue})"));
+                    self.chat_line(words, &said::colour::css([red, green, blue]));
                 }
             }
             _ => return false,
@@ -22,38 +22,38 @@ impl App {
     }
 
     fn npc_spoke(&mut self, id: u16, packet: &[u8]) {
-        let Some(from) = npc::npc(id, packet) else { return };
+        let Some(from) = net::talk::npc(id, packet) else { return };
         // A script that ends after its window was closed says so once more: there is nothing to show.
-        if self.dialog.is_none() && matches!(id, npc::ZC_CLOSE_DIALOG | npc::ZC_CLEAR_DIALOG | npc::ZC_WAIT_DIALOG | npc::ZC_WAIT_DIALOG2) {
-            if id == npc::ZC_CLOSE_DIALOG {
-                self.send(&npc::close(from));
+        if self.dialog.is_none() && matches!(id, net::talk::ZC_CLOSE_DIALOG | net::talk::ZC_CLEAR_DIALOG | net::talk::ZC_WAIT_DIALOG | net::talk::ZC_WAIT_DIALOG2) {
+            if id == net::talk::ZC_CLOSE_DIALOG {
+                self.send(&net::talk::close(from));
             }
             return;
         }
         let dialog = self.dialog.get_or_insert_with(Dialog::default);
         dialog.npc = from;
         match id {
-            npc::ZC_SAY_DIALOG | npc::ZC_SAY_DIALOG2 => {
+            net::talk::ZC_SAY_DIALOG | net::talk::ZC_SAY_DIALOG2 => {
                 if std::mem::take(&mut dialog.stale) {
                     dialog.lines.clear();
                 }
-                dialog.lines.extend(npc::said(id, packet));
+                dialog.lines.extend(net::talk::said(id, packet));
             }
-            npc::ZC_WAIT_DIALOG | npc::ZC_WAIT_DIALOG2 => dialog.button = Some(true),
+            net::talk::ZC_WAIT_DIALOG | net::talk::ZC_WAIT_DIALOG2 => dialog.button = Some(true),
             // A window with nothing said in it has nothing to close: it is closed for the player.
-            npc::ZC_CLOSE_DIALOG if dialog.lines.is_empty() && dialog.menu.is_empty() && dialog.asks.is_none() => {
-                self.send(&npc::close(from));
+            net::talk::ZC_CLOSE_DIALOG if dialog.lines.is_empty() && dialog.menu.is_empty() && dialog.asks.is_none() => {
+                self.send(&net::talk::close(from));
                 self.dialog = None;
                 self.redraw(&[&wnd::DIALOG]);
                 return;
             }
-            npc::ZC_CLOSE_DIALOG => dialog.button = Some(false),
-            npc::ZC_CLEAR_DIALOG => dialog.lines.clear(),
-            npc::ZC_MENU_LIST => {
-                dialog.menu = npc::menu(packet).unwrap_or_default();
+            net::talk::ZC_CLOSE_DIALOG => dialog.button = Some(false),
+            net::talk::ZC_CLEAR_DIALOG => dialog.lines.clear(),
+            net::talk::ZC_MENU_LIST => {
+                dialog.menu = net::talk::menu(packet).unwrap_or_default();
                 dialog.picked = 0;
             }
-            asks => dialog.asks = Some(asks == npc::ZC_OPEN_EDITDLGSTR),
+            asks => dialog.asks = Some(asks == net::talk::ZC_OPEN_EDITDLGSTR),
         }
         self.redraw(&[&wnd::DIALOG]);
     }
@@ -66,7 +66,7 @@ impl App {
             let own = self.own_account();
             match id {
                 packets::ZC_NOTIFY_PLAYERCHAT => world::said(own, own, &words),
-                packets::ZC_NOTIFY_CHAT => world::said(npc::npc(id, packet).unwrap_or(0), own, &words),
+                packets::ZC_NOTIFY_CHAT => world::said(net::talk::npc(id, packet).unwrap_or(0), own, &words),
                 _ => {}
             }
             let colour = if id == packets::ZC_NOTIFY_PLAYERCHAT { "#0f0" } else { "#fff" };

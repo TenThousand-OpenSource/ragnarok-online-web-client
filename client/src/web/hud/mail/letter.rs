@@ -7,7 +7,7 @@ use crate::net::packets::parameter;
 
 /// The five places for things, 34 apart, each a shadow (`shadow_item_off.bmp`).
 fn places() -> String {
-    (0..mail::MOST_ITEMS as i32).map(|place| art(&rodex("shadow_item_off"), 26 + 34 * place, 319, 32, 18)).collect()
+    (0..crate::mail::MOST_ITEMS as i32).map(|place| art(&rodex("shadow_item_off"), 26 + 34 * place, 319, 32, 18)).collect()
 }
 
 /// A thing in one of the places: the shadow lit, the thing's picture with how many there are, its name when
@@ -62,7 +62,7 @@ impl App {
             escape(&letter.body)
         ));
         window.push_str(&places());
-        for (place, item) in letter.items.iter().take(mail::MOST_ITEMS).enumerate() {
+        for (place, item) in letter.items.iter().take(crate::mail::MOST_ITEMS).enumerate() {
             window.push_str(&thing(place, item, None));
         }
         // A button that was pressed waits for the server's answer, dimmed; what was taken has no button.
@@ -139,16 +139,16 @@ impl App {
         window.push_str(&format!(
             r#"<textarea id="mail-body" class="a in viewer" style="{};resize:none;color:#313131;line-height:15px;white-space:pre-wrap" maxlength="{}" oninput="document.getElementById('mail-letters').textContent=this.value.length">{}</textarea>"#,
             at(15, 81, 267, 192),
-            mail::MOST_TEXT,
+            crate::mail::MOST_TEXT,
             escape(&body)
         ));
         window.push_str(&format!(r#"<div id="mail-letters" class="a t" style="right:42px;top:276px;color:#446ed6;{}">{}</div>"#, pale.style(), body.chars().count()));
-        window.push_str(&text_in(pale, 261, 276, "#446ed6", &format!("/ {}", mail::MOST_TEXT)));
+        window.push_str(&text_in(pale, 261, 276, "#446ed6", &format!("/ {}", crate::mail::MOST_TEXT)));
         window.push_str(&art(&rodex("bg_weight"), 199, 305, 82, 32));
         window.push_str(&text_ending_in(SMALL, 244, 300, 316, "#737373", &writing.weight.to_string()));
         window.push_str(&text_in(SMALL, 245, 316, "#737373", &Self::words(3035, "/2000")));
         window.push_str(&places());
-        for (place, item) in writing.items.iter().take(mail::MOST_ITEMS).enumerate() {
+        for (place, item) in writing.items.iter().take(crate::mail::MOST_ITEMS).enumerate() {
             window.push_str(&thing(place, item, Some(Drag::Attached(item.index))));
         }
         window.push_str(&self.mail_write_zeny(writing.items.len(), &typed("mail-zeny", &writing.zeny)));
@@ -158,15 +158,15 @@ impl App {
 
     /// The zeny of a letter being written (`UIRodexComposeWnd::Paint`): the white box 35,347 with the field
     /// in it, thirteen letters at most; after a stroke what the character has; and at the bottom left the fee
-    /// for so many things and that much zeny (`mail::fee`).
+    /// for so many things and that much zeny (`crate::mail::fee`).
     fn mail_write_zeny(&self, things: usize, typed: &str) -> String {
         let has = self.hero.params.get(&parameter::ZENY).copied().unwrap_or(0);
-        let sent = mail::zeny_typed(typed);
-        let fee = mail::fee(things, sent);
+        let sent = crate::mail::zeny_typed(typed);
+        let fee = crate::mail::fee(things, sent);
         let short = sent.saturating_add(fee) > has;
         let mut zeny = format!(r#"<div class="a" style="{};background:#fff;border:1px solid #a6a6a6;box-sizing:border-box"></div>"#, at(35, 347, 95, 16));
         zeny.push_str(&art(&rodex("icon_zeny"), 19, 342, 28, 25));
-        // The fee follows the typing: 2500 a thing and two hundredths of the zeny, as `mail::fee` counts it.
+        // The fee follows the typing: 2500 a thing and two hundredths of the zeny, as `crate::mail::fee` counts it.
         zeny.push_str(&format!(
             r#"<input id="mail-zeny" class="a in" style="{};color:{}" type="text" inputmode="numeric" maxlength="13" autocomplete="off" value="{}" oninput="document.getElementById('mail-fee').textContent=({things}*2500+Math.floor((parseInt(this.value.replace(/,/g,''))||0)*2/100)).toLocaleString('en-US')">"#,
             at(45, 348, 84, 14),

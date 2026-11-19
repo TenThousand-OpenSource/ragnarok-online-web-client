@@ -3,23 +3,24 @@
 500 lines, no function past about 100; lines so long that they hide size are counted in a note), and that nothing on the page is named by hand (rule 12: what can be
 pressed, used, dragged or sent is written through `web/parts.rs` from a value of `crate::press`; and the page's
 style sheet names no window of the game to say how it lies over the others, which the window's entry in
-`hud/windows.rs` says with its `layer`). Run from the project's folder; `check.sh` does. Prints what breaks a
+`hud/windows.rs` says with its `layer`); and that the directory map of ARCHITECTURE.md is the one
+`tools/directory_map.py` writes from the tree (rule 9). Run from the project's folder; `check.sh` does. Prints what breaks a
 rule and leaves with 1 if anything does.
 
 A function that only hands work out by kind (rule 10's exception) is named in DISPATCHERS, with its file.
 """
 import glob
 import re
+import subprocess
 import sys
 
 FILE_LINES = 500
 FUNCTION_LINES = 100
 # A line longer than this hides size from the count of lines. Reported, not refused yet: there are some.
 LINE_CHARACTERS = 200
-# Plain dispatchers: a `match` over packets or actions whose arms are a line or two each.
-DISPATCHERS = {
-    ("client/src/web/app/actions.rs", "handle"),
-}
+# Plain dispatchers: a `match` over packets or actions whose arms are a line or two each, as (file, function).
+# None is longer than a function may be now.
+DISPATCHERS = set()
 # A name of a press, a use, a drag or a form written into the page by hand.
 BY_HAND = re.compile(r'data-(click|use|drag|submit)=\\?"[a-z{]')
 # The one file that writes those names, from values.
@@ -78,6 +79,9 @@ def main():
                 if BY_HAND.search(line) and not line.lstrip().startswith("//"):
                     over.append(f"{path}:{at + 1}: a name of the page written by hand (use `pressed`, `used`, `dragged` or `sent` of web/parts.rs)")
     over.extend(layered_by_name())
+    # Rule 9: the directory map of ARCHITECTURE.md is the tree's own.
+    if subprocess.run([sys.executable, "tools/directory_map.py", "--check"], capture_output=True).returncode:
+        over.append("ARCHITECTURE.md: the directory map is not the tree's (run `python3 tools/directory_map.py --write`)")
     for line in over:
         print(line)
     if not over:

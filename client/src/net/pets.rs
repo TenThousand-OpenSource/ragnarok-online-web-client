@@ -1,8 +1,7 @@
 //! Pets: what the map server tells of the player's own (everything about it, one thing that changed, how
 //! feeding it went), what any pet in sight shows and says, the eggs to hatch and the catch of a taming, and what
 //! the client asks (`pets/requests.rs`). The words of the pet's window, what a pet feels and says at a moment
-//! and the lines of `PetTalkTable.xml` are rules and no packets: they are in `crate::pets`, and named from here
-//! as before.
+//! and the lines of `PetTalkTable.xml` are rules and no packets: they are in `crate::pets`.
 
 use super::bytes::{i32_at, text, u16_at, u32_at, words_from};
 use super::companions;
@@ -11,7 +10,6 @@ mod requests;
 #[cfg(test)]
 mod tests;
 
-pub use crate::pets::{feeling, hunger_state, hunger_tag, hunger_word, intimacy_state, intimacy_word, moment, moment_tag, speaks, speech};
 pub use requests::*;
 
 /// ZC_START_CAPTURE (2 bytes): a taming item was used, and the monster to tame is to be picked.

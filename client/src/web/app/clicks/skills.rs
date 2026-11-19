@@ -14,7 +14,7 @@ impl App {
             }
             Press::Raise(id) => {
                 if let Some(socket) = &self.socket {
-                    socket.send(&items::raise_skill(id));
+                    socket.send(&net::inventory::raise_skill(id));
                 }
             }
             Press::InfoClose => {
@@ -69,7 +69,7 @@ impl App {
         // level picked there.
         let level = level.or_else(|| self.skills.use_level.get(&skill.id).copied());
         if skill.on_self() {
-            socket.send(&items::use_skill(level.unwrap_or(skill.level).min(skill.level).max(1), skill.id, account.account_id));
+            socket.send(&net::inventory::use_skill(level.unwrap_or(skill.level).min(skill.level).max(1), skill.id, account.account_id));
         } else {
             // A skill for someone or for a place is aimed with the pointer: the next press on the map
             // says on whom or where.
@@ -101,7 +101,7 @@ impl App {
         }
         if let (Server::Map, Some(socket), Some((skill, level))) = (self.server, &self.socket, self.skills.aimed.take()) {
             socket.send(&match whom {
-                Some(id) => items::use_skill(level, skill, id),
+                Some(id) => net::inventory::use_skill(level, skill, id),
                 None => crate::net::skills::use_on_ground(level, skill, cell),
             });
         }
@@ -120,13 +120,7 @@ impl App {
     /// The key of the hotkey bar: the bar runs through its sizes, as the client's does: a row more each time,
     /// then away, then one row again. (The key's own arm writes the screen anew.)
     pub(in crate::web::app) fn hotkey_bar_stepped(&mut self) {
-        if self.skills.hotkeys_hidden {
-            self.skills.hotkeys_hidden = false;
-        } else if self.skills.hotkey_rows >= 3 {
-            (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
-        } else {
-            self.skills.hotkey_rows += 1;
-        }
+        (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = crate::hotkeys::bar_stepped(self.skills.hotkey_rows, self.skills.hotkeys_hidden);
     }
 
     /// The level a skill is used at goes one down or up, between 1 and the level it is known at; at the level
@@ -134,11 +128,9 @@ impl App {
     /// and a mercenary: `ai.rs`.)
     pub(in crate::web::app) fn use_level_stepped(&mut self, id: u16, step: crate::press::Step, known: u16) {
         let used = self.skills.use_level.get(&id).copied().unwrap_or(known);
-        let wanted = if step == crate::press::Step::More { (used + 1).min(known) } else { used.saturating_sub(1).max(1) };
-        if wanted == known {
-            self.skills.use_level.remove(&id);
-        } else {
-            self.skills.use_level.insert(id, wanted);
-        }
+        match crate::skills::use_level_stepped(used, known, step == crate::press::Step::More) {
+            Some(wanted) => self.skills.use_level.insert(id, wanted),
+            None => self.skills.use_level.remove(&id),
+        };
     }
 }

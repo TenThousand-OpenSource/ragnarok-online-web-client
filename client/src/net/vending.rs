@@ -8,10 +8,9 @@
 //! client's and no packets, are in `crate::vending`; what the client sends is in `vending/requests.rs`.
 
 use super::bytes::{body, long, text, word};
-use super::items::{Amount, Identified, Item, Layout};
+use super::inventory::{Amount, Identified, Item, Layout};
 
-/// The rules of a shop are named here as before.
-pub use crate::vending::{MOST_AMOUNT, MOST_PRICE, SLOTS, TITLE, after_commission, price_colour, price_typed, purchase_said};
+use crate::vending::SLOTS;
 
 /// ZC_OPENSTORE: the skill Vending was used: a shop of so many kinds of things may be made.
 pub const ZC_OPENSTORE: u16 = 0x012d;

@@ -3,7 +3,7 @@
 //! cooked (`making`), what can be repaired and the weapons a smith can refine (`mending`), the equipment a
 //! card goes into (`cards`); and the name of a character asked by its number (who made a thing). Each child
 //! is named here whole, so everything is `net::choosing::…`. What is a rule and no packet (what goes into a
-//! forging, the effect of an outcome, a card set into its slot) is in `crate::choosing`, and named here too.
+//! forging, the effect of an outcome, a card set into its slot) is in `crate::choosing`.
 //!
 //! Layouts are rAthena's at PACKETVER 20260219 (`src/map/packets.hpp`, `packets_struct.hpp`).
 
@@ -31,11 +31,9 @@ mod cards;
 mod making;
 mod mending;
 mod warps;
-pub use crate::choosing::{STAR_CRUMB, effect, elemental_stone, goes_in, made_effect, put_in, set_card, takes_more};
 pub use {cards::*, making::*, mending::*, warps::*};
 
-/// Asking what a character is called by its number is with its answer, in `net/units.rs`.
-pub use super::units::ask_name;
+// Asking what a character is called by its number is with its answer, in `net/actors.rs`.
 
 #[cfg(test)]
 mod tests;

@@ -59,7 +59,7 @@ impl App {
         self.game = None;
         self.zone = None;
         self.dialog = None;
-        self.deal = Deal::default();
+        self.shops = Shops::default();
         self.storage.open = None;
         self.storage.counting = None;
         self.storage.found = None;
@@ -181,7 +181,7 @@ impl App {
         }
         if let Some(socket) = &self.socket {
             // A human starts as a Novice (job 0), a Doram as a Summoner.
-            let job = if self.make.doram { u32::from(data::SUMMONER) } else { 0 };
+            let job = if self.make.doram { u32::from(crate::jobs::SUMMONER) } else { 0 };
             socket.send(&packets::make_char(name, slot, self.make.hair_colour, self.make.hair_style, job, self.make.sex));
             self.wait = Some(Key::PleaseWait);
             self.render();
@@ -189,7 +189,7 @@ impl App {
     }
 
     /// The player's own account, as the party's packets name everyone.
-    pub(in crate::web::app) fn own_account(&self) -> u32 {
+    pub(in crate::web) fn own_account(&self) -> u32 {
         self.account.as_ref().map_or(0, |account| account.account_id)
     }
 }

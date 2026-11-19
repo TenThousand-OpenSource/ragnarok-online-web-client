@@ -19,7 +19,7 @@ impl App {
         // The fight, if there was one, stops for the taming.
         world::stand_down();
         if let Some(socket) = &self.socket {
-            socket.send(&units::stop_attack());
+            socket.send(&net::actors::stop_attack());
         }
         let tick = Closure::<dyn FnMut()>::new(|| dispatch(Action::TamingTick));
         let timer = web_sys::window().and_then(|window| window.set_interval_with_callback_and_timeout_and_arguments_0(tick.as_ref().unchecked_ref(), 16).ok()).unwrap_or(0);

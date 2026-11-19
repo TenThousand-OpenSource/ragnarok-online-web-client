@@ -4,13 +4,13 @@
 use super::*;
 
 fn dealing(app: &App) -> bool {
-    matches!(app.deal.shop, Some(Shop::Buy(_) | Shop::Sell(_)))
+    matches!(app.shops.shop, Some(Shop::Buy(_) | Shop::Sell(_)))
 }
 
 /// The shop's question whether to buy or to sell.
 pub(in crate::web) static TRADE: Window = Window {
     id: "trade",
-    open: |app| matches!(app.deal.shop, Some(Shop::Choose(_))),
+    open: |app| matches!(app.shops.shop, Some(Shop::Choose(_))),
     frame: |_, view| middle(view, 280, 100),
     draw: App::trade_window,
     order: None,
@@ -32,4 +32,4 @@ pub(in crate::web) static SHOP_BASKET: Window = Window::usual(
 );
 
 /// How many of a row go across the shop's windows.
-pub(in crate::web) static SHOP_COUNT: Window = Window::count("shop-count", |app| app.deal.counting.is_some(), App::shop_count_window);
+pub(in crate::web) static SHOP_COUNT: Window = Window::count("shop-count", |app| app.shops.counting.is_some(), App::shop_count_window);

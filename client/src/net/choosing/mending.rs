@@ -2,7 +2,7 @@
 //! each and how it went; and a thing refined at an NPC.
 
 use super::*;
-use crate::net::items::cards;
+use crate::net::inventory::cards;
 
 /// A thing in a list of what can be repaired or refined: where its owner carries it, and what it is.
 #[derive(Debug, Clone, PartialEq, Eq)]

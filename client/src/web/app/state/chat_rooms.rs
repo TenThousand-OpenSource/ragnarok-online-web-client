@@ -3,7 +3,8 @@
 
 use std::collections::HashMap;
 
-use crate::net::chat_rooms::{LIMITS, MEMBER, OWNER, Room};
+use crate::net::chat_rooms::{MEMBER, OWNER};
+use crate::chat_rooms::{LIMITS, Room};
 
 /// The room the character sits in (the client's `UIChatRoomWnd` and `CGameMode::chatRoom`).
 pub(in crate::web) struct Sitting {

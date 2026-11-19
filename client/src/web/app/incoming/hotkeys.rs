@@ -9,9 +9,9 @@ impl App {
             // The server sends the list twice on coming in: the hotkey bar (tab 0), then the second bar (tab 1),
             // which this client does not show yet. Only the first is this bar; taking the second for it too
             // emptied the bar at every login.
-            items::ZC_SHORTCUT_KEY_LIST => {
-                if items::hotkeys_bar(packet) == Some(0) {
-                    self.skills.hotkeys = items::hotkeys(packet);
+            net::inventory::ZC_SHORTCUT_KEY_LIST => {
+                if net::inventory::hotkeys_bar(packet) == Some(0) {
+                    self.skills.hotkeys = net::inventory::hotkeys(packet);
                     // What the bar's skills are called and which pictures are theirs.
                     for hotkey in self.skills.hotkeys.clone().iter().filter(|hotkey| hotkey.skill && hotkey.id != 0) {
                         data::want_skill(hotkey.id as u16, || dispatch(Action::ItemsKnown));

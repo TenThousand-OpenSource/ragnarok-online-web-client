@@ -21,7 +21,7 @@ impl App {
                 world::aim(Some(false), 5);
                 // Taming and fighting do not go together: the fight stops as soon as the bait is in hand.
                 world::stand_down();
-                self.send(&units::stop_attack());
+                self.send(&net::actors::stop_attack());
             }
             // ZC_TRYCAPTURE_MONSTER (0x01a0): `u8 caught`. The reels slow down and stop on the picture of the
             // catch (the eighth) or of the miss (the fourth).
@@ -35,7 +35,7 @@ impl App {
             pets::ZC_PROPERTY_PET => {
                 if let Some(pet) = pets::property(packet).filter(|pet| pet.level < 10000) {
                     // A pet close enough to talk will need its lines.
-                    if pets::speaks(pet.intimacy) {
+                    if crate::pets::speaks(pet.intimacy) {
                         data::want_pet_talk();
                     }
                     self.pets.hunger_before = self.pets.pet.as_ref().map_or(pet.hunger, |before| before.hunger);
@@ -50,7 +50,7 @@ impl App {
                 self.pets.fed = pets::fed(packet);
                 // Fed, the pet shows and says how it likes it, by how hungry it was (`ReceiveFeedResult`).
                 if matches!(self.pets.fed, Some((true, _))) {
-                    self.pet_feels(pets::moment::FED, Some(self.pets.hunger_before));
+                    self.pet_feels(crate::pets::moment::FED, Some(self.pets.hunger_before));
                 }
                 if let Some((_, food)) = self.pets.fed {
                     data::want_items(std::iter::once(food), || dispatch(Action::ItemsKnown));
@@ -69,7 +69,7 @@ impl App {
     pub(in crate::web::app) fn pet_feels(&self, moment: i32, hunger: Option<i32>) {
         let (Some(pet), Some(socket)) = (&self.pets.pet, &self.socket) else { return };
         self.pet_says(moment, hunger);
-        if let Some(feeling) = pets::feeling(hunger.unwrap_or(pet.hunger), pet.intimacy, moment) {
+        if let Some(feeling) = crate::pets::feeling(hunger.unwrap_or(pet.hunger), pet.intimacy, moment) {
             socket.send(&pets::act(feeling));
         }
     }
@@ -77,8 +77,8 @@ impl App {
     /// The words alone.
     pub(in crate::web::app) fn pet_says(&self, moment: i32, hunger: Option<i32>) {
         let (Some(pet), Some(socket), Some(account)) = (&self.pets.pet, &self.socket, &self.account) else { return };
-        if pets::speaks(pet.intimacy) {
-            socket.send(&pets::act(pets::speech(pet.job, moment, hunger.unwrap_or(pet.hunger), account.sex)));
+        if crate::pets::speaks(pet.intimacy) {
+            socket.send(&pets::act(crate::pets::speech(pet.job, moment, hunger.unwrap_or(pet.hunger), account.sex)));
         }
     }
 
@@ -124,10 +124,10 @@ impl App {
                 // three seconds on may show how it feels (`PetIdle`).
                 if unit == self.pets.unit {
                     let moment = match value {
-                        2 => pets::moment::TRICK + 1,
-                        3 => pets::moment::TRICK + 2,
-                        4 => pets::moment::TRICK_SPECIAL,
-                        _ => pets::moment::TRICK,
+                        2 => crate::pets::moment::TRICK + 1,
+                        3 => crate::pets::moment::TRICK + 2,
+                        4 => crate::pets::moment::TRICK_SPECIAL,
+                        _ => crate::pets::moment::TRICK,
                     };
                     self.pet_says(moment, None);
                     after(3000, Action::PetIdle);

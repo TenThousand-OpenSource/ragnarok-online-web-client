@@ -106,7 +106,7 @@ fn aimed(event: &MouseEvent) {
 }
 
 /// With Shift held, or sitting, a press on the ground has the character look towards the place and not walk
-/// (`poses::looks_at`): whether it was such a press.
+/// (`pose::looks_at`): whether it was such a press.
 fn looks(event: &MouseEvent, at: (f32, f32)) -> bool {
     let looks = STATE.with_borrow_mut(|state| {
         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
@@ -114,7 +114,7 @@ fn looks(event: &MouseEvent, at: (f32, f32)) -> bool {
             return None;
         }
         let view = scene.view(gpu);
-        let turned = view.pick(&scene.gat, at).and_then(|picked| poses::looks_at(state, picked));
+        let turned = view.pick(&scene.gat, at).and_then(|picked| pose::looks_at(state, picked));
         state.held = None;
         Some((state.hooks.as_ref().map(|hooks| hooks.face), turned))
     });

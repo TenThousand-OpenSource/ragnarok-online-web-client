@@ -2,7 +2,7 @@
 //! both (its `skillTab` 0 and 1), a row to a skill.
 
 use super::*;
-use crate::net::items::Skill;
+use crate::net::inventory::Skill;
 use crate::press::skills::LevelStep;
 use crate::press::{Press, Step};
 

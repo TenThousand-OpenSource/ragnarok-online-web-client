@@ -113,7 +113,7 @@ pub(super) struct State {
     /// The numbers in the air.
     pub(super) flying: Vec<Flying>,
     /// The circles on the ground of skills being cast on a place.
-    pub(super) scopes: Vec<super::scopes::Scope>,
+    pub(super) scopes: Vec<super::scope::Scope>,
     /// The effects and sounds that are to start at a moment yet to come.
     pub(super) effects_due: Vec<(f64, String, Option<u32>, Option<Carrying>)>,
     pub(super) sounds_due: Vec<(f64, String)>,

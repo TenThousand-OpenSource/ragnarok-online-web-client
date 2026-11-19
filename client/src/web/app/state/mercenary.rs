@@ -1,7 +1,7 @@
 //! What the app keeps of a hired mercenary: what the server told of it, its skills, its window and the list
 //! of its skills.
 
-use crate::net::items::Skill;
+use crate::net::inventory::Skill;
 use crate::net::mercenary;
 
 /// The player's mercenary.

@@ -73,7 +73,7 @@ impl App {
             // (`RequestPlayerAction31`); one who walks does not sit down (as with the key).
             "TT_EX_SIT" => {
                 if self.hero.sitting || !world::walking() {
-                    self.send(&units::sit(!self.hero.sitting));
+                    self.send(&net::actors::sit(!self.hero.sitting));
                 }
             }
             "TT_EX_MAP_POS" => self.tell_where(),
@@ -87,7 +87,7 @@ impl App {
             // The character turns an eighth of the way round, clockwise or the other way.
             "TT_EX_BANGBANG" | "TT_EX_BINGBING" => {
                 if let Some(direction) = world::turn(asks == "TT_EX_BANGBANG") {
-                    self.send(&units::face(direction));
+                    self.send(&net::actors::face(direction));
                 }
             }
             // `/who`, `/w`: how many play (`MM_REQ_NUM_USER`); the answer is told in the chat

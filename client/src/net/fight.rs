@@ -4,11 +4,8 @@
 
 use super::bytes::{long, name_at, short, word, Writer};
 
-// A skill changed or taken away is told with the skills known (`net/items/skills.rs`), a talkie box's words and
-// what Graffiti writes with the units on the ground (`net/skill_units.rs`); they were here once, and are still
-// named so.
-pub use super::items::{skill_changed, skill_taken, ZC_SKILLINFO_DELETE, ZC_SKILLINFO_UPDATE2};
-pub use super::skill_units::{talkie, written, Written, ZC_SKILL_ENTRY2, ZC_SKILL_UPDATE, ZC_TALKBOX_CHATCONTENTS};
+// A skill changed or taken away is told with the skills known (`net/inventory/skills.rs`), a talkie box's words and
+// what Graffiti writes with the units on the ground (`net/skill_units.rs`).
 
 /// ZC_COMBODELAY (0x01d2): `u32 who, u32 milliseconds`: how long the one who struck may follow with the next
 /// blow of a combo.

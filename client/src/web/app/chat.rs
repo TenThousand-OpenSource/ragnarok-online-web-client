@@ -3,11 +3,9 @@
 use super::*;
 
 impl App {
-    /// The chat's next size, as the client steps it (`UM_TOGGLEPUSH`): one row, then three more each time up to
-    /// thirteen, then none.
+    /// The chat takes its next size (`crate::chat::rows_stepped`).
     pub(super) fn chat_resize(&mut self) {
-        let rows = if self.chat.rows == 0 { 1 } else { self.chat.rows + 3 };
-        self.chat.rows = if rows > 15 { 0 } else { rows / 3 * 3 + 1 };
+        self.chat.rows = crate::chat::rows_stepped(self.chat.rows);
     }
 
     /// Adds a line to the chat.
@@ -27,10 +25,10 @@ impl App {
     }
 
     /// A line of the client's message table in the chat, with what it asks for written into it
-    /// (`figures::filled`); nothing while the table does not have the line.
+    /// (`numbers::filled`); nothing while the table does not have the line.
     pub(super) fn say_filled(&mut self, kind: u8, line: usize, with: &[&str], colour: &str) {
         if let Some(words) = data::message(line).filter(|words| !words.is_empty()) {
-            self.chat_line_of(kind, crate::figures::filled(crate::i18n::tr(&words), with), colour);
+            self.chat_line_of(kind, crate::numbers::filled(crate::i18n::tr(&words), with), colour);
         }
     }
 }

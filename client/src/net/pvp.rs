@@ -85,9 +85,9 @@ pub fn ranking(packet: &[u8]) -> Option<(u32, i32, i32)> {
     Some((long(packet, 2)?, int(packet, 6)?, int(packet, 10)?))
 }
 
-/// The rules that are no packet, kept at the path they had: the zone and who is fought in it, the standing's
-/// line and what the chat says of it.
-pub use crate::pvp::{STROKE, Zone, rank_line, rank_message};
+// The rules that are no packet (the zone and who is fought in it, the standing's line and what the chat says
+// of it) are in `crate::pvp`.
+use crate::pvp::Zone;
 
 #[cfg(test)]
 mod tests;

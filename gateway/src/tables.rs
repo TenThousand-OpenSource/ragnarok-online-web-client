@@ -5,7 +5,7 @@
 //! Most of the client's tables are Lua 5.1 bytecode compiled for the 32-bit client. `lunify` rewrites it for
 //! the Lua this program embeds, which then simply runs it; the tables are what the files leave in the globals.
 //! Shared here: a Lua state as the files need it (`state`), running a file in it (`exec`, `run`, `run_in`,
-//! `beside`), walking what it left (`whole`, `text`, `lines`, `names`, `numbered`, `json_of`), the texts'
+//! `beside`), walking what it left (`whole`, `text`, `text_only`, `lines`, `names`, `numbered`, `json_of`), the texts'
 //! encodings (`korean`, `latin`), the client's `#` tables (`hash_fields`), and a JSON object keyed by numbers
 //! in their order (`by_number`).
 
@@ -24,7 +24,9 @@ mod figures;
 mod guide;
 mod interface;
 mod items;
+mod jobs;
 mod maps;
+mod pets;
 mod quests;
 mod scenery;
 mod commands;
@@ -82,7 +84,6 @@ fn exec(lua: &Lua, bytes: &[u8], name: Option<&str>) -> Result<(), String> {
 
 /// Makes every name a file uses and nothing has defined stand for itself, as a text: for a file that names
 /// things by the client's own constants (`optioninfo\gamesettings`), which this program does not have.
-#[allow(dead_code)]
 fn names_stand_for_themselves(lua: &Lua) -> Result<(), String> {
     lua.load("setmetatable(_G, { __index = function(_, name) return name end })").exec().map_err(|error| error.to_string())
 }
@@ -174,7 +175,6 @@ pub fn korean(bytes: &[u8]) -> String {
 
 /// A text that is UTF-8, or else Windows-1252: the translated files beside the archives are plain text, and
 /// the few bytes beyond ASCII in them are Latin letters and signs.
-#[allow(dead_code)]
 fn latin(bytes: &[u8]) -> String {
     match std::str::from_utf8(bytes) {
         Ok(text) => text.to_owned(),
@@ -184,7 +184,6 @@ fn latin(bytes: &[u8]) -> String {
 
 /// A whole number of a Lua table, which keeps some of its whole numbers as numbers with a fraction of nought;
 /// none for anything that is no number.
-#[allow(dead_code)]
 fn whole(value: &Value) -> Option<i64> {
     match value {
         Value::Integer(number) => Some(*number),
@@ -193,14 +192,22 @@ fn whole(value: &Value) -> Option<i64> {
     }
 }
 
-/// The text in a field of a Lua table, read as the client's Korean; none when the field is no text.
-#[allow(dead_code)]
+/// The text a Lua value is, read as the client's Korean; none of what is no text: a number is not taken for
+/// one, as `text` takes it.
+fn text_only(value: &Value) -> Option<String> {
+    match value {
+        Value::String(text) => Some(korean(&text.as_bytes())),
+        _ => None,
+    }
+}
+
+/// The text in a field of a Lua table, read as the client's Korean; none when the field is no text. (Lua
+/// gives a number in the field as its text: `text_only` for where that must not be.)
 fn text(table: &Table, field: &str) -> Option<String> {
     table.get::<Option<mlua::String>>(field).ok().flatten().map(|text| korean(&text.as_bytes()))
 }
 
 /// The texts a Lua table lists (1, 2, 3…), each read as the client's Korean, up to the first that is no text.
-#[allow(dead_code)]
 fn lines(table: &Table) -> Vec<String> {
     table.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect()
 }
@@ -208,7 +215,6 @@ fn lines(table: &Table) -> Vec<String> {
 /// The entries of one of the globals' tables that are tables themselves, each by its number and as JSON, in
 /// the order of their numbers. The table is gone through an entry at a time: the quests' has some eleven
 /// thousand, more than can be held at once the way `json_of` holds a table.
-#[allow(dead_code)]
 fn numbered(lua: &Lua, name: &str) -> Vec<(u64, serde_json::Value)> {
     let Ok(table) = lua.globals().get::<Table>(name) else { return Vec::new() };
     let mut entries: Vec<(u64, serde_json::Value)> = table
@@ -229,7 +235,6 @@ fn numbered(lua: &Lua, name: &str) -> Vec<(u64, serde_json::Value)> {
 
 /// The entries of a JSON object whose keys are numbers (what `json_of` makes of a Lua table that is no plain
 /// list), in the order of their numbers; a key that is no number is passed by, and what is no object has none.
-#[allow(dead_code)]
 fn by_number(object: &serde_json::Value) -> Vec<(i64, &serde_json::Value)> {
     let mut entries: Vec<(i64, &serde_json::Value)> = object.as_object().map(|entries| entries.iter().filter_map(|(at, entry)| Some((at.parse().ok()?, entry))).collect()).unwrap_or_default();
     entries.sort_by_key(|(at, _)| *at);
@@ -238,8 +243,7 @@ fn by_number(object: &serde_json::Value) -> Vec<(i64, &serde_json::Value)> {
 
 /// The fields of one of the client's `#` tables, line by line and in order: `4001#Lucky#` gives `4001`,
 /// `Lucky`. An empty line and one that begins a comment (`//`) give nothing.
-#[allow(dead_code)]
-fn hash_fields(text: &str) -> Vec<Vec<&str>> {
+pub(crate) fn hash_fields(text: &str) -> Vec<Vec<&str>> {
     text.lines().map(str::trim).filter(|line| !line.is_empty() && !line.starts_with("//")).map(|line| line.trim_end_matches('#').split('#').collect()).collect()
 }
 
@@ -261,46 +265,8 @@ pub fn names(lua: &Lua, table: &str) -> BTreeMap<i64, String> {
 /// `{"jobs": {"<id>": {"name": …}}, "headgear": {"<view id>": …}, "skills": {…}}`: what each job is called, the
 /// name each headgear's sprite files end in, and the skills (see `skills`).
 pub fn for_client(grf: &Grf) -> serde_json::Value {
-    let lua = run(grf, &["jobidentity", "npcidentity", "jobname", "pcjobnamegender_f", "accessoryid", "accname"]);
-    // The translated job names are keyed by `JOBID.<identifier>`, which the files above know under other tables.
-    // An identifier none of them has gets a key of its own, so the file still runs to its end.
-    let prepared = lua
-        .load(
-            r#"local unknown = 0
-            JOBID = setmetatable({}, { __index = function(_, key)
-                local id = (pcJobTbl2 and pcJobTbl2[key]) or (JTtbl and JTtbl[key]) or (jobtbl and jobtbl[key])
-                if id == nil then unknown = unknown - 1; id = unknown end
-                return id
-            end })"#,
-        )
-        .exec();
-    if let Err(error) = prepared {
-        eprintln!("tables: {error}");
-    }
-    run_in(&lua, grf, &["pcjobname"]);
-    let job_names = names(&lua, "PCJobNameTable");
-
-    let mut jobs = serde_json::Map::new();
-    for (id, name) in job_names.into_iter().filter(|(id, _)| *id >= 0) {
-        jobs.insert(id.to_string(), serde_json::json!({ "name": name }));
-    }
-
-    let headgear: serde_json::Map<String, serde_json::Value> = names(&lua, "AccNameTable").into_iter().map(|(id, name)| (id.to_string(), name.into())).collect();
-    // The sprite files of NPCs and monsters, by the number the server shows them under.
-    let sprites: serde_json::Map<String, serde_json::Value> =
-        names(&lua, "JobNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    // The ending of a weapon's sprite files by the kind of weapon (`_단검` for daggers), from `weapontable.lub`.
-    let weapon_table = run(grf, &["weapontable"]);
-    let weapons: serde_json::Map<String, serde_json::Value> = names(&weapon_table, "WeaponNameTable").into_iter().filter(|(id, _)| *id > 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    // The sound of a blow by the kind of weapon, from the same file (`WeaponHitWaveNameTable`).
-    let weapon_hits: serde_json::Map<String, serde_json::Value> = names(&weapon_table, "WeaponHitWaveNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    // The picture of each pet in its window (a file of `유저인터페이스\illust`), by the monster's number: from
-    // `petinfo.lub`, whose function `GetPetIllustName_V3` the client asks.
-    run_in(&lua, grf, &["petinfo"]);
-    let pets: serde_json::Map<String, serde_json::Value> =
-        names(&lua, "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    // Its `PetAccActNameTable`: by the accessory a pet wears (an item), the actions it is then drawn with.
-    let pet_acts: serde_json::Map<String, serde_json::Value> = names(&lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    let (lua, jobs, headgear, sprites, weapons, weapon_hits) = jobs::jobs(grf);
+    let (pets, pet_acts) = pets::pets(&lua, grf);
     serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "weapon_hits": weapon_hits, "tree": skill_tree(grf), "inherits": job_inherits(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
 }
 

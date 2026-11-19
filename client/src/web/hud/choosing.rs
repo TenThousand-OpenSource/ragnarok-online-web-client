@@ -5,7 +5,8 @@
 //! being forged).
 
 use super::*;
-use crate::net::choosing::{CANCEL, RANDOM, takes_more};
+use crate::net::choosing::{CANCEL, RANDOM};
+use crate::choosing::takes_more;
 use crate::press::choosing::Press;
 use crate::web::app::{Choice, Shape};
 

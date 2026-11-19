@@ -3,14 +3,12 @@
 //! are rAthena's for PACKETVER 20260219 (`packets.hpp`, `clif.cpp`); the rules are the client's handlers, each
 //! named where it is written out.
 //!
-//! Writing what a line asks for into it is `crate::figures::filled`, and the answer to raising a stat is read
+//! Writing what a line asks for into it is `crate::numbers::filled`, and the answer to raising a stat is read
 //! with the character's values (`net/packets/zone.rs`): both are still named from here, where they were.
 
 use super::bytes::{i64_at, int, long, word};
 use super::packets::number_and_value;
 
-pub use super::packets::{stat_raised, ZC_STATUS_CHANGE_ACK};
-pub use crate::figures::filled;
 use crate::said::colour::{hex, PALE_CYAN, RED, YELLOW};
 
 /// ZC_ACTION_FAILURE (0x013b, 4 bytes): `u16 kind`: no ammunition, too heavy, or ammunition put on.
@@ -38,8 +36,6 @@ pub const ZC_EQUIPITEM_DAMAGED: u16 = 0x02bb;
 pub const ZC_CASH_TIME_COUNTER: u16 = 0x0298;
 /// ZC_CASH_ITEM_DELETE (0x0299, 8 bytes): `u16 index, u32 item`: a rented item is gone.
 pub const ZC_CASH_ITEM_DELETE: u16 = 0x0299;
-/// What a character is called, by its own number, is read with everyone's names, in `net/units.rs`.
-pub use super::units::{ZC_ACK_REQNAME_BYGID, character_name};
 /// ZC_NOTIFY_BIND_ON_EQUIP (0x02d3, 4 bytes): `u16 index`: a thing put on is bound to the character.
 pub const ZC_NOTIFY_BIND_ON_EQUIP: u16 = 0x02d3;
 /// ZC_MSG (0x0291, 4 bytes): a line of the client's message table is said. That the other does not let their

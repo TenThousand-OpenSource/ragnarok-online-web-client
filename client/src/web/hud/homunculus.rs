@@ -4,7 +4,7 @@
 use super::*;
 use super::skill_list::Listed;
 use crate::web::app::HomunculusAsk;
-use crate::net::homunculus::{attack_speed, intimacy_word};
+use crate::homunculus::{attack_speed, intimacy_word};
 use crate::press::homunculus::{Order, Press};
 
 /// A gauge of the homunculus window (`UIBarGraphHomun::Paint`), `width` by 9: the back with its ends, the

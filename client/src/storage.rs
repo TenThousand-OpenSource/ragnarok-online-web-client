@@ -1,7 +1,7 @@
 //! The storage as rules, those of the client's window of it (`UIItemStoreWnd`): its tabs, which tab a thing
 //! lies under, the orders its lists are put in. The packets of it are in `net::storage`.
 
-use crate::net::items::Item;
+use crate::net::inventory::Item;
 
 /// How many tabs the storage's window has: things used, of the cash shop, armour, weapons, costumes,
 /// ammunition, cards, and the rest.

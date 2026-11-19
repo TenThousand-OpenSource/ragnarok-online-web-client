@@ -4,14 +4,11 @@
 //! `PACKET_ZC_EQUIPWIN_MICROSCOPE` in `packets_struct.hpp`).
 //!
 //! The switch is one of those the server keeps (`net/config.rs`), and that the other does not let their
-//! equipment be looked at is a line of the message table said (ZC_MSG, `net/notices.rs`): both are still named
-//! from here, where they were.
+//! equipment be looked at is a line of the message table said (ZC_MSG, `net/notices.rs`).
 
 use super::bytes::{text, u16_at, Writer};
-use super::items::{self, Item};
+use super::inventory::{self, Item};
 
-pub use super::config::{config, set, ZC_CONFIG};
-pub use super::notices::{said, ZC_MSG};
 
 /// ZC_EQUIPWIN_MICROSCOPE (0x0b37): what another player wears (the client's `ID_ZC_EQUIPWIN_MICROSCOPE_V8`).
 pub const ZC_EQUIPWIN_MICROSCOPE: u16 = 0x0b37;
@@ -40,7 +37,7 @@ pub struct Seen {
 
 /// ZC_EQUIPWIN_MICROSCOPE (0x0b37): `u16 length, char name[24], i16 job, i16 hair, i16 bottom, i16 middle,
 /// i16 top, i16 robe, i16 hair colour, i16 clothes colour, i16 body2, u8 sex`, 47 bytes, then the things worn,
-/// each as in the inventory's list of equipment (`items::worn_list`).
+/// each as in the inventory's list of equipment (`inventory::worn_list`).
 pub fn seen(packet: &[u8]) -> Option<Seen> {
     let head = packet.get(..47)?;
     let name = &head[4..28];
@@ -53,7 +50,7 @@ pub fn seen(packet: &[u8]) -> Option<Seen> {
         hair_colour: u16_at(head, 40),
         body_palette: u16_at(head, 42),
         sex: head[46],
-        items: items::worn_list(&packet[47..]),
+        items: inventory::worn_list(&packet[47..]),
     })
 }
 

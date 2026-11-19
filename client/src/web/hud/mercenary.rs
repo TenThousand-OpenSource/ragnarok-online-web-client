@@ -3,7 +3,7 @@
 
 use super::*;
 use super::skill_list::Listed;
-use crate::net::mercenary::{expiry, title};
+use crate::mercenary::{expiry, title};
 use crate::press::mercenary::{Order, Press};
 
 impl App {

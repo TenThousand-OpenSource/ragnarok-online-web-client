@@ -134,10 +134,6 @@ pub fn shown(text: &str) -> String {
     plain
 }
 
-/// A text without the colours written into it (`^RRGGBB`), as the list on the screen shows a summary (the
-/// client's `StripColorCodes`): the marks of a text are told apart in `crate::markup`.
-pub use crate::markup::uncoloured;
-
 /// The sprite of the marks over NPCs, under `data/sprite`.
 pub const MARKS: &str = "이팩트/emotion";
 

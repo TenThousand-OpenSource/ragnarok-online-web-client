@@ -12,7 +12,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
 use web_sys::HtmlAudioElement;
 
-use super::asset_url;
+use super::{asset_url, now};
 
 /// The music of the login and character windows (`CLoginMode` plays `bgm\01.mp3`).
 const TITLE_MUSIC: &str = "/bgm/01.mp3";
@@ -64,11 +64,6 @@ struct Sounds {
 
 thread_local! {
     static SOUNDS: RefCell<Sounds> = RefCell::new(Sounds::default());
-}
-
-/// The time everything under `web/` that is drawn or heard goes by: the page's milliseconds.
-pub(super) fn now() -> f64 {
-    web_sys::window().and_then(|window| window.performance()).map_or(0.0, |performance| performance.now())
 }
 
 impl Sounds {

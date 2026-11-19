@@ -1,11 +1,9 @@
 //! What is shown in the middle of the screen: an NPC's words, its choices and what it asks to be typed. The
-//! game options, which stand in the same place, are `dialogs/esc.rs`.
+//! game options, which stand in the same place, are `hud/esc.rs`.
 
 use super::*;
 use crate::press::talk::Press;
 use crate::web::app::Dialog;
-
-mod esc;
 
 /// A line an NPC says, as HTML: its colours (`coloured`), and each link written into it (`crate::links`) as
 /// the client's viewer shows one, its words underlined in the colour of links (`CreateLinkWindow`). A link to

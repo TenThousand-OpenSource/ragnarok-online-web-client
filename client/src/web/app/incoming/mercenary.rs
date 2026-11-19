@@ -26,11 +26,11 @@ impl App {
             }
             // Its skills, laid out as the character's own; and one of them changed.
             mercenary::ZC_MER_SKILLINFO_LIST => {
-                self.mercenary.skills = items::skills(packet);
+                self.mercenary.skills = net::inventory::skills(packet);
                 self.redraw(&[&wnd::MERCENARY_SKILLS]);
             }
             mercenary::ZC_MER_SKILLINFO_UPDATE => {
-                if let Some((id, level, sp, range, _)) = items::skill_raised(packet) {
+                if let Some((id, level, sp, range, _)) = net::inventory::skill_raised(packet) {
                     if let Some(skill) = self.mercenary.skills.iter_mut().find(|skill| skill.id == id) {
                         (skill.level, skill.sp, skill.range) = (level, sp, range);
                     }

@@ -52,7 +52,7 @@ impl App {
             html.push_str(&art(&rodex("shadow_item_on"), 216, y + 18, 32, 18));
             html.push_str(&art(&rodex(inside), 219, y + 6, 28, 25));
         }
-        let (line, words, count) = mail::time_left((letter.expires - now) as i64);
+        let (line, words, count) = crate::mail::time_left((letter.expires - now) as i64);
         let left = Self::words(line, words).replace("%d", &count.to_string());
         if returned {
             html.push_str(&text_centred(SMALL, 260, y + 4, "#736666", &Self::words(2853, "Returned")));
@@ -68,7 +68,7 @@ impl App {
         ));
         // The title and the sender are cut at 140 across (`ResizeToTextClipped`).
         let clipped = "max-width:140px;overflow:hidden;cursor:default";
-        let colour = mail::title_colour(kind, letter);
+        let colour = crate::mail::title_colour(kind, letter);
         if letter.gone {
             html.push_str(&format!(r#"<div class="a t" style="left:69px;top:{y}px;{clipped};color:{colour}">{}</div>"#, escape(&Self::words(2907, "The mail has been deleted."))));
             return html;

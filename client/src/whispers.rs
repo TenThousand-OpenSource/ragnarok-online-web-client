@@ -14,7 +14,7 @@ const FIRST: (i32, i32) = (0, 347);
 pub const OWN: &str = crate::said::colour::YELLOW;
 pub const THEIRS: &str = "#b6dde8";
 
-/// What the server answers to a whisper (the client's `ACKWHISPER_*`; read by `net::npc::whisper_answered`).
+/// What the server answers to a whisper (the client's `ACKWHISPER_*`; read by `crate::net::whispers::whisper_answered`).
 pub mod answer {
     pub const ARRIVED: u8 = 0;
     /// Nobody of that name is in the game.

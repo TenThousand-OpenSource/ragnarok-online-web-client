@@ -1,8 +1,7 @@
 //! Buying from and selling to NPC shops (rAthena, `clif_npcbuysell`, `clif_buylist`, `clif_selllist`,
 //! `clif_npc_buy_result`, `clif_npc_sell_result` in `src/map/clif.cpp`, at PACKETVER 20260219). The rules of
 //! the client's two windows of a shop (what may go into the basket and what is typed into the box that asks
-//! how many: `UIItemPurchaseWnd::SendMsg`, `UIItemDropCntWnd::SendMsg`) are in `crate::shops`, and named here
-//! too for those who look for them under `net::trade`.
+//! how many: `UIItemPurchaseWnd::SendMsg`, `UIItemDropCntWnd::SendMsg`) are in `crate::shops`.
 
 use super::bytes::{Writer, records, u16_at, u32_at};
 
@@ -47,7 +46,6 @@ pub fn bids(packet: &[u8]) -> Vec<Bid> {
     records(packet, 4, 10).map(|item| Bid { index: u16_at(item, 0), price: u32_at(item, 2), overcharged: u32_at(item, 6) }).collect()
 }
 
-pub use crate::shops::{Asked, MOST_BOUGHT, bought_singly, count_asked, into_basket, name_width};
 
 /// The `u8 result` of ZC_PC_PURCHASE_RESULT (0x00ca) and of ZC_PC_SELL_RESULT (0x00cb), for `purchase_line`
 /// and `sell_line`; nought, which is "done", for a packet too short to have it.

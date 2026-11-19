@@ -9,8 +9,8 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn whispers_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            npc::ZC_WHISPER => self.whisper_heard(packet),
-            npc::ZC_ACK_WHISPER => self.whisper_answered(packet),
+            crate::net::whispers::ZC_WHISPER => self.whisper_heard(packet),
+            crate::net::whispers::ZC_ACK_WHISPER => self.whisper_answered(packet),
             _ => return false,
         }
         true
@@ -18,7 +18,7 @@ impl App {
 
     /// ZC_WHISPER: someone whispers. In the chat a friend's and a guild member's are marked as such.
     fn whisper_heard(&mut self, packet: &[u8]) {
-        let Some((name, words)) = npc::whispered(packet) else { return };
+        let Some((name, words)) = crate::net::whispers::whispered(packet) else { return };
         if self.whisper_shown(&name, whispers::line(&name, &words), whispers::THEIRS) {
             return;
         }
@@ -33,7 +33,7 @@ impl App {
     /// the talk; one that did not, the chat says why after the other's name.
     fn whisper_answered(&mut self, packet: &[u8]) {
         let (to, words) = self.whispers.last.clone();
-        match npc::whisper_answered(packet) {
+        match crate::net::whispers::whisper_answered(packet) {
             Some(whispers::answer::ARRIVED) => {
                 let own = self.game.as_ref().map(|game| game.name.clone()).unwrap_or_default();
                 if !self.whisper_shown(&to, whispers::line(&own, &words), whispers::OWN) {

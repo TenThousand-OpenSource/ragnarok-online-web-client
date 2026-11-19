@@ -64,10 +64,7 @@ pub(super) fn skills(grf: &Grf) -> serde_json::Map<String, serde_json::Value> {
     let mut skills = serde_json::Map::new();
     let Ok(table) = lua.globals().get::<Table>("SKILL_INFO_LIST") else { return skills };
     for (id, skill) in table.pairs::<i64, Table>().flatten() {
-        let text = |value: mlua::Result<Value>| match value {
-            Ok(Value::String(text)) => korean(&text.as_bytes()),
-            _ => String::new(),
-        };
+        let text = |value: mlua::Result<Value>| value.ok().as_ref().and_then(text_only).unwrap_or_default();
         let resource = text(skill.get::<Value>(1));
         if resource.is_empty() {
             continue;

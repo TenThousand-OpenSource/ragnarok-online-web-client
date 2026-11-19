@@ -2,16 +2,15 @@
 //!
 //! Layouts from rAthena (`clif_mercenary_info`, `clif_mercenary_updatestatus`, `clif_mercenary_skillblock`,
 //! `clif_parse_mercenary_action`) at PACKETVER 20260219. Its skills come laid out as the character's own
-//! (`net::items::skills`), and it is moved and made to strike with the homunculus's requests
+//! (`net::inventory::skills`), and it is moved and made to strike with the homunculus's requests
 //! (`net::homunculus::{move_to, attack, to_owner}`).
 //!
 //! The title of its window, its kind to its script and the time its contract ends (`title`, `kind`, `expiry`)
-//! are rules and no packets: they are in `crate::mercenary`, and named from here as before.
+//! are rules and no packets: they are in `crate::mercenary`.
 
 use super::bytes::{i16_at, i32_at, text, u16_at, u32_at, Writer};
 use super::packets::parameter as character;
 
-pub use crate::mercenary::{expiry, kind, title};
 
 /// ZC_MER_INIT: everything about the mercenary at once.
 pub const ZC_MER_INIT: u16 = 0x029b;

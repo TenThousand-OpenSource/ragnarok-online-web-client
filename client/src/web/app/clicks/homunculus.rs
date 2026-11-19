@@ -29,7 +29,7 @@ impl App {
                 self.render();
             }
             // The box of feeding by itself: the server is asked, and tells how it stands (`ZC_CONFIG`).
-            Press::AutoFeed => self.send_on_map(&crate::net::viewequip::set(homunculus::AUTOFEED, !self.homunculus.autofeed)),
+            Press::AutoFeed => self.send_on_map(&crate::net::config::set(homunculus::AUTOFEED, !self.homunculus.autofeed)),
             Press::Yes | Press::No => self.homunculus_answered(press == Press::Yes),
             Press::SkillPick(row) => {
                 self.homunculus.skill_picked = Some(row);
@@ -45,7 +45,7 @@ impl App {
             // own (`MM_UPGRADE_SKILLLEVEL`), which the server tells apart by the skill.
             Press::SkillRaise(id) => {
                 if self.homunculus.info.as_ref().is_some_and(|info| info.skill_points > 0) {
-                    self.send_on_map(&items::raise_skill(id));
+                    self.send_on_map(&net::inventory::raise_skill(id));
                 }
             }
             Press::SkillLevel(step) => {

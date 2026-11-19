@@ -1,7 +1,7 @@
 //! An NPC's shop as rules, those of the client's two windows of it (`UIItemPurchaseWnd::SendMsg`,
 //! `UIItemDropCntWnd::SendMsg`): how many of a thing may be bought at once, what goes into the basket, what a
 //! count typed into the box that asks how many means, how wide a name is left beside the prices. The packets of
-//! it are in `net::trade`.
+//! it are in `net::shops`.
 
 /// The most of one item that is bought at a time (`UIItemPurchaseWnd::SendMsg`, `UM_DROP`: 30000).
 pub const MOST_BOUGHT: u32 = 30000;

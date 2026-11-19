@@ -99,7 +99,7 @@ impl App {
     pub(super) fn game_key(&mut self, key: &str, code: &str, with: u16) -> bool {
         let chat = element("chat-input").and_then(|input| input.dyn_into::<web_sys::HtmlElement>().ok());
         let writing = chat.as_ref().is_some_and(|input| crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active == **input));
-        let chord = Chord { key: hotkeys::key_of(code).unwrap_or(0), with };
+        let chord = Chord { key: crate::hotkeys::key_of(code).unwrap_or(0), with };
         // A row of the Shortcut Settings window is picked: the key is its new key, whatever it did before.
         if self.keys.open && self.keys.row.is_some() {
             self.assign_key(chord);
@@ -113,10 +113,10 @@ impl App {
             _ if self.worldmap_key(key, with) => true,
             // The arrows turn the pages of a book that is open, unless a line of text is being typed.
             _ if !typing && self.book_key(key) => true,
-            (Some((hotkeys::table::INTERFACE, place)), _) => self.interface_key(place),
+            (Some((crate::hotkeys::table::INTERFACE, place)), _) => self.interface_key(place),
             // A line of the Shortcut List (Alt+1 to Alt+0: the table's first ten entries). The ten after them
             // are the flags, emotions bought with cash, which this client does not have.
-            (Some((hotkeys::table::MACROS, place)), _) => {
+            (Some((crate::hotkeys::table::MACROS, place)), _) => {
                 if place < 10 {
                     self.shortcut_pressed(place);
                 }
@@ -128,7 +128,7 @@ impl App {
                 true
             }
             // A slot of the hotkey bar: the first table's places are the bar's slots, row after row.
-            (Some((hotkeys::table::BAR, slot)), _) => {
+            (Some((crate::hotkeys::table::BAR, slot)), _) => {
                 self.used(Use::Slot(slot));
                 true
             }
@@ -185,58 +185,58 @@ impl App {
         true
     }
 
-    /// A key bound to an entry of the client's table of the interface's keys (`hotkeys::interface`): a window
+    /// A key bound to an entry of the client's table of the interface's keys (`crate::hotkeys::interface`): a window
     /// opened or closed, the character seated, the hotkey bar and the chat run through their sizes. Returns
     /// whether the key was used.
     fn interface_key(&mut self, place: usize) -> bool {
         match place {
-            hotkeys::interface::BASIC_INFO => return self.pressed_key(crate::press::status::Press::BasicSize),
-            hotkeys::interface::STATUS => return self.pressed_key(crate::press::status::Press::Window),
-            hotkeys::interface::INVENTORY => return self.pressed_key(crate::press::inventory::Press::Window),
-            hotkeys::interface::EQUIPMENT => return self.pressed_key(crate::press::inventory::Press::Equipment),
-            hotkeys::interface::SKILLS => return self.pressed_key(crate::press::skills::Press::Window),
-            hotkeys::interface::GUILD => return self.pressed_key(crate::press::guild::Press::Window),
+            crate::hotkeys::interface::BASIC_INFO => return self.pressed_key(crate::press::status::Press::BasicSize),
+            crate::hotkeys::interface::STATUS => return self.pressed_key(crate::press::status::Press::Window),
+            crate::hotkeys::interface::INVENTORY => return self.pressed_key(crate::press::inventory::Press::Window),
+            crate::hotkeys::interface::EQUIPMENT => return self.pressed_key(crate::press::inventory::Press::Equipment),
+            crate::hotkeys::interface::SKILLS => return self.pressed_key(crate::press::skills::Press::Window),
+            crate::hotkeys::interface::GUILD => return self.pressed_key(crate::press::guild::Press::Window),
             // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
-            hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
+            crate::hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
             // The windows of the homunculus and of the mercenary open only while that one is out, and the
             // key that has one stand by does nothing else (`UIWindowMgr`, at `HK_HOMUNWND_ONOFF` and on).
-            hotkeys::interface::HOMUNCULUS => self.homunculus.open = !self.homunculus.open && self.homunculus.shown(),
-            hotkeys::interface::MERCENARY => self.mercenary.open = !self.mercenary.open && self.mercenary.shown(),
-            hotkeys::interface::HOMUNCULUS_STAND_BY | hotkeys::interface::MERCENARY_STAND_BY => {
-                self.companion_stands_by(if place == hotkeys::interface::MERCENARY_STAND_BY { crate::ai::Kind::Mercenary } else { crate::ai::Kind::Homunculus });
+            crate::hotkeys::interface::HOMUNCULUS => self.homunculus.open = !self.homunculus.open && self.homunculus.shown(),
+            crate::hotkeys::interface::MERCENARY => self.mercenary.open = !self.mercenary.open && self.mercenary.shown(),
+            crate::hotkeys::interface::HOMUNCULUS_STAND_BY | crate::hotkeys::interface::MERCENARY_STAND_BY => {
+                self.companion_stands_by(if place == crate::hotkeys::interface::MERCENARY_STAND_BY { crate::ai::Kind::Mercenary } else { crate::ai::Kind::Homunculus });
                 return true;
             }
-            hotkeys::interface::SIT => {
+            crate::hotkeys::interface::SIT => {
                 // One who walks does not sit down: the key does nothing until the character stands. (The
                 // server would stop the walk and seat it; the rule is this side's.)
                 if world::walking() && !self.hero.sitting {
                     return true;
                 }
-                self.send(&units::sit(!self.hero.sitting));
+                self.send(&net::actors::sit(!self.hero.sitting));
                 return true;
             }
             // The bar runs through its sizes, as the client's does: a row more each time, then away, then
             // one row again.
-            hotkeys::interface::HOTKEY_BAR => self.hotkey_bar_stepped(),
-            hotkeys::interface::CHAT_SIZE => self.chat_resize(),
-            hotkeys::interface::QUESTS => return self.quest_key(),
-            hotkeys::interface::CHAT_ROOM => {
+            crate::hotkeys::interface::HOTKEY_BAR => self.hotkey_bar_stepped(),
+            crate::hotkeys::interface::CHAT_SIZE => self.chat_resize(),
+            crate::hotkeys::interface::QUESTS => return self.quest_key(),
+            crate::hotkeys::interface::CHAT_ROOM => {
                 self.room_make_asked();
                 return true;
             }
-            hotkeys::interface::MAIL => return self.mail_key(),
-            hotkeys::interface::CART => return self.cart_key(),
-            hotkeys::interface::FRIENDS | hotkeys::interface::PARTY => return self.messenger_key(place == hotkeys::interface::FRIENDS),
-            hotkeys::interface::WORLD_MAP => return self.pressed_key(crate::press::worldmap::Press::Window),
-            hotkeys::interface::EMOTIONS => return self.pressed_key(crate::press::emotions::Press::Window),
-            hotkeys::interface::SHORTCUTS => return self.pressed_key(crate::press::emotions::Press::Shortcuts),
-            hotkeys::interface::TIPS => return self.pressed_key(crate::press::tips::Press::Window),
-            hotkeys::interface::MENU => return self.pressed_key(crate::press::general::Press::Menu),
-            hotkeys::interface::FRIEND_SETUP => return self.pressed_key(crate::press::friends::Press::Setup),
+            crate::hotkeys::interface::MAIL => return self.mail_key(),
+            crate::hotkeys::interface::CART => return self.cart_key(),
+            crate::hotkeys::interface::FRIENDS | crate::hotkeys::interface::PARTY => return self.messenger_key(place == crate::hotkeys::interface::FRIENDS),
+            crate::hotkeys::interface::WORLD_MAP => return self.pressed_key(crate::press::worldmap::Press::Window),
+            crate::hotkeys::interface::EMOTIONS => return self.pressed_key(crate::press::emotions::Press::Window),
+            crate::hotkeys::interface::SHORTCUTS => return self.pressed_key(crate::press::emotions::Press::Shortcuts),
+            crate::hotkeys::interface::TIPS => return self.pressed_key(crate::press::tips::Press::Window),
+            crate::hotkeys::interface::MENU => return self.pressed_key(crate::press::general::Press::Menu),
+            crate::hotkeys::interface::FRIEND_SETUP => return self.pressed_key(crate::press::friends::Press::Setup),
             // The party's setup opens only for one who is in a party (`WID_PARTYSETTINGWND_PARTYCOUNT`).
-            hotkeys::interface::PARTY_SETUP => return self.party.members.is_empty() || self.pressed_key(crate::press::party::Press::Setup),
+            crate::hotkeys::interface::PARTY_SETUP => return self.party.members.is_empty() || self.pressed_key(crate::press::party::Press::Setup),
             // The minimap runs through shown, shown fainter and away; not while the World Map is open.
-            hotkeys::interface::MINIMAP => {
+            crate::hotkeys::interface::MINIMAP => {
                 if self.worldmap.open {
                     return true;
                 }
@@ -244,14 +244,14 @@ impl App {
             }
             // The Game Settings open on their page of commands, or close if they were open on it
             // (`ToggleGameSettingsTab4`).
-            hotkeys::interface::COMMANDS => (self.settings.open, self.settings.tab) = (!(self.settings.open && self.settings.tab == 4), 4),
-            hotkeys::interface::CHAT => self.chat.hidden = !self.chat.hidden,
-            hotkeys::interface::SCREENSHOT => {
+            crate::hotkeys::interface::COMMANDS => (self.settings.open, self.settings.tab) = (!(self.settings.open && self.settings.tab == 4), 4),
+            crate::hotkeys::interface::CHAT => self.chat.hidden = !self.chat.hidden,
+            crate::hotkeys::interface::SCREENSHOT => {
                 self.screenshot("");
                 return true;
             }
             // Other players are drawn faintly, or as they are (`ToggleOption` of `TT_HIDE_PLAYER_ON_OFF`).
-            hotkeys::interface::HIDE_PLAYERS => {
+            crate::hotkeys::interface::HIDE_PLAYERS => {
                 self.switch_option("TT_HIDE_PLAYER_ON_OFF");
                 self.switched(data::option_says("TT_HIDE_PLAYER_ON_OFF", self.option("TT_HIDE_PLAYER_ON_OFF")));
                 return true;

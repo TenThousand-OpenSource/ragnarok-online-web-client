@@ -155,9 +155,9 @@ impl App {
     fn party_leave(&mut self) {
         let own = self.own_account();
         if self.leads_party() && self.party.members.len() > 1 {
-            let map = self.game.as_ref().map(|game| party::map_name(&game.map).to_owned()).unwrap_or_default();
+            let map = self.game.as_ref().map(|game| crate::party::map_name(&game.map).to_owned()).unwrap_or_default();
             let mut online = self.party.members.iter().filter(|member| member.account != own && !member.offline);
-            match online.clone().find(|member| party::map_name(&member.map) == map) {
+            match online.clone().find(|member| crate::party::map_name(&member.map) == map) {
                 Some(heir) => {
                     let heir = heir.account;
                     self.send_on_map(&party::hand_over(heir));

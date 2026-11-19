@@ -3,7 +3,8 @@
 //! in `mail/writing.rs`.
 
 use super::*;
-use crate::net::mail::{self, has, tab};
+use crate::net::mail;
+use crate::mail::{has, tab};
 use crate::press::Step;
 use crate::press::mail::Press;
 
@@ -23,7 +24,7 @@ impl App {
                 let page = app.mail.page;
                 if step == Step::Less && page > 0 {
                     app.mail.turn_to(page - 1);
-                } else if step == Step::More && app.mail.listed(epoch()).len() > (page + 1) * mail::PAGE {
+                } else if step == Step::More && app.mail.listed(epoch()).len() > (page + 1) * crate::mail::PAGE {
                     app.mail.turn_to(page + 1);
                 }
             }),
@@ -31,7 +32,7 @@ impl App {
             // for the list.
             Press::Refresh => self.mailbox(|app| {
                 app.mail.store.purge();
-                app.mail.checked = [false; mail::PAGE];
+                app.mail.checked = [false; crate::mail::PAGE];
                 app.mail.waiting = true;
                 app.mail_asked_for(true);
             }),
@@ -220,7 +221,7 @@ impl App {
                 }
                 MailAsk::Stranger(kind, id) => self.send_on_map(&mail::ask(kind, id)),
             }
-            self.mail.checked = [false; mail::PAGE];
+            self.mail.checked = [false; crate::mail::PAGE];
         }
         self.redraw(&[&wnd::MAIL_ASKS, &wnd::MAIL, &wnd::MAIL_READ]);
     }

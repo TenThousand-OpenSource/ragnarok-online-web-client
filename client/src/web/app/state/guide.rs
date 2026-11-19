@@ -5,7 +5,7 @@ use super::*;
 /// The Adventure Guide's window: whether it is open, which of its tabs, the monster picked in its list, and the
 /// monsters' pictures made so far (and those asked for), by the monster's number.
 #[derive(Default)]
-pub(in crate::web) struct GuideWnd {
+pub(in crate::web) struct Guide {
     pub open: bool,
     pub tab: usize,
     /// The kind picked under the tab (the tab's own smaller tabs), where it has kinds: its number.

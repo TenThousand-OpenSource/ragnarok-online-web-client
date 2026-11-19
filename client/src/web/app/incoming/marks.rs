@@ -3,7 +3,7 @@
 
 use super::*;
 use crate::net::marks;
-use crate::net::notices::filled;
+use crate::numbers::filled;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.

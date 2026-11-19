@@ -125,7 +125,7 @@ impl App {
     /// The client does put both there, beside and over the character's head. A double click takes them off,
     /// as with anything worn.
     fn equipment_ammunition(&self) -> String {
-        let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::net::items::WORN_AS_AMMO) else { return String::new() };
+        let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::inventory::WORN_AS_AMMO) else { return String::new() };
         format!(
             r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
                    <div class="a t" style="left:115px;top:88px;width:40px;line-height:12px;white-space:normal;overflow:hidden;max-height:24px;pointer-events:none">{}</div>"#,

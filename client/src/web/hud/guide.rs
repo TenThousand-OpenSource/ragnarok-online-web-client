@@ -2,17 +2,13 @@
 //! level. The window, its tabs and its first page are here; the pages that list things are `guide/pages.rs`.
 
 use super::*;
+use crate::guide::{in_levels, kind_shown};
 use crate::press::guide::Press;
 
 mod pages;
 
 /// The kinds of a tab: each its number, its name and the levels it is for.
 type Kinds = Vec<(u32, String, u32, u32)>;
-
-/// Whether something for the levels from `least` to `most` is for a character of that `level`.
-fn in_levels(least: u32, most: u32, level: i64) -> bool {
-    (i64::from(least)..=i64::from(most)).contains(&level)
-}
 
 impl App {
     /// The window, 750 by 468: its picture under everything; the title bar; under it the character (its levels 46
@@ -156,7 +152,6 @@ impl App {
 
     /// The kind shown of a tab's kinds: the one picked, or the first of those the character's level is shown.
     pub(in crate::web) fn guide_kind(&self, kinds: &[(u32, String, u32, u32)], level: i64) -> Option<u32> {
-        let shown = |kind: &&(u32, String, u32, u32)| in_levels(kind.2, kind.3, level);
-        kinds.iter().filter(shown).find(|kind| Some(kind.0) == self.guide.kind).or_else(|| kinds.iter().find(shown)).map(|kind| kind.0)
+        kind_shown(kinds, self.guide.kind, level)
     }
 }

@@ -14,8 +14,8 @@ impl App {
         match id {
             // A blow, of any kind but picking up, sitting down and standing up (the client's
             // `ProcessHitMessage` notes the one struck as the striker's `hitTargetAid`).
-            units::ZC_NOTIFY_ACT => {
-                if let Some(act) = units::act(packet).filter(|act| !matches!(act.kind, 1..=3)) {
+            net::actors::ZC_NOTIFY_ACT => {
+                if let Some(act) = net::actors::act(packet).filter(|act| !matches!(act.kind, 1..=3)) {
                     self.ai.targets.insert(act.source, act.target);
                 }
             }
@@ -29,8 +29,8 @@ impl App {
                     self.ai.targets.insert(casting.source, casting.target);
                 }
             }
-            units::ZC_NOTIFY_VANISH => {
-                if let Some((gone, _)) = units::vanished(packet) {
+            net::actors::ZC_NOTIFY_VANISH => {
+                if let Some((gone, _)) = net::actors::vanished(packet) {
                     self.ai.targets.remove(&gone);
                 }
             }

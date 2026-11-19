@@ -1,20 +1,18 @@
 //! The party's windows: the list of members with the bar of buttons under it (the Party side of the client's
 //! `UIMessengerGroupWnd`), the menu on a member, what the party asks in a message box (`UIJoinPartyAcceptWnd`
 //! and the client's `Confirm`), and the members' marks on the minimap. What the window shares with its Friend
-//! side is `party/messenger.rs`; the windows beside it, which set a party up and invite into it, are
+//! side is `hud/messenger.rs`; the windows beside it, which set a party up and invite into it, are
 //! `party/side.rs`.
 
 use super::*;
-use crate::net::party::{Member, map_name};
+use crate::net::party::Member;
+use crate::party::map_name;
 use crate::press::party::{Entry, Press};
 use crate::press::things::Menu;
 use crate::web::app::{PartyAsk, PartySide};
 use crate::web::parts::menued;
 
-mod messenger;
 mod side;
-
-pub(super) use messenger::{bar_back, bar_button};
 
 /// How the party window is laid out in its two forms (`UIMessengerGroupWnd::OnCreate`, `UM_RESIZE`): the
 /// large one is 273 by 326 less what is left over of a row, the small one 243 by 179 less the same; a row is
@@ -79,7 +77,7 @@ impl App {
     /// number read the other way round for the level, 0x6F3007 for the player's own name as leader, 0xA38A86
     /// for one who is offline.
     fn party_row(&self, layout: &Layout, row: usize, member: &Member) -> String {
-        let own = self.account.as_ref().map_or(0, |account| account.account_id) == member.account;
+        let own = self.own_account() == member.account;
         let (x, y) = layout.icon;
         let dead = self.party.dead.contains(&member.account) || (own && self.hero.dead);
         let mut inside = String::new();
@@ -154,7 +152,7 @@ impl App {
     /// over; and for one who is online the small window of that member.
     pub(in crate::web) fn party_menu(&self) -> String {
         let Some(member) = self.party.menu.and_then(|(_, row)| self.party.members.get(row)) else { return String::new() };
-        let own = self.account.as_ref().map_or(0, |account| account.account_id) == member.account;
+        let own = self.own_account() == member.account;
         let mut rows = menu_row(&Self::words(2808, "Send a mail"), Press::Do(Entry::Mail));
         if own {
             rows.push_str(&menu_row(&Self::words(96, "Leave party"), Press::Do(Entry::Leave)));
@@ -192,7 +190,7 @@ impl App {
     /// them, as the client draws them, the marks of the guild's members and of the boss (`hud/marks.rs`).
     pub(in crate::web) fn minimap_party(&self) -> String {
         let Some(game) = &self.game else { return String::new() };
-        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        let own = self.own_account();
         let members: String = self
             .party
             .members

@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use crate::net::cart::Fill;
-use crate::net::items::Item;
+use crate::net::inventory::Item;
 
 /// The skill Change Cart (`MC_CHANGECART`).
 pub(in crate::web) const CHANGE_CART: u16 = 154;

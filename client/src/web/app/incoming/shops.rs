@@ -6,19 +6,19 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn shops_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            trade::ZC_SELECT_DEALTYPE => {
-                if let Some(npc) = npc::npc(id, packet) {
+            net::shops::ZC_SELECT_DEALTYPE => {
+                if let Some(npc) = net::talk::npc(id, packet) {
                     self.shop_opened(Shop::Choose(npc));
                 }
             }
-            trade::ZC_PC_PURCHASE_ITEMLIST => {
-                let offers = trade::offers(packet);
+            net::shops::ZC_PC_PURCHASE_ITEMLIST => {
+                let offers = net::shops::offers(packet);
                 data::want_items(offers.iter().map(|offer| offer.id), || dispatch(Action::ItemsKnown));
                 self.shop_opened(Shop::Buy(offers));
             }
-            trade::ZC_PC_SELL_ITEMLIST => self.shop_opened(Shop::Sell(trade::bids(packet))),
-            trade::ZC_PC_PURCHASE_RESULT => self.shop_answer(trade::purchase_line(trade::result(packet))),
-            trade::ZC_PC_SELL_RESULT => self.shop_answer(trade::sell_line(trade::result(packet))),
+            net::shops::ZC_PC_SELL_ITEMLIST => self.shop_opened(Shop::Sell(net::shops::bids(packet))),
+            net::shops::ZC_PC_PURCHASE_RESULT => self.shop_answer(net::shops::purchase_line(net::shops::result(packet))),
+            net::shops::ZC_PC_SELL_RESULT => self.shop_answer(net::shops::sell_line(net::shops::result(packet))),
             _ => return false,
         }
         true
@@ -26,9 +26,9 @@ impl App {
 
     /// The shop asks, or lists what it sells or takes: the basket is empty again.
     fn shop_opened(&mut self, shop: Shop) {
-        self.deal.basket.clear();
-        self.deal.counting = None;
-        self.deal.shop = Some(shop);
+        self.shops.basket.clear();
+        self.shops.counting = None;
+        self.shops.shop = Some(shop);
         self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
     }
 
@@ -47,10 +47,10 @@ impl App {
             };
             self.chat_line(Self::words(line, otherwise), if failed { RED } else { CYAN });
         }
-        if matches!(self.deal.shop, Some(Shop::Buy(_) | Shop::Sell(_))) {
-            self.deal.shop = None;
-            self.deal.basket.clear();
-            self.deal.counting = None;
+        if matches!(self.shops.shop, Some(Shop::Buy(_) | Shop::Sell(_))) {
+            self.shops.shop = None;
+            self.shops.basket.clear();
+            self.shops.counting = None;
             self.redraw(&[&wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
         }
     }

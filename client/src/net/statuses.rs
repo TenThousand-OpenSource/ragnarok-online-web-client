@@ -70,7 +70,7 @@ pub fn changed(packet: &[u8]) -> Option<Change> {
 
 /// ZC_STATE_CHANGE (0x0229): `u32 who`, `u16 body state`, `u16 health state`, `u32 effect state`, `u8 pk`: whose
 /// state it is, the body state and the health state (the client's `ApplyStatusIcons` shows states for both).
-/// The effect state of the same packet is read by `net::units::state_changed`, which wants the packet longer.
+/// The effect state of the same packet is read by `net::actors::state_changed`, which wants the packet longer.
 pub fn body_and_health(packet: &[u8]) -> Option<(u32, u16, u16)> {
     let packet = packet.get(..10)?;
     Some((u32_at(packet, 2), u16_at(packet, 6), u16_at(packet, 8)))

@@ -3,7 +3,8 @@
 //! damaged or bound. Each is said as the client's handler says it (`crate::net::notices` names them).
 
 use super::*;
-use crate::net::notices::{self, filled};
+use crate::net::notices;
+use crate::numbers::filled;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
@@ -52,8 +53,8 @@ impl App {
             // this client does not have. Nothing is shown.
             notices::ZC_PAR_CHANGE_USER => {}
             // A stat was raised: it is what the server says now (`CGameMode::ReceiveStatusChangeAck`).
-            notices::ZC_STATUS_CHANGE_ACK => {
-                if let Some((stat, value)) = notices::stat_raised(packet) {
+            crate::net::packets::ZC_STATUS_CHANGE_ACK => {
+                if let Some((stat, value)) = crate::net::packets::stat_raised(packet) {
                     self.hero.params.insert(stat, i64::from(value));
                     self.refresh_values();
                 }

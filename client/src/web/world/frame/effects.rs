@@ -228,7 +228,7 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
 /// NPC, or for one out of sight.
 fn name_offset(scene: &Scene, on: Option<u32>) -> f32 {
     let mover = scene.mover(on);
-    mover.filter(|mover| matches!(mover.look, Look::Character(_))).map_or(0.0, |mover| crate::mounts::name_offset(crate::mounts::drawn_job(mover.job, mover.state), data::is_doram(mover.job)))
+    mover.filter(|mover| matches!(mover.look, Look::Character(_))).map_or(0.0, |mover| crate::mounts::name_offset(crate::mounts::drawn_job(mover.job, mover.state), crate::jobs::doram(mover.job)))
 }
 
 /// The way something goes as the screen shows it, a step of one, and the way across it.

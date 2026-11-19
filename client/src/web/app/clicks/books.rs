@@ -173,7 +173,7 @@ impl App {
     fn book_line_due(&mut self, turn: u32) {
         let Some(open) = self.books.open.as_mut().filter(|open| open.aloud.as_ref().is_some_and(|aloud| aloud.turn == turn)) else { return };
         let line = open.aloud.as_ref().map_or(0, |aloud| aloud.line);
-        let Some((said, next)) = open.book.aloud(line).map(|(said, next)| (crate::quests::uncoloured(said), next)) else { return self.book_closed() };
+        let Some((said, next)) = open.book.aloud(line).map(|(said, next)| (crate::markup::uncoloured(said), next)) else { return self.book_closed() };
         open.aloud = Some(BookAloud { line: next, said: (!said.trim().is_empty()).then(|| said.clone()), turn });
         self.chat_line(said, BOOK_SAID);
         self.redraw(&[&wnd::BOOK_LINE]);

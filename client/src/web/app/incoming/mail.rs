@@ -4,7 +4,8 @@
 //! `ReceiveRodexRecipient`, `ReceiveItemReward2`, `ReceiveStackedItemReturn`, `ReceiveRodexComposeResult`).
 
 use super::*;
-use crate::net::mail::{self, added, has, tab};
+use crate::net::mail::{self, added};
+use crate::mail::{has, tab};
 use crate::net::statuses;
 
 /// The state that carries how many letters were sent today (`EFST_DAILYSENDMAILCNT`), in its second value.
@@ -30,7 +31,7 @@ impl App {
             }
             // The client closes the letter being written when anything leaves the inventory
             // (`ReceiveItemConsumed`): a thing in the letter might be the one that went.
-            items::ZC_DELETE_ITEM_FROM_BODY => {
+            net::inventory::ZC_DELETE_ITEM_FROM_BODY => {
                 if self.mail.writing.is_some() {
                     self.chat_line(Self::words(2734, "Consuming item in inventory will close mail compose window."), MAIL_SAID);
                     self.mail_write_closed();

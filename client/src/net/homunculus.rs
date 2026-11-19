@@ -3,10 +3,10 @@
 //! Layouts from rAthena (`clif_hominfo`, `clif_send_homdata`, `clif_homunculus_updatestatus`, `clif_hom_food`,
 //! `clif_parse_HomMenu`, `clif_parse_HomMoveTo`, `clif_parse_HomAttack`, `clif_parse_HomMoveToMaster`,
 //! `clif_parse_ChangeHomunculusName`) at PACKETVER 20260219. The skills come laid out as the character's own
-//! (`net::items::skills`, `skill_raised`).
+//! (`net::inventory::skills`, `skill_raised`).
 //!
 //! What its window words and reckons (`intimacy_word`, `hungry_now`, `attack_speed`) is a rule and no packet: it
-//! is in `crate::homunculus`, and named from here as before. What its packets share with a pet's is in
+//! is in `crate::homunculus`. What its packets share with a pet's is in
 //! `net/companions.rs`.
 
 use super::bytes::{i64_at, text, u16_at, u32_at, Writer};
@@ -16,7 +16,6 @@ use super::packets::parameter as character;
 #[cfg(test)]
 mod tests;
 
-pub use crate::homunculus::{attack_speed, hungry_now, intimacy_word};
 
 /// ZC_PROPERTY_HOMUN: everything about the homunculus at once. The server of this PACKETVER sends the last;
 /// the two older layouts are read too, as the client reads them.

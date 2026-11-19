@@ -3,7 +3,8 @@
 //! `UIChatRoomWnd::SendMsg`, `UIChatRoomTitle::OnLBtnDblClk`, `UIPasswordWnd::SendMsg`).
 
 use super::*;
-use crate::net::chat_rooms::{self, Room, Setting, kind};
+use crate::net::chat_rooms;
+use crate::chat_rooms::{Room, Setting, kind};
 use crate::press::chat_rooms::Press;
 
 /// For how long after a room was asked to be entered nothing more is asked, in milliseconds
@@ -69,7 +70,7 @@ impl App {
         self.room_lines_read();
         let Some(making) = &self.chat_rooms.making else { return };
         let setting = Setting { title: making.title.trim().to_owned(), password: making.password.clone(), public: making.public, limit: making.limit };
-        if let Some((line, otherwise)) = chat_rooms::wrong(&setting) {
+        if let Some((line, otherwise)) = crate::chat_rooms::wrong(&setting) {
             self.message = Some(Self::words(line, otherwise));
             return self.render();
         }

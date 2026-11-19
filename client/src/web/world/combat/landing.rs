@@ -86,7 +86,7 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
     let striker = scene.one(landing.striker, own);
     let striker_is_character = striker.map(|striker| matches!(striker.look, Look::Character(_)));
     let weapon = striker.and_then(|striker| match &striker.look {
-        Look::Character(figure) => Some(data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| data::weapon_kind(&kind)).unwrap_or(0)),
+        Look::Character(figure) => Some(data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| crate::jobs::weapon_kind(&kind)).unwrap_or(0)),
         Look::Creature(_) => None,
     });
     let hurt = scene.one(target, own)?;

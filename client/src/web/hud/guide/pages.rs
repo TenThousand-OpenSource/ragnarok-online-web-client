@@ -3,45 +3,7 @@
 
 use super::*;
 
-/// The client's words for a monster's element, race and size, by what the server's database calls them: lines
-/// of the client's message table (those its navigation shows a monster with).
-fn element_line(element: &str) -> usize {
-    match element {
-        "Water" => 2263,
-        "Earth" => 2264,
-        "Fire" => 2265,
-        "Wind" => 2266,
-        "Poison" => 2267,
-        "Holy" => 2268,
-        "Dark" => 2269,
-        "Ghost" => 2270,
-        "Undead" => 2271,
-        _ => 2272,
-    }
-}
-
-fn race_line(race: &str) -> usize {
-    match race {
-        "Undead" => 2276,
-        "Brute" => 2277,
-        "Plant" => 2278,
-        "Insect" => 2279,
-        "Fish" => 2280,
-        "Demon" => 2281,
-        "Demihuman" => 2282,
-        "Angel" => 2283,
-        "Dragon" => 2284,
-        _ => 2285,
-    }
-}
-
-fn size_line(size: &str) -> usize {
-    match size {
-        "Medium" => 2273,
-        "Large" => 2274,
-        _ => 2275,
-    }
-}
+use crate::guide::{element_line, race_line, size_line};
 
 impl App {
     /// A page of quests, of an episode's parts or of dungeons (`CUIQuest`): a list 627 by 355 of rows 603 by 97.

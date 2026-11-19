@@ -3,7 +3,7 @@
 //! letter have (`RodexMailStore`, `UIRodexInboxWnd`, `UIRodexComposeWnd`). The packets of the mail are in
 //! `net/mail.rs`.
 
-use crate::net::items::Item;
+use crate::net::inventory::Item;
 use std::collections::BTreeMap;
 
 /// The mailbox's three kinds of letters (the client's `MAIL_INBOX_*`, the server's `mail_inbox_type`).

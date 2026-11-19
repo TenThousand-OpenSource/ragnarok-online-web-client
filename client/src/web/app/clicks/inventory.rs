@@ -39,7 +39,7 @@ impl App {
                     (Press::IdentifyOk, None) => return,
                     _ => 0xffff,
                 };
-                self.send(&items::identify(index));
+                self.send(&net::inventory::identify(index));
                 self.bag.identify = None;
                 self.render();
             }
@@ -54,7 +54,7 @@ impl App {
             // With a cart the client's button names the cart (`UIEquipWnd::UpdateCharacterView`); the server
             // takes a mount or a falcon away first all the same, and a cart when there is neither
             // (rAthena, `clif_parse_RemoveOption`).
-            Press::MountOff => self.send_on_map(&items::uninstall(if self.pushes_cart() { items::CART_OFF } else { crate::mounts::off(self.hero.state).0 })),
+            Press::MountOff => self.send_on_map(&net::inventory::uninstall(if self.pushes_cart() { net::inventory::CART_OFF } else { crate::mounts::off(self.hero.state).0 })),
             Press::Equipment => {
                 self.bag.equipment_open = !self.bag.equipment_open;
                 self.render();
@@ -91,7 +91,7 @@ impl App {
         let kept = self.bag.tab == Tab::Favourite;
         let index = self.bag.items.iter().find(|item| item.id == id && item.worn == 0 && self.bag.favourites.contains(&item.index) == kept).map(|item| item.index);
         if let Some(index) = index {
-            self.send_on_map(&items::move_to_tab(index, tab == 3));
+            self.send_on_map(&net::inventory::move_to_tab(index, tab == 3));
         }
     }
 
@@ -100,14 +100,14 @@ impl App {
         let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };
         let Some(item) = self.bag.at(index) else { return };
         if item.usable() {
-            socket.send(&items::use_item(item.index, account.account_id));
+            socket.send(&net::inventory::use_item(item.index, account.account_id));
         } else if item.worn != 0 {
-            socket.send(&items::take_off(item.index));
+            socket.send(&net::inventory::take_off(item.index));
         // A pet's accessory (the server's item kind 8) goes nowhere on the character, and is asked to be
         // worn all the same: the server puts it on the pet. The client tells such a thing by its number
         // (its Lua `IsPetAccessory`, not read here) and sends the same request (`MM_WEAR_EQUIP`).
         } else if item.wearable != 0 || item.kind == 8 {
-            socket.send(&items::wear(item.index, item.wearable));
+            socket.send(&net::inventory::wear(item.index, item.wearable));
         }
     }
 
@@ -131,7 +131,7 @@ impl App {
         let Drag::Item(id) = dragged else { return };
         let Some(item) = self.bag.first_unworn(id) else { return };
         if item.amount <= 1 {
-            self.send(&items::throw(item.index, 1));
+            self.send(&net::inventory::throw(item.index, 1));
         } else {
             self.bag.throwing = Some((item.index, item.amount));
             self.redraw(&[&wnd::THROW]);
@@ -142,7 +142,7 @@ impl App {
     pub(in crate::web::app) fn throw_counted(&mut self) {
         if let (Some((index, most)), Some(socket)) = (self.bag.throwing.take(), &self.socket) {
             if let Some(count) = Self::counted(&wnd::THROW, most) {
-                socket.send(&items::throw(index, count));
+                socket.send(&net::inventory::throw(index, count));
             }
         }
         self.redraw(&[&wnd::THROW]);

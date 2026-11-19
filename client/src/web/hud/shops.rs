@@ -4,7 +4,7 @@
 
 use super::*;
 use crate::item_names::Named;
-use crate::net::trade::name_width;
+use crate::shops::name_width;
 use crate::press::shops::Press;
 
 /// A row of a shop's windows as they are drawn: the item, whether it is identified, its name, the two prices
@@ -27,7 +27,7 @@ fn priced((price, own): (u32, u32), unit: &str) -> String {
 impl App {
     /// The shop's question (the client's `UIChooseSellBuyWnd`): its message box with the three buttons.
     pub(in crate::web) fn trade_window(&self) -> String {
-        let Some(Shop::Choose(_)) = &self.deal.shop else { return String::new() };
+        let Some(Shop::Choose(_)) = &self.shops.shop else { return String::new() };
         format!(
             "{}{}{}{}",
             art("win_msgbox.bmp", 0, 200, 280, 120),
@@ -39,12 +39,12 @@ impl App {
 
     /// How many of a row of the shop's list are in the basket.
     pub(in crate::web) fn shop_kept(&self, row: usize) -> u32 {
-        self.deal.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount))
+        self.shops.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount))
     }
 
     /// The rows of the shop: what it sells, or what it takes of what is carried (how many of each are carried).
     fn shop_lines(&self) -> Vec<Line> {
-        match &self.deal.shop {
+        match &self.shops.shop {
             Some(Shop::Buy(offers)) => offers
                 .iter()
                 .enumerate()
@@ -84,7 +84,7 @@ impl App {
     /// client's line 295), which the client lets be ticked only while selling. The window takes back what is
     /// dragged out of the basket.
     pub(in crate::web) fn shop_window(&self) -> String {
-        let selling = match &self.deal.shop {
+        let selling = match &self.shops.shop {
             Some(Shop::Buy(_)) => false,
             Some(Shop::Sell(_)) => true,
             _ => return String::new(),
@@ -104,7 +104,7 @@ impl App {
             dropped(Drop::Shop),
             list_frame(280, 312, &title),
             list_of(40, 225, 8, &rows, ""),
-            check_words(12, 292, self.deal.whole_stacks, &Self::words(295, "Toggle Item Amount."), Press::WholeStacks),
+            check_words(12, 292, self.shops.whole_stacks, &Self::words(295, "Toggle Item Amount."), Press::WholeStacks),
         )
     }
 
@@ -113,13 +113,13 @@ impl App {
     /// buttons, Buy or Sell at 106 from the right edge and Cancel at 61, 24 from the bottom. The client writes
     /// "Z" after a price of what is bought and "Zeny" after one of what is sold.
     pub(in crate::web) fn shop_basket_window(&self) -> String {
-        let selling = match &self.deal.shop {
+        let selling = match &self.shops.shop {
             Some(Shop::Buy(_)) => false,
             Some(Shop::Sell(_)) => true,
             _ => return String::new(),
         };
         let lines = self.shop_lines();
-        let kept: Vec<(&Line, u32)> = self.deal.basket.iter().filter_map(|(row, amount)| Some((lines.iter().find(|line| line.row == *row)?, u32::from(*amount)))).collect();
+        let kept: Vec<(&Line, u32)> = self.shops.basket.iter().filter_map(|(row, amount)| Some((lines.iter().find(|line| line.row == *row)?, u32::from(*amount)))).collect();
         let rows: String = kept
             .iter()
             .map(|(line, amount)| {
@@ -142,7 +142,7 @@ impl App {
 
     /// How many of a row go across the shop's windows: the box that asks how many, with the row's name.
     pub(in crate::web) fn shop_count_window(&self) -> String {
-        let Some((across, shown)) = self.deal.counting else { return String::new() };
+        let Some((across, shown)) = self.shops.counting else { return String::new() };
         let (crate::web::app::Across::In(row) | crate::web::app::Across::Out(row)) = across;
         let name = self.shop_lines().into_iter().find(|line| line.row == row).map(|line| line.name).unwrap_or_default();
         count_box_of(&windows::SHOP_COUNT, &name, shown, Form::ShopCount, Press::CountOk)

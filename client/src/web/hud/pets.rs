@@ -2,7 +2,7 @@
 //! list of eggs an incubator can hatch.
 
 use super::*;
-use crate::net::pets::{hunger_word, intimacy_word};
+use crate::pets::{hunger_word, intimacy_word};
 use crate::press::pets::{Order, Press};
 
 impl App {

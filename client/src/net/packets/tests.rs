@@ -202,7 +202,7 @@ fn packs_and_reads_moves() {
     packet[10] = y1 as u8;
     packet[11] = 0x88;
     packet[2..6].copy_from_slice(&77_000u32.to_le_bytes());
-    let walk = crate::net::units::Walked { from: (156, 191), to: (163, 1000), within: (8, 8), started: 77_000 };
+    let walk = crate::net::actors::Walked { from: (156, 191), to: (163, 1000), within: (8, 8), started: 77_000 };
     assert_eq!(player_move(&packet), Some(walk));
     assert_eq!(server_time(&[0x7f, 0, 0xc8, 0x2c, 1, 0]), Some(77_000));
     assert_eq!(player_move(&packet[..10]), None);

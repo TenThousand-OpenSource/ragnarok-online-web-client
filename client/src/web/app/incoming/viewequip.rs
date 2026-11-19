@@ -23,7 +23,7 @@ impl App {
             }
             // The switch that lets others look was set: the chat says how it stands, and the box of the
             // Equipment window shows it. The other settings this packet tells of are not made here.
-            viewequip::ZC_CONFIG => match viewequip::config(packet) {
+            crate::net::config::ZC_CONFIG => match crate::net::config::config(packet) {
                 Some((viewequip::OPEN_EQUIPMENT, on)) => self.equipment_open_told(on),
                 _ => return false,
             },
@@ -34,8 +34,8 @@ impl App {
                 }
             }
             // A line of the message table: that the other's equipment is not open to be looked at comes so.
-            viewequip::ZC_MSG => {
-                if let Some((line, words)) = viewequip::said(packet).map(|line| (line, Self::words(line, ""))).filter(|(_, words)| !words.is_empty()) {
+            crate::net::notices::ZC_MSG => {
+                if let Some((line, words)) = crate::net::notices::said(packet).map(|line| (line, Self::words(line, ""))).filter(|(_, words)| !words.is_empty()) {
                     self.chat_line(words, if SAID_IN_RED.contains(&line) { RED } else { WHITE });
                 }
             }

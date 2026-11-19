@@ -14,7 +14,7 @@ pub mod views;
 /// reading is with the other shapes of the client's tables (`crate::tables::hashed`); a figure is a number as
 /// C's `atof` reads it, or one written in sixteens (`0xff12121e`), which the client reads with a function of
 /// its own.
-pub use crate::tables::hashed as records;
+use crate::tables::hashed as records;
 
 /// The name such a table knows a map by (`CSession::GetFogParameters`, `GetMapViewParameters`): the map's file,
 /// and of a copy made for one party (`0011@gef`) the name as the client cuts it: without the three characters

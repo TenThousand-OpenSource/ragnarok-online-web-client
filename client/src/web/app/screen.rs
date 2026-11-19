@@ -107,7 +107,7 @@ impl App {
             }
             Screen::CharCreate(_) => {
                 let make = &self.make;
-                let job = if make.doram { data::SUMMONER } else { 0 };
+                let job = if make.doram { crate::jobs::SUMMONER } else { 0 };
                 let figure = Figure { job, sex: make.sex, hair_style: make.hair_style, hair_colour: make.hair_colour, headgear: [0; 3], body_palette: 0, weapon: 0, shield: 0, action: usize::from(make.direction), frame: 0 };
                 figure::paint("pc-make", figure);
             }

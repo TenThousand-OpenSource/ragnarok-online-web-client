@@ -26,9 +26,9 @@ impl App {
                 self.redraw(&wnd::VENDING_WINDOWS);
                 return false;
             }
-            units::ZC_NOTIFY_VANISH => {
+            net::actors::ZC_NOTIFY_VANISH => {
                 // (One struck down stays in sight, and so does its sign until the server takes it down.)
-                if let Some((who, false)) = units::vanished(packet) {
+                if let Some((who, false)) = net::actors::vanished(packet) {
                     self.vending_sign(who, None);
                 }
                 return false;
@@ -83,7 +83,7 @@ impl App {
                     // The client names the thing by where it now lies in the inventory, which the server's
                     // place in the vendor's cart is not: it is named here by the list last looked at.
                     let name = self.vending.visit.as_ref().and_then(|visit| visit.list.sold.iter().find(|sold| sold.item.index == index)).map(|sold| Self::item_name(&sold.item)).unwrap_or_default();
-                    if let Some(words) = vending::purchase_said(result, &name, amount, Self::words) {
+                    if let Some(words) = crate::vending::purchase_said(result, &name, amount, Self::words) {
                         self.chat_line(words, if result == 7 { RED } else { NOT_BOUGHT });
                     }
                     // The windows were put away as Buy was confirmed; the list is forgotten now.
@@ -126,11 +126,11 @@ impl App {
         let Some(sold) = self.vending.mine.clone() else { return };
         self.chat_line("=== SALE LIST ===".to_owned(), LIST_HEAD);
         for thing in &sold {
-            self.chat_line(format!("    {}  :  {}  Zeny", Self::item_name(&thing.item), crate::figures::grouped(i64::from(thing.price))), LIST_LINE);
-            self.chat_line(format!("Commission : 1 EA = {} Zeny", crate::figures::grouped(i64::from(vending::after_commission(thing.price)))), LIST_LINE);
+            self.chat_line(format!("    {}  :  {}  Zeny", Self::item_name(&thing.item), crate::numbers::grouped(i64::from(thing.price))), LIST_LINE);
+            self.chat_line(format!("Commission : 1 EA = {} Zeny", crate::numbers::grouped(i64::from(crate::vending::after_commission(thing.price)))), LIST_LINE);
         }
         let zeny = self.hero.zeny();
-        self.chat_line(format!("Current Zeny : {} Z", crate::figures::grouped(zeny)), LIST_FOOT);
+        self.chat_line(format!("Current Zeny : {} Z", crate::numbers::grouped(zeny)), LIST_FOOT);
     }
 
     /// The shop was not opened: its windows are put away and the chat says why. (The client says the first

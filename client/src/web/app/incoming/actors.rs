@@ -7,61 +7,61 @@ impl App {
     pub(super) fn actors_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // Everyone else on the map: coming into sight, walking, and leaving it.
-            units::ZC_NOTIFY_STANDENTRY | units::ZC_NOTIFY_NEWENTRY | units::ZC_NOTIFY_MOVEENTRY => self.unit_entered(id, packet),
-            units::ZC_HP_INFO => {
-                if let Some((id, left, most)) = units::life(packet) {
+            net::actors::ZC_NOTIFY_STANDENTRY | net::actors::ZC_NOTIFY_NEWENTRY | net::actors::ZC_NOTIFY_MOVEENTRY => self.unit_entered(id, packet),
+            net::actors::ZC_HP_INFO => {
+                if let Some((id, left, most)) = net::actors::life(packet) {
                     world::unit_life(id, left, most);
                 }
             }
-            units::ZC_ITEM_FALL_ENTRY | units::ZC_ITEM_ENTRY => {
-                if let Some((drop, item, cell, within, identified, count)) = units::dropped(id, packet) {
+            net::actors::ZC_ITEM_FALL_ENTRY | net::actors::ZC_ITEM_ENTRY => {
+                if let Some((drop, item, cell, within, identified, count)) = net::actors::dropped(id, packet) {
                     // Its picture is drawn once the item's name is known. One that falls now (not one that
                     // already lay there) is seen falling.
                     data::want_items(std::iter::once(item), || {});
-                    world::drop_shown(drop, (item, identified, count), cell, within, id == units::ZC_ITEM_FALL_ENTRY);
+                    world::drop_shown(drop, (item, identified, count), cell, within, id == net::actors::ZC_ITEM_FALL_ENTRY);
                 }
             }
-            units::ZC_ITEM_DISAPPEAR => {
-                if let Some(id) = npc::npc(id, packet) {
+            net::actors::ZC_ITEM_DISAPPEAR => {
+                if let Some(id) = net::talk::npc(id, packet) {
                     world::drop_gone(id);
                 }
             }
-            units::ZC_NOTIFY_MOVE => {
-                if let Some((id, walk)) = units::moved(packet) {
+            net::actors::ZC_NOTIFY_MOVE => {
+                if let Some((id, walk)) = net::actors::moved(packet) {
                     world::unit_walk(id, &walk);
                 }
             }
-            units::ZC_HIGHJUMP | units::ZC_FASTMOVE => {
-                if let Some((id, cell)) = units::slid(packet) {
+            net::actors::ZC_HIGHJUMP | net::actors::ZC_FASTMOVE => {
+                if let Some((id, cell)) = net::actors::slid(packet) {
                     let own = Some(id) == self.account.as_ref().map(|account| account.account_id);
                     world::slid((!own).then_some(id), cell);
                 }
             }
-            units::ZC_NOTIFY_VANISH => self.unit_vanished(packet),
+            net::actors::ZC_NOTIFY_VANISH => self.unit_vanished(packet),
             // Someone turns on the spot, or turns its head.
-            units::ZC_CHANGE_DIRECTION => {
-                if let Some((who, head, direction)) = units::turned(packet) {
+            net::actors::ZC_CHANGE_DIRECTION => {
+                if let Some((who, head, direction)) = net::actors::turned(packet) {
                     let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
                     world::turned((!own).then_some(who), head, direction);
                 }
             }
             // The states that show on someone in sight are told anew (`crate::state_effects::seen`).
-            units::ZC_NPC_SHOWEFST_UPDATE => {
-                if let Some((who, bits, third)) = units::third_option(packet) {
+            net::actors::ZC_NPC_SHOWEFST_UPDATE => {
+                if let Some((who, bits, third)) = net::actors::third_option(packet) {
                     world::third_option_told(who, bits, third);
                 }
             }
-            units::ZC_STATE_CHANGE => self.unit_stated(packet),
+            net::actors::ZC_STATE_CHANGE => self.unit_stated(packet),
             // A monster becomes another (the server has a Fabre turn into a Pupa and a Pupa into a Creamy by
             // itself, as a skill of theirs).
-            units::ZC_NPCSPRITE_CHANGE => {
-                if let Some((who, class)) = units::became(packet) {
+            net::actors::ZC_NPCSPRITE_CHANGE => {
+                if let Some((who, class)) = net::actors::became(packet) {
                     world::unit_becomes(who, class as u16);
                 }
             }
-            units::ZC_ACK_REQNAMEALL_NPC => Self::unit_named(packet),
-            units::ZC_SPRITE_CHANGE => self.look_changed(packet),
-            units::ZC_RESURRECTION => self.unit_risen(packet),
+            net::actors::ZC_ACK_REQNAMEALL_NPC => Self::unit_named(packet),
+            net::actors::ZC_SPRITE_CHANGE => self.look_changed(packet),
+            net::actors::ZC_RESURRECTION => self.unit_risen(packet),
             _ => return false,
         }
         true
@@ -69,15 +69,15 @@ impl App {
 
     /// Someone comes into sight, standing, walking or coming into being there.
     fn unit_entered(&mut self, id: u16, packet: &[u8]) {
-        if let Some(unit) = units::unit(id, packet) {
+        if let Some(unit) = net::actors::unit(id, packet) {
             world::unit_shown(&unit);
             // A player that comes into being in sight (logged in, teleported in) arrives in the walls
             // of light of `EF_ENTRY2`, unless it is invisible (the client's reader of the packet).
-            if id == units::ZC_NOTIFY_NEWENTRY && unit.kind == units::Kind::Player && unit.state & 0x40 == 0 {
+            if id == net::actors::ZC_NOTIFY_NEWENTRY && unit.kind == net::actors::Kind::Player && unit.state & 0x40 == 0 {
                 world::burst(344, Some(unit.id), None, 0.0);
             }
             // A player of a guild: its name and emblem are asked for (`incoming/guild.rs`).
-            if unit.kind == units::Kind::Player {
+            if unit.kind == net::actors::Kind::Player {
                 self.guild_looked_up(unit.id, unit.guild, u32::from(unit.emblem));
             }
         }
@@ -86,7 +86,7 @@ impl App {
     /// ZC_RESURRECTION: the player's own character stands up again, and the window that offered the save point
     /// goes; another who lay dead stands up where it lay.
     fn unit_risen(&mut self, packet: &[u8]) {
-        match units::risen(packet) {
+        match net::actors::risen(packet) {
             Some(who) if Some(who) == self.account.as_ref().map(|account| account.account_id) => {
                 self.hero.dead = false;
                 self.esc = 0;
@@ -101,7 +101,7 @@ impl App {
 
     /// ZC_STATE_CHANGE: the state someone is in changed: what they ride, whether they hide, how they ail.
     fn unit_stated(&mut self, packet: &[u8]) {
-        if let Some((who, bits)) = units::state_changed(packet) {
+        if let Some((who, bits)) = net::actors::state_changed(packet) {
             let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
             world::stated((!own).then_some(who), bits, None);
             // Its body and health states colour it, mark it and sound (`world/ailments.rs`).
@@ -119,7 +119,7 @@ impl App {
 
     /// ZC_ACK_REQNAMEALL_NPC (0x0adf): `u32 who, u32 group, char[24] name, char[24] title`.
     fn unit_named(packet: &[u8]) {
-        if let Some((who, group, name, title)) = units::named(packet) {
+        if let Some((who, group, name, title)) = net::actors::named(packet) {
             world::unit_named(who, &name);
             // The title and the group are written with the name (`world/names.rs`).
             world::unit_titled(who, group, &title);
@@ -127,7 +127,7 @@ impl App {
     }
 
     fn unit_vanished(&mut self, packet: &[u8]) {
-        if let Some((id, died)) = units::vanished(packet) {
+        if let Some((id, died)) = net::actors::vanished(packet) {
             // The player's own character does not go away when it dies: it lies there until the player
             // has it returned to its save point.
             if Some(id) == self.account.as_ref().map(|account| account.account_id) {
@@ -157,7 +157,7 @@ impl App {
                 // The player's pet is out of sight (not teleported with its master: type 0): it is back
                 // in its egg, or it ran away. The server (rAthena) tells it no other way: its word of
                 // the egg, ZC_CHANGESTATE_PET type 6, says 0 only of a pet about to run away.
-                if id == self.pets.unit && units::vanished_how(packet) == Some(0) {
+                if id == self.pets.unit && net::actors::vanished_how(packet) == Some(0) {
                     (self.pets.pet, self.pets.unit, self.pets.open, self.pets.menu, self.pets.asks) = (None, 0, false, false, 0);
                     self.render();
                 }
@@ -167,7 +167,7 @@ impl App {
 
     /// What someone wears or holds changes (ZC_SPRITE_CHANGE): it shows on them at once.
     fn look_changed(&mut self, packet: &[u8]) {
-        if let Some((who, kind, value, second)) = units::look(packet) {
+        if let Some((who, kind, value, second)) = net::actors::look(packet) {
             let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
             world::looked((!own).then_some(who), kind, value, second);
             // A unit of a skill on the ground changes its kind in the same packet (`world/skill_units.rs`).

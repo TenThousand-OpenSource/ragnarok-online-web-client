@@ -7,13 +7,13 @@ pub const MOST_ZENY: u32 = 1_000_000_000;
 /// The zeny typed into the deal's window, as the client reads it (`CUIExchangeUI::SubmitZeny`): digits, with
 /// commas between them or not; more than the character has is all it has; none for anything else.
 pub fn zeny_typed(text: &str, has: u32) -> Option<u32> {
-    crate::figures::typed(text).map(|amount| if amount > u64::from(has) { has } else { amount as u32 }.min(MOST_ZENY))
+    crate::numbers::typed(text).map(|amount| if amount > u64::from(has) { has } else { amount as u32 }.min(MOST_ZENY))
 }
 
 /// The colour an amount of zeny is written in, by how large it is (the first colour of the client's
 /// `PriceColor`, which it keeps blue first: written here as the page wants it).
 pub fn zeny_colour(amount: u32) -> &'static str {
-    crate::figures::price_colour(amount).0
+    crate::numbers::price_colour(amount).0
 }
 
 #[cfg(test)]

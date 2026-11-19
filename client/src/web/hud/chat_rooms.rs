@@ -3,7 +3,8 @@
 //! the box that asks a password (`UIPasswordWnd`).
 
 use super::*;
-use crate::net::chat_rooms::{LIMITS, OWNER, Room, kind};
+use crate::net::chat_rooms::OWNER;
+use crate::chat_rooms::{LIMITS, Room, kind};
 use crate::press::chat_rooms::Press;
 use crate::press::things::Menu;
 use crate::web::parts::menued;

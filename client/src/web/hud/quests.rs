@@ -183,7 +183,7 @@ impl App {
             shown += 1;
             let title = about.as_ref().map(|about| about.title.clone()).filter(|title| !title.is_empty()).unwrap_or_else(|| format!("Unknown Quest, ID = {}", quest.id));
             list.push_str(&shadowed(0, top, "#e1d600", &title));
-            let summary = about.filter(|about| !about.lines.is_empty()).map(|about| rules::uncoloured(&rules::shown(&about.summary))).unwrap_or_default();
+            let summary = about.filter(|about| !about.lines.is_empty()).map(|about| crate::markup::uncoloured(&rules::shown(&about.summary))).unwrap_or_default();
             if !summary.is_empty() {
                 let cut = if summary.chars().count() > 30 { format!("{}...", summary.chars().take(30).collect::<String>()) } else { summary };
                 list.push_str(&shadowed(0, top + 15, "#fff", &cut));

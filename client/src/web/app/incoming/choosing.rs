@@ -4,8 +4,8 @@
 //! things that a window looked up in vain (`data::makers_wanted`, the client's `CPlayerNameDictionary`).
 
 use super::*;
-use crate::net::choosing::{self, effect};
-use crate::net::notices;
+use crate::net::choosing;
+use crate::choosing::effect;
 
 /// The colours of these lines only (the client's `0xBBGGRR` turned): a refining that failed (`0xCDCD00`),
 /// one that could not be tried (`0xC8C8FF`).
@@ -17,7 +17,7 @@ impl App {
     /// (`data::makers_wanted`): done as any packet arrives, whosever it is.
     fn ask_names_wanted(&mut self) {
         for maker in data::makers_wanted() {
-            self.send_on_map(&choosing::ask_name(maker));
+            self.send_on_map(&crate::net::actors::ask_name(maker));
         }
     }
 
@@ -69,7 +69,7 @@ impl App {
             // The client shows the effect and says nothing (`CGameMode::ReceiveItemEffectResult` makes the
             // line "Successfully created %s." and does not send it to the chat).
             choosing::ZC_ACK_REQMAKINGITEM => {
-                if let Some(shown) = choosing::made(packet).and_then(|(result, _)| choosing::made_effect(result)) {
+                if let Some(shown) = choosing::made(packet).and_then(|(result, _)| crate::choosing::made_effect(result)) {
                     world::burst(shown, None, None, 0.0);
                 }
             }
@@ -88,8 +88,8 @@ impl App {
                 }
             }
             choosing::ZC_ACK_ITEMREFINING => self.item_refined(packet),
-            notices::ZC_ACK_REQNAME_BYGID => {
-                if let Some((character, Some(name))) = notices::character_name(packet) {
+            crate::net::actors::ZC_ACK_REQNAME_BYGID => {
+                if let Some((character, Some(name))) = crate::net::actors::character_name(packet) {
                     data::maker_named(character, name);
                     self.refresh_items();
                 }
@@ -150,7 +150,7 @@ impl App {
         self.say_filled(said::GENERAL, 493, &[], CYAN);
         let Some(id) = self.bag.at(card).map(|item| item.id) else { return };
         let Some(thing) = self.bag.at_mut(equipment) else { return };
-        choosing::set_card(&mut thing.cards, id);
+        crate::choosing::set_card(&mut thing.cards, id);
         if let Some(item) = self.bag.at_mut(card) {
             item.amount = item.amount.saturating_sub(1);
         }

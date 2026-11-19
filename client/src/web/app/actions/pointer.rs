@@ -6,7 +6,7 @@ impl App {
     /// The player pressed someone on the map.
     pub(in crate::web::app) fn unit_pressed(&mut self, id: u32, monster: bool) {
         // A monster is fought until it or the character is down; anyone else is talked to.
-        self.send_on_map(&if monster { units::attack(id) } else { npc::contact(id) });
+        self.send_on_map(&if monster { net::actors::attack(id) } else { net::talk::contact(id) });
     }
 
     /// The player pressed a cell of the map to walk to.

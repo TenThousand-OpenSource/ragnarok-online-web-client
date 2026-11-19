@@ -58,7 +58,7 @@ impl App {
             return;
         }
         let has = self.hero.zeny().clamp(0, i64::from(u32::MAX)) as u32;
-        match exchange::zeny_typed(&field("exchange-zeny"), has) {
+        match crate::exchange::zeny_typed(&field("exchange-zeny"), has) {
             Some(zeny) => {
                 (self.exchange.locking, self.exchange.adding) = (true, Some((0, zeny)));
                 self.send_on_map(&exchange::add(0, zeny));

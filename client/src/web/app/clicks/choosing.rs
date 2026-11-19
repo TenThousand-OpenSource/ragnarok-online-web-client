@@ -51,7 +51,7 @@ impl App {
             // A thing being forged has no rows: OK asks for it with what was put in.
             return match choice {
                 Choice::Forge(make, put) => {
-                    self.send_on_map(&choosing::make(make, choosing::put_in(&put)));
+                    self.send_on_map(&choosing::make(make, crate::choosing::put_in(&put)));
                     self.redraw_choice();
                 }
                 Choice::Repair(_) | Choice::Refine(_) | Choice::Make(_) if choice.rows() == 0 => {
@@ -111,14 +111,14 @@ impl App {
     }
 
     /// A thing dragged out of the inventory and let go over the window of a forging goes into one of its
-    /// three slots, if it is one that may (`choosing::goes_in`). The client takes one of it out of the
+    /// three slots, if it is one that may (`crate::choosing::goes_in`). The client takes one of it out of the
     /// inventory's window meanwhile; here the inventory shows it until the server takes it.
     pub(in crate::web::app) fn forge_dropped(&mut self, dragged: Drag) {
         let Drag::Item(item) = dragged else { return };
         if let Some(Choice::Forge(make, put)) = &mut self.choosing.open {
             // No more of a thing goes in than is carried.
             let carried = self.bag.items.iter().filter(|carried| carried.id == item && carried.worn == 0).map(|carried| usize::from(carried.amount)).sum::<usize>();
-            if choosing::goes_in(*make, put, item) && put.iter().filter(|put| **put == item).count() < carried {
+            if crate::choosing::goes_in(*make, put, item) && put.iter().filter(|put| **put == item).count() < carried {
                 put.push(item);
                 self.redraw_choice();
             }

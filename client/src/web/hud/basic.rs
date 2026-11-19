@@ -97,7 +97,7 @@ impl App {
         }
         let mut strip = bar("close_");
         for (position, (name, press, line, otherwise, key)) in icons.into_iter().enumerate() {
-            let name = if name == "status" && self.game.as_ref().is_some_and(|game| data::is_doram(game.job)) { "status_doram" } else { name };
+            let name = if name == "status" && self.game.as_ref().is_some_and(|game| crate::jobs::doram(game.job)) { "status_doram" } else { name };
             let (x, y) = ((position % 5 * 42 + 9) as i32, (position / 5 * 43 + 23) as i32);
             // With mail not read the mail's icon is the one that wears a mark, six higher and 35 by 40
             // (`UIMenuIconWnd::OnCreate`, `notificationButtons`).

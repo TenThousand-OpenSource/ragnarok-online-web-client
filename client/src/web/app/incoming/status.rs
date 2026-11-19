@@ -1,7 +1,6 @@
 //! What the character is: its numbers (life, stats, experience) and the skills it knows.
 
 use super::*;
-use crate::net::pets;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
@@ -45,19 +44,19 @@ impl App {
                     self.refresh_values();
                 }
             }
-            items::ZC_SKILLINFO_LIST => {
-                self.skills.known = items::skills(packet);
+            net::inventory::ZC_SKILLINFO_LIST => {
+                self.skills.known = net::inventory::skills(packet);
                 self.refresh_items();
             }
-            items::ZC_ADD_SKILL => {
-                if let Some(added) = items::skill_added(packet) {
+            net::inventory::ZC_ADD_SKILL => {
+                if let Some(added) = net::inventory::skill_added(packet) {
                     self.skills.known.retain(|skill| skill.id != added.id);
                     self.skills.known.push(added);
                     self.refresh_items();
                 }
             }
-            items::ZC_SKILLINFO_UPDATE => {
-                if let Some((id, level, sp, range, raisable)) = items::skill_raised(packet) {
+            net::inventory::ZC_SKILLINFO_UPDATE => {
+                if let Some((id, level, sp, range, raisable)) = net::inventory::skill_raised(packet) {
                     if let Some(skill) = self.skills.known.iter_mut().find(|skill| skill.id == id) {
                         (skill.level, skill.sp, skill.range, skill.raisable) = (level, sp, range, raisable);
                     }
@@ -83,7 +82,7 @@ impl App {
             0 => world::effect("angel.str", on),
             1 => world::effect("joblvup.str", on),
             _ => {
-                if let (Some(shown), Some(_)) = (skills::notified_effect(kind), who) {
+                if let (Some(shown), Some(_)) = (crate::skills::notified_effect(kind), who) {
                     world::burst(shown, on, None, 0.0);
                 }
             }
@@ -91,7 +90,7 @@ impl App {
         // A level gained by the player's own character is heard, and the pet may tell of it.
         if who == own && who.is_some() && matches!(kind, 0 | 1 | 7 | 8 | 9) {
             sound::effect("levelup.wav", 1.0);
-            self.pet_feels(pets::moment::LEVEL_UP, None);
+            self.pet_feels(crate::pets::moment::LEVEL_UP, None);
         }
     }
 
@@ -102,7 +101,7 @@ impl App {
             }
             // How heavy the character was before, for what the chat says of the weight (`incoming/inventory.rs`).
             let weighed = |app: &Self, name: u16| app.hero.params.get(&name).copied().unwrap_or(0);
-            let heavy = crate::net::items::weight::percent(weighed(self, packets::parameter::WEIGHT), weighed(self, packets::parameter::MAX_WEIGHT));
+            let heavy = crate::inventory::weight::percent(weighed(self, packets::parameter::WEIGHT), weighed(self, packets::parameter::MAX_WEIGHT));
             let was = weighed(self, name);
             self.hero.params.insert(name, i64::from(value));
             if name == packets::parameter::WEIGHT || name == packets::parameter::MAX_WEIGHT {
@@ -120,7 +119,7 @@ impl App {
             let time = js_sys::Date::now();
             if name == packets::parameter::HP && most > 0 && i64::from(value) * 100 / most < 25 && self.pets.pet.is_some() && js_sys::Math::random() < 0.5 && time - self.pets.warned_at >= 5000.0 {
                 self.pets.warned_at = time;
-                self.pet_feels(pets::moment::DANGER, None);
+                self.pet_feels(crate::pets::moment::DANGER, None);
             }
         }
     }

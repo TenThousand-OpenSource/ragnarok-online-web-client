@@ -54,7 +54,7 @@ impl App {
                     _ => 0,
                 };
                 if press == Press::EscYes {
-                    self.send(&npc::restart(false));
+                    self.send(&crate::net::packets::restart(false));
                 }
                 self.redraw(&[&wnd::DIALOG]);
             }

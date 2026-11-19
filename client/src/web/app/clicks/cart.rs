@@ -6,7 +6,7 @@
 use super::*;
 use crate::net::cart;
 use crate::net::storage;
-use crate::net::trade::{Asked, count_asked};
+use crate::shops::{Asked, count_asked};
 
 /// The spirit the client wants one to have who uses Change Cart.
 const CHANGE_CART_SP: i64 = 40;
@@ -57,14 +57,14 @@ impl App {
             self.chat_line(Self::words(660, "You must have a cart."), RED);
             return false;
         }
-        self.cart_looks_offered(0, crate::carts::by_level(has(packets::parameter::BASE_LEVEL).max(0) as u32));
+        self.cart_looks_offered(0, crate::cart::by_level(has(packets::parameter::BASE_LEVEL).max(0) as u32));
         true
     }
 
     /// The window of the looks opens with those kinds; the first picture of each kind's sprite is read for it.
     pub(in crate::web::app) fn cart_looks_offered(&mut self, identity: u32, kinds: Vec<u8>) {
         for (place, kind) in kinds.iter().copied().enumerate() {
-            let Some((sprite, _)) = crate::carts::offered(kind, place) else { continue };
+            let Some((sprite, _)) = crate::cart::offered(kind, place) else { continue };
             wasm_bindgen_futures::spawn_local(async move {
                 if let Ok((picture, _, origin)) = figure::frame_picture(&sprite, 0, 0).await {
                     dispatch(Action::CartLookRead(kind, picture, origin));

@@ -19,7 +19,7 @@ impl App {
             // `ReceiveDivorceNotice`: the client's line 836 with both names, in its `0xFFFF00` (blue first).
             family::ZC_DIVORCE => {
                 if let (Some(other), Some(game)) = (family::partner(packet), &self.game) {
-                    let line = family::divorce_line(&Self::words(836, "%s and %s have divorced from each other."), &game.name, &other);
+                    let line = crate::family::divorce_line(&Self::words(836, "%s and %s have divorced from each other."), &game.name, &other);
                     self.family.partner.clear();
                     self.chat_line(line, CYAN);
                 }

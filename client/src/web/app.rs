@@ -18,14 +18,15 @@ use crate::effect_tables;
 use super::socket::{Socket, SocketEvent};
 use super::view::{HAIR_COLOURS, SLOTS_PER_PAGE, WALLPAPER, hair_styles};
 use super::{asset_url, data, js_error, sound, world};
-use crate::hotkeys::{self, Chord};
+use crate::hotkeys::Chord;
 use crate::press::things::{self, Drag, Drop, Form, Use};
 use crate::said::{self, colour::*};
 use crate::i18n::{Key, Lang, fill};
 use crate::net::skills;
-use crate::net::items::{self, Hotkey, Item, Skill, Tab};
+use crate::net::inventory::{Hotkey, Item, Skill};
+use crate::inventory::Tab;
 use crate::net::packets::{self, Character, LoginAccepted, ZoneServer};
-use crate::net::{emotions, npc, trade, units};
+use crate::net::{self, emotions};
 use crate::net::{Frame, Framer};
 
 mod action;
@@ -39,7 +40,7 @@ mod actions;
 mod ai;
 mod clicks;
 mod keys;
-mod hotkeys_set;
+mod hotkeys;
 mod settings;
 mod commands;
 mod incoming;
@@ -52,7 +53,7 @@ pub(in crate::web) use state::*;
 
 pub use wiring::*;
 pub(super) use page::*;
-pub(super) use hotkeys_set::PAGE;
+pub(super) use hotkeys::PAGE;
 use account::*;
 use connection::*;
 pub(super) use action::*;
@@ -129,16 +130,16 @@ pub(super) struct App {
     pub bag: Bag,
     pub skills: Skills,
     pub chat: Chat,
-    pub deal: Deal,
+    pub shops: Shops,
     pub storage: Storage,
     pub pets: Pets,
     pub quests: Quests,
     pub statuses: Statuses,
     pub cooldowns: Cooldowns,
     pub commands: Commands,
-    pub keys: Keys,
+    pub keys: Hotkeys,
     pub settings: Settings,
-    pub guide: GuideWnd,
+    pub guide: Guide,
     pub party: Party,
     pub pvp: Pvp,
     pub guild: Guild,

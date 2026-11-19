@@ -148,7 +148,7 @@ fn wire_keys(document: &web_sys::Document) -> Result<(), String> {
         let in_game = glance(|app| matches!(app.screen, Screen::Game) && app.message.is_none() && app.ask.is_none()).unwrap_or(false);
         // A key pressed while something else is being handled is left to the browser: it cannot be told in time
         // whether the game uses it.
-        let used = APP.with(|app| app.try_borrow_mut().is_ok_and(|mut app| app.key(&key, &code, hotkeys::held(event.alt_key(), event.ctrl_key(), event.shift_key()))));
+        let used = APP.with(|app| app.try_borrow_mut().is_ok_and(|mut app| app.key(&key, &code, crate::hotkeys::held(event.alt_key(), event.ctrl_key(), event.shift_key()))));
         if used || (in_game && browsers_own(&event)) {
             event.prevent_default();
         }

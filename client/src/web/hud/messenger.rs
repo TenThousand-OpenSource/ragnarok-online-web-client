@@ -3,6 +3,7 @@
 //! on, and a button of that bar.
 
 use super::*;
+use crate::press::party::Press;
 
 /// A button of the bar under the list: 26 by 20, its three pictures `name.bmp`, `name_a.bmp`, `name_b.bmp`.
 pub(in crate::web::hud) fn bar_button(x: i32, y: i32, name: &str, press: impl Into<crate::press::Press>, tip: &str) -> String {

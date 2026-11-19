@@ -48,8 +48,8 @@ impl App {
         // (`/call`, the setting 1), and whether the pet's window opens by itself when the pet is unhappy (the
         // setting 6).
         match id {
-            "TT_BLOCK_CALL_ON_OFF" => self.send_on_map(&crate::net::viewequip::set(1, on)),
-            "TT_PETINFO_ALERT_ONOFF" => self.send_on_map(&crate::net::viewequip::set(6, on)),
+            "TT_BLOCK_CALL_ON_OFF" => self.send_on_map(&crate::net::config::set(1, on)),
+            "TT_PETINFO_ALERT_ONOFF" => self.send_on_map(&crate::net::config::set(6, on)),
             _ => {}
         }
         // The minimap's buttons show or go as their option says.

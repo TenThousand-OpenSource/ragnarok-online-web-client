@@ -2,13 +2,10 @@
 //! neighbours in `src/map/clif.cpp`, at PACKETVER 20260219); and the line in a colour of its own that an NPC,
 //! or the server, says into the chat (ZC_NPC_CHAT).
 //!
-//! Whispers are `net/whispers.rs` and CZ_RESTART is with the basics of the map server (`net/packets/zone.rs`):
-//! both are still named from here, where they were.
+//! Whispers are `net/whispers.rs` and CZ_RESTART is with the basics of the map server (`net/packets/zone.rs`).
 
 use super::bytes::{long, text, Writer};
 
-pub use super::packets::restart;
-pub use super::whispers::{whisper, whisper_answered, whispered, ZC_ACK_WHISPER, ZC_WHISPER};
 
 /// ZC_SAY_DIALOG (0x00b4): `u16 length, u32 npc, char[] text`; ZC_SAY_DIALOG2 (0x0972) has a `u8 type` before
 /// the text.

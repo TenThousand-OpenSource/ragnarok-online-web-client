@@ -21,7 +21,7 @@
 //!
 //! Not done: `CEffect::IsVisible`, by which the client leaves the effects on another character undrawn when
 //! that character is not (`EffectVisible`); the level in ZC_NPC_SHOWEFST_UPDATE, which rAthena sends for
-//! monsters and NPCs alone, is not read (`net::units::third_option`), so the level of one in sight is the one
+//! monsters and NPCs alone, is not read (`net::actors::third_option`), so the level of one in sight is the one
 //! told as it came into sight.
 
 use super::*;

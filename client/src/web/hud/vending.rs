@@ -4,7 +4,8 @@
 //! `vending/buying.rs`.
 
 use super::*;
-use crate::net::vending::{TITLE, after_commission, price_colour, price_typed};
+use crate::vending::{TITLE, after_commission, price_typed};
+use crate::numbers::price_colour;
 use crate::press::vending::Press;
 use crate::web::app::{Crossing, VendingAsk};
 

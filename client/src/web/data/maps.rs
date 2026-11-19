@@ -21,17 +21,7 @@ pub fn music(map: &str) -> Option<String> {
 /// Reads the client's table of which music plays on which map: lines of `map.rsw#bgm\\08.mp3#`.
 pub async fn load_music() {
     let Ok(bytes) = crate::web::fetch_asset("data/mp3nametable.txt").await else { return };
-    let table = String::from_utf8_lossy(&bytes);
-    let music = table
-        .lines()
-        .filter(|line| !line.trim_start().starts_with("//"))
-        .filter_map(|line| {
-            let mut parts = line.split('#');
-            let (map, track) = (parts.next()?.trim(), parts.next()?.trim());
-            Some((map.to_ascii_lowercase().strip_suffix(".rsw")?.to_owned(), track.replace("\\\\", "\\")))
-        })
-        .filter(|(_, track)| !track.is_empty())
-        .collect();
+    let music = crate::maps::music_table(&String::from_utf8_lossy(&bytes)).into_iter().collect();
     MUSIC.set(music);
 }
 
@@ -50,12 +40,12 @@ pub struct MapSign {
 /// Those the minimap marks on that map (the client's `CGameMode::DrawMiniMap`: the table's entries in turn, up to
 /// the first of kind 8 or 9, which are not for the minimap).
 pub fn town_marks(map: &str) -> Vec<(String, i32, i32, i32)> {
-    TOWNS.with_borrow(|towns| towns.get(map.trim_end_matches(".gat").trim_end_matches(".rsw")).map(|people| people.iter().take_while(|person| !matches!(person.3, 8 | 9)).cloned().collect()).unwrap_or_default())
+    TOWNS.with_borrow(|towns| towns.get(crate::maps::bare(map)).map(|people| people.iter().take_while(|person| !matches!(person.3, 8 | 9)).cloned().collect()).unwrap_or_default())
 }
 
 /// What the client calls that map, if its table has it.
 pub fn map_sign(map: &str) -> Option<MapSign> {
-    MAPS.with_borrow(|maps| maps.get(map.trim_end_matches(".gat").trim_end_matches(".rsw")).cloned())
+    MAPS.with_borrow(|maps| maps.get(crate::maps::bare(map)).cloned())
 }
 
 /// Takes its tables out of what the gateway gave: what the client calls each map, and who stands where in the

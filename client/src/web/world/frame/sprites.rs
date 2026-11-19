@@ -168,7 +168,7 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         }
         // The puff of smoke of one that hid or came out, where it stood.
         if let Some((began, at)) = mover.pose.smoke {
-            if !ailments::played_once(gpu, poses::SMOKE, (began, on_ground(gat, at)), time, &mut sprites) {
+            if !ailments::played_once(gpu, pose::SMOKE, (began, on_ground(gat, at)), time, &mut sprites) {
                 mover.pose.smoke = None;
             }
         }

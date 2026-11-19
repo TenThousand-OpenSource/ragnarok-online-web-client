@@ -8,8 +8,9 @@
 //! `storage_let_go` (`Drop::Storage`), where a new kind of thing dragged gets its arm.
 
 use super::*;
-use crate::net::storage::{self, Sorted, TABS};
-use crate::net::trade::{Asked, count_asked};
+use crate::net::storage;
+use crate::storage::{Sorted, TABS};
+use crate::shops::{Asked, count_asked};
 
 impl App {
     /// A press of this system (`crate::press::storage`).

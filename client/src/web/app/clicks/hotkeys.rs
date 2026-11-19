@@ -1,7 +1,6 @@
 //! The Shortcut Settings window.
 
 use super::*;
-use crate::hotkeys;
 
 impl App {
     /// A press of this system (`crate::press::hotkeys`).
@@ -22,7 +21,7 @@ impl App {
                 self.redraw(&[&wnd::KEYS]);
             }
             Press::Page(step) => {
-                let pages = self.listed_keys(hotkeys::TABS[self.keys.tab.min(3)]).len().div_ceil(PAGE).max(1);
+                let pages = self.listed_keys(crate::hotkeys::TABS[self.keys.tab.min(3)]).len().div_ceil(PAGE).max(1);
                 self.keys.page = if step == Step::More { (self.keys.page + 1).min(pages - 1) } else { self.keys.page.saturating_sub(1) };
                 (self.keys.row, self.keys.notice) = (None, None);
                 self.redraw(&[&wnd::KEYS]);
@@ -94,19 +93,19 @@ impl App {
             None => Hotkey::default(),
             // From another slot of the bar: what was there moves here, and that slot is left empty.
             Some(Drag::Slot(from)) => {
-                let Some(moved) = self.skills.hotkeys.get(from).copied().filter(|moved| moved.id != 0 && from != slot && slot < items::HOTKEYS) else { return };
-                self.skills.hotkeys.resize(items::HOTKEYS, Hotkey::default());
+                let Some(moved) = self.skills.hotkeys.get(from).copied().filter(|moved| moved.id != 0 && from != slot && slot < net::inventory::HOTKEYS) else { return };
+                self.skills.hotkeys.resize(net::inventory::HOTKEYS, Hotkey::default());
                 self.skills.hotkeys[from] = Hotkey::default();
-                self.send(&items::set_hotkey(from as u16, Hotkey::default()));
+                self.send(&net::inventory::set_hotkey(from as u16, Hotkey::default()));
                 moved
             }
         };
-        if slot >= items::HOTKEYS {
+        if slot >= net::inventory::HOTKEYS {
             return;
         }
-        self.skills.hotkeys.resize(items::HOTKEYS, Hotkey::default());
+        self.skills.hotkeys.resize(net::inventory::HOTKEYS, Hotkey::default());
         self.skills.hotkeys[slot] = hotkey;
-        self.send(&items::set_hotkey(slot as u16, hotkey));
+        self.send(&net::inventory::set_hotkey(slot as u16, hotkey));
         self.refresh_items();
     }
 }

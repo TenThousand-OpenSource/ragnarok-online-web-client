@@ -199,8 +199,5 @@ pub fn leader(packet: &[u8]) -> Option<(u32, u32)> {
 mod requests;
 pub use requests::*;
 
-/// The rule that is no packet, kept at the path it had: whether two members are on one map.
-pub use crate::party::map_name;
-
 #[cfg(test)]
 mod tests;

@@ -51,7 +51,7 @@ pub const EF_POISON: u32 = 335;
 /// own colours are multiplied by it. A state's colour is written to the body of the one in it
 /// (`crate::body::Body::stated`), which is where the colour of everyone is kept.
 pub const TINTS: [[u8; 3]; 7] = [WHITE, [0xff, 0x80, 0xff], [0xff, 0x32, 0xff], [0xc8, 0x32, 0x32], [0x40, 0x40, 0x40], [0x80, 0x80, 0x80], [0x00, 0x80, 0xff]];
-pub use crate::body::WHITE;
+use crate::body::WHITE;
 const POISONED: [u8; 3] = TINTS[1];
 const DEADLY: [u8; 3] = TINTS[2];
 const CURSED: [u8; 3] = TINTS[3];

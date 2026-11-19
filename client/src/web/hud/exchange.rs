@@ -2,7 +2,7 @@
 //! `CUIExchangeUI`), the question whether to deal (`UIExchangeAcceptWnd`), and how many of a thing go in.
 
 use super::*;
-use crate::net::exchange::zeny_colour;
+use crate::exchange::zeny_colour;
 use crate::press::exchange::Press;
 
 /// One of the window's three buttons, 42 by 20: its pictures as the client names them (`name.bmp`, `name_b.bmp`

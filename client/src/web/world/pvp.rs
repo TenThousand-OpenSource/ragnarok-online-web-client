@@ -1,9 +1,9 @@
-//! Fighting other players: which map the character is on (`crate::net::pvp::Zone`) and who its friends are,
+//! Fighting other players: which map the character is on (`crate::pvp::Zone`) and who its friends are,
 //! as the app tells them, and whether someone on the map is fought as a monster is. The clicking and the pointer
 //! go by `foe`.
 
 use super::*;
-use crate::net::pvp::Zone;
+use crate::pvp::Zone;
 
 /// What the world knows of it.
 #[derive(Default)]

@@ -11,6 +11,23 @@
 //! roweb-client golden`, and look at what changed in it.
 
 use super::*;
+// The lines of `golden.txt` name each builder with its file as the file was called when they were written.
+// Files have since taken their systems' names and some builders have moved to the file of their system: they
+// are called here by the names the lines have, so that the file of lines stays as it was written.
+use super::{actors as units, inventory as items, shops as trade};
+mod npc {
+    pub use crate::net::packets::restart;
+    pub use crate::net::talk::*;
+    pub use crate::net::whispers::whisper;
+}
+mod viewequip {
+    pub use crate::net::config::set;
+    pub use crate::net::viewequip::*;
+}
+mod choosing {
+    pub use crate::net::actors::ask_name;
+    pub use crate::net::choosing::*;
+}
 
 /// A name that fits any field.
 const SHORT: &str = "Poring";
@@ -192,8 +209,8 @@ fn people(lines: &mut Vec<(&'static str, Vec<u8>)>) {
         built!(lines; party::expel; 2_000_002, text);
         built!(lines; party::say; text, text);
         built!(lines; friends::add; text);
-        built!(lines; chat_rooms::create; &chat_rooms::Setting { title: text.to_owned(), password: text.to_owned(), public: false, limit: 20 });
-        built!(lines; chat_rooms::change; &chat_rooms::Setting { title: text.to_owned(), password: String::new(), public: true, limit: 2 });
+        built!(lines; chat_rooms::create; &crate::chat_rooms::Setting { title: text.to_owned(), password: text.to_owned(), public: false, limit: 20 });
+        built!(lines; chat_rooms::change; &crate::chat_rooms::Setting { title: text.to_owned(), password: String::new(), public: true, limit: 2 });
         built!(lines; chat_rooms::enter; 0x0102_0304, text);
         built!(lines; chat_rooms::give; text);
         built!(lines; chat_rooms::expel; text);

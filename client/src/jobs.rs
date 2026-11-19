@@ -1,5 +1,8 @@
 //! What the client knows of a job by its number alone.
 
+use std::collections::HashMap;
+use std::sync::OnceLock;
+
 /// Whether a job has Activity Points, the third thing after life and spirit: the fourth jobs and the jobs that
 /// stand beside them (the client's `CSession::IsTreeGroupThree`: from the Dragon Knight to the end of the fourth
 /// jobs, and from the Sky Emperor to the end of the upper extended ones). The job is the one the character is
@@ -37,6 +40,112 @@ pub fn hireling(job: u16) -> bool {
     (6018..=6052).contains(&job)
 }
 
+/// The job a new Doram character starts as.
+pub const SUMMONER: u16 = 4218;
+/// The Doram's jobs; every other player job is human. (rodecomp, `CSession::IsDoramJob`.)
+const DORAM_JOBS: [u16; 7] = [4217, SUMMONER, 4219, 4220, 4221, 4308, 4315];
+
+/// Whether a job is a Doram's.
+pub fn doram(job: u16) -> bool {
+    DORAM_JOBS.contains(&job)
+}
+
+/// The name of a job's body sprite files, from the list taken out of the original client
+/// (`web/data/job_sprites.txt`). A job the client has no sprite for is drawn as a Novice.
+pub fn body_sprite(job: u16) -> &'static str {
+    static BODIES: OnceLock<HashMap<u16, &'static str>> = OnceLock::new();
+    let bodies = BODIES.get_or_init(|| crate::tables::tabbed(include_str!("web/data/job_sprites.txt")).filter_map(|(job, name)| Some((job.parse().ok()?, name))).collect());
+    // The sprites are numbered as the jobs, the later jobs moved down to follow the first ones.
+    let sprite_job = if job > 3950 { job - 3950 } else { job };
+    bodies.get(&sprite_job).or_else(|| bodies.get(&0)).copied().unwrap_or("초보자")
+}
+
+/// The plain job of a mounted or re-dressed job (the client's `JobNames::BaseJob`, written out by
+/// `tools/client-tables/job_bases.py` into `web/data/job_bases.txt`); the job itself for any other.
+pub fn base(job: u16) -> u16 {
+    static BASES: OnceLock<HashMap<u16, u16>> = OnceLock::new();
+    BASES.get_or_init(|| crate::tables::tabbed(include_str!("web/data/job_bases.txt")).filter_map(|(job, base)| Some((job.parse().ok()?, base.parse().ok()?))).collect()).get(&job).copied().unwrap_or(job)
+}
+
+/// The first job a job grew out of, among the classic ones (0 novice, 1 swordman, 2 magician, 3 archer,
+/// 4 acolyte, 5 merchant, 6 thief), by the client's own tables: a mounted job is its plain job (`base`), and
+/// each job grew out of the one `grew_out_of` names for it (the client's `jobinheritlist.lub`). The jobs that
+/// table starts from a Novice (Taekwon, Ninja, Gunslinger, Super Novice) are of the Novice's line; a job it does
+/// not name at all (a Doram) has none.
+pub fn first_job(job: u16, grew_out_of: impl Fn(u16) -> Option<u16>) -> Option<u16> {
+    let mut job = base(job);
+    // No line of jobs is ten long: a table gone wrong does not hold this up for ever.
+    for _ in 0..10 {
+        if job <= 6 {
+            return Some(job);
+        }
+        job = grew_out_of(job)?;
+    }
+    None
+}
+
+/// The client's number for a kind of weapon (its `Weapon_IDs`), by what the server's database calls the kind
+/// (the item's `SubType`).
+pub fn weapon_kind(kind: &str) -> Option<u16> {
+    Some(match kind {
+        "Dagger" => 1,
+        "1hSword" => 2,
+        "2hSword" => 3,
+        "1hSpear" => 4,
+        "2hSpear" => 5,
+        "1hAxe" => 6,
+        "2hAxe" => 7,
+        "Mace" => 8,
+        "2hMace" => 9,
+        "Staff" => 10,
+        "Bow" => 11,
+        "Knuckle" => 12,
+        "Musical" => 13,
+        "Whip" => 14,
+        "Book" => 15,
+        "Katar" => 16,
+        "Revolver" => 17,
+        "Rifle" => 18,
+        "Gatling" => 19,
+        "Shotgun" => 20,
+        "Grenade" => 21,
+        "Huuma" => 22,
+        "2hStaff" => 23,
+        _ => return None,
+    })
+}
+
+/// What a job is called until the client's own tables are there (`web/data/jobs.rs`, which then names every
+/// job): the first jobs' names, and `Job <number>` for any other.
+pub fn name(job: u16) -> String {
+    let name = match job {
+        0 => "Novice",
+        1 => "Swordman",
+        2 => "Magician",
+        3 => "Archer",
+        4 => "Acolyte",
+        5 => "Merchant",
+        6 => "Thief",
+        7 => "Knight",
+        8 => "Priest",
+        9 => "Wizard",
+        10 => "Blacksmith",
+        11 => "Hunter",
+        12 => "Assassin",
+        14 => "Crusader",
+        15 => "Monk",
+        16 => "Sage",
+        17 => "Rogue",
+        18 => "Alchemist",
+        19 => "Bard",
+        20 => "Dancer",
+        23 => "Super Novice",
+        4218 => "Summoner",
+        _ => return format!("Job {job}"),
+    };
+    name.to_owned()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,5 +174,49 @@ mod tests {
         assert!(has_ap(4252) && has_ap(4280) && has_ap(4307));
         // Not a Rune Knight, a Novice, or the gap between the two ranges.
         assert!(!has_ap(4054) && !has_ap(0) && !has_ap(4300));
+    }
+
+    #[test]
+    fn a_doram_is_told_from_a_human() {
+        assert!(doram(SUMMONER) && doram(4217) && doram(4315));
+        assert!(!doram(0) && !doram(4216) && !doram(4222));
+    }
+
+    #[test]
+    fn a_job_has_the_body_the_clients_list_names() {
+        assert_eq!(body_sprite(0), "초보자");
+        // The later jobs are numbered 3950 lower among the sprites; one the list does not have is a Novice.
+        assert_eq!(body_sprite(4001), body_sprite(51));
+        assert_eq!(body_sprite(60000), body_sprite(0));
+    }
+
+    #[test]
+    fn a_job_is_of_the_line_of_its_first_job() {
+        let grew = |job: u16| match job {
+            7 => Some(1),
+            4008 => Some(4002),
+            4002 => Some(4001),
+            4001 => Some(0),
+            50 => Some(50),
+            _ => None,
+        };
+        assert_eq!(first_job(3, grew), Some(3));
+        assert_eq!(first_job(7, grew), Some(1));
+        assert_eq!(first_job(4008, grew), Some(0));
+        // One the table does not name has no line; a table that goes round ends.
+        assert_eq!(first_job(SUMMONER, grew), None);
+        assert_eq!(first_job(50, grew), None);
+        assert_eq!(base(7), 7);
+    }
+
+    #[test]
+    fn a_weapon_is_numbered_as_the_client_numbers_its_kind() {
+        assert_eq!((weapon_kind("Dagger"), weapon_kind("Bow"), weapon_kind("2hStaff")), (Some(1), Some(11), Some(23)));
+        assert_eq!(weapon_kind("Shield"), None);
+    }
+
+    #[test]
+    fn a_job_has_a_name_before_the_tables_are_there() {
+        assert_eq!((name(0), name(11), name(SUMMONER), name(4008)), ("Novice".to_owned(), "Hunter".to_owned(), "Summoner".to_owned(), "Job 4008".to_owned()));
     }
 }

@@ -131,7 +131,7 @@ impl App {
         let own = self.own_account();
         self.party.name = name;
         (self.party.sharing.pickup, self.party.sharing.items) = (pickup, items);
-        let here = self.game.as_ref().is_some_and(|game| party::map_name(&game.map) == party::map_name(&member.map));
+        let here = self.game.as_ref().is_some_and(|game| crate::party::map_name(&game.map) == crate::party::map_name(&member.map));
         if member.account == own {
             // The player is on another map now: the marks of the last one mean nothing there.
             self.party.places.clear();

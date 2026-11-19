@@ -184,6 +184,18 @@ pub fn written(chord: Chord, mac: bool, name: impl Fn(u16) -> Option<String>) ->
     if chord.with == 0 { named(chord.key) } else { format!("{} + {}", named(chord.with), named(chord.key)) }
 }
 
+/// The hotkey bar's next size as its key steps it, of how many rows more than the first it shows and whether
+/// it is put away: a row more each time up to three more, then away with none, then the one row again.
+pub fn bar_stepped(rows: u8, hidden: bool) -> (u8, bool) {
+    if hidden {
+        (rows, false)
+    } else if rows >= 3 {
+        (0, true)
+    } else {
+        (rows + 1, false)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -209,5 +221,12 @@ mod tests {
         assert_eq!(written(Chord::default(), false, name), "");
         assert!(missing_on_mac(45) && !missing_on_mac(74));
         assert_eq!(mac_instead(table::INTERFACE, interface::SIT), Some(Chord { key: 88, with: ALT }));
+    }
+
+    #[test]
+    fn the_bar_steps_through_its_sizes_and_away() {
+        let mut bar = (0, false);
+        let steps: Vec<(u8, bool)> = (0..6).map(|_| { bar = bar_stepped(bar.0, bar.1); bar }).collect();
+        assert_eq!(steps, [(1, false), (2, false), (3, false), (0, true), (0, false), (1, false)]);
     }
 }

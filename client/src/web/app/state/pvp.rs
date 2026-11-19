@@ -3,7 +3,7 @@
 /// Fighting other players: what holds on the map the character is on, and the player's standing on a PVP map.
 #[derive(Default)]
 pub(in crate::web) struct Pvp {
-    pub zone: crate::net::pvp::Zone,
+    pub zone: crate::pvp::Zone,
     /// The player's rank and how many are on the map, as the server last said (0 until it has).
     pub rank: i32,
     pub total: i32,

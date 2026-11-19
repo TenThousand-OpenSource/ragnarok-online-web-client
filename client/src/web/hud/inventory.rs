@@ -177,7 +177,7 @@ impl App {
         let favourite = |item: &&Item| self.bag.favourites.contains(&item.index);
         let mut shown: Vec<&Item> = self.bag.items.iter().filter(|item| item.in_bag() && if self.bag.tab == Tab::Favourite { favourite(item) } else { item.tab() == self.bag.tab && !favourite(item) }).collect();
         if self.bag.tab == Tab::Favourite && self.bag.aligned {
-            shown.sort_by_cached_key(|item| (crate::net::items::sort_rank(item.kind), Self::item_name(item)));
+            shown.sort_by_cached_key(|item| (crate::inventory::sort_rank(item.kind), Self::item_name(item)));
         }
         shown
             .iter()

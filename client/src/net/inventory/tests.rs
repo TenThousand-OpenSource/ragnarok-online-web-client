@@ -1,6 +1,7 @@
 //! Tests of the packets of the inventory, the skills known and the hotkey bar.
 
 use super::*;
+use crate::inventory::Tab;
 use crate::net::bytes::testing::assert_lengths;
 use crate::net::packet_length;
 

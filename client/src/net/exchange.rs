@@ -4,10 +4,7 @@
 //! `crate::exchange`.
 
 use super::bytes::{Writer, text, u16_at, u32_at};
-use super::items::cards;
-
-/// The rules of a deal are named here as before.
-pub use crate::exchange::{MOST_ZENY, zeny_colour, zeny_typed};
+use super::inventory::cards;
 
 /// ZC_REQ_EXCHANGE_ITEM (0x01f4): someone asks for a deal.
 pub const ZC_REQ_EXCHANGE_ITEM: u16 = 0x01f4;

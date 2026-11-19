@@ -5,7 +5,7 @@
 
 use super::*;
 
-mod way_in;
+mod account;
 mod ai;
 mod homunculus;
 mod mercenary;
@@ -134,7 +134,7 @@ const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 41] = [
 ];
 
 impl App {
-    /// A packet of the server the app is talking to: handed to what reads that server's (`incoming/way_in.rs`
+    /// A packet of the server the app is talking to: handed to what reads that server's (`incoming/account.rs`
     /// for the two servers of the way in, `MAP_SERVER` for the map server).
     pub(super) fn packet(&mut self, id: u16, packet: &[u8]) {
         match self.server {

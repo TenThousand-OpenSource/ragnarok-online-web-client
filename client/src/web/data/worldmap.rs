@@ -36,7 +36,7 @@ pub fn worlds() -> std::rc::Rc<Vec<World>> {
 
 /// Takes the worlds out of what the gateway gave (`tables/worldmap.rs`).
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
-    let list = |of: wasm_bindgen::JsValue| of.dyn_into::<js_sys::Array>().map(|list| list.to_vec()).unwrap_or_default();
+    let list = |of: wasm_bindgen::JsValue| listed(&of);
     let number = |row: &js_sys::Array, at: u32| row.get(at).as_f64().unwrap_or(0.0) as f32;
     let text = |row: &js_sys::Array, at: u32| row.get(at).as_string().unwrap_or_default();
     let worlds = list(field(tables, "worldmap"))

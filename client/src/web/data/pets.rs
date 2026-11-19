@@ -41,7 +41,7 @@ pub fn want_pet_talk() {
 pub fn pet_line(job: u16, hunger: usize, moment: i32) -> Option<String> {
     let monster = sprite(job)?.to_lowercase();
     PET_TALK.with_borrow(|talk| {
-        let lines = crate::talk::lines(talk.as_deref()?, &monster, crate::net::pets::hunger_tag(hunger), crate::net::pets::moment_tag(moment));
+        let lines = crate::pets::lines(talk.as_deref()?, &monster, crate::pets::hunger_tag(hunger), crate::pets::moment_tag(moment));
         let pick = (js_sys::Math::random() * lines.len() as f64) as usize;
         lines.get(pick).map(|line| (*line).to_owned())
     })
@@ -49,6 +49,6 @@ pub fn pet_line(job: u16, hunger: usize, moment: i32) -> Option<String> {
 
 /// Takes its tables out of what the gateway gave: the pets' pictures, and the actions of pets that wear something.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
-    PETS.set(entries::<u16>(&field(tables, "pets")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
+    PETS.set(names::<u16>(&field(tables, "pets")).into_iter().collect());
     PET_ACTS.set(entries::<u16>(&field(tables, "pet_acts")).into_iter().filter_map(|(item, name)| Some((item, name.as_string()?.trim_end_matches(".act").to_owned()))).collect());
 }

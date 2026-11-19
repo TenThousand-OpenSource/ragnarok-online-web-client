@@ -2,7 +2,8 @@
 //! what a tab lists.
 
 use super::*;
-use crate::chat_tabs::{self, Piece, Tab};
+use crate::chat_tabs::{self, Tab};
+use crate::links::items::Piece;
 use crate::press::chat::Press;
 
 /// The colour of a link to an item in a line (`UIChatHisBox::RenderItemLinks`: `0x82F2E1` as the client
@@ -45,7 +46,7 @@ impl App {
             .iter()
             .filter(|(_, colour, kind)| tab.lists(*kind, matches!(colour.as_str(), "#ff0000" | "#f00")))
             .map(|(words, colour, _)| {
-                let line: String = chat_tabs::pieces(words)
+                let line: String = crate::links::items::pieces(words)
                     .into_iter()
                     .map(|piece| match piece {
                         Piece::Words(words) => escape(words),

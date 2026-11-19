@@ -19,14 +19,14 @@ impl App {
                 world::carted(None, None);
                 return false;
             }
-            items::ZC_INVENTORY_START => {
-                if items::list_kind(packet) == Some(cart::LIST) {
+            net::inventory::ZC_INVENTORY_START => {
+                if net::inventory::list_kind(packet) == Some(cart::LIST) {
                     self.cart.items.clear();
                 }
                 return false;
             }
-            items::ZC_INVENTORY_ITEMLIST_NORMAL | items::ZC_INVENTORY_ITEMLIST_EQUIP => {
-                let listed = if id == items::ZC_INVENTORY_ITEMLIST_NORMAL { items::stackable_of(packet, cart::LIST) } else { items::equipment_of(packet, cart::LIST) };
+            net::inventory::ZC_INVENTORY_ITEMLIST_NORMAL | net::inventory::ZC_INVENTORY_ITEMLIST_EQUIP => {
+                let listed = if id == net::inventory::ZC_INVENTORY_ITEMLIST_NORMAL { net::inventory::stackable_of(packet, cart::LIST) } else { net::inventory::equipment_of(packet, cart::LIST) };
                 if !listed.is_empty() {
                     self.cart.items.extend(listed);
                     self.cart_changed();

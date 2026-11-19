@@ -1,14 +1,14 @@
 //! What the app keeps of the storage: the Kafra's, or a guild's, which is the same window under another name.
 
 use super::*;
-use crate::net::storage::Sorted;
+use crate::storage::Sorted;
 
 /// A storage while it is open.
 #[derive(Default)]
 pub(in crate::web) struct Stored {
     /// What the server calls it ("Storage", "Guild Storage"): the title of its window.
     pub name: String,
-    pub items: Vec<items::Item>,
+    pub items: Vec<net::inventory::Item>,
     /// How many kinds of things are in it, and how many fit.
     pub count: (u16, u16),
 }

@@ -28,24 +28,7 @@ pub(super) async fn post_form(path: &'static str, fields: Vec<(&'static str, Str
     Ok((response.status(), wait))
 }
 
-pub(super) fn valid_id(id: &str) -> bool {
-    (4..=23).contains(&id.len()) && id.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
-}
-
-pub(super) fn valid_password(password: &str) -> bool {
-    (8..=23).contains(&password.len()) && password.bytes().all(|byte| byte.is_ascii_graphic())
-}
-
-/// A rough check, to catch slips before the form is sent; the account service decides.
-pub(super) fn valid_email(email: &str) -> bool {
-    email.len() <= 39
-        && !email.contains(' ')
-        && email.split_once('@').is_some_and(|(name, domain)| !name.is_empty() && domain.contains('.') && !domain.starts_with('.') && !domain.ends_with('.'))
-}
-
-pub(super) fn minutes(seconds: u64) -> String {
-    seconds.div_ceil(60).max(1).to_string()
-}
+pub(super) use crate::account::{minutes, valid_email, valid_id, valid_password};
 
 impl App {
     /// OK or Cancel on a question.

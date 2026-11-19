@@ -7,7 +7,8 @@
 //! colours are written blue first there and are turned round here. The words are lines of its message table.
 
 use super::*;
-use crate::net::mail::{self, Letter, has, tab};
+use crate::mail::{has, tab};
+use crate::mail::Letter;
 use crate::press::Step;
 use crate::press::mail::Press;
 use crate::web::app::{MailAsk, epoch};
@@ -36,14 +37,6 @@ fn picture_button_as(kind: Kind, x: i32, y: i32, size: (i32, i32), name: &str, p
 }
 
 impl App {
-    /// What a field of the page has in it now, if the field is there (`app::written`). What is typed into the
-    /// mail's windows stays in their fields between presses; a window drawn anew takes it from the page it
-    /// replaces, and so loses none of it when the whole screen is written again. (The app still asks by this
-    /// name; the windows ask `written` itself.)
-    pub(in crate::web) fn mail_typed(id: &str) -> Option<String> {
-        crate::web::app::written(id)
-    }
-
     /// The notice of mail not read, 43 by 43 (`UIOpenMailBoxWnd`): one button of one picture, which opens the
     /// mailbox.
     pub(in crate::web) fn mail_notice(&self) -> String {

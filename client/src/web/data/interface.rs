@@ -141,7 +141,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .collect(),
     );
     let keys = field(tables, "hotkeys");
-    let listed = |of: wasm_bindgen::JsValue| of.dyn_into::<js_sys::Array>().map(|list| list.to_vec()).unwrap_or_default();
+    let listed = |of: wasm_bindgen::JsValue| listed(&of);
     HOTKEYS.set(
         listed(field(&keys, "tables"))
             .into_iter()
@@ -157,7 +157,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             })
             .collect(),
     );
-    KEY_NAMES.set(entries::<u16>(&field(&keys, "names")).into_iter().filter_map(|(key, name)| Some((key, name.as_string()?))).collect());
+    KEY_NAMES.set(names::<u16>(&field(&keys, "names")).into_iter().collect());
     let emotions = entries::<u16>(&field(tables, "emotions"));
     // What is typed after a slash to show an emotion, as the gateway lists it; none when it lists nothing.
     let names_of = |about: &wasm_bindgen::JsValue| field(about, "names").dyn_into::<js_sys::Array>().ok();

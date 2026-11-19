@@ -42,9 +42,9 @@ impl App {
     }
 
     /// What was typed into a box that asks how many of a thing there are `most` of (`hud::App::count_box`
-    /// of that window): the number, when it is one that can be (`items::count_typed`).
+    /// of that window): the number, when it is one that can be (`crate::inventory::count_typed`).
     pub(super) fn counted(window: &wnd::Window, most: u16) -> Option<u16> {
-        items::count_typed(&field(&window.field()), most)
+        crate::inventory::count_typed(&field(&window.field()), most)
     }
 
     /// A press elsewhere puts away every menu the right button opened.

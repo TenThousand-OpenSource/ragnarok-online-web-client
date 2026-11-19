@@ -77,7 +77,7 @@ impl App {
         let greeting = format!("(Hi) {}", if words.is_empty() { "*^_^*" } else { words });
         let friends: Vec<String> = self.friends.list.iter().filter(|friend| !friend.offline).map(|friend| friend.name.clone()).collect();
         for friend in friends {
-            self.send(&npc::whisper(&friend, &greeting));
+            self.send(&crate::net::whispers::whisper(&friend, &greeting));
         }
         self.chat_line(format!("[ To Friends ] : {greeting}"), "#ffff1e");
     }

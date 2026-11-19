@@ -1,6 +1,8 @@
 //! Tests of looking at what another wears: the answer read, the switches, what the client sends.
 
 use super::*;
+use crate::net::config::{config, set};
+use crate::net::notices::said;
 
 /// A thing worn as the server lists it: 68 bytes.
 fn worn(index: u16, id: u32, place: u32, refine: u8) -> Vec<u8> {

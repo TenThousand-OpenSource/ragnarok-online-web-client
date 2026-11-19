@@ -13,7 +13,7 @@ impl App {
     /// from the right edge, a new column to the left when one is full; over each the shade of its time
     /// (`hud/cooldowns.rs`), and beside it, while it is pointed at, what the client says of it.
     pub(in crate::web) fn statuses_column(&self) -> String {
-        let taekwon = crate::statuses::taekwon(self.own_figure().job);
+        let taekwon = crate::jobs::taekwon(self.own_figure().job);
         let height = (crate::web::page_size().1 / crate::web::stage_scale()) as i32;
         let now = crate::web::app::now();
         let active = self.statuses.on.iter().map(|active| active.state);

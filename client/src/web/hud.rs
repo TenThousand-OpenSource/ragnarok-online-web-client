@@ -12,13 +12,14 @@
 //! window lives in an element of its own, so a value that changes redraws only its window: the chat's input
 //! line is never rebuilt while someone types in it.
 
-use crate::figures::grouped;
+use crate::numbers::grouped;
 use crate::i18n::tr;
 use super::app::{App, Shop, escape};
 use super::data;
 use super::parts::{at, dragged, dropped, picture, pressed, sent, used};
 use crate::press::things::{Drag, Drop, Form, Leveled, Use};
-use crate::net::items::{Hotkey, Item, Tab};
+use crate::net::inventory::{Hotkey, Item};
+use crate::inventory::Tab;
 use crate::net::packets::parameter;
 
 mod basic;
@@ -30,13 +31,15 @@ mod skills;
 mod tabs;
 mod status;
 mod chat;
-mod dialogs;
+mod talk;
+mod esc;
+mod messenger;
 mod pets;
 mod quests;
 mod pvp;
 mod statuses;
 mod cooldowns;
-mod hotkeys_set;
+mod hotkeys;
 mod settings;
 mod guide;
 mod party;
@@ -59,7 +62,7 @@ mod chat_rooms;
 mod family;
 mod broadcast;
 mod marks;
-mod trade;
+mod shops;
 mod storage;
 mod lists;
 mod emotions;
@@ -84,10 +87,11 @@ use checks::*;
 use colours::*;
 use frames::*;
 use lists::*;
+use messenger::*;
+use fields::*;
+use gauges::*;
+use items::*;
 use texts::*;
-// No window has taken these up yet (they are being moved onto them).
-#[allow(unused_imports)]
-use {fields::*, gauges::*, items::*};
 
 // What the screens before the game and the app take from here by name.
 pub(super) use frames::title_bar;

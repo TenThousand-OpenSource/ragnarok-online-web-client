@@ -12,9 +12,6 @@
 //!
 //! What the tests of the packets share is in `testing`.
 
-// What was added for the packets' files to take up (package 2 of the refactoring) is not all used yet.
-#![allow(dead_code)]
-
 /// The `u16` at that place of a packet long enough to have it.
 pub(crate) fn u16_at(bytes: &[u8], at: usize) -> u16 {
     u16::from_le_bytes([bytes[at], bytes[at + 1]])
@@ -177,16 +174,6 @@ impl Writer {
         self
     }
 
-    pub(crate) fn u64(mut self, value: u64) -> Self {
-        self.bytes.extend(value.to_le_bytes());
-        self
-    }
-
-    pub(crate) fn i16(mut self, value: i16) -> Self {
-        self.bytes.extend(value.to_le_bytes());
-        self
-    }
-
     pub(crate) fn i32(mut self, value: i32) -> Self {
         self.bytes.extend(value.to_le_bytes());
         self
@@ -312,9 +299,9 @@ mod tests {
 
     #[test]
     fn writes_a_packet_field_by_field() {
-        let packet = Writer::new(0x0064).u8(1).u16(0x0203).u32(0x0405_0607).i16(-2).i32(-2).bytes(&[9]).done();
-        assert_eq!(packet, [0x64, 0, 1, 3, 2, 7, 6, 5, 4, 0xfe, 0xff, 0xfe, 0xff, 0xff, 0xff, 9]);
-        assert_eq!(Writer::new(1).u64(2).i64(-1).done()[2..], [2, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255]);
+        let packet = Writer::new(0x0064).u8(1).u16(0x0203).u32(0x0405_0607).i32(-2).bytes(&[9]).done();
+        assert_eq!(packet, [0x64, 0, 1, 3, 2, 7, 6, 5, 4, 0xfe, 0xff, 0xff, 0xff, 9]);
+        assert_eq!(Writer::new(1).i64(-1).done()[2..], [255, 255, 255, 255, 255, 255, 255, 255]);
         assert_eq!(Writer::new(1).text("abcdef", 4).text("a", 3).done()[2..], [b'a', b'b', b'c', 0, b'a', 0, 0]);
         assert_eq!(Writer::new(1).name("Poring").done()[2..], name24("Poring"));
         assert_eq!(Writer::new(1).field::<3>("ab\u{e9}").field_whole_chars::<4>("ab\u{e9}").done()[2..], [b'a', b'b', 0, b'a', b'b', 0, 0]);

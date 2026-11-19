@@ -155,7 +155,7 @@ impl App {
                 Order::Move(unit, cell) => self.send_on_map(&homunculus::move_to(unit, cell)),
                 Order::ToOwner(unit) => self.send_on_map(&homunculus::to_owner(unit)),
                 Order::Attack(unit, target) => self.send_on_map(&homunculus::attack(unit, target)),
-                Order::SkillOn { level, skill, target } => self.send_on_map(&items::use_skill(level, skill, target)),
+                Order::SkillOn { level, skill, target } => self.send_on_map(&net::inventory::use_skill(level, skill, target)),
                 Order::SkillAt { level, skill, cell } => self.send_on_map(&skills::use_on_ground(level, skill, cell)),
                 // `TraceValue`: the client's `0xFFFF` of the kind its fourth tab lists.
                 Order::Say(words) => self.chat_line(words, YELLOW),
@@ -237,7 +237,7 @@ impl App {
         }
         let level = level.or_else(|| self.skills.use_level.get(&skill.id).copied()).unwrap_or(skill.level).min(skill.level).max(1);
         if skill.on_self() {
-            self.send_on_map(&items::use_skill(level, skill.id, unit));
+            self.send_on_map(&net::inventory::use_skill(level, skill.id, unit));
         } else {
             self.skills.aimed = Some((skill.id, level));
             world::aim(Some(skill.target == 2), u16::MAX);

@@ -4,26 +4,65 @@ A Ragnarok Online client that runs in the browser, written from scratch in Rust 
 Nothing to install for the player: open the page, log in, play. It talks to an ordinary
 [rAthena](https://github.com/rathena/rathena) server.
 
-It is work in progress. What is there today:
+It is work in progress. What the client has today (each line is a system with its own files, under the same
+name in `client/src/net/`, `client/src/web/app/`, `client/src/web/hud/` and `client/src/web/world/`):
 
-- Login, account registration and password recovery by e-mail, with limits on attempts.
-- Character select, creation (human and Doram) and deletion, in the original client's windows, with the
-  characters drawn from the game's sprites.
-- The game world in 3D (WebGPU, WebGL2 fallback): a map's ground with its baked light, its models (buildings,
-  trees), water; the original client's camera; walking by clicking, in step with the server; changing maps
-  through portals.
-- Everyone on the map: NPCs with their dialogs, shops and storage, monsters, other players, loot.
-- Fights: attacking with chase, bows with arrows in flight, skills aimed with the pointer with their cast bar and
-  effects, damage numbers, death and resurrection, taming a monster and hatching its egg.
-- In-game windows of the original client: Basic Information, Status, Inventory, Equipment, the skill tree, item
-  and skill descriptions, the hotkey bar, chat, the minimap.
-- Sound: the map's music and the game's sound effects.
-- English and Russian (the interface; items and skills are translated in batches, see `translations/`).
+- **The way in.** Login, account registration and password recovery by e-mail, with limits on attempts; the
+  list of servers; character select, creation (human; the Doram where the server plays by Renewal's rules) and
+  deletion, in the original client's windows, with the characters drawn from the game's sprites.
+- **The world** in 3D (WebGPU, WebGL2 fallback): a map's ground with its baked light, its models, water, fog,
+  the sky with its clouds and stars, the weather a map has (snow, sakura), the darkening of a night, the
+  effects and sounds a map places; the original client's camera and mouse pointer; portals between maps.
+- **Movement by the server's clock.** Walking by clicking, everyone's walk shown by the server's time and not
+  by the moment its packet came (`client/src/server_time.rs`), so that it holds under lag.
+- **Everyone on the map:** NPCs, monsters, other players, loot; job and mount sprites, carts, a hunter's
+  falcon, a monk's spheres, the aura of the highest level, emblems and names, chat-room and shop signs.
+- **Fights and skills:** attacking with chase, bows with arrows in flight, skills aimed with the pointer, cast
+  bars, cooldowns, damage numbers, death and resurrection; the client's own effects for skills, blows, states
+  and ailments; what skills leave on the ground (walls, songs, traps as models); the PVP standing.
+- **The character's windows:** Basic Information with the menu icons, Status, Equipment (and looking at
+  another player's), the skill tree with a skill's description, the hotkey bar, the list of states (buffs).
+- **Items:** the inventory with its tabs and favourites, descriptions, cards and their illustrations, books
+  that are read, identifying, repairing and refining lists, forging and brewing, arrow making, the lists a
+  skill opens (Teleport, Auto Spell and the like).
+- **NPCs and trade:** dialogs with choices, typed answers and pictures; NPC shops; the Kafra's storage and a
+  guild's; the merchant's cart; vending (one's own shop and buying from another's).
+- **Deals between players:** the exchange window with items and zeny.
+- **Chat:** tabs and tabs taken out into windows, whisper windows, chat rooms, emotions with their Shortcut
+  List, the server's announcements, links in text, and the client's chat commands
+  (`client/src/commands.txt`; one this client does nothing for yet says so in the chat).
+- **People:** party, guild (members, positions, emblem, notice, alliances, skills), friends, mail (RODEX),
+  marriage and adoption, the right-click menu on a player.
+- **Companions:** pets (taming, the egg, the pet window), the homunculus and the mercenary, both moved by the
+  client's own AI scripts (`AI\AI.lua`, `AI\AI_M.lua` and the player's `USER_AI`) run in the browser.
+- **Finding one's way:** the quest journal, the minimap with its marks, the large map window, the World Map,
+  the Tipbox, the Adventure Guide.
+- **Settings:** Game Settings, Shortcut Settings (every key of the client can be set), screenshots; windows
+  are moved and dock to each other; options, keys, sound levels and the camera are kept by the browser.
+- **Sound:** the map's music and the game's sound effects, as loud as their distance leaves them.
+- **English and Russian** (the interface; items and skills are translated in batches, see `translations/`).
 
-Not there yet: parties and guilds, trading between players, pets' own windows, second-job skills' effects, the
-world map and quests.
+How far this can be trusted: most of it was made by reading the decompiled Windows client and has unit tests
+for its rules, but only a part has been looked at in the running game so far. `docs/DONE.md` says for each
+system what state it is in, `docs/DEBTS.md` lists the known deviations from the Windows client and the known
+bugs, and [BACKLOG.md](BACKLOG.md) holds what waits on purpose: the project finishes the classic
+(pre-renewal) game first, and what only Renewal or later content uses is not built until then.
 
-**New to the code? Start with [ARCHITECTURE.md](ARCHITECTURE.md).**
+Not there yet (from `BACKLOG.md`): the cash shop and what is bought with cash; achievements and titles; the
+bank; navigation; replay; the Adventurer's Agency; the battlegrounds queue, the instances window and clans;
+buying stores and shop search; the refine, enchant and item reform windows; the models of War of Emperium
+(guardians, the Emperium); the newer formats of maps and models; and everything of the third and fourth jobs
+(their effects, stances, auras, mounts).
+
+The project has two chat commands of its own, which the Windows client does not have:
+
+- `/packets` opens the developer's list of the packets of the map server that this client did not read, by
+  name and count (`client/src/net/unread.rs`).
+- `/farwalk` switches "far walk" on or off (off at first): with it a press on a place farther than the server
+  walks in one go is walked to in stretches; without it such a press does nothing, as in the Windows client.
+
+**New to the code? Start with [ARCHITECTURE.md](ARCHITECTURE.md)**; then `docs/DONE.md` and `docs/DEBTS.md`
+for what is finished and what is owed.
 
 ## No game data in this repository
 
@@ -43,7 +82,40 @@ browser ── HTTP ──▶ gateway ──▶ GRF archives of your game client
   WebSockets to the game servers' TCP ports (browsers cannot open TCP), keeps password guessing and connection
   floods in check, and runs the account service (registration, password recovery).
 - `server/` — a Docker setup of rAthena and MariaDB for local development.
-- `tools/packet-lengths/` — makes the client's table of packet lengths from rAthena's headers.
+- `tools/` — what the tables and the checks are made with:
+  - `tools/packet-lengths/` makes the client's table of packet lengths from rAthena's headers;
+  - `tools/packet-names.py` writes the packets' names by number from rAthena's headers (for `/packets`);
+  - `tools/client-tables/` holds the generators that write out tables compiled into the Windows client, read
+    from its decompilation: `commands.py` (chat commands), `skill_effects.py` (skills and effects),
+    `statuses.py` (states and their icons), `ground_scopes.py` (the circle of a skill cast on a place),
+    `job_bases.py` and `job_mounts.py` (which job a mounted or re-dressed job is, and is drawn as); and two
+    for the server's scripts, `classic_overlay.py` and `placement_check.py` (see "Running it locally");
+  - `tools/limits.py` checks what a script can of `ARCHITECTURE.md`'s rules: the sizes of files and
+    functions, and that nothing on the page is named by hand;
+  - `tools/directory_map.py` writes the directory map of `ARCHITECTURE.md` from the tree (`--write`);
+    `limits.py` refuses a map that is not the tree's.
+  - `tools/split_module.py` moves functions of one large Rust file into child modules by a plan.
+- `check.sh` — everything a change must pass: the tests, the build for the browser with no warnings, and
+  `tools/limits.py`.
+
+What the gateway answers (`gateway/src/main.rs`, `gateway/src/routes.rs`):
+
+| Address | What it is |
+|---|---|
+| `GET /assets/<client path>` | a file out of the client's GRF archives, as it is |
+| `GET /image/<client path>` | a picture out of the GRF as a PNG the browser can show |
+| `GET /tables.json` | the client's tables for the browser, all that is given at once |
+| `GET /tables/items/<ids>`, `/tables/skills/<ids>` | names, pictures and descriptions, asked for by number |
+| `GET /tables/ru/items/<ids>`, `/tables/ru/skills/<ids>`, `/tables/ru/skill-names.json` | the same in Russian |
+| `GET /tables/items.ko/<ids>` | the Korean names and descriptions of items |
+| `GET /tables/ai.json`, `/tables/ai-user.json` | the client's AI scripts, and those with the player's own |
+| `GET /bgm/<file>` | the client's loose BGM folder |
+| `GET /ws/<port>` | a WebSocket bridged to a TCP connection to the game server |
+| `POST /api/register`, `/api/recover`, `/api/reset` | accounts and lost passwords |
+| everything else | the built web client (`client/dist`) |
+
+Every packet the client writes is held by a golden test: `client/src/net/golden.rs` builds each one with fixed
+arguments and compares it byte for byte with `client/src/net/golden.txt`.
 
 Players reach rAthena from the gateway's address, so rAthena's own per-address protections are switched off in
 `server/conf/` and the gateway does that work with the players' real addresses. Do not expose rAthena's ports
@@ -71,18 +143,53 @@ docker compose -f server/docker-compose.yml up -d --build
 ./target/release/roweb-gateway
 ```
 
-`server/conf/accounts.sql` seeds two accounts for development (`tester`, a game master, and `tester2`). They
-are for a server on your own machine only.
+`server/conf/accounts.sql` seeds two accounts for development: `tester` (group 99, a game master) and `tester2`
+(group 0, an ordinary player). They are for a server on your own machine only.
 
-What the gateway sends is compressed (gzip or Brotli, as the browser takes) and the client's own files, named by
-their build, are kept by the browser. Both can be switched off: `--compress off` where a proxy or a CDN in front
-does the compressing, `--cache-client off` to have the client asked for anew each time.
+### The gateway's options
 
-To see walking and fighting as a player far away has them, the gateway can hold back everything that goes
-between the browser and the game server: `--lag 150 --jitter 100` delays each way by 150 milliseconds and a
-random part of up to 100 more, keeping the order as a TCP connection would. It is a debug option, off unless
-given, and delays everyone who plays through that gateway: never give it to the gateway others play through
-(it does not start with `--invite-file` or `--behind-proxy`, which `public.sh` gives).
+All are optional (`gateway/src/config.rs`); an argument it does not know stops it.
+
+| Option | Default | What it sets |
+|---|---|---|
+| `--client-dir <folder>` | `../Feb-Client-CLEAN` | the game client's folder with its GRF archives |
+| `--web-dir <folder>` | `client/dist` | the built browser client |
+| `--listen <address:port>` | `127.0.0.1:8080` | where the gateway listens |
+| `--server-host <host>` | `127.0.0.1` | where rAthena runs |
+| `--server-ports <a,b,c>` | `6900,6121,5121` | the ports bridged; the first is the login server's |
+| `--item-database <folder>` | `../rathena/db/pre-re`, or `../rathena/db/re` when `server/.env` says Renewal | rAthena's item database, for the items' names |
+| `--compress on\|off` | `on` | gzip or Brotli, as the browser takes; `off` where a proxy or a CDN in front compresses |
+| `--cache-client on\|off` | `on` | whether the client's files, named by their build, may be kept by the browser |
+| `--invite-file <file>` | none | the file with the invitation word (at least 8 characters) a browser must give before anything is served |
+| `--behind-proxy on\|off` | `off` | a proxy or tunnel stands in front: a visitor's address is the one it reports |
+| `--lag <ms>`, `--jitter <ms>` | none | debug: delays everything between a browser and the game server, each way |
+| `--database-url <url>` | the database of `server/docker-compose.yml` | the account service's database |
+| `--smtp-url <url>` | `smtp://127.0.0.1:1025` | where the account service sends its e-mails (`smtps://user:password@host` for a real server) |
+| `--mail-from <address>` | `Ragnarok 2026 <no-reply@localhost>` | whom those e-mails are from |
+| `--public-url <url>` | `http://localhost:8080` | where players reach the gateway: the links to reset a password start with it |
+
+To see walking and fighting as a player far away has them: `--lag 150 --jitter 100` delays each way by 150
+milliseconds and a random part of up to 100 more, keeping the order as a TCP connection would. It delays
+everyone who plays through that gateway, so the gateway refuses to start with `--lag` or `--jitter` together
+with `--invite-file` or `--behind-proxy on` (which `public.sh` gives).
+
+### The gateway's debug commands
+
+Given a command, the gateway opens the client's archives, does that one thing, prints and leaves; it serves
+nothing. (Of several, the last counts.)
+
+| Command | What it prints or writes |
+|---|---|
+| `stats` | how many files the archives hold, and how many of each kind of storing |
+| `ls <words>` | the files of the archives whose path has those words |
+| `lua <file>,<file>` | runs datainfo files of the client and lists the tables they leave |
+| `dump <file>,<file> <global>` | runs those files and prints that table of theirs as JSON |
+| `items <id>,<id>` | what the item table says of those items |
+| `tables` | what the browser client is given of the client's tables (`/tables.json`) |
+| `chat-tabs` | the client's table of the chat window's tabs |
+| `mapcache <file>` | writes the server's map cache from the client's maps |
+
+### The server's switches
 
 The server plays by the classic (pre-renewal) rules unless told otherwise. `./rules.sh renewal` rebuilds and
 restarts it for Renewal (third and fourth jobs, their monsters, items, skills and NPCs), and `./rules.sh classic`
@@ -93,8 +200,24 @@ rAthena's classic scripts place the NPCs and portals of Izlude, Alberta and Morr
 client has the new ones. `server/npc/roweb_classic.txt` moves them, and `roweb_classic_warps.sed` puts right the
 cells the scripts themselves send players to; both are written by `tools/client-tables/classic_overlay.py
 ../rathena server/npc/roweb_classic.txt server/npc/roweb_classic_warps.sed`. Under the Renewal rules both do
-nothing. `tools/client-tables/placement_check.py` lists who stands in a
-wall on any map.
+nothing. `tools/client-tables/placement_check.py` lists who stands in a wall on any map.
+
+`server/conf/` holds what differs from rAthena's defaults; `server/docker-compose.yml` puts each file into
+rAthena's `conf/import`, which is read over rAthena's own:
+
+- `groups.yml` — gives every player (group 0) the command `@autotrade` (`@at`), which rAthena gives to group 1
+  and above only: a merchant with a shop open types it, is disconnected, and the character stays selling.
+  The file says how to switch it off.
+- `battle_conf.txt` — battle settings: a pet fights beside its master, the line about the server's version is
+  not shown, and the others its comments explain one by one.
+- `login_conf.txt` — accounts are made through the gateway only, passwords are stored as MD5, and the ban by
+  address is off (the gateway limits attempts by the players' real addresses).
+- `packet_conf.txt` — rAthena's count of connections per address is off, for the same reason.
+- `char_conf.txt`, `map_conf.txt`, `inter_conf.txt` — the addresses of the servers and the database inside
+  Docker, the server's name, no PIN code, the message of the day (`motd.txt`), and the script of the classic
+  overlay.
+- `accounts.sql` — the two test accounts (see "Running it locally"), put into the database on its first
+  start.
 
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's
 `--smtp-url` at a real server for anything else.
@@ -130,7 +253,10 @@ serving them to the public is not what this is for.
 ./check.sh                                   # all of it: tests, the browser build with no warnings, sizes
 cargo test                                   # client and gateway
 cargo test -p roweb-gateway -- --ignored     # against the running rAthena, database and mailbox
+ROWEB_GOLDEN=write cargo test -p roweb-client golden   # only after a packet was changed on purpose
 ```
+
+The last one writes `client/src/net/golden.txt` anew; look at what changed in it.
 
 ## Sources this builds on
 

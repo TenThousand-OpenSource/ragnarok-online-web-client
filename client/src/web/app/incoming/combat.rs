@@ -23,7 +23,7 @@ impl App {
             // the character itself, as the original does.
             skills::ZC_AUTORUN_SKILL => {
                 if let (Some((skill, level)), Some(socket), Some(account)) = (skills::item_skill(packet), &self.socket, &self.account) {
-                    socket.send(&items::use_skill(level, skill, account.account_id));
+                    socket.send(&net::inventory::use_skill(level, skill, account.account_id));
                 }
             }
             // The character recovers life or spirit (a potion, food): the client shows the amount as a number
@@ -34,7 +34,7 @@ impl App {
                     sound::effect("_heal_effect.wav", 1.0);
                 }
             }
-            units::ZC_NOTIFY_ACT => self.act_seen(packet),
+            net::actors::ZC_NOTIFY_ACT => self.act_seen(packet),
             skills::ZC_USESKILL_ACK => self.cast_begun(packet),
             // A cast is broken off (the caster was struck, or moved).
             skills::ZC_DISPEL => {
@@ -48,7 +48,7 @@ impl App {
             // table for the cause (`ReceiveSkillFailure`). A cause this has no line for says the plain one.
             skills::ZC_ACK_TOUSESKILL => {
                 if let Some((skill, value, _, cause)) = skills::failed(packet).filter(|(_, _, worked, _)| !worked) {
-                    let line = skills::failure(skill, value, cause).and_then(data::message);
+                    let line = crate::skills::failure(skill, value, cause).and_then(data::message);
                     // With the player's `/skillfail` off the plain failure is not told (the client's option
                     // 113 hides its lines of no particular cause); one with a cause of its own still is.
                     if (line.is_none() || cause == 0) && !self.option("TT_SKILLFAIL_ON_OFF") {
@@ -127,7 +127,7 @@ impl App {
     /// other).
     fn act_seen(&mut self, packet: &[u8]) {
         let own = self.own_account();
-        match units::act(packet) {
+        match net::actors::act(packet) {
             Some(act) if crate::blow::landing::is_blow(act.kind) => {
                 // The hits it is made of, each with what it shows and sounds like as it lands (a monster's
                 // own sounds are in its sprite).

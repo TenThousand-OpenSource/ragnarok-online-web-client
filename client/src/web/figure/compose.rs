@@ -41,9 +41,9 @@ async fn head_under(figure: &Figure, sex: &str, job: &str) -> bool {
 
 pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
     let sex = if figure.sex == 1 { "남" } else { "여" };
-    let doram = data::is_doram(figure.job);
+    let doram = crate::jobs::doram(figure.job);
     let race = if doram { "도람족" } else { "인간족" };
-    let job = data::body_sprite(figure.job);
+    let job = crate::jobs::body_sprite(figure.job);
     // The first human hair styles are numbered differently in the sprites than in the game's data.
     let hair = if doram { figure.hair_style } else { hair_sprite(figure.sex, figure.hair_style) };
 

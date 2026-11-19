@@ -6,9 +6,9 @@ use super::*;
 pub(in crate::web) enum Shop {
     /// The shop asks whether to buy or to sell.
     Choose(u32),
-    Buy(Vec<trade::Offer>),
+    Buy(Vec<net::shops::Offer>),
     /// What the shop takes of what is carried.
-    Sell(Vec<trade::Bid>),
+    Sell(Vec<net::shops::Bid>),
 }
 
 /// What the box that asks how many is asked of, in a shop: each is a state of the client's `UIItemDropCntWnd`.
@@ -22,7 +22,7 @@ pub(in crate::web) enum Across {
 
 /// Dealing with an NPC's shop.
 #[derive(Default)]
-pub(in crate::web) struct Deal {
+pub(in crate::web) struct Shops {
     pub shop: Option<Shop>,
     /// What was put into the basket to buy or to sell: `(row of the list, amount)`.
     pub basket: Vec<(usize, u16)>,

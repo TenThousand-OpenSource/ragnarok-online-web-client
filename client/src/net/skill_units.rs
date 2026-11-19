@@ -2,7 +2,7 @@
 //! `clif_getareachar_skillunit` and `clif_skill_delunit`, at PACKETVER 20260219).
 //!
 //! A trap comes in the same ZC_SKILL_ENTRY5 as every unit, under its own kind (143 to 153); the server makes
-//! another kind of it with ZC_SPRITE_CHANGE of its base (`net/units.rs`) when it springs, and a trap that was
+//! another kind of it with ZC_SPRITE_CHANGE of its base (`net/actors.rs`) when it springs, and a trap that was
 //! not to be seen is shown with ZC_SKILL_UPDATE (0x01ac, `seen`). A unit that carries words, Graffiti, comes
 //! in a packet of its own (ZC_SKILL_ENTRY2, 0x01c9, `written`), and a talkie box says its words in another
 //! (ZC_TALKBOX_CHATCONTENTS, 0x0191, `talkie`). A unit of Ice Wall comes with a ZC_UPDATE_MAPINFO (0x0192)
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn reads_a_unit_being_seen() {
-        assert_eq!(crate::net::packet_length(crate::net::fight::ZC_SKILL_UPDATE), Some(6));
+        assert_eq!(crate::net::packet_length(crate::net::skill_units::ZC_SKILL_UPDATE), Some(6));
         assert_eq!(seen(&[0xac, 0x01, 0xe8, 0x03, 0, 0]), Some(1000));
         assert_eq!(seen(&[0xac, 0x01, 0xe8]), None);
     }

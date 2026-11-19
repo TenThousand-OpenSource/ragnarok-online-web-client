@@ -13,21 +13,16 @@ const MOST_TAX: u32 = 50;
 const MOST_EMBLEM_FILE: f64 = 51200.0;
 
 impl App {
-    /// What stands in a field of the page (of one line or of many), if the field is there.
-    pub(in crate::web) fn guild_written(id: &str) -> Option<String> {
-        js_sys::Reflect::get(element(id)?.as_ref(), &"value".into()).ok()?.as_string()
-    }
-
     /// What the master typed of the positions (their names, their taxes) joins what was changed and is not
     /// sent yet. A tax that is no number is 0, and one past 50 is 50; `true` when one was past it.
     fn guild_positions_read(&mut self) -> bool {
         let mut past = false;
         for position in self.guild.positions.clone() {
             let mut edited = self.guild.position_shown(&position);
-            if let Some(name) = Self::guild_written(&format!("guild-position-{}", position.id)) {
+            if let Some(name) = written(&format!("guild-position-{}", position.id)) {
                 edited.name = name.trim().to_owned();
             }
-            if let Some(tax) = Self::guild_written(&format!("guild-tax-{}", position.id)) {
+            if let Some(tax) = written(&format!("guild-tax-{}", position.id)) {
                 let tax = tax.trim().parse::<u32>().unwrap_or(0);
                 past |= tax > MOST_TAX;
                 edited.tax = tax.min(MOST_TAX);
@@ -195,7 +190,7 @@ impl App {
     /// same packet as for a skill of the character's own).
     pub(super) fn guild_skill_raised(&mut self, skill: u16) {
         if self.guild.master && self.guild.skill_points != 0 {
-            self.send_on_map(&items::raise_skill(skill));
+            self.send_on_map(&net::inventory::raise_skill(skill));
         }
     }
 
@@ -209,7 +204,7 @@ impl App {
     }
 
     /// A skill of the guild's, as the skills of the character are kept: so it is used and aimed as they are.
-    pub(in crate::web::app) fn guild_skill(&self, id: u16) -> Option<items::Skill> {
+    pub(in crate::web::app) fn guild_skill(&self, id: u16) -> Option<net::inventory::Skill> {
         self.guild.skills.iter().find(|skill| skill.id == id).map(guild::Skill::as_known)
     }
 
@@ -217,7 +212,7 @@ impl App {
     /// `MM_GUILD_NOTICE`); the server then tells every member of it.
     pub(super) fn guild_notice_sent(&mut self) {
         if self.guild.master {
-            let (subject, notice) = (field("guild-subject"), Self::guild_written("guild-notice").unwrap_or_default());
+            let (subject, notice) = (field("guild-subject"), written("guild-notice").unwrap_or_default());
             self.send_on_map(&guild::set_notice(self.guild.id, subject.trim(), notice.trim()));
         }
     }

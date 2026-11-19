@@ -1,8 +1,8 @@
 //! The carts merchants pull: drawn behind each owner as the client's effect that follows one (`CMsgEffect` of
-//! the kind `MET_CART`, made by `AM_MAKE_CART`; the rules are `crate::carts`).
+//! the kind `MET_CART`, made by `AM_MAKE_CART`; the rules are `crate::cart`).
 
 use super::*;
-use crate::carts::Pulled;
+use crate::cart::Pulled;
 
 /// The carts in the world.
 #[derive(Default)]
@@ -65,7 +65,7 @@ pub(super) fn drawn(state: &mut State, pictures: &mut Vec<Stood>) {
             carts.pulled.remove(&owner);
             continue;
         }
-        let Some(sprite) = crate::carts::sprite(kind, mover.job) else { continue };
+        let Some(sprite) = crate::cart::sprite(kind, mover.job) else { continue };
         let cart = carts.pulled.entry(owner).or_insert_with(|| Pulled::behind(mover.at, mover.facing));
         cart.follow(mover.at);
         let action = cart.action(mover.at, yaw);

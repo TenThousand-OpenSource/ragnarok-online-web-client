@@ -44,7 +44,7 @@ impl App {
             Press::Logout if matches!(self.screen, Screen::Game) => {
                 self.esc = 0;
                 self.redraw(&[&wnd::DIALOG]);
-                self.send(&npc::restart(true));
+                self.send(&crate::net::packets::restart(true));
             }
             Press::Logout => self.leave(None),
             Press::Delete => self.ask_deletion(false),

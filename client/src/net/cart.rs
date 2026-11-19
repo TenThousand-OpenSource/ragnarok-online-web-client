@@ -8,7 +8,7 @@
 //! are not set.
 
 use super::bytes::{Writer, body, long, word};
-use super::items::Item;
+use super::inventory::Item;
 
 /// ZC_NOTIFY_CARTITEM_COUNTINFO: how full the cart is.
 pub const ZC_NOTIFY_CARTITEM_COUNTINFO: u16 = 0x0121;

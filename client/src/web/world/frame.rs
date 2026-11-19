@@ -100,7 +100,7 @@ fn drawn(state: &mut State, view: &View, own: ((f32, f32), SpriteKey), time: f64
     let mut quads = Quads::default();
     skill_units::drawn(state, view, &mut quads);
     effects::files(state, view, time, &mut quads);
-    scopes::drawn(state, time, &mut quads);
+    scope::drawn(state, time, &mut quads);
     let casts = effects::casts(state, time, &mut quads);
     let asked = effects::bursts(state, view, time, &mut quads);
     // What the effects do to the bodies of those they are on, and the shakes of the screen they ask for.

@@ -83,8 +83,5 @@ pub fn answer(account: u32, character: u32, accept: bool) -> Vec<u8> {
     Writer::new(0x0208).u32(account).u32(character).u32(u32::from(accept)).done()
 }
 
-/// The rules that are no packet, kept at the path they had.
-pub use crate::friends::{MOST, colour};
-
 #[cfg(test)]
 mod tests;

@@ -9,18 +9,18 @@ impl App {
     pub(super) fn spirits_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // (One struck down stays in sight; the server tells its spheres gone by itself.)
-            units::ZC_NOTIFY_VANISH => {
-                if let Some((who, false)) = units::vanished(packet) {
+            net::actors::ZC_NOTIFY_VANISH => {
+                if let Some((who, false)) = net::actors::vanished(packet) {
                     world::spheres_gone(who);
                 }
                 return false;
             }
             // Both name nobody with an account of nothing (`CGameMode::UpdateActorSpiritCount`,
             // `CGameMode::Zc_Spirits2`).
-            units::ZC_SPIRITS | units::ZC_SPIRITS2 => {
-                if let Some((who, count)) = units::spirits(packet).filter(|(who, _)| *who != 0) {
+            crate::net::spirits::ZC_SPIRITS | crate::net::spirits::ZC_SPIRITS2 => {
+                if let Some((who, count)) = crate::net::spirits::told(packet).filter(|(who, _)| *who != 0) {
                     let on = (who != self.own_account()).then_some(who);
-                    if id == units::ZC_SPIRITS { world::spheres_told(on, count) } else { world::spheres_seen(on, count) }
+                    if id == crate::net::spirits::ZC_SPIRITS { world::spheres_told(on, count) } else { world::spheres_seen(on, count) }
                 }
             }
             _ => return false,

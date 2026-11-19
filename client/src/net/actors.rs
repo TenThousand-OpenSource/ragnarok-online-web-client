@@ -15,8 +15,7 @@ mod requests;
 pub use changes::*;
 pub use ground::*;
 pub use requests::*;
-// The spirit spheres are told in packets of their own file; they were here once, and are still named so.
-pub use super::spirits::{told as spirits, ZC_SPIRITS, ZC_SPIRITS2};
+// The spirit spheres are told in packets of their own file (`net/spirits.rs`).
 
 /// A unit that stands (or sits, or lies dead) where it is.
 pub const ZC_NOTIFY_STANDENTRY: u16 = 0x09ff;

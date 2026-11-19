@@ -27,14 +27,14 @@ pub(super) async fn part(figure: &Figure, trail: bool) -> Option<(Sprite, Frame)
     }
     let ending = if trail { "_검광" } else { "" };
     let sex = if figure.sex == 1 { "남" } else { "여" };
-    let race = if data::is_doram(figure.job) { "도람족" } else { "인간족" };
-    let job = data::body_sprite(figure.job);
+    let race = if crate::jobs::doram(figure.job) { "도람족" } else { "인간족" };
+    let job = crate::jobs::body_sprite(figure.job);
     let base = format!("data/sprite/{race}/{job}/{job}_{sex}");
     let (pictures, actions) = match sprite(&format!("{base}_{}{ending}", figure.weapon)).await {
         Ok(weapon) => weapon,
         Err(_) => {
             // (The kind is shown as the job shows it: `CPc::MapMotion`.)
-            let kind = data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| data::weapon_kind(&kind))?;
+            let kind = data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| crate::jobs::weapon_kind(&kind))?;
             let kind = data::weapon_sprite_of(crate::pose::weapon_shown(figure.job, kind))?;
             sprite(&format!("{base}{kind}{ending}")).await.ok()?
         }

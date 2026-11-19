@@ -113,12 +113,11 @@ impl Grf {
     fn load_aliases(&mut self) {
         let Ok(text) = self.read("data\\resnametable.txt") else { return };
         let (text, _) = encoding_rs::EUC_KR.decode_without_bom_handling(&text);
-        self.aliases = text
-            .lines()
-            .filter_map(|line| {
-                let mut fields = line.split('#');
-                let (from, to) = (fields.next()?.trim(), fields.next()?.trim());
-                (!from.is_empty() && !to.is_empty() && !from.starts_with("//")).then(|| (normalize(from), normalize(to)))
+        self.aliases = crate::tables::hash_fields(&text)
+            .into_iter()
+            .filter_map(|fields| {
+                let (from, to) = (fields.first()?.trim(), fields.get(1)?.trim());
+                (!from.is_empty() && !to.is_empty()).then(|| (normalize(from), normalize(to)))
             })
             .collect();
         eprintln!("grf: {} name aliases", self.aliases.len());

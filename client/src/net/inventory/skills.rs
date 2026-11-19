@@ -91,7 +91,7 @@ mod tests {
     fn a_skill_changed_and_one_taken_away() {
         let told = packet(ZC_SKILLINFO_UPDATE2, &[&14u16.to_le_bytes(), &1u32.to_le_bytes(), &5u16.to_le_bytes(), &20u16.to_le_bytes(), &9u16.to_le_bytes(), &[0]]);
         assert_eq!(told.len(), 15);
-        assert_eq!(skill_changed(&told), Some(crate::net::items::Skill { id: 14, target: 1, level: 5, sp: 20, range: 9, raisable: false }));
+        assert_eq!(skill_changed(&told), Some(crate::net::inventory::Skill { id: 14, target: 1, level: 5, sp: 20, range: 9, raisable: false }));
         assert_eq!(skill_taken(&packet(ZC_SKILLINFO_DELETE, &[&14u16.to_le_bytes()])), Some(14));
     }
 }

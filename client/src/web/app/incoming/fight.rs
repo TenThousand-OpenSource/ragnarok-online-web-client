@@ -66,33 +66,33 @@ impl App {
             }
             fight::ZC_STARSKILL => self.star_told(packet),
             // A skill as it is now: one copied by Plagiarism comes so, and goes with the packet after.
-            fight::ZC_SKILLINFO_UPDATE2 => {
-                if let Some(changed) = fight::skill_changed(packet) {
+            crate::net::inventory::ZC_SKILLINFO_UPDATE2 => {
+                if let Some(changed) = crate::net::inventory::skill_changed(packet) {
                     self.skills.known.retain(|skill| skill.id != changed.id);
                     self.skills.known.push(changed);
                     self.refresh_items();
                 }
             }
-            fight::ZC_SKILLINFO_DELETE => {
-                if let Some(taken) = fight::skill_taken(packet) {
+            crate::net::inventory::ZC_SKILLINFO_DELETE => {
+                if let Some(taken) = crate::net::inventory::skill_taken(packet) {
                     self.skills.known.retain(|skill| skill.id != taken);
                     self.refresh_items();
                 }
             }
             // A trap that was not to be seen is seen by everyone: its model shows (`world/skill_units/traps.rs`).
-            fight::ZC_SKILL_UPDATE => {
+            crate::net::skill_units::ZC_SKILL_UPDATE => {
                 if let Some(unit) = crate::net::skill_units::seen(packet) {
                     world::skill_unit_seen(unit);
                 }
             }
-            fight::ZC_TALKBOX_CHATCONTENTS => {
-                if let Some((unit, words)) = fight::talkie(packet) {
+            crate::net::skill_units::ZC_TALKBOX_CHATCONTENTS => {
+                if let Some((unit, words)) = crate::net::skill_units::talkie(packet) {
                     world::spot_says(unit, &words, false);
                 }
             }
             // Graffiti: a unit on the ground as any other, with its words.
-            fight::ZC_SKILL_ENTRY2 => {
-                if let Some(written) = fight::written(packet) {
+            crate::net::skill_units::ZC_SKILL_ENTRY2 => {
+                if let Some(written) = crate::net::skill_units::written(packet) {
                     world::skill_unit_shown(&crate::net::skill_units::Entry { id: written.id, creator: written.maker, cell: written.cell, unit: u32::from(written.kind), range: 0, visible: written.seen, level: 1 });
                     if !written.words.is_empty() {
                         world::spot_says(written.id, &written.words, true);

@@ -2,7 +2,7 @@
 //! the list of its skills, what the window asks.
 
 use crate::net::homunculus;
-use crate::net::items::Skill;
+use crate::net::inventory::Skill;
 
 /// What the homunculus window asks before it acts (the client's message boxes of `UIHomunInfoWnd::SendMsg`).
 #[derive(Debug, Clone, PartialEq)]

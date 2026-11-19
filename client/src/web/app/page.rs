@@ -217,7 +217,6 @@ pub(super) fn field(id: &str) -> String {
 
 /// What stands in a field of the page now (of one line or of many), if the field is there: for a window that
 /// is drawn anew while something is typed into it, and takes what was typed from the page it replaces.
-#[allow(dead_code)]
 pub(in crate::web) fn written(id: &str) -> Option<String> {
     js_sys::Reflect::get(element(id)?.as_ref(), &"value".into()).ok()?.as_string()
 }
@@ -267,9 +266,9 @@ pub(super) fn store(name: &str, value: Option<&str>) {
     }
 }
 
-/// The client's clock, in milliseconds, as the servers count it.
+/// The client's clock, in milliseconds, as the servers count it: the page's (`web::now`) in whole ones.
 pub(in super::super) fn now() -> u32 {
-    web_sys::window().and_then(|window| window.performance()).map_or(0, |performance| performance.now() as u32)
+    crate::web::now() as u32
 }
 
 /// Text made safe to put into HTML: names come from the server, and so from other players.

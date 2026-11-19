@@ -27,10 +27,6 @@ pub fn compiled_icon(state: u32, kind: u8, taekwon: bool) -> Option<&'static str
     taekwon.then(|| of("taekwon")).flatten().or_else(|| of("icon"))
 }
 
-/// Whether a job is of the Taekwon line, by the job the character is drawn as (the client's
-/// `IsTaekwonDisplayJob`): the rule is with the other things known of a job by its number.
-pub use crate::jobs::taekwon;
-
 /// The state shown for a body state (stone, frozen, stunned, asleep…), as the server's state packet names it
 /// (`BuildStatusLevelEffects`).
 pub fn of_body(level: u16) -> Option<u32> {
@@ -101,6 +97,7 @@ pub fn time_left(seconds: u32, words: [&str; 3]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::jobs::taekwon;
 
     #[test]
     fn the_client_has_pictures_for_the_classic_states() {

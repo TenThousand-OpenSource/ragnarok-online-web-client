@@ -101,7 +101,7 @@ impl App {
     /// client's `CGameActor::ProcessState`).
     pub(in crate::web::app) fn pet_idles(&mut self) {
         if js_sys::Math::random() < 0.25 {
-            self.pet_feels(pets::moment::IDLE, None);
+            self.pet_feels(crate::pets::moment::IDLE, None);
         }
     }
 }

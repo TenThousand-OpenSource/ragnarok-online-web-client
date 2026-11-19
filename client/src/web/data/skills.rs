@@ -100,6 +100,6 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
 /// Fetches what the translated skills are called in Russian.
 pub(super) async fn read_russian() {
     if let Ok(names) = fetch_json("/tables/ru/skill-names.json").await {
-        SKILL_NAMES_RU.set(entries::<u16>(&names).into_iter().filter_map(|(id, name)| Some((id, name.as_string()?))).collect());
+        SKILL_NAMES_RU.set(super::names::<u16>(&names).into_iter().collect());
     }
 }

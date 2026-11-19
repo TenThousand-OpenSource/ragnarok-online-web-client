@@ -83,7 +83,7 @@ impl App {
     fn world_party(&self, world: &World, face: i32) -> String {
         let Some(game) = &self.game else { return String::new() };
         let own_map = game.map.trim_end_matches(".gat");
-        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        let own = self.own_account();
         let mut there: Vec<(String, Vec<String>)> = vec![(own_map.to_owned(), vec![game.name.clone()])];
         for member in self.party.members.iter().filter(|member| member.account != own && !member.offline) {
             let map = member.map.trim_end_matches(".gat").to_owned();
@@ -182,7 +182,7 @@ impl App {
                 marks.push_str(&format!(r#"<img src="{}" alt="" draggable="false" data-tip="{}" style="position:absolute;left:{x:.2}%;top:{y:.2}%;transform:translate(-50%,-50%)">"#, picture(&format!("information/{picture_name}.bmp")), escape(&name)));
             }
         }
-        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        let own = self.own_account();
         for member in self.party.members.iter().filter(|member| member.account != own && !member.offline && member.map.trim_end_matches(".gat") == map) {
             if let Some((x, y)) = self.party.places.get(&member.account).and_then(|(x, y)| spot((f32::from(*x), f32::from(*y)))) {
                 marks.push_str(&format!(r#"<span data-tip="{}" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:6px;height:6px;margin:-4px 0 0 -4px;background:#493a37;border:1px solid rgba(255,255,255,.6)"></span>"#, escape(&member.name)));

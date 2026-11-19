@@ -92,7 +92,7 @@ impl App {
             .iter()
             .enumerate()
             .filter_map(|(place, kind)| {
-                let (_, (x, y)) = crate::carts::offered(*kind, place)?;
+                let (_, (x, y)) = crate::cart::offered(*kind, place)?;
                 let cart = looks.pictures.get(kind).map_or(String::new(), |(picture, origin)| {
                     format!(r#"<img src="{picture}" alt="" draggable="false" style="position:absolute;left:{:.0}px;top:{:.0}px;image-rendering:pixelated">"#, 50.0 - origin.0, 50.0 - origin.1)
                 });

@@ -2,14 +2,14 @@
 //! `clif_storagelist`, `clif_updatestorageamount`, `clif_storageitemadded`, `clif_storageitemremoved`,
 //! `clif_storageclose`, `clif_parse_MoveToKafra` and its neighbours in `src/map/clif.cpp`, at PACKETVER
 //! 20260219). The rules of the client's window of it (`UIItemStoreWnd`: which tab a thing is under, the orders
-//! of its lists) are in `crate::storage`, and named here too for those who look for them under `net::storage`.
+//! of its lists) are in `crate::storage`.
 //!
-//! A storage's list comes as the inventory's does (`net::items`: ZC_INVENTORY_START with the storage's name,
+//! A storage's list comes as the inventory's does (`net::inventory`: ZC_INVENTORY_START with the storage's name,
 //! then the lists of the kind `STORAGE`); the server tells a guild's storage as that kind too, under the name
 //! "Guild Storage".
 
 use super::bytes::{Writer, u16_at, u32_at};
-use super::items::{Amount, Identified, Item, Layout};
+use super::inventory::{Amount, Identified, Item, Layout};
 
 /// ZC_NOTIFY_STOREITEM_COUNTINFO (0x00f2): `u16 kinds, u16 most`: the storage is open, and how full it is.
 pub const ZC_NOTIFY_STOREITEM_COUNTINFO: u16 = 0x00f2;
@@ -90,7 +90,6 @@ pub fn close_storage() -> Vec<u8> {
     Writer::new(0x0193).done()
 }
 
-pub use crate::storage::{COSTUME_PLACES, Sorted, TABS, TAB_LINES, tab_of};
 
 #[cfg(test)]
 mod tests {

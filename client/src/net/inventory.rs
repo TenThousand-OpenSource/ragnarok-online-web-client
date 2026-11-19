@@ -1,7 +1,7 @@
 //! The packets about what the character carries and knows: items, skills, and the hotkey bar. An item as a
 //! packet tells of it is `Item`, read by `Item::read` from wherever a packet has its record (`Layout`). What
 //! is a rule of the inventory and no packet (its tabs, what goes on the hotkey bar, a count typed, the lines
-//! of weight) is in `crate::inventory`, and named here too for those who look for it under `net::items`.
+//! of weight) is in `crate::inventory`.
 //!
 //! Layouts are rAthena's at PACKETVER 20260219 (`src/map/packets_struct.hpp`, `packets.hpp`).
 
@@ -14,6 +14,9 @@ pub const ZC_ITEM_PICKUP_ACK: u16 = 0x0b41;
 pub const ZC_USE_ITEM_ACK: u16 = 0x01c8;
 pub const ZC_DELETE_ITEM_FROM_BODY: u16 = 0x07fa;
 pub const ZC_ITEM_THROW_ACK: u16 = 0x00af;
+pub const ZC_ITEMIDENTIFY_LIST: u16 = 0x0177;
+pub const ZC_ACK_ITEMIDENTIFY: u16 = 0x0179;
+pub const ZC_EQUIP_ARROW: u16 = 0x013c;
 pub const ZC_REQ_WEAR_EQUIP_ACK: u16 = 0x0999;
 pub const ZC_REQ_TAKEOFF_EQUIP_ACK: u16 = 0x099a;
 pub const ZC_SKILLINFO_LIST: u16 = 0x010f;
@@ -42,7 +45,6 @@ pub struct Item {
     pub cards: [u32; 4],
 }
 
-pub use crate::inventory::{Tab, WORN_AS_AMMO, count_typed, sort_rank, weight};
 
 /// The four cards of an item, four bytes each from `at`: the one reader of them for every packet that lists items.
 pub(super) fn cards(bytes: &[u8], at: usize) -> [u32; 4] {

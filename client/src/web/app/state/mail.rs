@@ -1,7 +1,8 @@
 //! What the app keeps of the mail.
 
-use crate::net::items::Item;
-use crate::net::mail::{self, Receiver, Store};
+use crate::net::inventory::Item;
+use crate::net::mail::Receiver;
+use crate::mail::Store;
 
 /// The colour of what the chat is told about the mail (the client's 0x64FFFF, which it writes blue first).
 pub(in crate::web) const MAIL_SAID: &str = crate::said::colour::PALE_YELLOW;
@@ -29,7 +30,7 @@ pub(in crate::web) struct Mail {
     pub tab: u8,
     pub searching: bool,
     pub page: usize,
-    pub checked: [bool; mail::PAGE],
+    pub checked: [bool; crate::mail::PAGE],
     /// The search goes through the senders, not the titles; and what it last found.
     pub by_sender: bool,
     pub found: Vec<(u8, i64)>,
@@ -90,7 +91,7 @@ impl Mail {
 
     /// The rows of the page shown: the kind and the number of the letter in each.
     pub fn rows(&self, now: f64) -> Vec<(u8, i64)> {
-        self.listed(now).into_iter().skip(self.page * mail::PAGE).take(mail::PAGE).collect()
+        self.listed(now).into_iter().skip(self.page * crate::mail::PAGE).take(crate::mail::PAGE).collect()
     }
 
     /// The letters of the rows that are ticked, without those the server has deleted.
@@ -100,6 +101,6 @@ impl Mail {
 
     /// The page is another, or what it lists is: nothing of it is ticked.
     pub fn turn_to(&mut self, page: usize) {
-        (self.page, self.checked) = (page, [false; mail::PAGE]);
+        (self.page, self.checked) = (page, [false; crate::mail::PAGE]);
     }
 }

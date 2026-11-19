@@ -7,11 +7,10 @@
 //! (ZC_ACK_MAIL_LIST3, 0x0ac2); the pages of six are cut by the client.
 
 use super::bytes::{long, quad, text, word};
-use super::items::{Amount, Identified, Item, Layout};
+use super::inventory::{Amount, Identified, Item, Layout};
 
-/// What is kept of the letters and the rules of the mailbox are no packets: they are in `crate::mail`, and
-/// are named here as before.
-pub use crate::mail::*;
+// What is kept of the letters and the rules of the mailbox are no packets: they are in `crate::mail`.
+use crate::mail::*;
 
 /// ZC_NOTIFY_UNREADMAIL: whether there is mail not read.
 pub const ZC_NOTIFY_UNREADMAIL: u16 = 0x09e7;

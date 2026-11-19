@@ -28,6 +28,6 @@ impl App {
     /// of the Equipment window, and the client's `/eqopen` (`TT_REQ_OPEN_EQUIPEDITEM_ONOFF`). The box turns
     /// when the server has answered.
     pub(in crate::web::app) fn equipment_open_switched(&mut self) {
-        self.send_on_map(&viewequip::set(viewequip::OPEN_EQUIPMENT, !self.viewequip.allowed));
+        self.send_on_map(&crate::net::config::set(viewequip::OPEN_EQUIPMENT, !self.viewequip.allowed));
     }
 }

@@ -30,9 +30,6 @@ pub fn partner(packet: &[u8]) -> Option<String> {
     text_at(packet, 2, 24)
 }
 
-/// The rules that are no packet, kept at the path they had: ZC_DIVORCE's line.
-pub use crate::family::divorce_line;
-
 /// Who asks to adopt: the account, the character, and the name.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Parent {
@@ -61,6 +58,7 @@ pub fn adoption_answer(parent: &Parent, accepted: bool) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::family::divorce_line;
     use crate::net::bytes::name24;
 
     #[test]

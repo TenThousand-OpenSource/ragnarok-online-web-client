@@ -1,6 +1,8 @@
 //! Tests of the packets of the lists a skill or a card opens.
 
 use super::*;
+use crate::choosing::{made_effect, set_card};
+use crate::net::actors::ask_name;
 use crate::net::bytes::testing::sized as listing;
 
 #[test]

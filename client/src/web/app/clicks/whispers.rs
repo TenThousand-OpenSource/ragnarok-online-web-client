@@ -119,7 +119,7 @@ impl App {
             return;
         }
         self.whispers.last = (to.to_owned(), words.to_owned());
-        self.send_on_map(&npc::whisper(to, words));
+        self.send_on_map(&crate::net::whispers::whisper(to, words));
     }
 
     /// A line was typed into a talk's window and sent (`UIWhisperWnd::SendMsg`, `ID_OK`): a command is done

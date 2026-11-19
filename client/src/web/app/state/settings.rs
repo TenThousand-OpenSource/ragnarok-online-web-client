@@ -19,7 +19,7 @@ pub(in crate::web) struct Settings {
 
 /// The keys: what the player has bound otherwise than the client does, and the window that shows and sets them.
 #[derive(Default)]
-pub(in crate::web) struct Keys {
+pub(in crate::web) struct Hotkeys {
     /// The Shortcut Settings window is open; which of its tabs, which page of it, and the row picked in it.
     pub open: bool,
     pub tab: usize,

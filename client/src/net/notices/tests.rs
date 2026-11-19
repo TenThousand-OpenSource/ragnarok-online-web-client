@@ -1,6 +1,9 @@
 //! Tests of the server's notices: the packets read, and which line is said in which colour.
 
 use super::*;
+use crate::numbers::filled;
+use crate::net::packets::stat_raised;
+use crate::net::actors::character_name;
 
 #[test]
 fn an_action_that_failed_says_its_line() {

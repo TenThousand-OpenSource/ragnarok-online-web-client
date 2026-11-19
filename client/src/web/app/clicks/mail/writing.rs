@@ -29,7 +29,7 @@ impl App {
     fn mail_keep_typed(&mut self) {
         let Some(writing) = &mut self.mail.writing else { return };
         for (id, kept) in [("mail-to", &mut writing.to), ("mail-title", &mut writing.title), ("mail-body", &mut writing.body), ("mail-zeny", &mut writing.zeny)] {
-            if let Some(typed) = Self::mail_typed(id) {
+            if let Some(typed) = written(id) {
                 *kept = typed;
             }
         }
@@ -57,13 +57,13 @@ impl App {
         self.mail_keep_typed();
         let Some(writing) = &self.mail.writing else { return };
         let has = self.hero.zeny();
-        let zeny = mail::zeny_typed(&writing.zeny);
-        let fee = mail::fee(writing.items.len(), zeny);
+        let zeny = crate::mail::zeny_typed(&writing.zeny);
+        let fee = crate::mail::fee(writing.items.len(), zeny);
         let amiss = if writing.to.is_empty() && writing.receiver.is_none() {
             Some((2595, "The name of the recipient must be included."))
-        } else if !mail::TITLE.contains(&writing.title.len()) {
+        } else if !crate::mail::TITLE.contains(&writing.title.len()) {
             Some((2596, "The length of the title must be 4 to 50 characters long."))
-        } else if writing.body.len() > mail::MOST_TEXT {
+        } else if writing.body.len() > crate::mail::MOST_TEXT {
             Some((2628, "The maximum length of the message content is 1K."))
         } else if zeny > 0 && zeny > has {
             Some((2613, "You cannot send any more zeny."))

@@ -2,7 +2,7 @@
 //! went, its skills.
 
 use super::*;
-use crate::net::{homunculus, viewequip};
+use crate::net::homunculus;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
@@ -35,11 +35,11 @@ impl App {
             }
             // Its skills, laid out as the character's own; and one of them raised.
             homunculus::ZC_HOSKILLINFO_LIST => {
-                self.homunculus.skills = items::skills(packet);
+                self.homunculus.skills = net::inventory::skills(packet);
                 self.redraw(&[&wnd::HOMUNCULUS_SKILLS]);
             }
             homunculus::ZC_HOSKILLINFO_UPDATE => {
-                if let Some((id, level, sp, range, raisable)) = items::skill_raised(packet) {
+                if let Some((id, level, sp, range, raisable)) = net::inventory::skill_raised(packet) {
                     if let Some(skill) = self.homunculus.skills.iter_mut().find(|skill| skill.id == id) {
                         (skill.level, skill.sp, skill.range, skill.raisable) = (level, sp, range, raisable);
                     }
@@ -48,7 +48,7 @@ impl App {
             }
             // The server says whether the homunculus is fed by itself; the other settings of this packet are
             // read where they belong.
-            viewequip::ZC_CONFIG => match viewequip::config(packet) {
+            crate::net::config::ZC_CONFIG => match crate::net::config::config(packet) {
                 Some((homunculus::AUTOFEED, on)) => {
                     self.homunculus.autofeed = on;
                     self.redraw(&[&wnd::HOMUNCULUS]);
@@ -63,7 +63,7 @@ impl App {
     /// ZC_PROPERTY_HOMUN: everything about it (the client's `ReceiveHomunculusInfo3`). At a hunger of 10, 5
     /// and 1 the chat says, in red, that it starves (line 1018), once for each.
     fn homunculus_told(&mut self, info: homunculus::Homunculus) {
-        if let Some(told) = homunculus::hungry_now(info.hunger, self.homunculus.hungry_told) {
+        if let Some(told) = crate::homunculus::hungry_now(info.hunger, self.homunculus.hungry_told) {
             self.homunculus.hungry_told = told;
             self.chat_line(Self::words(1018, "Your Homunculus is starving. Please feed it, otherwise it will leave you."), RED);
         }

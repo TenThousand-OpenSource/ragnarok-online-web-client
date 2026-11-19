@@ -5,7 +5,6 @@
 
 use super::bytes::{i32_at, id, int, long, short, u16_at, word, Writer};
 
-pub use crate::skills::{failure, notified_effect};
 
 /// ZC_USESKILL_ACK (0x0b1a): `u32 who, u32 on whom, u16 x, u16 y, u16 skill, u32 element, u32 milliseconds,
 /// u8 disposable, u32 attack motion`. Someone starts to cast.
@@ -144,6 +143,7 @@ pub fn out_of_reach(packet: &[u8]) -> Option<(u32, i16)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::skills::failure;
 
     #[test]
     fn reads_what_else_the_server_says_of_blows_and_effects() {

@@ -401,7 +401,7 @@ fn frame(actions: &Act, action: usize, frame: usize) -> Result<Frame, String> {
 
 /// The sprite of a head by itself, as `frame_picture` takes one: of that job's kind, sex and hair style.
 pub fn head_sprite(job: u16, sex: u8, hair_style: u16) -> String {
-    let (doram, sex_word) = (data::is_doram(job), if sex == 1 { "남" } else { "여" });
+    let (doram, sex_word) = (crate::jobs::doram(job), if sex == 1 { "남" } else { "여" });
     format!("{}/머리통/{sex_word}/{}_{sex_word}", if doram { "도람족" } else { "인간족" }, if doram { hair_style } else { hair_sprite(sex, hair_style) })
 }
 

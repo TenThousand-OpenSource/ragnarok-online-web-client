@@ -1,6 +1,7 @@
 //! The tests of the quest journal's rules (`quests.rs`).
 
 use super::*;
+use crate::markup::uncoloured;
 
 #[test]
 fn a_quest_lies_under_the_tab_of_its_state() {

@@ -56,8 +56,8 @@ pub struct Named {
     pub cards: [u32; 4],
 }
 
-impl From<&crate::net::items::Item> for Named {
-    fn from(item: &crate::net::items::Item) -> Self {
+impl From<&crate::net::inventory::Item> for Named {
+    fn from(item: &crate::net::inventory::Item) -> Self {
         Self { id: item.id, kind: item.kind, identified: item.identified, refine: item.refine, cards: item.cards }
     }
 }

@@ -15,10 +15,7 @@ pub fn statuses(grf: &Grf) -> serde_json::Value {
     run_in(&lua, grf, &["stateicon\\efstids", "stateicon\\stateiconinfo", "stateicon\\stateiconinfo_f", "stateicon\\stateiconimginfo"]);
     let globals = lua.globals();
     let states: Vec<i64> = names_of(&globals, "EFST_IDs");
-    let text = |value: &Value| match value {
-        Value::String(text) => korean(&text.as_bytes()),
-        _ => String::new(),
-    };
+    let text = |value: &Value| text_only(value).unwrap_or_default();
     let mut icons = serde_json::Map::new();
     if let Ok(picture) = globals.get::<mlua::Function>("GetEFSTImgFileName") {
         for state in &states {

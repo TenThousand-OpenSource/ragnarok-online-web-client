@@ -93,7 +93,7 @@ pub fn unit_shown(unit: &Unit) {
                 // How it is there: sitting, or lying dead (the packet's `state`; the client's `AM_STANDENTRY`
                 // puts it straight into that state, lying in the last picture of its fall).
                 if unit.kind == Kind::Player {
-                    (mover.sitting, mover.dead) = (unit.posture == crate::net::units::Posture::Sits, unit.posture == crate::net::units::Posture::Lies);
+                    (mover.sitting, mover.dead) = (unit.posture == crate::net::actors::Posture::Sits, unit.posture == crate::net::actors::Posture::Lies);
                 }
             }
         }
@@ -234,7 +234,7 @@ pub fn stated(id: Option<u32>, bits: u32, mask: Option<u32>) {
         // One that hides, or comes out, puffs smoke (`poses.rs`).
         mover.hides(was, now())
     });
-    poses::hid(id, bash);
+    pose::hid(id, bash);
 }
 
 /// Someone says something: it shows over their head for a while. `own` is the player's own ID.
@@ -306,7 +306,7 @@ pub fn unit_gone(id: u32, died: bool) {
             let time = now();
             let falls = state.blows.iter().filter(|blow| blow.1 == id).map(|blow| blow.0).fold(time, f64::max);
             // A player struck down lies where it fell (the client's `AM_DEAD`): it is gone when it leaves,
-            // and stands up when it is raised (`poses::risen`).
+            // and stands up when it is raised (`pose::risen`).
             if let Some(player) = scene.units.get_mut(&id).filter(|unit| died && matches!(unit.look, Look::Character(_))) {
                 if !player.dead {
                     player.falls(falls);

@@ -18,7 +18,7 @@ thread_local! {
 
 /// The sky of a map; none for a map the client's table does not have, which stands on black.
 pub fn sky(map: &str) -> Option<Sky> {
-    SKIES.with_borrow(|skies| skies.get(map.to_ascii_lowercase().trim_end_matches(".gat").trim_end_matches(".rsw")).cloned())
+    SKIES.with_borrow(|skies| skies.get(crate::maps::bare(&map.to_ascii_lowercase())).cloned())
 }
 
 /// Reads the skies out of the gateway's tables: `{"<map>": {"colour": [r, g, b], "stars": true, "clouds": [1]}}`.

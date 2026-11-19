@@ -61,9 +61,9 @@ pub fn walk_to(x: u16, y: u16) -> Vec<u8> {
 }
 
 /// ZC_NOTIFY_PLAYERMOVE (0x0087): `u32 start_time, u8[6] move`. The move packs the cell walked from and the cell
-/// walked to, 10 bits a coordinate (`units::walked`).
-pub fn player_move(packet: &[u8]) -> Option<crate::net::units::Walked> {
-    crate::net::units::walked(packet.get(6..12)?, u32_at(packet, 2))
+/// walked to, 10 bits a coordinate (`actors::walked`).
+pub fn player_move(packet: &[u8]) -> Option<crate::net::actors::Walked> {
+    crate::net::actors::walked(packet.get(6..12)?, u32_at(packet, 2))
 }
 
 /// ZC_STOPMOVE (0x0088): `u32 id, u16 x, u16 y`: a unit stands on that cell now, wherever it was thought to be.
@@ -190,34 +190,4 @@ pub fn restart_allowed(packet: &[u8]) -> bool {
 /// a packet that ends before its result too.
 pub fn leave_refused(packet: &[u8]) -> bool {
     word(packet, 2) != Some(0)
-}
-
-/// What the client calls a job, for the first jobs; later ones wait for the client's own tables.
-pub fn job_name(job: u16) -> String {
-    let name = match job {
-        0 => "Novice",
-        1 => "Swordman",
-        2 => "Magician",
-        3 => "Archer",
-        4 => "Acolyte",
-        5 => "Merchant",
-        6 => "Thief",
-        7 => "Knight",
-        8 => "Priest",
-        9 => "Wizard",
-        10 => "Blacksmith",
-        11 => "Hunter",
-        12 => "Assassin",
-        14 => "Crusader",
-        15 => "Monk",
-        16 => "Sage",
-        17 => "Rogue",
-        18 => "Alchemist",
-        19 => "Bard",
-        20 => "Dancer",
-        23 => "Super Novice",
-        4218 => "Summoner",
-        _ => return format!("Job {job}"),
-    };
-    name.to_owned()
 }

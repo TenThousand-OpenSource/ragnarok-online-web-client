@@ -57,7 +57,7 @@ impl App {
     /// The things of a list of the storage (ZC_INVENTORY_ITEMLIST_NORMAL, ZC_INVENTORY_ITEMLIST_EQUIP).
     pub(super) fn storage_listed(&mut self, id: u16, packet: &[u8]) {
         if let Some(stored) = &mut self.storage.open {
-            stored.items.extend(if id == items::ZC_INVENTORY_ITEMLIST_NORMAL { items::stackable_of(packet, storage::STORAGE) } else { items::equipment_of(packet, storage::STORAGE) });
+            stored.items.extend(if id == net::inventory::ZC_INVENTORY_ITEMLIST_NORMAL { net::inventory::stackable_of(packet, storage::STORAGE) } else { net::inventory::equipment_of(packet, storage::STORAGE) });
         }
     }
 }

@@ -1,10 +1,22 @@
 //! What the app keeps of the chat window.
 
+/// A line of the chat.
+pub(in crate::web) struct Line {
+    pub words: String,
+    /// Its colour, as the page takes it.
+    pub colour: String,
+    /// Its kind (`said`).
+    pub kind: u8,
+    /// Written in the client's pure red (`said::colour::pure_red`): told once, as the line comes, not by how
+    /// its colour happens to be spelt.
+    pub red: bool,
+}
+
 /// The chat window.
 #[derive(Default)]
 pub(in crate::web) struct Chat {
-    /// Its lines, oldest first, each with its colour and its kind (`said`).
-    pub lines: Vec<(String, String, u8)>,
+    /// Its lines, oldest first.
+    pub lines: Vec<Line>,
     /// How many rows it shows (0 leaves only its input line), and how many it had before its log was hidden.
     pub rows: usize,
     pub rows_kept: usize,
@@ -20,4 +32,11 @@ pub(in crate::web) struct Chat {
     pub hidden: bool,
     /// The tab whose window of what it lists is open (`UIBattleMsgOptionWnd`).
     pub options: Option<usize>,
+}
+
+impl Chat {
+    /// The lines a tab lists (`Tab::lists`), oldest first.
+    pub fn listed<'a>(&'a self, tab: &'a crate::chat_tabs::Tab) -> impl Iterator<Item = &'a Line> {
+        self.lines.iter().filter(move |line| tab.lists(line.kind, line.red))
+    }
 }

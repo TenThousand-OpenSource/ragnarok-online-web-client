@@ -97,15 +97,16 @@ fn field(object: &wasm_bindgen::JsValue, name: &str) -> wasm_bindgen::JsValue {
     js_sys::Reflect::get(object, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED)
 }
 
-/// A JSON list as its entries. The value has to be there: `Array.from` of the browser, which this is, fails
-/// for `undefined` and `null` (a field an older gateway does not give is read with `listed`).
+/// A JSON list as its entries; none of what is no list, or is not there at all (a field an older gateway
+/// does not give). It never fails: `Array.from` of the browser, which throws for `undefined` and `null`, is
+/// not asked.
 fn list(value: &wasm_bindgen::JsValue) -> Vec<wasm_bindgen::JsValue> {
-    js_sys::Array::from(value).iter().collect()
+    row(value).to_vec()
 }
 
-/// A JSON list as its entries; none of what is no list, or is not there at all.
-fn listed(value: &wasm_bindgen::JsValue) -> Vec<wasm_bindgen::JsValue> {
-    value.clone().dyn_into::<js_sys::Array>().map(|list| list.to_vec()).unwrap_or_default()
+/// A JSON list as it is, to be asked for its places by their numbers; an empty one for what is no list.
+fn row(value: &wasm_bindgen::JsValue) -> js_sys::Array {
+    value.dyn_ref::<js_sys::Array>().cloned().unwrap_or_default()
 }
 
 /// A JSON object's entries whose keys are numbers (or what else `Id` is read from) and whose values are
@@ -114,10 +115,10 @@ fn names<Id: std::str::FromStr>(object: &wasm_bindgen::JsValue) -> Vec<(Id, Stri
     entries::<Id>(object).into_iter().filter_map(|(key, name)| Some((key, name.as_string()?))).collect()
 }
 
-/// The texts of a JSON list of texts; what is no text in it is passed by. The value has to be there, as for
-/// `list`.
+/// The texts of a JSON list of texts; what is no text in it is passed by, and what is no list has none, as
+/// for `list`.
 fn texts(value: &wasm_bindgen::JsValue) -> Vec<String> {
-    js_sys::Array::from(value).iter().filter_map(|line| line.as_string()).collect()
+    list(value).iter().filter_map(wasm_bindgen::JsValue::as_string).collect()
 }
 
 /// A number in a field of a JSON object; none when the object has no such field, or it is no number.

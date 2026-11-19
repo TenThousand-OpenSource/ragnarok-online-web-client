@@ -36,25 +36,25 @@ pub fn worlds() -> std::rc::Rc<Vec<World>> {
 
 /// Takes the worlds out of what the gateway gave (`tables/worldmap.rs`).
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
-    let list = |of: wasm_bindgen::JsValue| listed(&of);
+    let list = |of: wasm_bindgen::JsValue| list(&of);
     let number = |row: &js_sys::Array, at: u32| row.get(at).as_f64().unwrap_or(0.0) as f32;
     let text = |row: &js_sys::Array, at: u32| row.get(at).as_string().unwrap_or_default();
     let worlds = list(field(tables, "worldmap"))
         .into_iter()
         .map(|world| {
-            let size = js_sys::Array::from(&field(&world, "size"));
+            let size = row(&field(&world, "size"));
             World {
                 name: text_of(&world, "name").unwrap_or_default(),
                 picture: text_of(&world, "picture").unwrap_or_default(),
                 size: (number(&size, 0), number(&size, 1)),
                 fields: list(field(&world, "fields"))
                     .into_iter()
-                    .map(|row| js_sys::Array::from(&row))
+                    .map(|entry| row(&entry))
                     .map(|row| Field { id: number(&row, 0) as u32, map: text(&row, 1), at: [number(&row, 2), number(&row, 3), number(&row, 4), number(&row, 5)], name: text(&row, 6), level: text(&row, 7) })
                     .collect(),
                 groups: list(field(&world, "groups"))
                     .into_iter()
-                    .map(|row| js_sys::Array::from(&row))
+                    .map(|entry| row(&entry))
                     .map(|row| (number(&row, 0) as u32, [number(&row, 1), number(&row, 2), number(&row, 3), number(&row, 4)], text(&row, 5), text(&row, 6)))
                     .collect(),
             }

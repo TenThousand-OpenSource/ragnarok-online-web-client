@@ -33,22 +33,27 @@ pub fn decode(bytes: &[u8]) -> Result<Image, String> {
     let (height, bottom_up) = (raw_height.unsigned_abs() as usize, raw_height > 0);
     let width = width as usize;
 
-    let palette_at = 14 + header_size;
     let bytes_per_pixel = match bits {
         8 => 1,
         24 => 3,
         32 => 4,
         _ => return Err(format!("{bits}-bit BMP is not supported")),
     };
-    let stride = (width * bytes_per_pixel).div_ceil(4) * 4;
-    if bytes.len() < pixels_at + stride * (height - 1) + width * bytes_per_pixel {
+    // The sizes are the file's own word: every count made of them is checked, a file that says more than
+    // a `usize` holds (32 bits in the browser) being as broken as one cut short.
+    let too_large = || "BMP too large".to_owned();
+    let row = width.checked_mul(bytes_per_pixel).ok_or_else(too_large)?;
+    let stride = row.checked_add(3).ok_or_else(too_large)? / 4 * 4;
+    let needed = stride.checked_mul(height - 1).and_then(|rows| rows.checked_add(row)).and_then(|size| size.checked_add(pixels_at)).ok_or_else(too_large)?;
+    if bytes.len() < needed {
         return Err("truncated BMP".into());
     }
-    if bits == 8 && pixels_at < palette_at + 4 {
+    let palette_at = 14usize.checked_add(header_size).ok_or_else(too_large)?;
+    if bits == 8 && pixels_at < palette_at.saturating_add(4) {
         return Err("BMP without a palette".into());
     }
 
-    let mut rgba = vec![0u8; width * height * 4];
+    let mut rgba = vec![0u8; width.checked_mul(height).and_then(|pixels| pixels.checked_mul(4)).ok_or_else(too_large)?];
     for row in 0..height {
         let source = pixels_at + stride * if bottom_up { height - 1 - row } else { row };
         for column in 0..width {
@@ -89,6 +94,22 @@ mod tests {
         let image = super::decode(&file).unwrap();
         assert_eq!((image.width, image.height), (2, 2));
         assert_eq!(image.rgba, [255, 0, 0, 255, 255, 0, 255, 0, 0, 255, 0, 255, 0, 0, 255, 255]);
+    }
+
+    /// Sizes whose product passes a `usize` are an error, not an overflow.
+    #[test]
+    fn rejects_sizes_past_counting() {
+        let mut file = vec![0u8; 54];
+        file[..2].copy_from_slice(b"BM");
+        file[10..14].copy_from_slice(&54u32.to_le_bytes());
+        file[14..18].copy_from_slice(&40u32.to_le_bytes());
+        file[18..22].copy_from_slice(&i32::MAX.to_le_bytes());
+        file[22..26].copy_from_slice(&i32::MIN.to_le_bytes());
+        file[28..30].copy_from_slice(&32u16.to_le_bytes());
+        assert!(super::decode(&file).is_err());
+        file[10..14].copy_from_slice(&u32::MAX.to_le_bytes());
+        file[14..18].copy_from_slice(&u32::MAX.to_le_bytes());
+        assert!(super::decode(&file).is_err());
     }
 
     #[test]

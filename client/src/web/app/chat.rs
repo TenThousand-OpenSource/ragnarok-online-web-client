@@ -17,7 +17,7 @@ impl App {
     pub(super) fn chat_line_of(&mut self, kind: u8, words: String, colour: &str) {
         // The items a line links to are asked about, so that the line can name them.
         self.chat_links_wanted(&words);
-        self.chat.lines.push((words, colour.to_owned(), kind));
+        self.chat.lines.push(Line { words, red: said::colour::pure_red(colour), colour: colour.to_owned(), kind });
         if self.chat.lines.len() > super::super::hud::CHAT_KEPT {
             self.chat.lines.remove(0);
         }

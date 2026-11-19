@@ -63,10 +63,18 @@ fn reads_a_letter_with_what_is_in_it() {
     thing[28] = 5;
     thing[58] = 7;
     packet.extend(thing);
+    let length = packet.len() as u16;
+    packet[2..4].copy_from_slice(&length.to_le_bytes());
+    // What follows the packet in the bytes handed in is not the letter's: its length says where it ends.
+    packet.extend([0u8; 60]);
+    packet[23] = 2;
     let letter = read(&packet).unwrap();
     assert_eq!((letter.tab, letter.id, letter.body.as_str(), letter.zeny), (0, 9, "Take this.", 1500));
     assert_eq!(letter.items, [Item { index: 0, id: 1201, kind: 5, amount: 3, wearable: 2, worn: 0, refine: 7, identified: true, cards: [4001, 0, 0, 0] }]);
     assert_eq!(read(&packet[..20]), None);
+    // A text said to be longer than the packet: no letter.
+    packet[13..15].copy_from_slice(&length.to_le_bytes());
+    assert_eq!(read(&packet), None);
 }
 
 #[test]

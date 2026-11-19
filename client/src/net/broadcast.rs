@@ -45,9 +45,20 @@ fn untagged(text: &[u8]) -> Vec<u8> {
     }
 }
 
-/// Six letters of a colour written `RRGGBB`.
+/// Six letters of a colour written `RRGGBB`, read as the client reads them (`ReceiveTaggedBroadcast`:
+/// `sscanf(head, "%lx", &rgb)` over the six letters, `rgb` being 0 before): blanks are passed by, then a sign
+/// and `0x` may stand, and the digits are taken up to the first letter that is none. So `FF80zz` is `FF80`,
+/// a leading `+` is the client's own to take, and letters that are no number at all are black.
 fn hex(letters: Option<&[u8]>) -> Option<[u8; 3]> {
-    Some(crate::said::colour::parts(u32::from_str_radix(std::str::from_utf8(letters?).ok()?, 16).ok()?))
+    let letters = ended(letters?).trim_ascii_start();
+    let (negative, letters) = match letters.split_first() {
+        Some((b'-', rest)) => (true, rest),
+        Some((b'+', rest)) => (false, rest),
+        _ => (false, letters),
+    };
+    let letters = letters.strip_prefix(b"0x").or_else(|| letters.strip_prefix(b"0X")).unwrap_or(letters);
+    let number = letters.iter().map_while(|letter| char::from(*letter).to_digit(16)).fold(0u32, |number, digit| number << 4 | digit);
+    Some(crate::said::colour::parts(if negative { number.wrapping_neg() } else { number }))
 }
 
 /// The text of a field up to its first nought.
@@ -137,6 +148,11 @@ mod tests {
         assert_eq!((blue.words.as_str(), blue.colour), ("Hello", [0, 255, 255]));
         let tool = plain(&broadcast(b"toolFF8000Hello")).unwrap();
         assert_eq!((tool.words.as_str(), tool.colour), ("Hello", [255, 128, 0]));
+        // The six letters are read as the client's `sscanf("%lx")` reads them: up to the first that is no
+        // digit, after a sign if one stands; what is no number is black.
+        let colour = |letters: &[u8]| plain(&broadcast(&[b"tool", letters, b"Hello"].concat())).unwrap().colour;
+        assert_eq!((colour(b"FF80zz"), colour(b"+0FF00"), colour(b"zzzzzz"), colour(b"0x12zz"), colour(b" ff   ")), ([0, 255, 128], [0, 255, 0], [0, 0, 0], [0, 0, 18], [0, 0, 255]));
+        assert_eq!((colour(b"-00001"), colour(b"+zzzzz")), ([255, 255, 255], [0, 0, 0]));
         let system = plain(&broadcast(b"ssssHello")).unwrap();
         assert_eq!((system.words.as_str(), system.kind), ("Hello", crate::said::SYSTEM));
     }

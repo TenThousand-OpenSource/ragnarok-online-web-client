@@ -18,10 +18,11 @@ pub fn music(map: &str) -> Option<String> {
     MUSIC.with_borrow(|music| music.get(&map.to_ascii_lowercase()).cloned())
 }
 
-/// Reads the client's table of which music plays on which map: lines of `map.rsw#bgm\\08.mp3#`.
+/// Reads the client's table of which music plays on which map: lines of `map.rsw#bgm\\08.mp3#`. The file is
+/// Korean (its notes are; its lines of maps are Latin letters).
 pub async fn load_music() {
     let Ok(bytes) = crate::web::fetch_asset("data/mp3nametable.txt").await else { return };
-    let music = crate::maps::music_table(&String::from_utf8_lossy(&bytes)).into_iter().collect();
+    let music = crate::maps::music_table(&crate::web::korean(&bytes)).into_iter().collect();
     MUSIC.set(music);
 }
 
@@ -58,7 +59,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
                 let people = list(&people)
                     .iter()
                     .filter_map(|person| {
-                        let person = js_sys::Array::from(person);
+                        let person = row(person);
                         let number = |at: u32| person.get(at).as_f64().map(|number| number as i32);
                         Some((person.get(0).as_string()?, number(1)?, number(2)?, number(3)?))
                     })

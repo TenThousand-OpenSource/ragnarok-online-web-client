@@ -30,7 +30,9 @@ pub fn want_pet_talk() {
     PET_TALK.set(Some(String::new()));
     wasm_bindgen_futures::spawn_local(async {
         if let Ok(bytes) = crate::web::fetch_asset("data/pettalktable.xml").await {
-            PET_TALK.set(Some(String::from_utf8_lossy(&bytes).into_owned()));
+            // The file says of itself `encoding="euc-kr"`: the lines of the pets that have no English ones are
+            // Korean.
+            PET_TALK.set(Some(crate::web::korean(&bytes)));
         }
     });
 }

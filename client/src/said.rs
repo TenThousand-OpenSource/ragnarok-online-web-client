@@ -56,6 +56,30 @@ pub mod colour {
         format!("rgb({red},{green},{blue})")
     }
 
+    /// The red, green and blue of a colour as the page takes it, in each way one is written here: `#ff0000`,
+    /// `#f00`, `rgb(255,0,0)`; none for what is none of these.
+    pub fn read(colour: &str) -> Option<[u8; 3]> {
+        let colour = colour.trim();
+        if let Some(sixteens) = colour.strip_prefix('#') {
+            let digit = |at: usize| sixteens.get(at..=at).and_then(|digit| u8::from_str_radix(digit, 16).ok());
+            return match sixteens.len() {
+                3 => Some([digit(0)? * 17, digit(1)? * 17, digit(2)? * 17]),
+                6 => Some([digit(0)? * 16 + digit(1)?, digit(2)? * 16 + digit(3)?, digit(4)? * 16 + digit(5)?]),
+                _ => None,
+            };
+        }
+        let mut parts = colour.strip_prefix("rgb(")?.strip_suffix(')')?.split(',').map(|part| part.trim().parse::<u8>().ok());
+        let read = [parts.next()??, parts.next()??, parts.next()??];
+        parts.next().is_none().then_some(read)
+    }
+
+    /// Whether a colour is the pure red in which the client writes what went wrong (its `0x0000FF`), however
+    /// it is spelt: every tab of the chat lists a line of no particular kind written in it
+    /// (`crate::chat_tabs::Tab::lists`).
+    pub fn pure_red(colour: &str) -> bool {
+        read(colour) == Some([255, 0, 0])
+    }
+
     /// A colour of three bytes as the page takes it, in sixteens: `#ff0000`, the way the colours above are
     /// written.
     pub fn hex([red, green, blue]: [u8; 3]) -> String {
@@ -74,5 +98,14 @@ mod tests {
         assert_eq!(css([255, 128, 0]), "rgb(255,128,0)");
         assert_eq!((hex([255, 128, 0]), hex([0, 10, 255])), ("#ff8000".to_owned(), "#000aff".to_owned()));
         assert_eq!(hex(parts(0xff0000)), RED);
+    }
+
+    #[test]
+    fn a_colour_is_read_however_it_is_spelt() {
+        assert_eq!((read("#ff8000"), read("#F80"), read("rgb(255, 128,0)")), (Some([255, 128, 0]), Some([255, 136, 0]), Some([255, 128, 0])));
+        assert_eq!((read("red"), read("#ff00"), read("#+f0000"), read("rgb(1,2)"), read("rgb(1,2,3,4)"), read("#яяя")), (None, None, None, None, None, None));
+        // Red is red in every spelling, an announcement's (`css`) among them; a softer red is not.
+        assert!(pure_red(RED) && pure_red("#f00") && pure_red("#FF0000") && pure_red(&css([255, 0, 0])) && pure_red(&hex([255, 0, 0])));
+        assert!(!pure_red(PALE_RED) && !pure_red("#ff0001") && !pure_red(""));
     }
 }

@@ -11,7 +11,7 @@ fn folder(name: &str) -> std::path::PathBuf {
 }
 
 fn empty() -> Items {
-    Items(Default::default(), Default::default(), Korean::new(), Translated::new(), Unidentified::new())
+    Items(Default::default(), Default::default(), Korean::new(), Translated::new(), Unidentified::new(), Labels::new())
 }
 
 const USABLE: &str = concat!(
@@ -47,12 +47,22 @@ fn the_server_names_the_items_and_says_what_a_player_wants_to_know() {
 
 #[test]
 fn a_line_of_a_description_gets_its_labels_in_russian() {
+    // The project's own labels (`translations/ru/labels.json`), as the gateway reads them.
+    let labels = labels(std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../translations/ru")));
+    assert_eq!(labels.len(), 57);
+    let russian_line = |line: &str| russian_line(line, &labels);
     assert_eq!(russian_line("Weight: 7"), "Вес: 7");
     assert_eq!(russian_line("Type: Restorative"), "Тип: Восстанавливающий");
     assert_eq!(russian_line("Jobs: Swordsman and Thief classes"), "Профессии: Мечник и Вор классы");
     // The longer label is taken before the shorter one that is a part of it.
     assert_eq!(russian_line("Weapon Level: 3"), "Уровень оружия: 3");
     assert_eq!(russian_line("A potion made from grinded Red Herbs."), "A potion made from grinded Red Herbs.");
+    // A folder without the file, or with one that is no list of pairs, has no labels: the line stays English.
+    let folder = folder("labels");
+    assert!(super::labels(&folder).is_empty());
+    std::fs::write(folder.join("labels.json"), r#"{"Weight:": "Вес:"}"#).unwrap();
+    assert!(super::labels(&folder).is_empty());
+    std::fs::remove_dir_all(&folder).unwrap();
 }
 
 #[test]
@@ -63,6 +73,7 @@ fn the_translation_files_of_a_folder_are_read_by_their_prefix() {
     std::fs::write(translations.join("items-broken.json"), "{").unwrap();
     std::fs::write(translations.join("skills-1.json"), r#"{ "1": { "name": "Базовые навыки" } }"#).unwrap();
     std::fs::write(translations.join("items-notes.txt"), "not a table").unwrap();
+    std::fs::write(translations.join("labels.json"), r#"[["Weight:", "Вес:"], ["Type:", "Тип:"], ["Restorative", "Восстанавливающий"]]"#).unwrap();
     let items = translated(&translations, "items");
     let skills = translated(&translations, "skills");
     assert_eq!(items.len(), 2);

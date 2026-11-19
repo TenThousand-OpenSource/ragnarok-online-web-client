@@ -197,7 +197,11 @@ fn plain(line: &str) -> String {
     let mut rest = line;
     while let Some(start) = rest.find('<') {
         out.push_str(&rest[..start]);
-        let Some(end) = rest[start..].find('>') else { break };
+        // A `<` that begins no tag stays, with what follows it.
+        let Some(end) = rest[start..].find('>') else {
+            rest = &rest[start..];
+            break;
+        };
         let tag = &rest[start + 1..start + end];
         rest = &rest[start + end + 1..];
         // What a link points at is not shown.

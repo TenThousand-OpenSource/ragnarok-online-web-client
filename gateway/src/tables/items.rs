@@ -3,7 +3,7 @@
 use super::*;
 
 /// What an item is called and which pictures are its, by item ID: from the client's `iteminfo.lub`.
-pub struct Items(std::collections::HashMap<u32, (String, String)>, std::collections::HashMap<u32, About>, Korean, Translated, Unidentified);
+pub struct Items(std::collections::HashMap<u32, (String, String)>, std::collections::HashMap<u32, About>, Korean, Translated, Unidentified, Labels);
 
 /// What an item is before it is identified (the table's `unidentifiedDisplayName`, `unidentifiedResourceName`
 /// and `unidentifiedDescriptionName`): its name, the name of its pictures, its description.
@@ -39,73 +39,30 @@ pub fn translated(folder: &std::path::Path, prefix: &str) -> Translated {
     all
 }
 
-/// The words the English item descriptions are built of, in Russian: an item with no translation of its own is
-/// shown with at least these translated.
-const RUSSIAN_LABELS: &[(&str, &str)] = &[
-    ("Weapon Level:", "Уровень оружия:"),
-    ("Armor Level:", "Уровень брони:"),
-    ("Base Level:", "Базовый уровень:"),
-    ("Requirement:", "Требования:"),
-    ("Refineable:", "Заточка:"),
-    ("Refinable:", "Заточка:"),
-    ("Position:", "Место:"),
-    ("Location:", "Место:"),
-    ("Property:", "Стихия:"),
-    ("Element:", "Стихия:"),
-    ("Defense:", "Защита:"),
-    ("Attack:", "Атака:"),
-    ("Weight:", "Вес:"),
-    ("Type:", "Тип:"),
-    ("Class:", "Класс:"),
-    ("Heal:", "Лечение:"),
-    ("Jobs:", "Профессии:"),
-    ("Item ID:", "ID предмета:"),
-    ("Restorative", "Восстанавливающий"),
-    ("Collectible", "Трофей"),
-    ("Headgear", "Головной убор"),
-    ("Garment", "Накидка"),
-    ("Accessory", "Аксессуар"),
-    ("Footgear", "Обувь"),
-    ("Shield", "Щит"),
-    ("Armor", "Броня"),
-    ("Dagger", "Кинжал"),
-    ("One-Handed Sword", "Одноручный меч"),
-    ("Two-Handed Sword", "Двуручный меч"),
-    ("Bow", "Лук"),
-    ("Staff", "Посох"),
-    ("Mace", "Булава"),
-    ("Spear", "Копьё"),
-    ("Axe", "Топор"),
-    ("Arrow", "Стрела"),
-    ("Card", "Карта"),
-    ("Upper", "Верх"),
-    ("Middle", "Середина"),
-    ("Lower", "Низ"),
-    ("None", "Нет"),
-    ("Yes", "Да"),
-    ("No", "Нет"),
-    ("All Jobs", "Все профессии"),
-    ("All classes", "Все профессии"),
-    ("Novice", "Новичок"),
-    ("Swordsman", "Мечник"),
-    ("Magician", "Маг"),
-    ("Archer", "Лучник"),
-    ("Merchant", "Торговец"),
-    ("Thief", "Вор"),
-    ("Acolyte", "Послушник"),
-    ("Soul Linker", "Медиум"),
-    ("Ninja", "Ниндзя"),
-    ("Gunslinger", "Стрелок"),
-    ("Taekwon", "Тхэквондист"),
-    ("classes", "классы"),
-    (" and ", " и "),
-];
+/// The words the English item descriptions are built of, each with its Russian (`labels.json` of the
+/// translations' folder: `[["Weight:", "Вес:"], …]`): an item with no translation of its own is shown with at
+/// least these translated. They are put in the file's order, so a longer label stands before a shorter one that
+/// is a part of it.
+pub type Labels = Vec<(String, String)>;
+
+/// Reads the labels of a folder of translations; none when the file is not there or is no such list.
+fn labels(folder: &std::path::Path) -> Labels {
+    let path = folder.join("labels.json");
+    let Ok(text) = std::fs::read_to_string(&path) else { return Labels::new() };
+    match serde_json::from_str::<Vec<(String, String)>>(&text) {
+        Ok(labels) => labels,
+        Err(error) => {
+            eprintln!("tables: {}: {error}", path.display());
+            Labels::new()
+        }
+    }
+}
 
 /// An English description line with its labels and common words put into Russian.
-fn russian_line(line: &str) -> String {
+fn russian_line(line: &str, labels: &Labels) -> String {
     let mut line = line.to_owned();
-    for (english, russian) in RUSSIAN_LABELS {
-        if line.contains(english) {
+    for (english, russian) in labels {
+        if line.contains(english.as_str()) {
             line = line.replace(english, russian);
         }
     }
@@ -198,7 +155,7 @@ impl Items {
                 }
             }
         }
-        Self(items, about, Korean::new(), Translated::new(), unidentified)
+        Self(items, about, Korean::new(), Translated::new(), unidentified, Labels::new())
     }
 
     /// Takes the items' names and descriptions from the English table that comes with the client
@@ -267,17 +224,19 @@ impl Items {
         self
     }
 
-    /// Takes the Russian names and descriptions from the translation files (`items-*.json` of the folder).
+    /// Takes the Russian names and descriptions from the translation files (`items-*.json` of the folder), and
+    /// the labels of the descriptions that have none (`labels.json`).
     pub fn with_russian(mut self, folder: &std::path::Path) -> Self {
         self.3 = translated(folder, "items");
-        eprintln!("tables: {} items in Russian from {}", self.3.len(), folder.display());
+        self.5 = labels(folder);
+        eprintln!("tables: {} items and {} labels in Russian from {}", self.3.len(), self.5.len(), folder.display());
         self
     }
 
     /// The items with these IDs in Russian, as `json` gives them in English: an item with a translation of its
     /// own is shown by it; any other keeps its English name, with the labels of its description in Russian.
     pub fn russian_json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
-        let labelled = |lines: &[String]| lines.iter().map(|line| russian_line(line)).collect::<Vec<String>>();
+        let labelled = |lines: &[String]| lines.iter().map(|line| russian_line(line, &self.5)).collect::<Vec<String>>();
         let shown = |id: u32, name: &str, description: &[String]| match self.3.get(&id) {
             Some((russian, lines)) => (if russian.is_empty() { name.to_owned() } else { russian.clone() }, if lines.is_empty() { labelled(description) } else { lines.clone() }),
             None => (name.to_owned(), labelled(description)),

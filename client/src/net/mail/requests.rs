@@ -31,7 +31,10 @@ pub fn take(items: bool, tab: u8, letter: i64) -> Vec<u8> {
 }
 
 /// CZ_RODEX_RETURN (0x0b98, 6 bytes): `u32 id`: the letter is to go back to its sender. rAthena reads it and
-/// does nothing ("not supported for now").
+/// does nothing ("not supported for now"). The packet has four bytes for the number at this version
+/// (rAthena's `PACKET_CZ_RODEX_RETURN { int16 packetType; uint32 msgId; }`, `packets.hpp`), and the client
+/// cuts its 64-bit number the same way (`UIRodexInboxWnd`, `ID_REPORT_RODEX`:
+/// `packet.mailId = static_cast<std::uint32_t>(mail->first)`), so the cut is the protocol's, not a slip.
 pub fn give_back(letter: i64) -> Vec<u8> {
     Writer::new(0x0b98).u32(letter as u32).done()
 }

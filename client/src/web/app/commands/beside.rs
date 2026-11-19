@@ -86,7 +86,7 @@ impl App {
     /// (the client writes `Chat\Chat_<tab>.txt`), and the chat says so ("<file> is Saved.", in green).
     fn save_chat(&mut self) {
         for tab in self.chat_tabs() {
-            let lines: Vec<&str> = self.chat.lines.iter().filter(|(_, colour, kind)| tab.lists(*kind, matches!(colour.as_str(), "#ff0000" | "#f00"))).map(|(words, ..)| words.as_str()).collect();
+            let lines: Vec<&str> = self.chat.listed(&tab).map(|line| line.words.as_str()).collect();
             if lines.is_empty() {
                 continue;
             }

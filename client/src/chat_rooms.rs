@@ -73,16 +73,32 @@ pub struct Setting {
 /// The numbers of people the window offers (`UIChatRoomMakeWnd::OnCreate`); the last is what it has at first.
 pub const LIMITS: [u16; 6] = [2, 3, 5, 10, 15, 20];
 
+/// How many bytes a room's password has at most: the field of the packets, and the `maximum` of the client's
+/// two boxes for it (`UIChatRoomMakeWnd::OnCreate`, `UIPasswordWnd::OnCreate`).
+pub const PASSWORD_BYTES: usize = 8;
+
+/// A password as it is sent: its whole letters that fit the 8 bytes. The client's box counts bytes
+/// (`UIEditCtrl`: what would make `text.size()` pass `maximum` is not taken at all), so a letter of several
+/// bytes is in whole or not at all, never cut in two.
+pub fn password(typed: &str) -> &str {
+    let mut end = typed.len().min(PASSWORD_BYTES);
+    while !typed.is_char_boundary(end) {
+        end -= 1;
+    }
+    &typed[..end]
+}
+
 /// What is wrong with a setting, as a line of the client's message table and the words until it is read
 /// (`UIChatRoomMakeWnd::SendMsg`, `ID_OK`): no title; a room with a password whose password is missing or
-/// shorter than 4. (The client also refuses a title with a word of its list of bad words, which this client
+/// shorter than 4: bytes, as the client counts them (`UIEditCtrl::Length` is `text.size()`), of the password
+/// as it is sent. (The client also refuses a title with a word of its list of bad words, which this client
 /// does not have.)
 pub fn wrong(setting: &Setting) -> Option<(usize, &'static str)> {
     if setting.title.is_empty() {
         Some((13, "Please enter room title."))
     } else if !setting.public && setting.password.is_empty() {
         Some((15, "Please enter the password."))
-    } else if !setting.public && setting.password.len() < 4 {
+    } else if !setting.public && password(&setting.password).len() < 4 {
         Some((16, "Please enter at least 4 characters."))
     } else {
         None
@@ -107,5 +123,15 @@ mod tests {
         assert_eq!(wrong(&room("Chat", "abc", false)).map(|said| said.0), Some(16));
         assert_eq!(wrong(&room("Chat", "abcd", false)), None);
         assert_eq!(wrong(&room("Chat", "", true)), None);
+    }
+
+    #[test]
+    fn a_password_is_cut_between_letters() {
+        assert_eq!(password("abcd"), "abcd");
+        assert_eq!(password("abcdefghij"), "abcdefgh");
+        // Seven bytes and a letter of two: the letter does not fit, and is not cut in two.
+        assert_eq!(password("abcdefgй"), "abcdefg");
+        assert_eq!(password("пароль"), "паро");
+        assert_eq!(password("한글비번"), "한글");
     }
 }

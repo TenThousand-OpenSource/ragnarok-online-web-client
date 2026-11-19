@@ -324,7 +324,8 @@ fn reads_whether_the_character_may_leave() {
     assert_eq!((packet_length(ZC_RESTART_ACK), packet_length(ZC_ACK_REQ_DISCONNECT)), (Some(3), Some(4)));
     assert_eq!(restart(true), [0xb2, 0x00, 1]);
     assert_eq!((restart_allowed(&[0xb3, 0, 1]), restart_allowed(&[0xb3, 0, 0]), restart_allowed(&[0xb3, 0])), (true, false, false));
-    assert_eq!((leave_refused(&[0x8b, 0x01, 0, 0]), leave_refused(&[0x8b, 0x01, 1, 0]), leave_refused(&[0x8b, 0x01, 0, 1])), (false, true, true));
-    // What ends before its result is taken for a refusal.
-    assert!(leave_refused(&[0x8b, 0x01, 0]));
+    // Only the result 1 is a refusal (the client's `NOTDISCONNECTABLE_STATE`).
+    assert_eq!((leave_refused(&[0x8b, 0x01, 0, 0]), leave_refused(&[0x8b, 0x01, 1, 0]), leave_refused(&[0x8b, 0x01, 0, 1])), (false, true, false));
+    // What ends before its result refuses nothing.
+    assert!(!leave_refused(&[0x8b, 0x01, 0]) && !leave_refused(&[0x8b, 0x01]));
 }

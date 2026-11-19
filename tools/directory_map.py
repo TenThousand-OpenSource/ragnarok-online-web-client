@@ -29,7 +29,8 @@ server/                 a Docker setup of rAthena and MariaDB for development: d
                         npc/ (the classic scripts put right for the client's maps: tools/client-tables/
                         classic_overlay.py writes them), mapcache/ and public/ (made locally, not committed)
 translations/           GLOSSARY.md (terms, so that translators agree); src/ (English sources of the
-                        translated batches); ru/ (Russian: items-*.json, skills-*.json)
+                        translated batches); ru/ (Russian: items-*.json, skills-*.json, and labels.json: the
+                        words of an English item description, for the items not translated yet)
 docs/                   DONE.md (what is implemented, where from, how far checked), DEBTS.md (deviations
                         from the Windows client, bugs known, refactoring left), a picture for the README
 ARCHITECTURE.md  CLAUDE.md  README.md  BACKLOG.md

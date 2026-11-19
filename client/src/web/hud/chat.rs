@@ -42,11 +42,9 @@ impl App {
     pub(in crate::web) fn chat_lines(&self, tab: Option<&Tab>) -> String {
         let Some(tab) = tab else { return String::new() };
         self.chat
-            .lines
-            .iter()
-            .filter(|(_, colour, kind)| tab.lists(*kind, matches!(colour.as_str(), "#ff0000" | "#f00")))
-            .map(|(words, colour, _)| {
-                let line: String = crate::links::items::pieces(words)
+            .listed(tab)
+            .map(|said| {
+                let line: String = crate::links::items::pieces(&said.words)
                     .into_iter()
                     .map(|piece| match piece {
                         Piece::Words(words) => escape(words),
@@ -57,7 +55,7 @@ impl App {
                         }
                     })
                     .collect();
-                log_line(colour, &line)
+                log_line(&said.colour, &line)
             })
             .collect()
     }

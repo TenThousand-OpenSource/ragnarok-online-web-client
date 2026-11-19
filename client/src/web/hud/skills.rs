@@ -41,7 +41,10 @@ impl App {
                 let (icon, count, title) = self.hotkey_look(hotkey);
                 // A skill that waits to be used again has the shade of its wait over it (`hud/cooldowns.rs`).
                 let count = if hotkey.skill && hotkey.id != 0 { format!("{count}{}", self.waiting(hotkey.id as u16)) } else { count };
-                let key = if row == 0 { format!("F{} ", column + 1) } else { String::new() };
+                // The key the slot answers to now (the first table's places are the bar's slots), as the
+                // Shortcut Settings write it: the player may have set another, or none, on any row.
+                let key = crate::hotkeys::written(self.bound(crate::hotkeys::table::BAR, slot), self.keys.mac, data::key_name);
+                let key = if key.is_empty() { key } else { format!("{key} ") };
                 let skill = if hotkey.skill && hotkey.id != 0 { format!(r#" data-skill="{}""#, hotkey.id) } else { String::new() };
                 // What is on a slot can be dragged to another, or off the bar to take it away.
                 let skill = if hotkey.id != 0 { format!("{skill} {}", dragged(Drag::Slot(slot))) } else { skill };

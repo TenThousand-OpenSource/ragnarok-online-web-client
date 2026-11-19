@@ -82,11 +82,12 @@ fn setting(id: u16, setting: &Setting) -> Vec<u8> {
     packet.bytes(&password(&setting.password)).bytes(setting.title.as_bytes()).done()
 }
 
-/// A password in its 8 bytes: cut where the field ends, with no zero after one that fills it.
+/// A password in its 8 bytes: its whole letters that fit (`crate::chat_rooms::password`), with no zero after
+/// one that fills the field.
 fn password(password: &str) -> [u8; 8] {
     let mut field = [0u8; 8];
-    let length = password.len().min(8);
-    field[..length].copy_from_slice(&password.as_bytes()[..length]);
+    let fits = crate::chat_rooms::password(password).as_bytes();
+    field[..fits.len()].copy_from_slice(fits);
     field
 }
 
@@ -179,6 +180,9 @@ mod tests {
         assert_eq!(create(&room), [0xd5, 0, 19, 0, 10, 0, 0, b'a', b'b', b'c', b'd', 0, 0, 0, 0, b'C', b'h', b'a', b't']);
         assert_eq!(change(&room)[..4], [0xde, 0, 19, 0]);
         assert_eq!(enter(42, "abcd"), [0xd9, 0, 42, 0, 0, 0, b'a', b'b', b'c', b'd', 0, 0, 0, 0]);
+        // A letter of two bytes that would end past the field is left out whole, in both packets alike.
+        assert_eq!(enter(42, "abcdefgй")[6..], *b"abcdefg\0");
+        assert_eq!(create(&Setting { password: "abcdefgй".to_owned(), ..room.clone() })[7..15], *b"abcdefg\0");
         assert_lengths(&[enter(1, ""), give("Guest"), expel("Guest"), leave()]);
         assert_eq!(give("Guest")[..8], [0xe0, 0, 0, 0, 0, 0, b'G', b'u']);
     }

@@ -94,6 +94,11 @@ classic game not made yet.
 - A coloured broadcast with a letter height of nought is drawn at 12; the client would draw nothing
   (`net/broadcast.rs coloured`).
 - A chat room's title is not checked against a list of bad words (`chat_rooms.rs wrong`).
+- A chat room's password is measured in bytes of UTF-8, which is what this client sends; the client
+  measures the bytes of its own code page (`UIEditCtrl`: 8 at most, 4 at least). So two Cyrillic letters pass
+  for four here, and four Korean ones do not fit (`chat_rooms.rs password`, `wrong`).
+- An indexed picture of a sprite whose size its run-length code cannot fill (more than 255 pixels to a coded
+  byte) is refused as a broken file; what the client does with one was not looked for (`sprite/spr.rs`).
 
 ### Party, guild
 - The party's side window stands where it was opened; the client keeps it beside the party window as that
@@ -175,6 +180,14 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - A session with `/packets` open (the app package, `web/app/**`).
 - A cast, a bolt, a ground skill, a warp portal, a walk and a fight (the world package, `web/world/**`,
   `prim/**`).
+- After the bugs of part 4 were mended (tests only, none looked at in a browser): the key written in a
+  hotkey slot's tooltip (`web/hud/skills.rs hotkeys`); which lines a chat tab lists and `/savechat` writes
+  (`web/app/state/chat.rs Chat::listed`); what `/aura2`, `/monsterhp`, `/quake` and the other options whose
+  lines stand past 2076 say when switched (`commands.txt`); a pet's Korean lines (`web/data/pets.rs`); the
+  tables read through the safe `data::list`/`row` (`web/data/*.rs`: the world map, the cards, the guide's
+  tabs, the towns' people, the keys); a coloured announcement whose six letters are no plain number
+  (`net/broadcast.rs hex`); leaving refused (`net/packets/zone.rs leave_refused`); the Russian labels of an
+  item's description out of `translations/ru/labels.json` (`gateway/src/tables/items.rs`).
 
 ### Skills and effects
 - Every coded effect of `client/src/web/world/prims/*.rs` (40 files) and `prim/**`, except the few seen:
@@ -276,38 +289,33 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 ## 4. Bugs known and left
 
 ### Noticed during the refactoring (behaviour had to stay as it was)
-- `client/src/sprite/spr.rs parse_spr`: `width * height * 4` (two `u16`) can overflow `usize` on wasm32
-  before the reader checks the length.
-- `client/src/bmp.rs`: `width * bytes_per_pixel`, `stride * (height - 1)` and `width * height * 4` are
-  unchecked on sizes read from the file.
-- `client/src/net/mail.rs read`: a letter's things are everything after its text, not cut to the packet's
-  own length.
-- `client/src/net/mail/requests.rs give_back`: the letter's `i64` number is cut to `u32`.
-- `client/src/chat_rooms.rs wrong` counts a password in bytes; `client/src/net/chat_rooms.rs password` cuts
-  it at 8 bytes, possibly inside a letter.
-- `client/src/net/broadcast.rs hex`: `from_str_radix` takes a leading `+` among the six letters of a colour.
-- `client/src/net/packets/zone.rs leave_refused`: a 0x018b packet cut short counts as a refusal.
-- `gateway/src/tables/guide.rs plain`: a tag that never closes repeats the text before it (pinned by
-  `tables/guide/tests.rs`).
-- Korean files decoded as lossy UTF-8, not EUC-KR: `client/src/web/data/maps.rs load_music`
-  (`mp3nametable.txt`), `web/data/pets.rs want_pet_talk` (`pettalktable.xml`), `web/data/song_talk.rs fetch`;
-  and `web/figure.rs text_file` (says so itself; used for `indoorrswtable.txt` and by `web/world/scenery.rs`).
-- `client/src/web/data.rs list` / `texts` fail on `undefined` and `null` (documented there); `listed` is the
-  safe one.
-- `gateway/src/tables/items.rs RUSSIAN_LABELS`: a translation typed into code, against the project's rule.
-- `/tables/items.ko/{ids}` (`gateway/src/routes.rs`) has no reader in `client/src`.
-- `client/src/web/hud/skills.rs`: a first-row slot's tooltip says `F{n}` though the key can be rebound.
-- The chat decides whether a line is an error by the spelling of its colour (`"#ff0000" | "#f00"`):
-  `client/src/web/hud/chat.rs chat_lines`, `web/app/commands/beside.rs`.
-- `/aura2`, to be checked: `client/src/commands.txt` (written by `tools/client-tables/commands.py`) has
-  `MSI_AURA_EFFECT_ON` 2991 and `_OFF` 2992, which is what rodecomp's `MSGSTRINGID.h` says; a note of the
-  refactoring claims the client says lines 2994/2995. Not confirmed either way.
+- `/tables/items.ko/{ids}` (`gateway/src/routes.rs`) has no reader in `client/src`: no defect, a route nobody
+  asks; whether it goes is the owner's to say (the translations' sources may be made with it).
+- `/fog` and `/emblem` say nothing when they switch: their lines (`MSI_GAME_SETTINGS_FOG_ON`/`_OFF`,
+  `MSI_GAME_SETTINGS_EMBLEM_ON`/`_OFF`, the client's 4223 to 4226) are past the end of `msgstringtable.txt`,
+  which has 4022 lines. The client of this version fills its table from `data\msgstringtable.csv` by the
+  lines' names (`ImportMessageTable`, `InsertMessageRow`), where they are ("Fog On", "Guild Emblem On"…); the
+  gateway reads the `.txt` only (`gateway/src/tables.rs messages`). The two files agree line for line up to
+  4021, but for the wording of some fifty lines.
+- rodecomp's `Source/Resource/MSGSTRINGID.h` is misnumbered: it lacks the names the client misspells
+  (`MIS_PUT_GUILD_NAME_IN`, `MIS_GUILD_TIP`, `MIS_GUILD_SYSTEM` at 2077 to 2079, and
+  `MIS_SHORTCUT_SKILL_TOOLTIP_HOTKEY_SP_PERCENT` at 4108), so every number in it from 2077 on is three short,
+  and from 4108 on four. The client's numbers are the places in `messageNames`
+  (`Source/Contents/Tables/MessageTable.cpp`), which `msgstringtable.txt` follows; rodecomp's own code that
+  names a line by that header names the wrong one (`LookupMessage(MSI_AURA_EFFECT_ON)` where RODEX is closed
+  for refining is line 2991, "You cannot use RODEX while refining…"). Take a line's number from the `.txt`
+  or from `messageNames`, never from that header (`tools/client-tables/commands.py` does so now; the numbers
+  written by hand in `client/src` were compared with the `.txt` by script and agree).
 - At start the gateway prints `attempt to index global 'io'` for `System/mapInfo_true_EN.lub` and
   `System/Towninfo_EN.lub` (`gateway/src/tables/maps.rs` through `tables.rs beside`; `state` gives Lua no
-  `io`). The error is in each file's last lines (an `io.open` of an optional `SystemEN/…_C.lub`), after the
-  tables are filled, so the tables are read; only that optional file is never looked for.
+  `io`). The error is in each file's last lines (an `io.open` of an optional `SystemEN/mapinfo_C.lub`,
+  `SystemEN/Towninfo_C.lub`), after the tables are filled. Nothing is lost: neither file is in the client's
+  folder, and the lines are the translation's own, not the client's. Only the two lines printed are left.
 - It also prints `attempt to index global 'JobSkillTab'` for `skillinfoz\skilltreeview.lub`
-  (`gateway/src/tables/skills.rs`); what is lost by it was not looked into.
+  (`gateway/src/tables/skills.rs`). Lost by it: the eleven calls of `JobSkillTab.ChangeSkillTabName(job,
+  "1st", "2nd", …)` that end the file and name the skill window's tabs for some jobs (the client's
+  `JobSkillTab_GetTabName`, `UINewSkillListWnd`); the places of the skills stand before them and are read
+  whole. The gateway gives no such names to the browser.
 
 ### Found in the game by the owner and the lead, not explained or not compared
 - The readied arrow's name lies over the figure's face in the Equipment window; the places are the client's

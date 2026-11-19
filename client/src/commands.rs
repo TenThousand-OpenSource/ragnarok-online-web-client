@@ -55,6 +55,11 @@ mod tests {
         assert_eq!(message("MSI_BGM_ON"), Some(31));
         assert_eq!(message("MSI_SOUND_OFF"), Some(28));
         assert_eq!(message("MSI_NONE"), None);
+        // Past the three names the client misspells (`MIS_…`, lines 2077 to 2079) a line is where the client's
+        // own list of names has it (`messageNames`), which is where `msgstringtable.txt` has it too: "Aura
+        // effect is ON" and "…OFF" are its lines 2994 and 2995.
+        assert_eq!((message("MSI_AURA_EFFECT_ON"), message("MSI_AURA_EFFECT_OFF")), (Some(2994), Some(2995)));
+        assert_eq!((message("MSI_CREATE_GUILD_ON"), message("MSI_MONSTER_HP_ON")), (None, Some(2180)));
     }
 
     #[test]

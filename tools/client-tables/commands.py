@@ -7,7 +7,12 @@ Read from the decompiled client (`rodecomp`):
   Source/UI/GameSettings/TalkType.h      what a command asks for, by number (TT_…)
   Source/Client/Session/Session.cpp      the table of commands (`m_commandIds`) and the commands `GetTalkType`
                                          compares the first word with itself
-  Source/Resource/MSGSTRINGID.h          the lines of the message table by name (MSI_…)
+  Source/Contents/Tables/MessageTable.cpp  the lines of the message table by name (MSI_…): `messageNames`, the
+                                         list compiled into the client, in which a name's place is its line
+                                         (`FindMessageId`). `Source/Resource/MSGSTRINGID.h` is NOT read: it
+                                         lacks the names the client misspells (`MIS_PUT_GUILD_NAME_IN`,
+                                         `MIS_GUILD_TIP`, `MIS_GUILD_SYSTEM` at 2077 to 2079, one more later),
+                                         so every number in it from 2077 on is three or four short.
 
 Written, one entry a line:
   command<TAB>/who<TAB>TT_REQ_NUM_USER   a command and what it asks for; the first line of a command holds
@@ -46,7 +51,15 @@ for condition, number in re.findall(r'if \(([^{]*?)\) \{\s*\*talkType = (0x[0-9A
     for command in re.findall(r'tokenizer\[0\] == "([^"]+)"', condition):
         add(command, int(number, 0))
 
-messages = [('message', name, number) for name, number in re.findall(r'^\s*(MSI_\w+_(?:ON|OFF)\d*)\s*=\s*(\d+)u?,', read('Source/Resource/MSGSTRINGID.h'), re.M)]
+names = read('Source/Contents/Tables/MessageTable.cpp')
+names = names[names.index('const char* const messageNames[] = {'):]
+names = re.findall(r'^\s*(?:"(\w*)"|(nullptr)),', names[:names.index('};')], re.M)
+messages, known = [], set()
+for number, (name, _) in enumerate(names):
+    # The client takes the first place a name stands at.
+    if re.fullmatch(r'MSI_\w+_(?:ON|OFF)\d*', name) and name not in known:
+        known.add(name)
+        messages.append(('message', name, number))
 open(out, 'w', encoding='utf-8').write(
     '# The chat commands of the original client (Ragexe 2026-02-19) and what each asks for (`CSession`\'s table of\n'
     '# commands and `CSession::GetTalkType`), and where its message table has what is said when something is\n'

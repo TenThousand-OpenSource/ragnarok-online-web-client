@@ -8,9 +8,10 @@ fn a_line_loses_its_marks() {
     assert_eq!(plain("<TIPBOX>Kafra<INFO>1042</INFO></TIPBOX> services"), "Kafra services");
     // The bullet of the client's font becomes a dot; a `^` that begins no colour stays.
     assert_eq!(plain("\u{25a0} 2^3 zeny"), "· 2^3 zeny");
-    // A link whose target never closes takes the rest. A tag that never closes leaves the line as it is, after
-    // what stood before the tag once more: so it is today, and this holds it (it looks like a slip).
-    assert_eq!(plain("  before <broken"), "before   before <broken");
+    // A link whose target never closes takes the rest. A tag that never closes is no tag: the line stays as
+    // it is.
+    assert_eq!(plain("  before <broken"), "before <broken");
+    assert_eq!(plain("<NAVI>Kafra</NAVI> 2 < 3"), "Kafra 2 < 3");
     assert_eq!(plain("a <INFO>hidden"), "a");
     assert_eq!(plain(""), "");
 }

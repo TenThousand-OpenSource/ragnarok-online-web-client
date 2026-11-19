@@ -123,12 +123,9 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     );
     CHAT_TAB_NAMES.set(list(&field(tables, "chat_tabs")).iter().map(|tab| text_of(tab, "name").unwrap_or_default()).collect());
     RENEWAL.set(field(tables, "renewal").as_bool().unwrap_or(false));
-    MESSAGES.set(field(tables, "messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
+    MESSAGES.set(list(&field(tables, "messages")).iter().map(|line| line.as_string().unwrap_or_default()).collect());
     OPTIONS.set(
-        field(tables, "options")
-            .dyn_into::<js_sys::Array>()
-            .map(|list| list.to_vec())
-            .unwrap_or_default()
+        list(&field(tables, "options"))
             .into_iter()
             .map(|option| GameOption {
                 id: text_of(&option, "id").unwrap_or_default(),
@@ -141,17 +138,16 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .collect(),
     );
     let keys = field(tables, "hotkeys");
-    let listed = |of: wasm_bindgen::JsValue| listed(&of);
     HOTKEYS.set(
-        listed(field(&keys, "tables"))
-            .into_iter()
+        list(&field(&keys, "tables"))
+            .iter()
             .map(|entries| {
-                listed(entries)
-                    .into_iter()
+                list(entries)
+                    .iter()
                     .map(|entry| {
-                        let chord = listed(field(&entry, "keys"));
+                        let chord = list(&field(entry, "keys"));
                         let number = |at: usize| chord.get(at).and_then(|number| number.as_f64()).unwrap_or(0.0) as u16;
-                        (text_of(&entry, "name").unwrap_or_default(), crate::hotkeys::Chord { key: number(0), with: number(1) })
+                        (text_of(entry, "name").unwrap_or_default(), crate::hotkeys::Chord { key: number(0), with: number(1) })
                     })
                     .collect()
             })

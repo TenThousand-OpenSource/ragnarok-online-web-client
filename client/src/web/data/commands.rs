@@ -32,7 +32,7 @@ pub fn option_switched(option: &str) -> bool {
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     let commands = field(tables, "commands");
     // A gateway older than this table gives none: then there is no help and the options say nothing.
-    HELP.set(listed(&field(&commands, "help")).iter().filter_map(|line| line.as_string()).collect());
+    HELP.set(texts(&field(&commands, "help")));
     SAYS.set(
         entries::<String>(&field(&commands, "says"))
             .into_iter()

@@ -44,11 +44,6 @@ thread_local! {
     static FILTERS: RefCell<Vec<(u32, String, Vec<String>)>> = const { RefCell::new(Vec::new()) };
 }
 
-/// The lines of a JSON list of texts.
-fn lines_of(list: &wasm_bindgen::JsValue) -> Vec<String> {
-    listed(list).iter().filter_map(|line| line.as_string()).collect()
-}
-
 /// What the client's table says of a quest; none for a quest it does not have, and while the gateway is one
 /// older than this table (the journal then shows the quest's number).
 pub fn quest_text(quest: u32) -> Option<QuestText> {
@@ -58,12 +53,12 @@ pub fn quest_text(quest: u32) -> Option<QuestText> {
             return None;
         }
         let text = |name: &str| text_of(&about, name).unwrap_or_default();
-        let rewards = listed(&field(&about, "rewards"));
+        let rewards = list(&field(&about, "rewards"));
         Some(QuestText {
             title: text("title"),
             summary: text("summary"),
             icon: text("icon"),
-            lines: lines_of(&field(&about, "lines")),
+            lines: texts(&field(&about, "lines")),
             waits: field(&about, "waits").is_truthy(),
             base: text("base"),
             job: text("job"),
@@ -108,15 +103,15 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         .into_iter()
         .map(|(number, about)| {
             let text = |name: &str| text_of(&about, name).unwrap_or_default();
-            let info = field(&about, "info").dyn_into::<js_sys::Array>().unwrap_or_default();
-            (number, Recommended { title: text("title"), summary: text("summary"), icon: text("icon"), picture: text("picture"), info: [0, 1, 2].map(|part| lines_of(&info.get(part))) })
+            let info = row(&field(&about, "info"));
+            (number, Recommended { title: text("title"), summary: text("summary"), icon: text("icon"), picture: text("picture"), info: [0, 1, 2].map(|part| texts(&info.get(part))) })
         })
         .collect();
     recommended.sort_by_key(|(number, _)| *number);
     RECOMMENDED.set(recommended);
     TOOLTIPS.set(names::<String>(&field(&quests, "tooltips")).into_iter().collect());
     let mut filters: Vec<(u32, String, Vec<String>)> =
-        entries::<u32>(&field(&quests, "filters")).into_iter().map(|(number, about)| (number, text_of(&about, "name").unwrap_or_default(), lines_of(&field(&about, "icons")))).collect();
+        entries::<u32>(&field(&quests, "filters")).into_iter().map(|(number, about)| (number, text_of(&about, "name").unwrap_or_default(), texts(&field(&about, "icons")))).collect();
     filters.sort_by_key(|(number, ..)| *number);
     FILTERS.set(filters);
 }

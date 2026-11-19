@@ -14,7 +14,7 @@ pub(super) fn fetch() {
         let Some((file, _)) = crate::song_talk::table(effect) else { continue };
         wasm_bindgen_futures::spawn_local(async move {
             if let Ok(bytes) = crate::web::fetch_asset(file).await {
-                TABLES.with_borrow_mut(|tables| tables.insert(effect, String::from_utf8_lossy(&bytes).into_owned()));
+                TABLES.with_borrow_mut(|tables| tables.insert(effect, crate::web::korean(&bytes)));
             }
         });
     }

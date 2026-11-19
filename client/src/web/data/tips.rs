@@ -22,10 +22,7 @@ pub fn tips() -> std::rc::Rc<Vec<Tip>> {
 
 /// Takes the tips out of what the gateway gave (`tables/tips.rs`).
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
-    let tips = field(tables, "tips")
-        .dyn_into::<js_sys::Array>()
-        .map(|list| list.to_vec())
-        .unwrap_or_default()
+    let tips = list(&field(tables, "tips"))
         .into_iter()
         .map(|tip| Tip {
             id: number(&tip, "id").unwrap_or(0.0) as u32,

@@ -271,7 +271,10 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
 }
 
 /// The client's message table (`msgstringtable.txt`), line by line: what the client says, by the numbers its code
-/// knows the lines by.
+/// knows the lines by. (The client of this version fills its table from `msgstringtable.csv`, by the names of
+/// the lines, into the same numbers: a name's number is its place in the list of names compiled into the
+/// client, `messageNames` of rodecomp's `MessageTable.cpp`, and the two files agree line for line but for the
+/// wording of some fifty.)
 pub fn messages(grf: &Grf) -> Vec<String> {
     grf.read("data\\msgstringtable.txt").map(|bytes| korean(&bytes).lines().map(|line| line.trim_end_matches('#').to_owned()).collect()).unwrap_or_default()
 }

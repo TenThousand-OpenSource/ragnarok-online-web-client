@@ -381,9 +381,9 @@ async fn file(path: &str) -> Option<Rc<Vec<u8>>> {
     fetched
 }
 
-/// A text file of the game, read as Latin letters (what is not is lost; names of maps and files are).
+/// A text file of the game, which is written in Korean (`web::korean`).
 pub async fn text_file(path: &str) -> Option<String> {
-    file(path).await.map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+    file(path).await.map(|bytes| super::korean(&bytes))
 }
 
 /// A sprite's pictures and actions, by its path without the extension.

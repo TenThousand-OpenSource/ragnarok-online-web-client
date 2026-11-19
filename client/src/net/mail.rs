@@ -71,7 +71,7 @@ pub struct Read {
 /// ZC_ACK_READ_RODEX (0x0b63): `u16 length`, `u8 tab`, `i64 id`, `u16 text_length`, `i64 zeny`, `u8 count`,
 /// `char text[text_length]`, then `count` things of 60 bytes: `u16 amount`, `u32 item`, `u8 identified`,
 /// `u8 damaged`, `u32 card[4]`, `u32 location`, `u8 type`, `u16 view`, `u16 bound`, five options of 5 bytes,
-/// `u8 refine`, `u8 grade`.
+/// `u8 refine`, `u8 grade`. A letter whose text passes the packet's own length is not read.
 pub fn read(packet: &[u8]) -> Option<Read> {
     /// A thing of the letter, counted from its amount.
     const IN_LETTER: Layout =
@@ -80,8 +80,10 @@ pub fn read(packet: &[u8]) -> Option<Read> {
             refine: Some(58), identified: Identified::Byte(6), cards: 8,
         };
 
+    // The packet ends where it says it does: what lies after that in the bytes handed in is not the letter's.
+    let end = usize::from(word(packet, 2)?).min(packet.len());
     let length = usize::from(word(packet, 13)?);
-    let things = packet.get(24 + length..)?;
+    let things = packet.get(24 + length..end)?;
     let items = things.chunks_exact(60).take(usize::from(*packet.get(23)?)).filter_map(|thing| Item::read(thing, &IN_LETTER)).collect();
     Some(Read { tab: *packet.get(4)?, id: quad(packet, 5)?, body: text(&packet[24..24 + length]), zeny: quad(packet, 15)?, items })
 }

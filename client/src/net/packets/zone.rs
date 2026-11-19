@@ -186,8 +186,9 @@ pub fn restart_allowed(packet: &[u8]) -> bool {
     packet.get(2) == Some(&1)
 }
 
-/// ZC_ACK_REQ_DISCONNECT: whether leaving was refused (a fight just now, for one): any result but nought, and
-/// a packet that ends before its result too.
+/// ZC_ACK_REQ_DISCONNECT (0x018b, 4 bytes: `u16 result`): whether leaving was refused (a fight just now, for
+/// one). The client says so for the result 1 alone (`NOTDISCONNECTABLE_STATE`; 0 lets it out, and it has no
+/// word for any other); a packet that ends before its result tells nothing.
 pub fn leave_refused(packet: &[u8]) -> bool {
-    word(packet, 2) != Some(0)
+    word(packet, 2) == Some(1)
 }

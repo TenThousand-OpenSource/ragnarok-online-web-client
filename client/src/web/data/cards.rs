@@ -97,7 +97,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         entries::<u32>(&field(&cards, "names"))
             .into_iter()
             .map(|(id, card)| {
-                let card = js_sys::Array::from(&card);
+                let card = row(&card);
                 (id, (card.get(0).as_string().unwrap_or_default(), card.get(1).as_f64() == Some(1.0), card.get(2).as_string().unwrap_or_default()))
             })
             .collect(),

@@ -14,7 +14,11 @@ pub fn has_ap(job: u16) -> bool {
 /// Whether a job is a baby's (the client's `IsBabyJob`: the ranges of its `JT_…_B`), by the job the character
 /// is drawn as.
 pub fn baby(job: u16) -> bool {
-    matches!(job, 4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4238 | 4241 | 4242 | 4244 | 4247 | 4248 | 4352 | 4354)
+    matches!(
+        job,
+        4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4238 | 4241 | 4242
+        | 4244 | 4247 | 4248 | 4352 | 4354
+    )
 }
 
 /// Whether a job is a Super Novice's (the client's `IsSuperNoviceClass`): the Super Novice, its baby, the
@@ -54,7 +58,11 @@ pub fn doram(job: u16) -> bool {
 /// (`web/data/job_sprites.txt`). A job the client has no sprite for is drawn as a Novice.
 pub fn body_sprite(job: u16) -> &'static str {
     static BODIES: OnceLock<HashMap<u16, &'static str>> = OnceLock::new();
-    let bodies = BODIES.get_or_init(|| crate::tables::tabbed(include_str!("web/data/job_sprites.txt")).filter_map(|(job, name)| Some((job.parse().ok()?, name))).collect());
+    let bodies = BODIES.get_or_init(
+        || crate::tables::tabbed(include_str!("web/data/job_sprites.txt"))
+            .filter_map(|(job, name)| Some((job.parse().ok()?, name)))
+            .collect()
+    );
     // The sprites are numbered as the jobs, the later jobs moved down to follow the first ones.
     let sprite_job = if job > 3950 { job - 3950 } else { job };
     bodies.get(&sprite_job).or_else(|| bodies.get(&0)).copied().unwrap_or("초보자")
@@ -64,7 +72,15 @@ pub fn body_sprite(job: u16) -> &'static str {
 /// `tools/client-tables/job_bases.py` into `web/data/job_bases.txt`); the job itself for any other.
 pub fn base(job: u16) -> u16 {
     static BASES: OnceLock<HashMap<u16, u16>> = OnceLock::new();
-    BASES.get_or_init(|| crate::tables::tabbed(include_str!("web/data/job_bases.txt")).filter_map(|(job, base)| Some((job.parse().ok()?, base.parse().ok()?))).collect()).get(&job).copied().unwrap_or(job)
+    BASES
+        .get_or_init(
+            || crate::tables::tabbed(include_str!("web/data/job_bases.txt"))
+                .filter_map(|(job, base)| Some((job.parse().ok()?, base.parse().ok()?)))
+                .collect()
+        )
+        .get(&job)
+        .copied()
+        .unwrap_or(job)
 }
 
 /// The first job a job grew out of, among the classic ones (0 novice, 1 swordman, 2 magician, 3 archer,

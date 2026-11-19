@@ -71,7 +71,10 @@ impl Part {
             let edge = |third: i32| {
                 let wide = self.tall * cosine((third * 120) as f32);
                 let off = [wide * cosine(across), self.tall * sine((third * 120) as f32), wide * sine(across)];
-                let ends: ([f32; 3], [f32; 3]) = (std::array::from_fn(|axis| head[axis] + off[axis] + self.at[0][axis]), std::array::from_fn(|axis| tail[axis] + off[axis] + self.at[0][axis]));
+                let ends: ([f32; 3], [f32; 3]) = (
+                    std::array::from_fn(|axis| head[axis] + off[axis] + self.at[0][axis]),
+                    std::array::from_fn(|axis| tail[axis] + off[axis] + self.at[0][axis])
+                );
                 ends
             };
             for third in 1..=3 {

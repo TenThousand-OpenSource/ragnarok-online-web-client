@@ -135,7 +135,16 @@ pub(super) fn quad_spin(phase: i32, kind: i32, course: &Course) -> Prim {
 pub(super) fn ripples(picture: &'static str, size: f32, holds: i32, kind: i32, course: &Course) -> Prim {
     let mut rings = of_parts(Tei::Ripple, picture, true, course);
     rings.size = size;
-    rings.parts.extend((0..3).map(|index| Part { process: -10 * index, round: 360, tall: 6.001, turned: 25 * index, rise: index + 2, alpha_top: holds, flags: [1; 21], ..Part::default() }));
+    rings.parts.extend((0..3).map(|index| Part {
+        process: -10 * index,
+        round: 360,
+        tall: 6.001,
+        turned: 25 * index,
+        rise: index + 2,
+        alpha_top: holds,
+        flags: [1; 21],
+        ..Part::default()
+    }));
     rings.parts.push(Part { live: false, alpha_top: kind, ..Part::default() });
     rings
 }

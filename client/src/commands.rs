@@ -33,6 +33,22 @@ pub fn split(words: &str) -> Option<(&str, &str)> {
     words.starts_with('/').then(|| words.split_once(char::is_whitespace).map_or((words, ""), |(first, rest)| (first, rest.trim())))
 }
 
+/// A ranking as the client writes it into the chat: a heading with the ranking's name, a line to each of the
+/// ten ("[ %2d ] %-18s  :  %4d POINT"), a rule, the player's own points and a rule again.
+pub fn ranking_lines(kind: u16, ranked: &[(String, u32)], own: u32) -> Vec<String> {
+    let named = ["BLACKSMITH", "ALCHEMIST", "TAEKWON"].get(usize::from(kind)).copied().unwrap_or("KILLER");
+    let rule = "=".repeat(39);
+    let mut lines = vec![format!("========== {named} RANK ============")];
+    lines.extend(
+        ranked
+            .iter()
+            .enumerate()
+            .map(|(place, (name, points))| format!("[ {:2} ] {name:<18}  :  {points:4} POINT", place + 1)),
+    );
+    lines.extend([rule.clone(), format!("MY POINT    :  {own:4} POINT "), rule]);
+    lines
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -67,5 +83,16 @@ mod tests {
         assert_eq!(split("/ex  Some Name "), Some(("/ex", "Some Name")));
         assert_eq!(split("/who"), Some(("/who", "")));
         assert_eq!(split("hello /who"), None);
+    }
+
+    #[test]
+    fn a_ranking_is_asked_for_read_and_written() {
+        let lines = ranking_lines(2, &[("Kick".to_owned(), 1200)], 7);
+        assert_eq!(lines[0], "========== TAEKWON RANK ============");
+        assert_eq!(lines[1], "[  1 ] Kick                :  1200 POINT");
+        assert_eq!(lines[3], "MY POINT    :     7 POINT ");
+        assert_eq!((lines.len(), lines[2].as_str(), lines[4].as_str()), (5, "=".repeat(39).as_str(), "=".repeat(39).as_str()));
+        // A kind the client has no name for is the killers'.
+        assert_eq!(ranking_lines(3, &[], 0)[0], "========== KILLER RANK ============");
     }
 }

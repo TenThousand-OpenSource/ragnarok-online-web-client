@@ -32,7 +32,13 @@ impl App {
         if deal.closed.0 {
             window.push_str(&Self::exchange_zeny(70, deal.zeny.0));
         } else {
-            window.push_str(&numeric_field("exchange-zeny", (140, 330, 100, 16), "0", 13, &format!("background:{FIELD_GROUND};border:1px solid #c6c6c6;box-sizing:border-box")));
+            window.push_str(&numeric_field(
+                "exchange-zeny",
+                (140, 330, 100, 16),
+                "0",
+                13,
+                &format!("background:{FIELD_GROUND};border:1px solid #c6c6c6;box-sizing:border-box")
+            ));
         }
         window.push_str(&Self::exchange_zeny(350, deal.zeny.1));
         window.push_str(&deal_button(3, "btn_ok", (deal.locking || deal.closed.0).then_some("btn_ok_dis"), Press::Lock));
@@ -62,7 +68,12 @@ impl App {
                 side.push_str(&art("basic_interface/itemwin_mid.bmp", x + 9, y, 32, 32));
             }
             let Some(item) = items.get(row as usize) else { continue };
-            side.push_str(&format!(r#"<div class="a" style="{}" {}>{}</div>"#, at(x + 13, y + 1, 24, 24), item_marks(item.id, item.identified), Self::icon_of(item)));
+            side.push_str(&format!(
+                r#"<div class="a" style="{}" {}>{}</div>"#,
+                at(x + 13, y + 1, 24, 24),
+                item_marks(item.id, item.identified),
+                Self::icon_of(item)
+            ));
             side.push_str(&text_in(SMALL, x + 25, y + 15, BLACK, &item.amount.to_string()));
             side.push_str(&format!(
                 r#"<div class="a t" style="{};line-height:30px;overflow:hidden;white-space:nowrap">{}</div>"#,
@@ -82,7 +93,10 @@ impl App {
         let words = grouped(i64::from(zeny));
         let font = Font(1, 16, false);
         let colour = zeny_colour(zeny);
-        [(x + 149, 330, colour), (x + 150, 330, colour), (x + 150, 331, "#323232")].into_iter().map(|(right, y, colour)| text_ending_in(font, right, 560, y, colour, &words)).collect()
+        [(x + 149, 330, colour), (x + 150, 330, colour), (x + 150, 331, "#323232")]
+            .into_iter()
+            .map(|(right, y, colour)| text_ending_in(font, right, 560, y, colour, &words))
+            .collect()
     }
 
     /// The question whether to deal, in the client's message box (`UIExchangeAcceptWnd`, 280 by 120): who asks

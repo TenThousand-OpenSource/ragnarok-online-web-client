@@ -18,27 +18,7 @@ thread_local! {
 /// grew through, the first with the Novice's skills among its own. Each page: the place of each skill (counting
 /// the cells row by row, seven to a row) and the skill.
 pub fn skill_pages(job: u16) -> Vec<Vec<(u16, u16)>> {
-    TREE.with_borrow(|tree| {
-        // From the job back to the Novice.
-        let mut line = Vec::new();
-        let mut at = Some(job);
-        while let Some(job) = at.filter(|job| !line.contains(job) && line.len() < 8) {
-            line.push(job);
-            at = tree.get(&job).and_then(|(from, _)| *from).filter(|from| *from != job);
-        }
-        line.reverse();
-        let mut pages: Vec<Vec<(u16, u16)>> = Vec::new();
-        for (index, job) in line.iter().enumerate() {
-            let slots = tree.get(job).map(|(_, slots)| slots.clone()).unwrap_or_default();
-            // The Novice's page is the first job's too.
-            if index == 1 && line[0] == 0 {
-                pages[0].extend(slots);
-            } else {
-                pages.push(slots);
-            }
-        }
-        pages
-    })
+    TREE.with_borrow(|tree| crate::skills::pages(job, tree))
 }
 
 /// The client's description of a skill, line by line, once the gateway has told it (see `want_skill`).

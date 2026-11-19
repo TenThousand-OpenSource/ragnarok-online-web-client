@@ -72,7 +72,12 @@ impl App {
             }
             vending::ZC_PC_PURCHASE_ITEMLIST_FROMMC => {
                 if let Some(list) = vending::listed(packet) {
-                    data::want_items(list.sold.iter().flat_map(|sold| std::iter::once(sold.item.id).chain(crate::item_names::Named::from(&sold.item).cards_set())), || dispatch(Action::ItemsKnown));
+                    data::want_items(
+                        list.sold.iter().flat_map(
+                            |sold| std::iter::once(sold.item.id).chain(crate::item_names::Named::from(&sold.item).cards_set())
+                        ),
+                        || dispatch(Action::ItemsKnown)
+                    );
                     self.vending.visit = Some(Visit { name: world::player_name(list.vendor), list, basket: Vec::new(), stage: Stage::Choosing });
                     self.vending.counting = None;
                     self.redraw(&wnd::VENDING_WINDOWS);
@@ -82,7 +87,11 @@ impl App {
                 if let Some((index, amount, result)) = vending::purchase_result(packet) {
                     // The client names the thing by where it now lies in the inventory, which the server's
                     // place in the vendor's cart is not: it is named here by the list last looked at.
-                    let name = self.vending.visit.as_ref().and_then(|visit| visit.list.sold.iter().find(|sold| sold.item.index == index)).map(|sold| Self::item_name(&sold.item)).unwrap_or_default();
+                    let name = self.vending.visit
+                        .as_ref()
+                        .and_then(|visit| visit.list.sold.iter().find(|sold| sold.item.index == index))
+                        .map(|sold| Self::item_name(&sold.item))
+                        .unwrap_or_default();
                     if let Some(words) = crate::vending::purchase_said(result, &name, amount, Self::words) {
                         self.chat_line(words, if result == 7 { RED } else { NOT_BOUGHT });
                     }
@@ -127,7 +136,10 @@ impl App {
         self.chat_line("=== SALE LIST ===".to_owned(), LIST_HEAD);
         for thing in &sold {
             self.chat_line(format!("    {}  :  {}  Zeny", Self::item_name(&thing.item), crate::numbers::grouped(i64::from(thing.price))), LIST_LINE);
-            self.chat_line(format!("Commission : 1 EA = {} Zeny", crate::numbers::grouped(i64::from(crate::vending::after_commission(thing.price)))), LIST_LINE);
+            self.chat_line(
+                format!("Commission : 1 EA = {} Zeny", crate::numbers::grouped(i64::from(crate::vending::after_commission(thing.price)))),
+                LIST_LINE
+            );
         }
         let zeny = self.hero.zeny();
         self.chat_line(format!("Current Zeny : {} Z", crate::numbers::grouped(zeny)), LIST_FOOT);

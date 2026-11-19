@@ -34,7 +34,19 @@ mod tests {
 
     #[test]
     fn words_it_as_its_window_does() {
-        assert_eq!((intimacy_word(0).0, intimacy_word(10).0, intimacy_word(100).0, intimacy_word(250).0, intimacy_word(750).0, intimacy_word(910).0, intimacy_word(1000).0, intimacy_word(1001).0), (1022, 1021, 672, 673, 669, 674, 675, 676));
+        assert_eq!(
+            (
+                intimacy_word(0).0,
+                intimacy_word(10).0,
+                intimacy_word(100).0,
+                intimacy_word(250).0,
+                intimacy_word(750).0,
+                intimacy_word(910).0,
+                intimacy_word(1000).0,
+                intimacy_word(1001).0
+            ),
+            (1022, 1021, 672, 673, 669, 674, 675, 676)
+        );
         assert_eq!((hungry_now(10, 0), hungry_now(10, 10), hungry_now(5, 10), hungry_now(11, 10)), (Some(10), None, Some(5), None));
         assert_eq!(attack_speed(1400), 60);
     }

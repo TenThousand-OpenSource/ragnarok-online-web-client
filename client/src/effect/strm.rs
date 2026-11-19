@@ -64,7 +64,23 @@ pub fn parse(bytes: &[u8], name: impl Fn(&[u8]) -> String) -> Result<Effect, Str
             let (aniframe, anitype, anidelta, rz) = (reader.f32()?, reader.u32()?, reader.f32()?, reader.f32()?);
             let colour = reader.floats::<4>()?;
             let (source_blend, destination_blend, _texture_mode) = (reader.u32()?, reader.u32()?, reader.u32()?);
-            keys.push(Key { frame, kind, transform: Transform { x, y, u, v, us, vs, ax, ay, aniframe, anitype, anidelta, rz, colour, source_blend, destination_blend } });
+            keys.push(Key { frame, kind, transform: Transform {
+                x,
+                y,
+                u,
+                v,
+                us,
+                vs,
+                ax,
+                ay,
+                aniframe,
+                anitype,
+                anidelta,
+                rz,
+                colour,
+                source_blend,
+                destination_blend
+            } });
         }
         layers.push(Layer { textures, keys });
     }

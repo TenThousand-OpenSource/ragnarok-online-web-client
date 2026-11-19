@@ -53,19 +53,28 @@ impl App {
         // The items of a page of weapons or armour: their names, pictures and descriptions.
         if let Some(page) = self.guide.tab.checked_sub(5).and_then(|at| guide.items.get(at)) {
             let job = self.game.as_ref().map_or(0, |game| game.job);
-            let filled: std::collections::HashSet<u32> = page.list.iter().filter(|item| (i64::from(item.min)..=i64::from(item.max)).contains(&level) && guide.wears(job, item)).map(|item| item.kind).collect();
+            let filled: std::collections::HashSet<u32> = page.list
+                .iter()
+                .filter(|item| (i64::from(item.min)..=i64::from(item.max)).contains(&level) && guide.wears(job, item))
+                .map(|item| item.kind)
+                .collect();
             let kinds: Vec<(u32, String, u32, u32)> = page.kinds.iter().filter(|kind| filled.contains(&kind.0)).cloned().collect();
             let kind = self.guide_kind(&kinds, level);
-            data::want_items(page.list.iter().filter(|item| Some(item.kind) == kind && (i64::from(item.min)..=i64::from(item.max)).contains(&level) && guide.wears(job, item)).flat_map(|item| {
+            data::want_items(page.list.iter().filter(
+                |item| Some(item.kind) == kind && (i64::from(item.min)..=i64::from(item.max)).contains(&level) && guide.wears(job, item)
+            ).flat_map(|item| {
                 // The item itself, and those written into the lines of where it is had from (`^i[<id>]`).
-                let written = item.from.iter().flat_map(|line| line.split("^i[").skip(1).filter_map(|rest| rest.split(']').next()?.parse::<u32>().ok()).collect::<Vec<u32>>());
+                let written = item.from.iter().flat_map(
+                    |line| line.split("^i[").skip(1).filter_map(|rest| rest.split(']').next()?.parse::<u32>().ok()).collect::<Vec<u32>>()
+                );
                 std::iter::once(item.id).chain(written).collect::<Vec<u32>>()
             }), || dispatch(Action::ItemsKnown));
         }
         if self.guide.tab != 2 {
             return;
         }
-        let shown: Vec<&data::GuideMonster> = guide.monsters.iter().filter(|monster| (i64::from(monster.min)..=i64::from(monster.max)).contains(&level)).collect();
+        let shown: Vec<&data::GuideMonster> =
+            guide.monsters.iter().filter(|monster| (i64::from(monster.min)..=i64::from(monster.max)).contains(&level)).collect();
         data::want_items(shown.iter().flat_map(|monster| monster.rewards.iter().copied()), || dispatch(Action::ItemsKnown));
         let wanted: Vec<(u32, String)> = shown
             .iter()

@@ -51,7 +51,9 @@ impl App {
             Press::Mark => self.book_marked(),
             // The arrows do nothing while the book is read aloud (`ID_PREVIEW`, `ID_NEXTVIEW`).
             Press::Before | Press::After => {
-                if let Some(page) = self.books.open.as_ref().filter(|open| open.aloud.is_none()).map(|open| open.book.turned(open.page, press == Press::After)) {
+                if let Some(page) = self.books.open.as_ref().filter(|open| open.aloud.is_none()).map(
+                    |open| open.book.turned(open.page, press == Press::After)
+                ) {
                     self.book_shown(page);
                 }
             }

@@ -119,7 +119,11 @@ mod tests {
         let part = prim.parts[0].clone();
         // The first turn goes up towards its mark and the second down; it drifts by their sines and rises.
         assert_eq!((part.heights[0], part.heights[2], part.alpha), (93.0, 268.0, 5));
-        assert!((part.at[2][0] - 2.5 - sine(93.0) * 0.03).abs() < 1e-5 && (part.at[2][2] - sine(268.0) * 0.03).abs() < 1e-5 && (part.at[2][1] + 3.2).abs() < 1e-5);
+        assert!(
+            (part.at[2][0] - 2.5 - sine(93.0) * 0.03).abs() < 1e-5
+                && (part.at[2][2] - sine(268.0) * 0.03).abs() < 1e-5
+                && (part.at[2][1] + 3.2).abs() < 1e-5
+        );
         let rects = prim.rects(RIGHT, UP);
         assert_eq!((rects.len(), rects[0].colour, rects[0].adds, rects[0].alpha), (1, [255; 3], true, 5.0));
         for _ in 1..29 {

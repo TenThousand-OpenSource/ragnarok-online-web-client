@@ -37,7 +37,9 @@ impl App {
             }
             // Use: the picked skill, if it is learned and costs something (`UISkillListWnd`, its `ID_OK`).
             Press::SkillUse => {
-                if let Some(skill) = self.homunculus.skill_picked.and_then(|row| self.homunculus.skills.get(row)).filter(|skill| skill.level != 0 && skill.sp != 0) {
+                if let Some(skill) = self.homunculus.skill_picked.and_then(|row| self.homunculus.skills.get(row)).filter(
+                    |skill| skill.level != 0 && skill.sp != 0
+                ) {
                     self.used(Use::Skill(skill.id));
                 }
             }
@@ -67,7 +69,8 @@ impl App {
     /// 3551 says so), named (the window shows the name at once), or deleted (its windows close at once).
     fn homunculus_answered(&mut self, yes: bool) {
         match self.homunculus.asks.take().filter(|_| yes) {
-            Some(HomunculusAsk::Feed) if self.exchange.open => self.chat_line(Self::words(3551, "Failed to feed the homunculus. Homunculus in a state that can't be fed."), RED),
+            Some(HomunculusAsk::Feed) if self.exchange.open =>
+                self.chat_line(Self::words(3551, "Failed to feed the homunculus. Homunculus in a state that can't be fed."), RED),
             Some(HomunculusAsk::Feed) => self.send_on_map(&homunculus::command(homunculus::order::FEED)),
             Some(HomunculusAsk::Rename(name)) => {
                 self.send_on_map(&homunculus::rename(&name));

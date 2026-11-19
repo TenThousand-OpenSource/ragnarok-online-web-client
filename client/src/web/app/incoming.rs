@@ -60,7 +60,8 @@ mod books;
 /// |---|---|---|
 /// | `ZC_ACCEPT_ENTER` (the game is entered) | cart, vending, ai, mail: each forgets the character before | travel |
 /// | `ZC_NPCACK_MAPMOVE` (another map) | vending, ai | travel |
-/// | `ZC_INVENTORY_START`, `ZC_INVENTORY_ITEMLIST_NORMAL`, `_EQUIP` | cart: the cart's list is one kind of these | inventory (which hands the storage's kind on) |
+/// | `ZC_INVENTORY_START`, `ZC_INVENTORY_ITEMLIST_NORMAL`, `_EQUIP` | cart: the cart's list is one kind of these |
+/// inventory (which hands the storage's kind on) |
 /// | `ZC_MSG_STATE_CHANGE`, `2`, `3`, `ZC_EFST_SET_ENTER2` | cart (who pushes which cart), mail (letters sent today; `2` and `3` only) | statuses |
 /// | `ZC_DELETE_ITEM_FROM_BODY` | mail: a letter being written closes | inventory |
 /// | `ZC_NOTIFY_ACT`, `ZC_USESKILL_ACK` | ai: who struck whom | combat |

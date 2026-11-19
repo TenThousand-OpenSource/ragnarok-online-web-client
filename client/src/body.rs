@@ -188,7 +188,25 @@ pub struct Print {
 
 impl Default for Body {
     fn default() -> Self {
-        Self { colour: WHITE, locked: false, stated: WHITE, flags: 0, effect_phase: 0, tint_phase: 0, shrink_phase: 0, grow_phase: 0, outline_alpha: 0, wave_phase: 0, trail_phase: 0, turn: 0.0, blink_skipped: false, run_tick: 0, steps: 0, stepped_from: None, held: None }
+        Self {
+            colour: WHITE,
+            locked: false,
+            stated: WHITE,
+            flags: 0,
+            effect_phase: 0,
+            tint_phase: 0,
+            shrink_phase: 0,
+            grow_phase: 0,
+            outline_alpha: 0,
+            wave_phase: 0,
+            trail_phase: 0,
+            turn: 0.0,
+            blink_skipped: false,
+            run_tick: 0,
+            steps: 0,
+            stepped_from: None,
+            held: None
+        }
     }
 }
 
@@ -260,7 +278,9 @@ impl Body {
             return None;
         }
         let length = (east * east + north * north).sqrt();
-        let way = (0..=180).find(|degrees| east / length >= crate::prim::cosine(*degrees as f32)).map_or(180, |degrees| if north / length >= 0.0 { degrees } else { 360 - degrees });
+        let way = (0..=180)
+            .find(|degrees| east / length >= crate::prim::cosine(*degrees as f32))
+            .map_or(180, |degrees| if north / length >= 0.0 { degrees } else { 360 - degrees });
         (i32::from(self.run_tick) > EVERY).then_some(Print { left: self.steps == EVERY, turned: (way + 135) % 360 })
     }
 

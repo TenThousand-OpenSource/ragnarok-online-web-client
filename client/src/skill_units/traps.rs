@@ -93,7 +93,10 @@ mod tests {
 
     #[test]
     fn a_trap_made_a_used_one_launches_its_effect() {
-        assert_eq!((sprung_with(143), sprung_with(149), sprung_with(150), sprung_with(151), sprung_with(152)), (Some(106), Some(139), Some(99), Some(108), Some(107)));
+        assert_eq!(
+            (sprung_with(143), sprung_with(149), sprung_with(150), sprung_with(151), sprung_with(152)),
+            (Some(106), Some(139), Some(99), Some(108), Some(107))
+        );
         // An Ankle Snare, a Land Mine, a Skid Trap, a Shockwave Trap and a Talkie Box launch none.
         assert!([144, 145, 147, 148, 153].into_iter().all(|unit| sprung_with(unit).is_none()));
     }

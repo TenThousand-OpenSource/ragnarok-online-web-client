@@ -19,4 +19,9 @@ pub(in crate::web) static FRIEND_ASKS: Window = Window::question("friend-asks", 
 
 /// The menu on a friend, opened with the right button in the list, where the pointer was.
 pub(in crate::web) static FRIEND_MENU: Window =
-    Window::menu("friend-menu", |app| app.party.open && app.friends.shown && app.friends.menu.is_some(), |app, _| menu_frame(app.friends.menu.map(|(at, _)| at)), App::friend_menu);
+    Window::menu(
+        "friend-menu",
+        |app| app.party.open && app.friends.shown && app.friends.menu.is_some(),
+        |app, _| menu_frame(app.friends.menu.map(|(at, _)| at)),
+        App::friend_menu
+    );

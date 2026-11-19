@@ -50,7 +50,13 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
                 fields: list(field(&world, "fields"))
                     .into_iter()
                     .map(|entry| row(&entry))
-                    .map(|row| Field { id: number(&row, 0) as u32, map: text(&row, 1), at: [number(&row, 2), number(&row, 3), number(&row, 4), number(&row, 5)], name: text(&row, 6), level: text(&row, 7) })
+                    .map(|row| Field {
+                        id: number(&row, 0) as u32,
+                        map: text(&row, 1),
+                        at: [number(&row, 2), number(&row, 3), number(&row, 4), number(&row, 5)],
+                        name: text(&row, 6),
+                        level: text(&row, 7)
+                    })
                     .collect(),
                 groups: list(field(&world, "groups"))
                     .into_iter()

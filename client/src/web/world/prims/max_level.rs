@@ -61,7 +61,15 @@ fn swirls(course: &Course) -> Prim {
     let mut prim = of_parts(Tei::Level99Swirl, "ring_blue.tga", true, course);
     prim.colour = [100.0, 100.0, 255.0];
     prim.parts.extend((0..3).map(|band| {
-        let mut swirl = Part { turned: band * 90, round: 315, rise: 55 - band * 5, tall: 15.0 - band as f32 * 2.0, out: band as f32 * 0.2 + 3.9, alpha: 120, ..Part::default() };
+        let mut swirl = Part {
+            turned: band * 90,
+            round: 315,
+            rise: 55 - band * 5,
+            tall: 15.0 - band as f32 * 2.0,
+            out: band as f32 * 0.2 + 3.9,
+            alpha: 120,
+            ..Part::default()
+        };
         (swirl.flags[0], swirl.heights[0]) = (band as i8, (band * 90) as f32);
         swirl
     }));

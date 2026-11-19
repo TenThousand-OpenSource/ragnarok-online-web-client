@@ -82,7 +82,9 @@ impl Part {
         let figure = |east: f32, north: f32| [corners[1], corners[0], corners[3], corners[2]].map(|at| [at[0] + east, at[1], at[2] + north]);
         let copies = if look == 1 { [5, 5, 255] } else { [255; 3] };
         let mut rects = vec![Rect::new(picture, self.alpha, figure(0.0, 0.0), (0.0, 1.0), [255; 3], look == 2)];
-        rects.extend([(0.2, 0.0), (-0.2, 0.0), (0.0, 0.2), (0.0, -0.2)].map(|(east, north)| Rect::new(picture, self.alpha / 2, figure(east, north), (0.0, 1.0), copies, true)));
+        rects.extend([(0.2, 0.0), (-0.2, 0.0), (0.0, 0.2), (0.0, -0.2)].map(
+            |(east, north)| Rect::new(picture, self.alpha / 2, figure(east, north), (0.0, 1.0), copies, true)
+        ));
         rects
     }
 }

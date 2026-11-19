@@ -35,7 +35,10 @@ mod tests {
     fn a_table_is_read_field_by_field() {
         let table = "// a note\n2@exds.rsw#\n0.23#\n0.5#\n0xff12121e#\n0.3#\n\nYuno.rsw#\t250#\t250#";
         assert_eq!(records(table, 4), [("2@exds.rsw".to_owned(), vec![0.23, 0.5, 4_279_374_366.0, 0.3])]);
-        assert_eq!(records("yuno.rsw#\t230#\t170#\t500#\t-360#\t360#\t45#\t-25# -60#\t-35#\t\n", 9)[0].1, [230.0, 170.0, 500.0, -360.0, 360.0, 45.0, -25.0, -60.0, -35.0]);
+        assert_eq!(
+            records("yuno.rsw#\t230#\t170#\t500#\t-360#\t360#\t45#\t-25# -60#\t-35#\t\n", 9)[0].1,
+            [230.0, 170.0, 500.0, -360.0, 360.0, 45.0, -25.0, -60.0, -35.0]
+        );
     }
 
     #[test]

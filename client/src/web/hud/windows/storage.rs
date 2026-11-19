@@ -50,4 +50,7 @@ pub(in crate::web) static STORAGE_COUNT: Window = Window::count("storage-count",
 
 /// Every window that shows the storage's things: drawn anew together when they change.
 pub(in crate::web) static STORAGE_WINDOWS: [&Window; 10] =
-    [&STORAGE, &STORAGE_APART_0, &STORAGE_APART_1, &STORAGE_APART_2, &STORAGE_APART_3, &STORAGE_APART_4, &STORAGE_APART_5, &STORAGE_APART_6, &STORAGE_APART_7, &STORAGE_FOUND];
+    [
+        &STORAGE, &STORAGE_APART_0, &STORAGE_APART_1, &STORAGE_APART_2, &STORAGE_APART_3, &STORAGE_APART_4,
+        &STORAGE_APART_5, &STORAGE_APART_6, &STORAGE_APART_7, &STORAGE_FOUND
+    ];

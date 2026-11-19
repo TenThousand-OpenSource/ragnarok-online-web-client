@@ -24,9 +24,23 @@ pub fn minutes(seconds: u64) -> String {
     seconds.div_ceil(60).max(1).to_string()
 }
 
+/// When a character waiting to be deleted can be, as the list of characters writes it in two lines: the month
+/// and the day, and under them the hour and the minute. (Where the Windows client writes this was not found
+/// in its code.)
+pub fn deletion_due((month, day): (u32, u32), (hours, minutes): (u32, u32)) -> [String; 2] {
+    [format!("{month}/{day}"), format!("{hours:02}:{minutes:02}")]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_deletion_is_due_on_a_day_at_a_time() {
+        assert_eq!(deletion_due((3, 9), (7, 5)), ["3/9", "07:05"]);
+        assert_eq!(deletion_due((12, 31), (23, 59)), ["12/31", "23:59"]);
+        assert_eq!(deletion_due((0, 0), (0, 0)), ["0/0", "00:00"]);
+    }
 
     #[test]
     fn an_id_and_a_password_are_held_to_their_lengths_and_letters() {
@@ -46,6 +60,9 @@ mod tests {
 
     #[test]
     fn a_wait_is_told_in_minutes_begun() {
-        assert_eq!((minutes(0), minutes(1), minutes(60), minutes(61), minutes(3600)), ("1".to_owned(), "1".to_owned(), "1".to_owned(), "2".to_owned(), "60".to_owned()));
+        assert_eq!(
+            (minutes(0), minutes(1), minutes(60), minutes(61), minutes(3600)),
+            ("1".to_owned(), "1".to_owned(), "1".to_owned(), "2".to_owned(), "60".to_owned())
+        );
     }
 }

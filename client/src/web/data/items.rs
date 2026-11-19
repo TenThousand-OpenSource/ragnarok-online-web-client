@@ -28,7 +28,13 @@ pub fn item_as(id: u32, identified: bool) -> Option<(String, String)> {
     if identified {
         return Some(known);
     }
-    Some(UNIDENTIFIED.with_borrow(|unknown| unknown.get(&id).filter(|(name, ..)| !name.is_empty()).map(|(name, resource, _)| (name.clone(), resource.clone()))).unwrap_or(known))
+    Some(
+        UNIDENTIFIED
+            .with_borrow(
+                |unknown| unknown.get(&id).filter(|(name, ..)| !name.is_empty()).map(|(name, resource, _)| (name.clone(), resource.clone()))
+            )
+            .unwrap_or(known)
+    )
 }
 
 /// How many slots for cards an item has: what the client writes as `[n]` after its name.
@@ -48,7 +54,10 @@ pub fn about(id: u32) -> Option<(Vec<String>, Vec<(String, String)>)> {
 
 /// Asks the gateway about the items not known yet, and calls `then` when it has answered.
 pub fn want_items(ids: impl Iterator<Item = u32>, then: fn()) {
-    let missing: Vec<u32> = ids.filter(|id| *id != 0 && !ITEMS.with_borrow(|items| items.contains_key(id)) && ITEMS_ASKED.with_borrow_mut(|asked| asked.insert(*id))).collect();
+    let missing: Vec<u32> = ids.filter(
+        |id| *id != 0 && !ITEMS.with_borrow(|items| items.contains_key(id)) && ITEMS_ASKED.with_borrow_mut(|asked| asked.insert(*id))
+    )
+        .collect();
     if missing.is_empty() {
         return;
     }
@@ -72,7 +81,11 @@ fn told(answer: &wasm_bindgen::JsValue) {
         if let (Some(name), Some(resource)) = (text_of(&about, "name"), text_of(&about, "resource")) {
             ITEMS.with_borrow_mut(|items| items.insert(id, (name, resource)));
         }
-        let facts = list(&field(&about, "facts")).iter().filter_map(|fact| <[String; 2]>::try_from(texts(fact)).ok()).map(|[key, value]| (key, value)).collect();
+        let facts = list(&field(&about, "facts"))
+            .iter()
+            .filter_map(|fact| <[String; 2]>::try_from(texts(fact)).ok())
+            .map(|[key, value]| (key, value))
+            .collect();
         ABOUT.with_borrow_mut(|all| all.insert(id, (texts(&field(&about, "description")), facts)));
         let unknown = field(&about, "unidentified");
         if let (true, Some(name), Some(resource)) = (unknown.is_object(), text_of(&unknown, "name"), text_of(&unknown, "resource")) {

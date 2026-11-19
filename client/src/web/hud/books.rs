@@ -16,12 +16,15 @@ impl App {
     /// was read.
     fn book_button(&self, button: BookButton, x: i32, y: i32, tip: &str, press: Press) -> String {
         let Some((address, (width, height))) = self.books.pictures.get(&(button, 0)) else { return String::new() };
-        format!(
-            r#"<button type="button" class="a" style="{};border:0;padding:0;background:none" {} data-tip="{}"><img src="{address}" alt="" draggable="false" style="display:block"></button>"#,
-            at(x, y, *width as i32, *height as i32),
-            pressed(press),
-            escape(tip)
-        )
+        [
+            format!(
+                r#"<button type="button" class="a" style="{};border:0;padding:0;background:none" {} data-tip="{}">"#,
+                at(x, y, *width as i32, *height as i32),
+                pressed(press),
+                escape(tip)
+            ),
+            format!(r#"<img src="{address}" alt="" draggable="false" style="display:block"></button>"#)
+        ].concat()
     }
 
     /// The book's window (`UIBookWnd::OnCreate`, `Paint`): a title bar with no words of its own, in which
@@ -38,7 +41,11 @@ impl App {
         let lines: String = crate::books::carried(open.book.page(open.page))
             .iter()
             .enumerate()
-            .map(|(row, line)| format!(r#"<div class="a t" style="left:33px;top:{}px;white-space:pre;color:{BLACK}">{}</div>"#, 49 + row as i32 * 18, coloured(line)))
+            .map(|(row, line)| format!(
+                r#"<div class="a t" style="left:33px;top:{}px;white-space:pre;color:{BLACK}">{}</div>"#,
+                49 + row as i32 * 18,
+                coloured(line)
+            ))
             .collect();
         let title = format!("{} ( {} / {} )", data::item(open.id).map(|(name, _)| name).unwrap_or_default(), open.page, open.book.pages());
         format!(
@@ -59,10 +66,10 @@ impl App {
     /// down in pale pink with a dark edge.
     pub(in crate::web) fn book_line(&self) -> String {
         let Some(said) = self.books.open.as_ref().and_then(|open| open.aloud.as_ref()).and_then(|aloud| aloud.said.as_ref()) else { return String::new() };
-        format!(
-            r#"<div class="t" style="padding:4px 6px;background:rgba(0,0,0,.4);border:1px solid #5c5c5c;border-radius:3px;color:{BOOK_SAID};text-shadow:1px 1px 0 #000;white-space:pre">{}</div>"#,
-            escape(said)
-        )
+        [
+            format!(r#"<div class="t" style="padding:4px 6px;background:rgba(0,0,0,.4);border:1px solid #5c5c5c;"#),
+            format!(r#"border-radius:3px;color:{BOOK_SAID};text-shadow:1px 1px 0 #000;white-space:pre">{}</div>"#, escape(said))
+        ].concat()
     }
 
     /// "Read" and "Auto Read" in the window of an item (`UIItemCollectionWnd::SendMsg`, `UM_SETINFO`): on a
@@ -90,20 +97,26 @@ impl App {
                     (false, true) => ("hidden;visible;visible".to_owned(), format!("0;{from:.4};1")),
                     (false, false) => ("hidden;visible;hidden;hidden".to_owned(), format!("0;{from:.4};{to:.4};1")),
                 };
-                format!(
-                    r#"<image href="{address}" x="{}" y="{}" width="{wide}" height="{tall}" visibility="hidden"><animate attributeName="visibility" calcMode="discrete" values="{values}" keyTimes="{times}" dur="{}ms" repeatCount="indefinite"/></image>"#,
-                    width / 2 - *wide as i32 / 2,
-                    height / 2 - *tall as i32 / 2,
-                    count * 100
-                )
+                [
+                    format!(
+                        r#"<image href="{address}" x="{}" y="{}" width="{wide}" height="{tall}" visibility="hidden">"#,
+                        width / 2 - *wide as i32 / 2,
+                        height / 2 - *tall as i32 / 2
+                    ),
+                    format!(r#"<animate attributeName="visibility" calcMode="discrete" values="{values}" keyTimes="{times}" "#),
+                    format!(r#"dur="{}ms" repeatCount="indefinite"/></image>"#, count * 100)
+                ].concat()
             })
             .collect();
-        format!(
-            r#"{}<button type="button" class="a" style="{};border:0;padding:0;background:none;overflow:hidden" {} data-tip="{}"><svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" style="display:block">{turning}</svg></button>"#,
-            self.book_button(BookButton::Read, 6, 6, &Self::words(1294, "Read"), Press::Read),
-            at(6 + width, 6, width, height),
-            pressed(Press::Aloud),
-            escape(&Self::words(1295, "Auto Read")),
-        )
+        [
+            format!(
+                r#"{}<button type="button" class="a" style="{};border:0;padding:0;background:none;overflow:hidden" {} "#,
+                self.book_button(BookButton::Read, 6, 6, &Self::words(1294, "Read"), Press::Read),
+                at(6 + width, 6, width, height),
+                pressed(Press::Aloud)
+            ),
+            format!(r#"data-tip="{}"><svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" "#, escape(&Self::words(1295, "Auto Read"))),
+            format!(r#"style="display:block">{turning}</svg></button>"#)
+        ].concat()
     }
 }

@@ -86,7 +86,12 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
     let striker = scene.one(landing.striker, own);
     let striker_is_character = striker.map(|striker| matches!(striker.look, Look::Character(_)));
     let weapon = striker.and_then(|striker| match &striker.look {
-        Look::Character(figure) => Some(data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| crate::jobs::weapon_kind(&kind)).unwrap_or(0)),
+        Look::Character(figure) => Some(
+            data::about(figure.weapon)
+                .and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType"))
+                .and_then(|(_, kind)| crate::jobs::weapon_kind(&kind))
+                .unwrap_or(0)
+        ),
         Look::Creature(_) => None,
     });
     let hurt = scene.one(target, own)?;
@@ -152,7 +157,14 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
 
 /// A number or a word rises over someone standing at `base`.
 fn shown(state: &mut State, time: f64, on: Option<u32>, base: Vector, drift: (f32, f32), sign: Sign) {
-    let word = |sprite: String, action: usize, flight: Flight| Flying { began: time, on, base, drift, pictures: vec![SpriteKey::Creature(sprite, action, 0)], flight };
+    let word = |sprite: String, action: usize, flight: Flight| Flying {
+        began: time,
+        on,
+        base,
+        drift,
+        pictures: vec![SpriteKey::Creature(sprite, action, 0)],
+        flight
+    };
     let flying = match sign {
         Sign::Number(value, colour, flight) => {
             // A new total takes the place of the one over the same head (`SpawnDamageDigits`).

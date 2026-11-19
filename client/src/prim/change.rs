@@ -38,7 +38,17 @@ pub struct Change {
 impl Change {
     /// A change at that tick with every field as the client starts it.
     pub fn at(at: i32) -> Self {
-        Self { at, speed: UNSET, accel: UNSET, width_speed: UNSET, width_accel: UNSET, height_speed: UNSET, height_accel: UNSET, speed3: [0.0; 3], accel3: [0.0; 3] }
+        Self {
+            at,
+            speed: UNSET,
+            accel: UNSET,
+            width_speed: UNSET,
+            width_accel: UNSET,
+            height_speed: UNSET,
+            height_accel: UNSET,
+            speed3: [0.0; 3],
+            accel3: [0.0; 3]
+        }
     }
 }
 

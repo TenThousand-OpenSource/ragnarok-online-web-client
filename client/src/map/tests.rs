@@ -86,18 +86,45 @@ fn a_click_out_of_reach_goes_as_far_as_it_can() {
     assert_eq!(gat.goal_towards((0, 5), (50, 5), |_| false, false), Some((50, 5)));
     // With the project's far walk: the cell as many steps along the way as a player may ask the server for
     // (its `max_walk_path`), and on from there, a stretch at a time, to the place itself.
-    assert_eq!(gat.goal_towards((0, 5), (50, 5), |_| false, true), Some((17, 5)));
-    assert_eq!(gat.goal_towards((17, 5), (50, 5), |_| false, true), Some((34, 5)));
-    assert_eq!(gat.goal_towards((34, 5), (50, 5), |_| false, true), Some((50, 5)));
+    assert_eq!(gat.goal_towards((0, 5), (50, 5), |_| false, true), Some((14, 5)));
+    assert_eq!(gat.goal_towards((14, 5), (50, 5), |_| false, true), Some((28, 5)));
+    assert_eq!(gat.goal_towards((42, 5), (50, 5), |_| false, true), Some((50, 5)));
     // Just within reach: the place itself; a step past it: the last cell within.
-    assert_eq!(gat.goal_towards((0, 5), (17, 5), |_| false, true), Some((17, 5)));
-    assert_eq!(gat.goal_towards((0, 5), (18, 5), |_| false, true), Some((17, 5)));
+    assert_eq!(gat.goal_towards((0, 5), (14, 5), |_| false, true), Some((14, 5)));
+    assert_eq!(gat.goal_towards((0, 5), (18, 5), |_| false, true), Some((14, 5)));
     // On a wall: the first walkable cell beside it in the client's order (east of it first), a way to it found.
     gat.block(5, 0);
     assert_eq!(gat.goal_towards((0, 0), (5, 0), |_| false, false), Some((6, 0)));
     assert_eq!(gat.goal_towards((0, 0), (3, 0), |_| false, false), Some((3, 0)));
     // Where it stands already: nowhere.
     assert_eq!(gat.goal_towards((0, 0), (0, 0), |_| false, false), None);
+}
+
+#[test]
+fn the_far_walk_goes_round_what_is_near_however_long_the_way() {
+    // A ridge thirty cells long between the two cells, its end ten cells to the north: more cells than the
+    // client's search looks at, and near.
+    let mut gat = Gat::open(80, 80);
+    for y in 10..40 {
+        gat.block(30, y);
+    }
+    let (from, to) = ((33, 30), (27, 20));
+    assert!(gat.client_path(from, to).is_empty());
+    assert_eq!(gat.goal_towards(from, to, |_| false, false), None);
+    // Stretch by stretch the character comes to the place, each stretch one the server walks.
+    let (mut at, mut stretches) = (from, 0);
+    while at != to {
+        let next = gat.goal_towards(at, to, |_| false, true).expect("a way round");
+        assert!((1..=MAX_ASKED_ROUND).contains(&gat.path(at, next).len()));
+        (at, stretches) = (next, stretches + 1);
+        assert!(stretches < 10);
+    }
+    assert!(stretches >= 2);
+    // A wall whose only gap is far away is not gone round.
+    for x in 0..75 {
+        gat.block(x, 50);
+    }
+    assert_eq!(gat.goal_towards((10, 45), (10, 55), |_| false, true), None);
 }
 
 #[test]

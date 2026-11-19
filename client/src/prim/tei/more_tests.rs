@@ -15,7 +15,10 @@ fn a_square_of_meteor_assault_waits_slides_faster_and_is_over() {
     // As `PurpleSlash` launches one, to slide east.
     let mut heights = [0.0; 21];
     heights[1] = 0.8;
-    let mut square = with_parts(Tei::FloorSquare, vec![Part { process: -2, out: 20.0, heights, at: [[0.0, -8.0, 0.0], [0.0; 3], [0.0; 3], [0.0; 3]], ..Part::default() }]);
+    let mut square = with_parts(
+        Tei::FloorSquare,
+        vec![Part { process: -2, out: 20.0, heights, at: [[0.0, -8.0, 0.0], [0.0; 3], [0.0; 3], [0.0; 3]], ..Part::default() }]
+    );
     square.tick(1000);
     square.tick(1000);
     assert!(square.parts[0].at[0][0] == 0.0 && square.rects(RIGHT, UP).is_empty());

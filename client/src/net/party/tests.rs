@@ -8,7 +8,10 @@ use crate::net::bytes::testing::field;
 fn reads_the_list_of_members() {
     let mut packet = vec![0xe5, 0x0a, 0, 0];
     packet.extend(field("Poring Hunters", 24));
-    for (account, name, map, role, offline, job, level) in [(2_000_001u32, "Anna", "prontera.gat", 0u8, 0u8, 4u16, 55u16), (2_000_002, "Boris", "", 1, 1, 7, 99)] {
+    for (account, name, map, role, offline, job, level) in [
+        (2_000_001u32, "Anna", "prontera.gat", 0u8, 0u8, 4u16, 55u16),
+        (2_000_002, "Boris", "", 1, 1, 7, 99)
+    ] {
         packet.extend(account.to_le_bytes());
         packet.extend((account + 150_000).to_le_bytes());
         packet.extend(field(name, 24));
@@ -22,7 +25,16 @@ fn reads_the_list_of_members() {
     let (name, members) = list(&packet).unwrap();
     assert_eq!(name, "Poring Hunters");
     assert_eq!(members.len(), 2);
-    assert_eq!(members[0], Member { account: 2_000_001, character: 2_150_001, name: "Anna".into(), map: "prontera.gat".into(), leader: true, offline: false, job: 4, level: 55 });
+    assert_eq!(members[0], Member {
+        account: 2_000_001,
+        character: 2_150_001,
+        name: "Anna".into(),
+        map: "prontera.gat".into(),
+        leader: true,
+        offline: false,
+        job: 4,
+        level: 55
+    });
     assert_eq!((members[1].leader, members[1].offline, members[1].level), (false, true, 99));
     assert_eq!(list(&packet[..20]), None);
 }
@@ -42,8 +54,18 @@ fn reads_a_member_joining() {
     packet.extend(field("prontera.gat", 16));
     packet.extend([1, 0]);
     assert_eq!(packet.len(), 89);
-    let (member, party, cell, shared) = joined(&packet).unwrap();
-    assert_eq!(member, Member { account: 2_000_002, character: 150_002, name: "Boris".into(), map: "prontera.gat".into(), leader: false, offline: false, job: 7, level: 99 });
+    let Joined { member, party, cell, pickup, items } = joined(&packet).unwrap();
+    let shared = (pickup, items);
+    assert_eq!(member, Member {
+        account: 2_000_002,
+        character: 150_002,
+        name: "Boris".into(),
+        map: "prontera.gat".into(),
+        leader: false,
+        offline: false,
+        job: 7,
+        level: 99
+    });
     assert_eq!((party.as_str(), cell, shared), ("Poring Hunters", (156, 187), (true, false)));
     assert_eq!(joined(&packet[..88]), None);
 }

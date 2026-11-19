@@ -19,7 +19,12 @@ pub(super) struct RecoverForm {
     lang: String,
 }
 
-pub(super) async fn recover(State(accounts): State<Arc<Accounts>>, ConnectInfo(peer): ConnectInfo<SocketAddr>, headers: HeaderMap, Form(form): Form<RecoverForm>) -> Response {
+pub(super) async fn recover(
+    State(accounts): State<Arc<Accounts>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
+    Form(form): Form<RecoverForm>
+) -> Response {
     if !same_origin(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }
@@ -131,7 +136,12 @@ pub(super) struct ResetForm {
     password: String,
 }
 
-pub(super) async fn reset(State(accounts): State<Arc<Accounts>>, ConnectInfo(peer): ConnectInfo<SocketAddr>, headers: HeaderMap, Form(form): Form<ResetForm>) -> Response {
+pub(super) async fn reset(
+    State(accounts): State<Arc<Accounts>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
+    Form(form): Form<ResetForm>
+) -> Response {
     if !same_origin(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }
@@ -162,7 +172,9 @@ async fn set_password(accounts: &Accounts, token: &str, password: &str) -> Resul
         .map_err(|error| error.to_string())?;
     let Some((account_id,)) = found else { return Ok(false) };
     // Whoever deletes the row has the token: of two requests with the same one, only one gets past here.
-    let taken = sqlx::query("DELETE FROM `roweb_password_reset` WHERE `token_hash` = ?").bind(&hash).execute(&accounts.db).await.map_err(|error| error.to_string())?;
+    let taken = sqlx::query("DELETE FROM `roweb_password_reset` WHERE `token_hash` = ?").bind(&hash).execute(&accounts.db).await.map_err(
+        |error| error.to_string()
+    )?;
     if taken.rows_affected() != 1 {
         return Ok(false);
     }
@@ -176,7 +188,10 @@ async fn set_password(accounts: &Accounts, token: &str, password: &str) -> Resul
     // The owner is back: the account's failed logins, perhaps the very reason for the reset, are forgiven.
     if let Some(guard) = &accounts.login_guard {
         let name: Option<(String,)> =
-            sqlx::query_as("SELECT `userid` FROM `login` WHERE `account_id` = ?").bind(account_id).fetch_optional(&accounts.db).await.map_err(|error| error.to_string())?;
+            sqlx::query_as("SELECT `userid` FROM `login` WHERE `account_id` = ?")
+                .bind(account_id)
+                .fetch_optional(&accounts.db).await
+                .map_err(|error| error.to_string())?;
         if let Some((name,)) = name {
             guard.forgive_account(&name);
         }

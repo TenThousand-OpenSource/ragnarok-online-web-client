@@ -37,9 +37,9 @@ pub mod parameter {
     pub const ATTACK: u16 = character::ATK;
     pub const HIT: u16 = character::HIT;
     pub const ATTACK_DELAY: u16 = character::ATTACK_DELAY;
-    pub const FLEE: u16 = 165;
-    pub const KILLS: u16 = 189;
-    pub const FAITH: u16 = 190;
+    pub const FLEE: u16 = character::MERCENARY_FLEE;
+    pub const KILLS: u16 = character::MERCENARY_KILLS;
+    pub const FAITH: u16 = character::MERCENARY_FAITH;
 }
 
 /// The skills of mercenaries (the client's `CSession::IsMercenarySkill`).
@@ -147,7 +147,10 @@ mod tests {
         assert_eq!(packet.len(), 80);
         let read = init(&packet).unwrap();
         assert_eq!((read.unit, read.name.as_str(), read.level, read.stats), (0x0a0b0c0d, "Mina", 15, [170, 9, 60, 3, 28, 4, 51, 950]));
-        assert_eq!((read.hp, read.max_hp, read.sp, read.max_sp, read.expires, read.faith, read.calls, read.kills, read.range), (256, 256, 50, 50, 1_795_000_000, -3, 2, 41, 9));
+        assert_eq!(
+            (read.hp, read.max_hp, read.sp, read.max_sp, read.expires, read.faith, read.calls, read.kills, read.range),
+            (256, 256, 50, 50, 1_795_000_000, -3, 2, 41, 9)
+        );
         assert_eq!(init(&packet[..79]), None);
     }
 

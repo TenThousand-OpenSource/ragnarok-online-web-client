@@ -19,7 +19,10 @@ pub fn statuses(grf: &Grf) -> serde_json::Value {
     let mut icons = serde_json::Map::new();
     if let Ok(picture) = globals.get::<mlua::Function>("GetEFSTImgFileName") {
         for state in &states {
-            let found = (0..5).find_map(|kind| picture.call::<Value>((*state, kind)).ok().map(|file| text(&file)).filter(|file| !file.is_empty()).map(|file| (kind, file)));
+            let found = (0..5)
+                .find_map(|kind| picture.call::<Value>((*state, kind)).ok().map(|file| text(&file)).filter(|file| !file.is_empty()).map(
+                    |file| (kind, file)
+                ));
             if let Some((kind, file)) = found {
                 icons.insert(state.to_string(), serde_json::json!([kind, file]));
             }

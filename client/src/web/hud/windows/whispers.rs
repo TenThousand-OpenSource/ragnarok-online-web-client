@@ -28,7 +28,8 @@ talk_window!(WHISPER_6, "whisper-6", 6);
 talk_window!(WHISPER_7, "whisper-7", 7);
 
 /// The windows of the talks, by their places.
-pub(in crate::web) static WHISPERS: [&Window; crate::whispers::WINDOWS] = [&WHISPER_0, &WHISPER_1, &WHISPER_2, &WHISPER_3, &WHISPER_4, &WHISPER_5, &WHISPER_6, &WHISPER_7];
+pub(in crate::web) static WHISPERS: [&Window; crate::whispers::WINDOWS] =
+    [&WHISPER_0, &WHISPER_1, &WHISPER_2, &WHISPER_3, &WHISPER_4, &WHISPER_5, &WHISPER_6, &WHISPER_7];
 
 /// The menu of a talk's window, opened with the right button on it, where the pointer was.
 pub(in crate::web) static WHISPER_MENU: Window =

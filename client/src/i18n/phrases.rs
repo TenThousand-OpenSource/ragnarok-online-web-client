@@ -124,7 +124,10 @@ pub(super) const PHRASES: &[(&str, &str)] = &[
     ("Someone has Logged in with this ID.", "С этим ID уже вошли в игру."),
     ("You've been disconnected due to a time gap between you and the server.", "Соединение разорвано из-за расхождения времени с сервером."),
     ("Server is jammed due to over population. Please try again shortly.", "Сервер переполнен. Попробуйте чуть позже."),
-    ("The game server still recognizes your last log-in. Please try again after about 30 seconds.", "Сервер ещё помнит ваш прошлый вход. Попробуйте примерно через 30 секунд."),
+    (
+        "The game server still recognizes your last log-in. Please try again after about 30 seconds.",
+        "Сервер ещё помнит ваш прошлый вход. Попробуйте примерно через 30 секунд."
+    ),
     ("Clear", "Очистить"),
     ("You can't put this item on.", "Этот предмет нельзя надеть."),
     ("From", "От"),

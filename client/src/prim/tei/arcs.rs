@@ -36,7 +36,11 @@ impl Part {
         let place = |piece: usize| {
             let degrees = self.heights[piece];
             let along = if degrees > 0.0 { degrees / 90.0 * self.out } else { 0.0 };
-            [along * cosine(self.rise as f32) + self.at[0][0], -self.out * sine(degrees) * self.at[1][0] + self.at[0][1], along * sine(self.rise as f32) + self.at[0][2]]
+            [
+                along * cosine(self.rise as f32) + self.at[0][0],
+                -self.out * sine(degrees) * self.at[1][0] + self.at[0][1],
+                along * sine(self.rise as f32) + self.at[0][2]
+            ]
         };
         let mut rects = Vec::new();
         for piece in 0..(self.at[1][1] as usize).min(20) {

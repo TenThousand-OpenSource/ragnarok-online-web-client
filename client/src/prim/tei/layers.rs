@@ -108,7 +108,9 @@ impl Part {
         let wide = matches!(mode, 6 | 7);
         let angles = if wide { [145, 35, 325, 215] } else { [135, 45, 315, 225] };
         let lift = if matches!(mode, 2 | 4 | 6 | 7) { 40.0 } else { 30.0 };
-        let figure = |reach: f32, lift: f32| angles.map(|angle| to_screen([0.0, -lift, 0.0], reach * cosine(angle as f32) + self.heights[0], reach * sine(angle as f32), right, up));
+        let figure = |reach: f32, lift: f32| angles.map(
+            |angle| to_screen([0.0, -lift, 0.0], reach * cosine(angle as f32) + self.heights[0], reach * sine(angle as f32), right, up)
+        );
         let mut rects = Vec::new();
         for layer in (1..=10).rev() {
             let alpha = self.heights[layer] as i32;
@@ -199,7 +201,10 @@ mod tests {
         // White and mixed in, 10 to the left of the middle, a step of 1 from drawing to drawing.
         let rects = prim.rects(RIGHT, UP);
         assert_eq!((rects.len(), rects[0].colour, rects[0].adds, rects[0].alpha), (10, [255; 3], false, 240.0));
-        assert!((rects[0].corners[1].0[0] - (5.0 * cosine(45.0) - 10.0)).abs() < 1e-3 && (rects[9].corners[1].0[0] - (14.0 * cosine(45.0) - 10.0)).abs() < 1e-3);
+        assert!(
+            (rects[0].corners[1].0[0] - (5.0 * cosine(45.0) - 10.0)).abs() < 1e-3
+                && (rects[9].corners[1].0[0] - (14.0 * cosine(45.0) - 10.0)).abs() < 1e-3
+        );
         for _ in 0..81 {
             prim.tick(500);
         }

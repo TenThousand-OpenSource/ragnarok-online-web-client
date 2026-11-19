@@ -23,7 +23,11 @@ impl App {
             }
             // The picked egg is hatched.
             Press::EggOk | Press::EggCancel => {
-                if let (true, Some(socket), Some(index)) = (press == Press::EggOk, &self.socket, self.pets.eggs.as_ref().and_then(|eggs| eggs.get(self.pets.egg_picked))) {
+                if let (true, Some(socket), Some(index)) = (
+                    press == Press::EggOk,
+                    &self.socket,
+                    self.pets.eggs.as_ref().and_then(|eggs| eggs.get(self.pets.egg_picked))
+                ) {
                     socket.send(&pets::hatch(*index));
                 }
                 self.pets.eggs = None;

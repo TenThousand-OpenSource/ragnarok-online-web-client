@@ -59,20 +59,32 @@ fn the_guides_monsters_come_in_the_order_of_their_levels() {
     let monsters = monsters(&guided, &known);
     assert_eq!(monsters.iter().map(|monster| monster["key"].as_str().unwrap()).collect::<Vec<_>>(), ["NOBODY", "PORING", "OSIRIS"]);
     assert_eq!(monsters[0], serde_json::json!({ "key": "NOBODY", "min": 1, "max": 5, "rewards": [] }));
-    assert_eq!((&monsters[2]["id"], &monsters[2]["rewards"], &monsters[2]["max"]), (&serde_json::json!(1038), &serde_json::json!([616, 1285, 5053]), &serde_json::json!(99)));
+    assert_eq!(
+        (&monsters[2]["id"], &monsters[2]["rewards"], &monsters[2]["max"]),
+        (&serde_json::json!(1038), &serde_json::json!([616, 1285, 5053]), &serde_json::json!(99))
+    );
     assert!(super::monsters(&serde_json::Value::Null, &known).is_empty());
 }
 
 #[test]
 fn the_tabs_and_the_kinds_come_in_the_order_of_their_numbers() {
-    let intro = serde_json::json!({ "Contents": { "10": { "Name": "Armor", "Desc": "What to wear" }, "2": { "Name": "Monster", "Desc": "What to hunt" }, "x": { "Name": "No number" } } });
+    let intro = serde_json::json!(
+        { "Contents": { "10": { "Name": "Armor", "Desc": "What to wear" }, "2": { "Name": "Monster", "Desc": "What to hunt" }, "x": {
+            "Name": "No number"
+        } } }
+    );
     assert_eq!(tabs(&intro), [serde_json::json!(["Monster", "What to hunt"]), serde_json::json!(["Armor", "What to wear"])]);
     assert!(tabs(&serde_json::json!({})).is_empty());
     let page = serde_json::json!({ "SubMenu": {
         "3": { "SubMenuTitle": "Late", "SubMenuMinLevel": 50, "SubMenuMaxLevel": 99 },
         "1": { "SubMenuTitle": "Early", "SubMenuMinLevel": 1, "SubMenuMaxLevel": 49 },
     } });
-    assert_eq!(kinds(&page), [serde_json::json!({ "at": 1, "title": "Early", "min": 1, "max": 49 }), serde_json::json!({ "at": 3, "title": "Late", "min": 50, "max": 99 })]);
+    assert_eq!(kinds(&page), [serde_json::json!({ "at": 1, "title": "Early", "min": 1, "max": 49 }), serde_json::json!({
+        "at": 3,
+        "title": "Late",
+        "min": 50,
+        "max": 99
+    })]);
 }
 
 #[test]
@@ -83,7 +95,9 @@ fn a_page_of_quests_shows_each_by_its_tip() {
         "3": { "SubMenu": 1, "RequireMinLevel": 1, "RequireMaxLevel": 10 },
     } });
     let tips: std::collections::HashMap<u32, (String, String)> =
-        [(20, ("Q Hello!(1)".to_owned(), "First ^ff0000line^000000\nSecond".to_owned())), (7, ("Seven#hidden".to_owned(), String::new()))].into_iter().collect();
+        [(20, ("Q Hello!(1)".to_owned(), "First ^ff0000line^000000\nSecond".to_owned())), (7, ("Seven#hidden".to_owned(), String::new()))]
+            .into_iter()
+            .collect();
     let page = quest_page(&table, &tips);
     assert_eq!(page["kinds"], serde_json::json!([]));
     assert_eq!(
@@ -99,7 +113,14 @@ fn a_page_of_quests_shows_each_by_its_tip() {
 #[test]
 fn a_page_of_items_says_what_each_can_and_who_wears_it() {
     let table = serde_json::json!({ "Contents": {
-        "1201": { "SubMenu": 1, "RequireMinLevel": 1, "RequireMaxLevel": 20, "Refining": 1, "Enchant": 0, "ObtainGuide": ["<NAVI>Shop<INFO>prontera</INFO></NAVI>"] },
+        "1201": {
+            "SubMenu": 1,
+            "RequireMinLevel": 1,
+            "RequireMaxLevel": 20,
+            "Refining": 1,
+            "Enchant": 0,
+            "ObtainGuide": ["<NAVI>Shop<INFO>prontera</INFO></NAVI>"]
+        },
     } });
     let page = item_page(&table, None);
     assert_eq!(page["list"], serde_json::json!([{ "id": 1201, "kind": 1, "min": 1, "max": 20, "can": [true, false, false], "from": ["Shop"], "jobs": 0 }]));

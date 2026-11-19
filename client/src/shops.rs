@@ -60,9 +60,30 @@ pub fn name_width(price: u32, differs: bool, usual: i32) -> i32 {
     }
 }
 
+/// How many of a row of the shop's list are in the basket (the rows put into it, each with how many).
+pub fn kept(basket: &[(usize, u16)], row: usize) -> u32 {
+    basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount))
+}
+
+/// The sum under the basket: what one of each thing in it costs, times how many of it there are.
+pub fn total(kept: impl Iterator<Item = (u32, u32)>) -> i64 {
+    kept.map(|(price, amount)| i64::from(price) * i64::from(amount)).sum()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_basket_knows_how_many_of_a_row_it_has_and_their_sum() {
+        let basket = [(2, 5), (0, 1), (2, 9)];
+        // The first of a row counts, should it be there twice.
+        assert_eq!([kept(&basket, 2), kept(&basket, 0), kept(&basket, 1)], [5, 1, 0]);
+        assert_eq!(kept(&[], 0), 0);
+        assert_eq!(total([(100, 5), (7, 1)].into_iter()), 507);
+        assert_eq!(total([(u32::MAX, 30000), (0, 9)].into_iter()), 128_849_018_850_000);
+        assert_eq!(total(std::iter::empty()), 0);
+    }
 
     #[test]
     fn the_basket_takes_what_the_client_lets_into_it() {
@@ -89,6 +110,12 @@ mod tests {
     #[test]
     fn a_name_is_left_less_room_beside_two_prices() {
         assert_eq!(name_width(12000, false, 100), 100);
-        assert_eq!([name_width(12000, true, 100), name_width(1200, true, 100), name_width(120, true, 100), name_width(12, true, 100), name_width(5, true, 110)], [45, 55, 70, 80, 110]);
+        assert_eq!(
+            [
+                name_width(12000, true, 100), name_width(1200, true, 100), name_width(120, true, 100),
+                name_width(12, true, 100), name_width(5, true, 110)
+            ],
+            [45, 55, 70, 80, 110]
+        );
     }
 }

@@ -44,7 +44,9 @@ pub(super) fn touched(gpu: &Gpu, scene: &Scene, view: &View, unit: &Mover, point
 /// Two opposite corners of a picture standing with its feet at a place, as the view shows them (parts of the
 /// screen); nothing for one behind the camera.
 fn corners(view: &View, feet: Vector, texture: &gpu::SpriteTexture) -> Option<((f32, f32), (f32, f32))> {
-    let corner = |x: f32, y: f32| view.project(along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE));
+    let corner = |x: f32, y: f32| view.project(
+        along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE)
+    );
     Some((corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?))
 }
 

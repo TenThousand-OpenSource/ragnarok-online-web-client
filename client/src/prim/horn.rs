@@ -30,7 +30,11 @@ impl Prim {
         let mut triangles = Vec::new();
         for (side, pair) in corners.chunks_exact(2).enumerate() {
             let u = side as f32 * 0.2;
-            triangles.extend([point([pair[0][0], pair[0][1], 0.0], u, 1.0), point([0.0, 0.0, self.height], u, 0.0), point([pair[1][0], pair[1][1], 0.0], u + 0.2, 1.0)]);
+            triangles.extend([
+                point([pair[0][0], pair[0][1], 0.0], u, 1.0),
+                point([0.0, 0.0, self.height], u, 0.0),
+                point([pair[1][0], pair[1][1], 0.0], u + 0.2, 1.0)
+            ]);
         }
         triangles
     }

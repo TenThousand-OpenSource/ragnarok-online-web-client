@@ -24,7 +24,12 @@ impl App {
         self.cooldowns
             .waits
             .over(skill, now)
-            .map(|wait| format!(r#"<i class="a cd" style="{};--c:{WAITING};animation:cd {}ms linear -{}ms both"></i>"#, at(0, 0, 24, 24), wait.duration, wait.progress(now)))
+            .map(|wait| format!(
+                r#"<i class="a cd" style="{};--c:{WAITING};animation:cd {}ms linear -{}ms both"></i>"#,
+                at(0, 0, 24, 24),
+                wait.duration,
+                wait.progress(now)
+            ))
             .collect()
     }
 }
@@ -33,9 +38,9 @@ impl App {
 /// so long in all with so much left: the white one until a minute is left, then the orange one.
 pub(super) fn passing(duration: u32, remaining: u32) -> String {
     let Some(((whole, gone), (last, through))) = crate::cooldowns::turns(duration, remaining) else { return String::new() };
-    format!(
-        r#"<i class="a cd r" style="{place};--c:{GONE};animation:cd {whole}ms linear -{gone}ms both,cdgone 1ms linear {wait}ms both"></i><i class="a cd r" style="{place};--c:{LAST};animation:cd {last}ms linear {wait}ms both"></i>"#,
-        place = at(0, 0, 32, 32),
-        wait = -through,
-    )
+    let (place, wait) = (at(0, 0, 32, 32), -through);
+    [
+        format!(r#"<i class="a cd r" style="{place};--c:{GONE};animation:cd {whole}ms linear -{gone}ms both,cdgone 1ms linear {wait}ms both"></i>"#),
+        format!(r#"<i class="a cd r" style="{place};--c:{LAST};animation:cd {last}ms linear {wait}ms both"></i>"#)
+    ].concat()
 }

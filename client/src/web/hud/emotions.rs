@@ -34,7 +34,10 @@ impl App {
             .enumerate()
             .map(|(place, emotion)| {
                 let (x, y) = (15 + (place % 5) as i32 * 47, 4 + (place / 5) as i32 * 47);
-                let inside = self.emotions.pictures.get(&emotion).map(|(picture, _)| format!(r#"<img src="{picture}" alt="" draggable="false" style="max-width:40px;max-height:40px">"#)).unwrap_or_default();
+                let inside = self.emotions.pictures
+                    .get(&emotion)
+                    .map(|(picture, _)| format!(r#"<img src="{picture}" alt="" draggable="false" style="max-width:40px;max-height:40px">"#))
+                    .unwrap_or_default();
                 format!(
                     r#"<div class="a" style="{};display:flex;align-items:center;justify-content:center;cursor:pointer" {} {} data-tip="{}">{inside}</div>"#,
                     at(x, y, 40, 40),
@@ -45,7 +48,11 @@ impl App {
             })
             .collect();
         let rows = data::emotions().len().div_ceil(5) as i32;
-        window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-y:auto"><div style="position:relative;height:{}px">{cells}</div></div>"#, at(28, 47, 269, 303), 4 + rows * 47));
+        window.push_str(&format!(
+            r#"<div class="a scroll" style="{};overflow-y:auto"><div style="position:relative;height:{}px">{cells}</div></div>"#,
+            at(28, 47, 269, 303),
+            4 + rows * 47
+        ));
         window
     }
 

@@ -23,10 +23,7 @@ pub fn shadow(job: u16) -> f32 {
 /// in a place has -1.
 pub fn head_layers(direction: usize, headgear: [u16; 3]) -> [i32; 3] {
     let usual = USUAL.with_borrow(|usual| *usual);
-    LAYERS.with_borrow(|layers| std::array::from_fn(|slot| match headgear[slot] {
-        0 => -1,
-        view => layers.get(&view).map_or(usual[slot], |rows| rows[slot][direction % 8]),
-    }))
+    LAYERS.with_borrow(|layers| crate::figures::head_layers(direction, headgear, usual, layers))
 }
 
 /// Takes its tables out of what the gateway gave.

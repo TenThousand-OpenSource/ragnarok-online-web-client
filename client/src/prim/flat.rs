@@ -62,7 +62,11 @@ impl Prim {
                 corners
             }
             Shape::Quad2d => self.kite(x, y),
-            Shape::Cylinder3d | Shape::Circle3d | Shape::Sphere3d | Shape::CrossTexture3d | Shape::Particle3d | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::QuadHorn3d | Shape::ParticleUp | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Texture3d | Shape::Cast(_) | Shape::Streak { .. } | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer | Shape::Petal { .. } => Vec::new(),
+            Shape::Cylinder3d | Shape::Circle3d | Shape::Sphere3d | Shape::CrossTexture3d | Shape::Particle3d
+            | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::QuadHorn3d
+            | Shape::ParticleUp | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Texture3d | Shape::Cast(_)
+            | Shape::Streak { .. } | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer
+            | Shape::Petal { .. } => Vec::new(),
         }
     }
 

@@ -36,7 +36,10 @@ mod tests {
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
-        for press in [Press::MakeClose, Press::MakeOk, Press::PasswordOk, Press::Public(true), Press::Limits, Press::Limit(15), Press::Leave, Press::Member(2), Press::Expel, Press::Give, Press::Friend, Press::Change] {
+        for press in [
+            Press::MakeClose, Press::MakeOk, Press::PasswordOk, Press::Public(true), Press::Limits, Press::Limit(15),
+            Press::Leave, Press::Member(2), Press::Expel, Press::Give, Press::Friend, Press::Change
+        ] {
             let (what, arg) = press.name();
             assert_eq!(Press::parse(what, &arg), Some(press));
         }

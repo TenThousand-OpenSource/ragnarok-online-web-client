@@ -16,10 +16,12 @@ fn empty() -> Items {
 
 const USABLE: &str = concat!(
     "Body:\n",
-    "  - Id: 501\n    AegisName: Red_Potion\n    Name: Red Potion\n    Type: Healing\n    Buy: 50\n    Weight: 70\n    Script: |\n      itemheal rand(45,65),0;\n",
+    "  - Id: 501\n    AegisName: Red_Potion\n    Name: Red Potion\n    Type: Healing\n    Buy: 50\n    Weight: \
+        70\n    Script: |\n      itemheal rand(45,65),0;\n",
     "  - Id: 502\n    AegisName: Orange_Potion\n    Name: \"Orange Potion\"\n    Type: Healing\n    Weight: abc\n    Slots:\n",
 );
-const EQUIPMENT: &str = "Body:\n  - Id: 1101\n    AegisName: Sword\n    Name: 'Sword'\n    Type: Weapon\n    SubType: 1hSword\n    Attack: 25\n    Slots: 3\n    Jobs:\n      Swordman: true\n";
+const EQUIPMENT: &str = "Body:\n  - Id: 1101\n    AegisName: Sword\n    Name: 'Sword'\n    Type: Weapon\n    SubType: \
+    1hSword\n    Attack: 25\n    Slots: 3\n    Jobs:\n      Swordman: true\n";
 
 #[test]
 fn the_server_names_the_items_and_says_what_a_player_wants_to_know() {
@@ -35,7 +37,14 @@ fn the_server_names_the_items_and_says_what_a_player_wants_to_know() {
     // Weight is written in whole units; what the entry says of other things (its script) is passed by.
     assert_eq!(
         json["501"],
-        serde_json::json!({ "name": "Red Potion", "resource": "", "description": [], "facts": [["Type", "Healing"], ["Buy", "50"], ["Weight", "7"]], "unidentified": null, "slots": 0 })
+        serde_json::json!({
+            "name": "Red Potion",
+            "resource": "",
+            "description": [],
+            "facts": [["Type", "Healing"], ["Buy", "50"], ["Weight", "7"]],
+            "unidentified": null,
+            "slots": 0
+        })
     );
     // A name loses its quotes; a weight that is no number stays as written; a fact with nothing after it is none.
     assert_eq!(json["502"]["name"], "Orange Potion");
@@ -100,18 +109,39 @@ fn the_translation_files_of_a_folder_are_read_by_their_prefix() {
     );
     assert_eq!(
         russian["502"],
-        serde_json::json!({ "name": "Orange Potion", "resource": "주황포션", "description": ["Вес: 10"], "facts": [["Buy", "200"]], "unidentified": null, "slots": 0 })
+        serde_json::json!({
+            "name": "Orange Potion",
+            "resource": "주황포션",
+            "description": ["Вес: 10"],
+            "facts": [["Buy", "200"]],
+            "unidentified": null,
+            "slots": 0
+        })
     );
     let unknown = serde_json::json!({ "name": "Unknown Potion", "resource": "포션", "description": ["Вес: 1"] });
     assert_eq!(
         russian["503"],
-        serde_json::json!({ "name": "Yellow Potion", "resource": "노란포션", "description": ["Тип: Восстанавливающий"], "facts": [], "unidentified": unknown, "slots": 2 })
+        serde_json::json!({
+            "name": "Yellow Potion",
+            "resource": "노란포션",
+            "description": ["Тип: Восстанавливающий"],
+            "facts": [],
+            "unidentified": unknown,
+            "slots": 2
+        })
     );
     // The same in English is as the table has it.
     let unknown = serde_json::json!({ "name": "Unknown Potion", "resource": "포션", "description": ["Weight: 1"] });
     assert_eq!(
         all.json([503].into_iter())["503"],
-        serde_json::json!({ "name": "Yellow Potion", "resource": "노란포션", "description": ["Type: Restorative"], "facts": [], "unidentified": unknown, "slots": 2 })
+        serde_json::json!({
+            "name": "Yellow Potion",
+            "resource": "노란포션",
+            "description": ["Type: Restorative"],
+            "facts": [],
+            "unidentified": unknown,
+            "slots": 2
+        })
     );
     assert_eq!(all.korean_json([501, 502].into_iter()), serde_json::json!({ "501": { "name": "빨간 포션", "description": ["설명"] } }));
 }
@@ -121,10 +151,12 @@ fn the_english_table_beside_the_client_names_and_describes() {
     let client = folder("english");
     std::fs::create_dir_all(client.join("SystemEN/LuaFiles514")).unwrap();
     // 0xe9 is "é" in Windows-1252: the translation is no UTF-8 there.
-    let mut table = b"tbl = { [501] = { unidentifiedDisplayName = 'Red Potion', unidentifiedResourceName = 'potion', unidentifiedDescriptionName = { 'Unknown.' }, ".to_vec();
+    let mut table = b"tbl = { [501] = { unidentifiedDisplayName = 'Red Potion', unidentifiedResourceName = 'potion', \
+        unidentifiedDescriptionName = { 'Unknown.' }, ".to_vec();
     table.extend_from_slice(b"identifiedDisplayName = 'Red Potion', identifiedResourceName = 'red', identifiedDescriptionName = { 'A caf");
     table.push(0xe9);
-    table.extend_from_slice(b" potion.', 'Weight: 7' }, slotCount = 2 }, [502] = { identifiedDisplayName = '', identifiedDescriptionName = {} }, [-1] = { identifiedDisplayName = 'Under' } }");
+    table.extend_from_slice(b" potion.', 'Weight: 7' }, slotCount = 2 }, [502] = { identifiedDisplayName = '', \
+        identifiedDescriptionName = {} }, [-1] = { identifiedDisplayName = 'Under' } }");
     std::fs::write(client.join("SystemEN/LuaFiles514/itemInfo.lua"), table).unwrap();
     let mut items = empty();
     items.0.insert(501, ("빨간 포션".to_owned(), "빨간포션".to_owned()));
@@ -135,7 +167,14 @@ fn the_english_table_beside_the_client_names_and_describes() {
     let unknown = serde_json::json!({ "name": "Red Potion", "resource": "potion", "description": ["Unknown."] });
     assert_eq!(
         items.json([501, 502].into_iter()),
-        serde_json::json!({ "501": { "name": "Red Potion", "resource": "빨간포션", "description": ["A caf\u{e9} potion.", "Weight: 7"], "facts": [], "unidentified": unknown, "slots": 2 } })
+        serde_json::json!({ "501": {
+            "name": "Red Potion",
+            "resource": "빨간포션",
+            "description": ["A caf\u{e9} potion.", "Weight: 7"],
+            "facts": [],
+            "unidentified": unknown,
+            "slots": 2
+        } })
     );
     assert_eq!(items.korean_json([501].into_iter()), serde_json::json!({ "501": { "name": "빨간 포션", "description": ["설명"] } }));
     // No English table: the items stay as they were.

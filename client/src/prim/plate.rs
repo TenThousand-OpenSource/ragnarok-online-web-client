@@ -60,10 +60,18 @@ impl Prim {
         let (top, bottom) = if self.flickers { (-2.0 * self.height, 0.0) } else { (-self.height, self.height) };
         let (sin, cos) = (sine(self.roll), cosine(self.roll));
         let corner = |y: f32, z: f32, u: f32, v: f32| {
-            let at = if self.faces_camera { std::array::from_fn(|axis| middle[axis] + right[axis] * z - up[axis] * y) } else { add(middle, turn(self.latitude, self.longitude, [-y * sin, y * cos, z])) };
+            let at = if self.faces_camera { std::array::from_fn(|axis| middle[axis] + right[axis] * z - up[axis] * y) } else { add(
+                middle,
+                turn(self.latitude, self.longitude, [-y * sin, y * cos, z])
+            ) };
             (at, [u, v])
         };
-        let (first, second, third, fourth) = (corner(top, self.width, 0.0, 0.0), corner(top, -self.width, 1.0, 0.0), corner(bottom, self.width, 0.0, 1.0), corner(bottom, -self.width, 1.0, 1.0));
+        let (first, second, third, fourth) = (
+            corner(top, self.width, 0.0, 0.0),
+            corner(top, -self.width, 1.0, 0.0),
+            corner(bottom, self.width, 0.0, 1.0),
+            corner(bottom, -self.width, 1.0, 1.0)
+        );
         vec![Lit { picture: self.shown(), corners: [first, second, third, fourth, third, second], alpha: self.alpha }]
     }
 }

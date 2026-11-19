@@ -48,7 +48,10 @@ impl App {
         rows.push_str(MENU_BOUNDARY);
         // For one whose whispers the player has turned away the row lets them in again (the client's
         // `g_whisperBlockMgr`).
-        let block = if self.commands.blocked.contains(&menu.name) { Self::words(3819, "Unblock Chat (Toggle)") } else { Self::words(3820, "Block Chat (Toggle)") };
+        let block = if self.commands.blocked.contains(&menu.name) { Self::words(3819, "Unblock Chat (Toggle)") } else { Self::words(
+            3820,
+            "Block Chat (Toggle)"
+        ) };
         rows.push_str(&menu_row(&block, Press::Do(Entry::Block)));
         rows
     }

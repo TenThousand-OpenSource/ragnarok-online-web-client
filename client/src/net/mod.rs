@@ -160,7 +160,10 @@ mod tests {
 
     #[test]
     fn the_length_table_has_the_packets_of_the_way_in() {
-        for (id, length) in [(0x0064, 55), (0x0ac4, -1), (0x083e, 26), (0x0065, 17), (0x006b, -1), (0x0a39, 36), (0x0b6f, 177), (0x0ac5, 156), (0x0436, 23), (0x02eb, 13)]
+        for (id, length) in [
+            (0x0064, 55), (0x0ac4, -1), (0x083e, 26), (0x0065, 17), (0x006b, -1), (0x0a39, 36), (0x0b6f, 177),
+            (0x0ac5, 156), (0x0436, 23), (0x02eb, 13)
+        ]
         {
             assert_eq!(packet_length(id), Some(length), "{id:#06x}");
         }

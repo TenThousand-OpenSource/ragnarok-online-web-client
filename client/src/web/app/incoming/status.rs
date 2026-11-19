@@ -56,7 +56,8 @@ impl App {
                 }
             }
             net::inventory::ZC_SKILLINFO_UPDATE => {
-                if let Some((id, level, sp, range, raisable)) = net::inventory::skill_raised(packet) {
+                let raised = net::inventory::skill_raised(packet);
+                if let Some(net::inventory::SkillRaised { id, level, sp, range, raisable }) = raised {
                     if let Some(skill) = self.skills.known.iter_mut().find(|skill| skill.id == id) {
                         (skill.level, skill.sp, skill.range, skill.raisable) = (level, sp, range, raisable);
                     }
@@ -117,7 +118,13 @@ impl App {
             // not more than once in five seconds (the client, on `SP_HP`).
             let most = self.hero.params.get(&packets::parameter::MAX_HP).copied().unwrap_or(0);
             let time = js_sys::Date::now();
-            if name == packets::parameter::HP && most > 0 && i64::from(value) * 100 / most < 25 && self.pets.pet.is_some() && js_sys::Math::random() < 0.5 && time - self.pets.warned_at >= 5000.0 {
+            if name == packets::parameter::HP
+                && most > 0
+                && i64::from(value) * 100 / most < 25
+                && self.pets.pet.is_some()
+                && js_sys::Math::random() < 0.5
+                && time - self.pets.warned_at >= 5000.0
+            {
                 self.pets.warned_at = time;
                 self.pet_feels(crate::pets::moment::DANGER, None);
             }

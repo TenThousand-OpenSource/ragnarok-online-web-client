@@ -10,7 +10,17 @@ fn requests_have_the_length_the_server_expects() {
     let hotkey = Hotkey { skill: true, id: 142, count: 1 };
     assert_lengths(&[use_item(2, 2_000_000), wear(3, 2), take_off(3), raise_skill(142), use_skill(1, 142, 2_000_000), set_hotkey(0, hotkey)]);
     // And the fixed-length replies are as long as they are read here.
-    for (id, length) in [(ZC_ITEM_PICKUP_ACK, 70), (ZC_USE_ITEM_ACK, 15), (ZC_DELETE_ITEM_FROM_BODY, 8), (ZC_ITEM_THROW_ACK, 6), (ZC_REQ_WEAR_EQUIP_ACK, 11), (ZC_REQ_TAKEOFF_EQUIP_ACK, 9), (ZC_SKILLINFO_UPDATE, 11), (ZC_ADD_SKILL, 39), (ZC_SHORTCUT_KEY_LIST, 5 + 7 * HOTKEYS as i32)] {
+    for (id, length) in [
+        (ZC_ITEM_PICKUP_ACK, 70),
+        (ZC_USE_ITEM_ACK, 15),
+        (ZC_DELETE_ITEM_FROM_BODY, 8),
+        (ZC_ITEM_THROW_ACK, 6),
+        (ZC_REQ_WEAR_EQUIP_ACK, 11),
+        (ZC_REQ_TAKEOFF_EQUIP_ACK, 9),
+        (ZC_SKILLINFO_UPDATE, 11),
+        (ZC_ADD_SKILL, 39),
+        (ZC_SHORTCUT_KEY_LIST, 5 + 7 * HOTKEYS as i32)
+    ] {
         assert_eq!(packet_length(id), Some(length), "{id:#06x}");
     }
 }
@@ -77,7 +87,7 @@ fn follows_items_coming_and_going() {
     use_ack[8..12].copy_from_slice(&2000001u32.to_le_bytes());
     use_ack[12..14].copy_from_slice(&2u16.to_le_bytes());
     use_ack[14] = 1;
-    assert_eq!(used(&use_ack), Some((5, 501, 2000001, 2)));
+    assert_eq!(used(&use_ack), Some(Used { index: 5, item: 501, who: 2000001, left: 2 }));
     use_ack[14] = 0;
     assert_eq!(used(&use_ack), None);
 
@@ -108,7 +118,8 @@ fn reads_skills() {
     assert!(list[0].on_self() && !list[0].passive());
     assert!(list[1].passive() && list[1].raisable);
 
-    assert_eq!(skill_raised(&[0x0e, 0x01, 1, 0, 2, 0, 0, 0, 1, 0, 1]), Some((1, 2, 0, 1, true)));
+    let raised = SkillRaised { id: 1, level: 2, sp: 0, range: 1, raisable: true };
+    assert_eq!(skill_raised(&[0x0e, 0x01, 1, 0, 2, 0, 0, 0, 1, 0, 1]), Some(raised));
     let mut added = vec![0x11, 0x01];
     added.extend(&skill);
     assert_eq!(skill_added(&added).unwrap().id, 142);

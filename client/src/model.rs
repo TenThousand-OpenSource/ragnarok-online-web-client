@@ -82,7 +82,12 @@ pub fn place(triangles: &[Triangle], shade: i32, placement: &Placement, map_size
             let outward = if triangle.two_sided { [0.0; 3] } else { up(unit(to_map.direction(triangle.outward))) };
             // A model shaded flat is lit by its faces, one shaded smooth by the corners of each.
             let normal = |corner: usize| up(unit(to_map.direction(if shade == 2 { triangle.normals[corner] } else { triangle.outward })));
-            let corners = [0, 1, 2].map(|corner| Vertex { position: positions[corner], uv: triangle.uvs[corner], colour: lit(shade, normal(corner), light), outward });
+            let corners = [0, 1, 2].map(|corner| Vertex {
+                position: positions[corner],
+                uv: triangle.uvs[corner],
+                colour: lit(shade, normal(corner), light),
+                outward
+            });
             (triangle.texture, corners)
         })
         .collect()

@@ -54,7 +54,9 @@ impl App {
             // With a cart the client's button names the cart (`UIEquipWnd::UpdateCharacterView`); the server
             // takes a mount or a falcon away first all the same, and a cart when there is neither
             // (rAthena, `clif_parse_RemoveOption`).
-            Press::MountOff => self.send_on_map(&net::inventory::uninstall(if self.pushes_cart() { net::inventory::CART_OFF } else { crate::mounts::off(self.hero.state).0 })),
+            Press::MountOff => self.send_on_map(&net::inventory::uninstall(
+                if self.pushes_cart() { net::inventory::CART_OFF } else { crate::mounts::off(self.hero.state).0 }
+            )),
             Press::Equipment => {
                 self.bag.equipment_open = !self.bag.equipment_open;
                 self.render();
@@ -89,7 +91,10 @@ impl App {
         let Drag::Item(id) = dragged else { return };
         // The thing of that kind that is on the open tab: under "Fav" one kept there, elsewhere one that is not.
         let kept = self.bag.tab == Tab::Favourite;
-        let index = self.bag.items.iter().find(|item| item.id == id && item.worn == 0 && self.bag.favourites.contains(&item.index) == kept).map(|item| item.index);
+        let index = self.bag.items
+            .iter()
+            .find(|item| item.id == id && item.worn == 0 && self.bag.favourites.contains(&item.index) == kept)
+            .map(|item| item.index);
         if let Some(index) = index {
             self.send_on_map(&net::inventory::move_to_tab(index, tab == 3));
         }

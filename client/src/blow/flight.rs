@@ -63,7 +63,12 @@ impl Flight {
     /// Where it is after `elapsed` frames.
     pub fn at(self, elapsed: f32) -> At {
         // What rises and falls back as it drifts (the client's `MsgEffectDrift`).
-        let drifting = |scale: f32, alpha: f32| At { up: 12.0 - 8.0 + (2.0 - elapsed / 30.0) * elapsed, aside: elapsed / 3.0 + 3.0, scale, alpha: alpha / 255.0 };
+        let drifting = |scale: f32, alpha: f32| At {
+            up: 12.0 - 8.0 + (2.0 - elapsed / 30.0) * elapsed,
+            aside: elapsed / 3.0 + 3.0,
+            scale,
+            alpha: alpha / 255.0
+        };
         // The total and its word fade over the last thirty frames.
         let fade = ((elapsed - 90.0).max(0.0) * 8.0).trunc();
         match self {
@@ -73,10 +78,20 @@ impl Flight {
             Flight::Mark => drifting((3.0 - elapsed * 0.24 * 0.6).max(1.0), 255.0 - elapsed * 3.45),
             // It begins at half its size and has `elapsed * 0.18` added at every tick of the client's until it
             // is three times its size: counted here as one tick a frame.
-            Flight::Total => At { up: 27.0 + elapsed * 0.1, aside: 0.0, scale: (0.5 + 0.09 * elapsed.trunc() * (elapsed.trunc() + 1.0)).min(3.0), alpha: (250.0 - fade).max(0.0) / 255.0 },
+            Flight::Total => At {
+                up: 27.0 + elapsed * 0.1,
+                aside: 0.0,
+                scale: (0.5 + 0.09 * elapsed.trunc() * (elapsed.trunc() + 1.0)).min(3.0),
+                alpha: (250.0 - fade).max(0.0) / 255.0
+            },
             Flight::Word => At { up: 27.0 + elapsed * 0.1, aside: 0.0, scale: 2.0, alpha: (210.0 - fade).max(0.0) / 255.0 },
             Flight::Lucky => At { up: 20.0, aside: 0.0, scale: 1.0, alpha: 1.0 },
-            Flight::Recovery => At { up: 12.0 + elapsed * 0.18, aside: 0.0, scale: (5.0 - elapsed * 0.24).max(1.0), alpha: (250.0 - elapsed * 2.0).max(0.0) / 255.0 },
+            Flight::Recovery => At {
+                up: 12.0 + elapsed * 0.18,
+                aside: 0.0,
+                scale: (5.0 - elapsed * 0.24).max(1.0),
+                alpha: (250.0 - elapsed * 2.0).max(0.0) / 255.0
+            },
         }
     }
 }

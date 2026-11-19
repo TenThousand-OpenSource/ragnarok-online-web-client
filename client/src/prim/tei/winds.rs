@@ -117,7 +117,8 @@ impl Part {
                 angle
             } as f32;
             let middle = [cosine(angle) * tip_cos * self.out, cosine(angle) * tip_sin * self.out + self.heights[0], sine(angle) * self.out];
-            let (upper, lower): ([f32; 3], [f32; 3]) = (std::array::from_fn(|axis| middle[axis] + side[axis]), std::array::from_fn(|axis| middle[axis] - side[axis]));
+            let (upper, lower): ([f32; 3], [f32; 3]) =
+                (std::array::from_fn(|axis| middle[axis] + side[axis]), std::array::from_fn(|axis| middle[axis] - side[axis]));
             (upper, lower)
         };
         Rect::band(picture, self.alpha, size, 20, edges(self.round, step, true, 20).map(edge))

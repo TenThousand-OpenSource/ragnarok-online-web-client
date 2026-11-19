@@ -222,7 +222,8 @@ fn cold_hit(tick: i32, prims: &mut Vec<Prim>) {
             (shard.roll, shard.longitude) = (heading, heading);
             // The client divides its lot by ten as a whole number before adding it.
             let quickness = (lot(45) / 10.0).floor();
-            (shard.height, shard.width, shard.speed) = if index % 3 == 0 { (lot(10) + 100.0, 10.0, quickness + 12.8) } else { (lot(5) + 45.0, 4.0, quickness + 4.8) };
+            (shard.height, shard.width, shard.speed) =
+                if index % 3 == 0 { (lot(10) + 100.0, 10.0, quickness + 12.8) } else { (lot(5) + 45.0, 4.0, quickness + 4.8) };
             shard.accel = -(shard.speed / shard.duration as f32) / 1.5;
             let spread = lot(5);
             shard.put = (sine(degree) * spread, -cosine(degree) * spread - 20.0);

@@ -70,23 +70,27 @@ pub fn position_names(packet: &[u8]) -> Vec<(u32, String)> {
 /// ZC_POSITION_INFO: `u16 length`, then `u32 position, u32 mode, u32 ranking, u32 tax` each; `mode` allows
 /// inviting (1), expelling (0x10) and the guild's storage (0x100). The names are not in it.
 pub fn position_rights(packet: &[u8]) -> Vec<Position> {
-    records(packet, 4, 16)
-        .filter_map(|record| {
-            let mode = long(record, 4)?;
-            Some(Position { id: long(record, 0)?, name: String::new(), invites: mode & 0x01 != 0, expels: mode & 0x10 != 0, storage: mode & 0x100 != 0, tax: long(record, 12)? })
-        })
-        .collect()
+    records(packet, 4, 16).filter_map(|record| position(record, String::new())).collect()
+}
+
+/// A position out of its record, which begins `u32 position, u32 mode, u32 ranking, u32 tax` in both packets,
+/// under the name given.
+fn position(record: &[u8], name: String) -> Option<Position> {
+    let mode = long(record, 4)?;
+    Some(Position {
+        id: long(record, 0)?,
+        name,
+        invites: mode & 0x01 != 0,
+        expels: mode & 0x10 != 0,
+        storage: mode & 0x100 != 0,
+        tax: long(record, 12)?
+    })
 }
 
 /// ZC_ACK_CHANGE_GUILD_POSITIONINFO: `u16 length`, then `u32 position, u32 mode, u32 ranking, u32 tax,
 /// char name[24]` each.
 pub fn positions_changed(packet: &[u8]) -> Vec<Position> {
-    records(packet, 4, 40)
-        .filter_map(|record| {
-            let mode = long(record, 4)?;
-            Some(Position { id: long(record, 0)?, name: text_at(record, 16, 24)?, invites: mode & 0x01 != 0, expels: mode & 0x10 != 0, storage: mode & 0x100 != 0, tax: long(record, 12)? })
-        })
-        .collect()
+    records(packet, 4, 40).filter_map(|record| position(record, text_at(record, 16, 24)?)).collect()
 }
 
 /// ZC_ACK_REQ_CHANGE_MEMBERS: `u16 length`, then `u32 account, u32 character, u32 position` each. Returns each

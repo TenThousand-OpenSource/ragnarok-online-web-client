@@ -74,7 +74,10 @@ fn a_beam_of_true_sight_waits_comes_up_and_reaches_out() {
 fn a_streak_reaches_from_its_near_end_along_its_way_in_five_sides_twice() {
     let mut heights = [0.0; 21];
     (heights[0], heights[4]) = (8.0, 2.0);
-    let mut streak = with_part(Tei::PentaRing, Part { turned: 90, out: 50.0, tall: 0.05, heights, at: [[1.0, 0.0, 2.0], [1.0, 0.0, 2.0], [0.0; 3], [0.0; 3]], ..Part::default() });
+    let mut streak = with_part(
+        Tei::PentaRing,
+        Part { turned: 90, out: 50.0, tall: 0.05, heights, at: [[1.0, 0.0, 2.0], [1.0, 0.0, 2.0], [0.0; 3], [0.0; 3]], ..Part::default() }
+    );
     for _ in 0..5 {
         streak.tick(1000);
     }

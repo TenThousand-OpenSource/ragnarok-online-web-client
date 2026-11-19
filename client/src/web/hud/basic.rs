@@ -36,18 +36,16 @@ fn experience(x: i32, y: i32, now: i64, next: i64) -> String {
         return String::new();
     }
     let fill = (110 * now.clamp(0, next) / next) as i32;
-    format!(
-        r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf" data-tip="{:.1} %"><div style="width:{fill}px;height:4px;background:#567fcf"></div></div>"#,
-        at(x, y, 112, 6),
-        // Under the pointer the bar tells how far it is, in tenths of a hundredth cut short, as the client's
-        // does (`UIINT64BarGraph::OnMouseHover`).
-        (now.clamp(0, next) as f64 / next as f64 * 1000.0).floor() / 10.0
-    )
-}
-
-/// How many hundredths of `most` there are, as the window writes it beside a gauge.
-fn percent(now: i64, most: i64) -> String {
-    if most > 0 { format!("{}%", now * 100 / most) } else { String::new() }
+    [
+        format!(
+            r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf" data-tip="{:.1} %">"#,
+            at(x, y, 112, 6),
+            // Under the pointer the bar tells how far it is, in tenths of a hundredth cut short, as the client's
+            // does (`UIINT64BarGraph::OnMouseHover`).
+            (now.clamp(0, next) as f64 / next as f64 * 1000.0).floor() / 10.0
+        ),
+        format!(r#"<div style="width:{fill}px;height:4px;background:#567fcf"></div></div>"#)
+    ].concat()
 }
 
 impl App {
@@ -90,7 +88,18 @@ impl App {
             ("probability", None, 4119, "Probabilities", None),
         ];
         let bar = |name: &str| {
-            pictured(0, 4, (219, 9), [&format!("menu_icon/bt_menu_{name}normal.bmp"), &format!("menu_icon/bt_menu_{name}over.bmp"), &format!("menu_icon/bt_menu_{name}press.bmp")], general::Press::Menu, r#" title="Menu""#)
+            pictured(
+                0,
+                4,
+                (219, 9),
+                [
+                    &format!("menu_icon/bt_menu_{name}normal.bmp"),
+                    &format!("menu_icon/bt_menu_{name}over.bmp"),
+                    &format!("menu_icon/bt_menu_{name}press.bmp")
+                ],
+                general::Press::Menu,
+                r#" title="Menu""#
+            )
         };
         if self.menu_closed {
             return bar("");
@@ -113,11 +122,10 @@ impl App {
                 Some(press) => ("", pressed(press)),
                 None => (" dim", String::new()),
             };
-            strip.push_str(&format!(
-                r#"<button type="button" class="a b{dim}" style="{};--n:url('{normal}');--o:url('{normal}');--p:url('{down}')" {click} data-tip="{}"></button>"#,
-                at(x, y, size.0, size.1),
-                escape(&tells)
-            ));
+            strip.push_str(&[
+                format!(r#"<button type="button" class="a b{dim}" style="{};--n:url('{normal}');--o:url('{normal}');"#, at(x, y, size.0, size.1)),
+                format!(r#"--p:url('{down}')" {click} data-tip="{}"></button>"#, escape(&tells))
+            ].concat());
         }
         strip
     }
@@ -125,12 +133,7 @@ impl App {
     /// How tall the Basic Information window is now: closed or open, and taller for a job with Activity Points.
     pub(in crate::web) fn basic_height(&self) -> i32 {
         let ap = self.game.as_ref().is_some_and(|game| crate::jobs::has_ap(crate::mounts::drawn_job(game.job, self.hero.state)));
-        match (self.hero.basic_small, ap) {
-            (true, false) => 55,
-            (true, true) => 71,
-            (false, false) => 134,
-            (false, true) => 149,
-        }
+        crate::basic::height(self.hero.basic_small, ap)
     }
 
     /// The Basic Information window (`UIBasicInfoWnd`): its small form, a title bar and two lines, or its open
@@ -153,17 +156,22 @@ impl App {
         let figures = FIGURES.style();
         let exp = if next_base > 0 { base_exp as f64 * 100.0 / next_base as f64 } else { 0.0 };
         let low = |now: i64, most: i64| if now * 4 < most { RED } else { BLACK };
-        format!(
-            r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0"></div>{}{}{}
-                   <div class="a t" style="left:9px;top:36px;{figures}"><span style="color:{}">HP. {hp} / {max_hp}</span> | <span style="color:{}">SP. {sp} / {max_sp}</span></div>{}"#,
-            at(0, 17, 220, if ap.is_some() { 54 } else { 38 }),
-            title_bar(220, &game.name),
-            press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize),
-            text_in(FIGURES, 9, 20, BLACK, &format!("{lv}{base_level:2} / {job} / {lv}{job_level:2} / {} {exp:.1} %", tr("Exp."), lv = tr("Lv."))),
-            low(hp, max_hp),
-            low(sp, max_sp),
-            ap.map(|(ap, max_ap)| text_in(FIGURES, 9, 52, BLACK, &format!("AP. {ap} / {max_ap}"))).unwrap_or_default(),
-        )
+        [
+            format!(
+                r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0"></div>{}{}{}
+                   <div class="a t" style="left:9px;top:36px;{figures}">"#,
+                at(0, 17, 220, if ap.is_some() { 54 } else { 38 }),
+                title_bar(220, &game.name),
+                press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize),
+                text_in(FIGURES, 9, 20, BLACK, &format!("{lv}{base_level:2} / {job} / {lv}{job_level:2} / {} {exp:.1} %", tr("Exp."), lv = tr("Lv.")))
+            ),
+            format!(r#"<span style="color:{}">HP. {hp} / {max_hp}</span> | "#, low(hp, max_hp)),
+            format!(
+                r#"<span style="color:{}">SP. {sp} / {max_sp}</span></div>{}"#,
+                low(sp, max_sp),
+                ap.map(|(ap, max_ap)| text_in(FIGURES, 9, 52, BLACK, &format!("AP. {ap} / {max_ap}"))).unwrap_or_default()
+            )
+        ].concat()
     }
 
     /// The open form: the client's picture, the name and the job, the gauges, the levels with how far each is,
@@ -177,11 +185,23 @@ impl App {
         let lower = if ap.is_some() { 15 } else { 0 };
         // The taller window is the same picture twice: its lower part moved down, its upper part over that.
         let mut window = match ap {
-            Some(_) => format!(r#"{}<div class="a" style="{};overflow:hidden">{}</div>"#, art("basic_interface/basewin_bg2.bmp", 0, 15, 220, 134), at(0, 0, 220, 82), art("basic_interface/basewin_bg2.bmp", 0, 0, 220, 134)),
+            Some(_) => format!(
+                r#"{}<div class="a" style="{};overflow:hidden">{}</div>"#,
+                art("basic_interface/basewin_bg2.bmp", 0, 15, 220, 134),
+                at(0, 0, 220, 82),
+                art("basic_interface/basewin_bg2.bmp", 0, 0, 220, 134)
+            ),
             None => art("basic_interface/basewin_bg2.bmp", 0, 0, 220, 134),
         };
         window.push_str(&titled(17, 2, tr("Basic Information")));
-        window.push_str(&press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize));
+        window.push_str(&press_button(
+            206,
+            3,
+            11,
+            "basic_interface/sys_mini_off.bmp",
+            "basic_interface/sys_mini_on.bmp",
+            crate::press::status::Press::BasicSize
+        ));
         // The name is a text of its own in the usual font (`UIBasicInfoWnd::OnCreate`: `SetFont(0, 12, 0, 0)`);
         // everything under it is written as (1, 14) (`UIBasicInfoWnd::Paint`; the job's name is (0, 12) only
         // in the Korean service).
@@ -191,8 +211,8 @@ impl App {
         window.push_str(&text_in(FIGURES, 17, 65, BLACK, "SP"));
         window.push_str(&gauge(35, 53, hp, max_hp));
         window.push_str(&gauge(35, 68, sp, max_sp));
-        window.push_str(&text_in(FIGURES, 173, 51, BLACK, &percent(hp, max_hp)));
-        window.push_str(&text_in(FIGURES, 173, 65, BLACK, &percent(sp, max_sp)));
+        window.push_str(&text_in(FIGURES, 173, 51, BLACK, &crate::basic::percent(hp, max_hp)));
+        window.push_str(&text_in(FIGURES, 173, 65, BLACK, &crate::basic::percent(sp, max_sp)));
         if let Some((ap, max_ap)) = ap {
             window.push_str(&text_in(FIGURES, 17, 80, BLACK, "AP"));
             window.push_str(&ap_gauge(35, 83, ap, max_ap));
@@ -211,10 +231,14 @@ impl App {
         // Weight is kept in tenths; carrying the share of what one can that the server names (half, until it
         // names another: `m_overweightThresholdPercent`) is already too much to recover by resting.
         let (weight, max_weight) = (self.value(parameter::WEIGHT), self.value(parameter::MAX_WEIGHT));
-        let heavy = if max_weight > 0 && weight * 100 / max_weight >= self.notices.overweight { RED } else { BLACK };
+        let heavy = if crate::basic::heavy(weight, max_weight, self.notices.overweight) { RED } else { BLACK };
         // The window's bottom left, 100 wide and 20 high, tells under the pointer how much of what can be carried
         // is carried (`UIBasicInfoWnd::OnMouseHover`).
-        let mut foot = format!(r#"<div class="a" style="{}" data-tip="Weight {}%"></div>"#, at(0, 114 + lower, 100, 20), if max_weight > 0 { weight * 100 / max_weight } else { 0 });
+        let mut foot = format!(
+            r#"<div class="a" style="{}" data-tip="Weight {}%"></div>"#,
+            at(0, 114 + lower, 100, 20),
+            crate::basic::weight_share(weight, max_weight)
+        );
         foot.push_str(&format!(
             r#"<div class="a t" style="right:5px;top:{}px;{};white-space:pre"><span style="color:{heavy}">{} : {:3} / {:3}</span>  {} : {}</div>"#,
             116 + lower,

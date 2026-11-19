@@ -54,7 +54,10 @@ mod tests {
     fn portal() -> Prim {
         let mut prim = Prim::new(Shape::Tei(Tei::Columns), "magic_violet.tga");
         (prim.duration, prim.size) = (9999, 4.0);
-        prim.parts = [4.0, 3.0, 2.0].into_iter().map(|out| Part { round: 360, tall: 50.0, out, rise: 90, alpha_top: 1400, flags: [1; 21], ..Part::default() }).collect();
+        prim.parts = [4.0, 3.0, 2.0]
+            .into_iter()
+            .map(|out| Part { round: 360, tall: 50.0, out, rise: 90, alpha_top: 1400, flags: [1; 21], ..Part::default() })
+            .collect();
         prim
     }
 

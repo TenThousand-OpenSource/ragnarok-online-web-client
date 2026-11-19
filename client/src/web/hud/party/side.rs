@@ -22,15 +22,20 @@ impl App {
         let (width, height) = self.party_side_size();
         if side == PartySide::Invite {
             // `UIPartyInvitationToWnd`: the words 10,22, the name typed 20,42 on grey 230, OK and Cancel.
-            return format!(
-                r#"{}{}{}<input id="party-invitee" class="a in" style="{};background:#e6e6e6;box-sizing:border-box" type="text" maxlength="23" autocomplete="off">{}{}"#,
-                title_bar(width, &Self::words(2056, "Party Invitation")),
-                panel(width, height),
-                text(10, 22, BLACK, &Self::words(2058, "Player Name:")),
-                at(20, 42, 120, 20),
-                picture_press(width - 92, height - 24, "btn_ok", Press::InviteOk),
-                picture_press(width - 46, height - 24, "btn_cancel", Press::InviteCancel)
-            );
+            return [
+                format!(
+                    r#"{}{}{}<input id="party-invitee" class="a in" style="{};background:#e6e6e6;box-sizing:border-box" "#,
+                    title_bar(width, &Self::words(2056, "Party Invitation")),
+                    panel(width, height),
+                    text(10, 22, BLACK, &Self::words(2058, "Player Name:")),
+                    at(20, 42, 120, 20)
+                ),
+                format!(
+                    r#"type="text" maxlength="23" autocomplete="off">{}{}"#,
+                    picture_press(width - 92, height - 24, "btn_ok", Press::InviteOk),
+                    picture_press(width - 46, height - 24, "btn_cancel", Press::InviteCancel)
+                )
+            ].concat();
         }
         // `UIPartySettingWnd`: what its rows stand under is its `m_mode`, 70 for a party there is (with how
         // experience is shared on top), 50 for one being made (with its name on top), 5 for one whose name is

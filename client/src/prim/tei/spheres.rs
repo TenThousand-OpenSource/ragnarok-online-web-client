@@ -64,7 +64,14 @@ impl Prim {
     pub(super) fn layered_glow(&self, right: [f32; 3], up: [f32; 3]) -> Vec<Rect> {
         let Some(sphere) = self.parts.first().filter(|sphere| sphere.live && sphere.alpha > 0) else { return Vec::new() };
         let swell = sphere.out * sine(sphere.heights[8].trunc()) * 0.05;
-        let square = |times: f32, alpha: i32, colour: [u8; 3]| Rect::new(self.picture, alpha, Part::facing(sphere.at[0], swell + sphere.out * times, 0, right, up), (0.0, 1.0), colour, true);
+        let square = |times: f32, alpha: i32, colour: [u8; 3]| Rect::new(
+            self.picture,
+            alpha,
+            Part::facing(sphere.at[0], swell + sphere.out * times, 0, right, up),
+            (0.0, 1.0),
+            colour,
+            true
+        );
         const BLUE: [u8; 3] = [0, 0, 255];
         let mut rects = match sphere.flags[0] {
             21 => vec![square(3.0, sphere.alpha / 2, BLUE), square(1.7, sphere.alpha, BLUE)],
@@ -141,7 +148,10 @@ mod tests {
         prim.tick(999_999);
         let rects = prim.rects(RIGHT, UP);
         assert_eq!(rects.len(), 2);
-        assert_eq!((rects[0].colour, rects[1].colour, rects[0].alpha, rects[0].adds, rects[0].picture), ([0, 0, 255], [255, 255, 0], 1.0, true, "thunder_center.bmp"));
+        assert_eq!(
+            (rects[0].colour, rects[1].colour, rects[0].alpha, rects[0].adds, rects[0].picture),
+            ([0, 0, 255], [255, 255, 0], 1.0, true, "thunder_center.bmp")
+        );
         // From its middle to a corner: its reach and a twentieth of it more or less; the second half of that.
         let reach = |rect: &Rect| (rect.corners[0].0[0] - rect.corners[2].0[0]).abs() / 2.0;
         let swell = 2.0 * sine(prim.parts[0].heights[8].trunc()) * 0.05;

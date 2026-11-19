@@ -55,10 +55,10 @@ impl App {
     pub(super) fn watch(&mut self) {
         self.announcements_pass();
         let (Server::Map, Some(socket), true) = (&self.server, &self.socket, self.game.is_some()) else { return };
-        match link::watch(js_sys::Date::now(), self.link.heard_at, socket.sent_at()) {
-            link::Watch::Close => self.leave(Some(Key::Disconnected.text(self.lang).to_owned())),
-            link::Watch::Ping => socket.send(&link::ping_live()),
-            link::Watch::Wait => {}
+        match crate::link::watch(js_sys::Date::now(), self.link.heard_at, socket.sent_at()) {
+            crate::link::Watch::Close => self.leave(Some(Key::Disconnected.text(self.lang).to_owned())),
+            crate::link::Watch::Ping => socket.send(&link::ping_live()),
+            crate::link::Watch::Wait => {}
         }
     }
 }

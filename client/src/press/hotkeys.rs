@@ -32,7 +32,10 @@ mod tests {
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
-        let all = [Press::Open, Press::Tab(2), Press::Page(Step::More), Press::Page(Step::Less), Press::Row(35), Press::Reset, Press::Cancel, Press::Ok, Press::Close];
+        let all = [
+            Press::Open, Press::Tab(2), Press::Page(Step::More), Press::Page(Step::Less), Press::Row(35), Press::Reset,
+            Press::Cancel, Press::Ok, Press::Close
+        ];
         assert_eq!(all.len(), Press::NAMES.len() + 1, "a press is not tested");
         for press in all {
             let (what, arg) = press.name();

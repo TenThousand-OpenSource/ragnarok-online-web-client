@@ -28,7 +28,12 @@ impl App {
     /// What is typed into the letter's fields now is kept, each field that is on the page.
     fn mail_keep_typed(&mut self) {
         let Some(writing) = &mut self.mail.writing else { return };
-        for (id, kept) in [("mail-to", &mut writing.to), ("mail-title", &mut writing.title), ("mail-body", &mut writing.body), ("mail-zeny", &mut writing.zeny)] {
+        for (id, kept) in [
+            ("mail-to", &mut writing.to),
+            ("mail-title", &mut writing.title),
+            ("mail-body", &mut writing.body),
+            ("mail-zeny", &mut writing.zeny)
+        ] {
             if let Some(typed) = written(id) {
                 *kept = typed;
             }
@@ -89,7 +94,10 @@ impl App {
     pub(in crate::web::app) fn mail_dropped(&mut self, dragged: Drag) {
         let (Drag::Item(id), Some(writing)) = (dragged, &self.mail.writing) else { return };
         let put = |index: u16| writing.items.iter().find(|item| item.index == index).map_or(0, |item| item.amount);
-        let Some((index, left)) = self.bag.items.iter().filter(|item| item.id == id && item.worn == 0).map(|item| (item.index, item.amount.saturating_sub(put(item.index)))).find(|(_, left)| *left > 0) else { return };
+        let Some((index, left)) =
+            self.bag.items.iter().filter(|item| item.id == id && item.worn == 0).map(|item| (item.index, item.amount.saturating_sub(put(item.index)))).find(
+                |(_, left)| *left > 0
+            ) else { return };
         if left == 1 {
             self.send_on_map(&mail::attach(index, 1));
         } else {

@@ -17,17 +17,23 @@ thread_local! {
 /// Puts what follows the pointer on the page: `picture` with `origin` of it at the pointer, `scale` times its size.
 fn show(picture: &str, origin: (f32, f32), scale: f64) {
     if let Some(ghost) = element("drag") {
-        ghost.set_inner_html(&format!(
-            r#"<img alt="" draggable="false" src="{picture}" style="position:absolute;left:{:.1}px;top:{:.1}px;transform:scale({scale:.3});transform-origin:0 0;image-rendering:pixelated">"#,
-            -f64::from(origin.0) * scale,
-            -f64::from(origin.1) * scale
-        ));
+        ghost.set_inner_html(&[
+            format!(
+                r#"<img alt="" draggable="false" src="{picture}" style="position:absolute;left:{:.1}px;top:{:.1}px;"#,
+                -f64::from(origin.0) * scale,
+                -f64::from(origin.1) * scale
+            ),
+            format!(r#"transform:scale({scale:.3});transform-origin:0 0;image-rendering:pixelated">"#)
+        ].concat());
     }
 }
 
 fn place(event: &web_sys::MouseEvent, shown: bool) {
     if let Some(ghost) = element("drag") {
-        let _ = ghost.set_attribute("style", &format!("display:{};left:{}px;top:{}px", if shown { "block" } else { "none" }, event.client_x(), event.client_y()));
+        let _ = ghost.set_attribute(
+            "style",
+            &format!("display:{};left:{}px;top:{}px", if shown { "block" } else { "none" }, event.client_x(), event.client_y())
+        );
     }
 }
 
@@ -40,7 +46,10 @@ fn taken_up(event: web_sys::MouseEvent) {
     // The browser neither drags the picture itself nor marks text while the thing is carried.
     event.prevent_default();
     // The windows may be drawn larger than their own measures: what is carried is as much larger.
-    let scale = taken.dyn_ref::<web_sys::HtmlElement>().filter(|taken| taken.offset_width() > 0).map_or(1.0, |html| taken.get_bounding_client_rect().width() / f64::from(html.offset_width()));
+    let scale = taken.dyn_ref::<web_sys::HtmlElement>().filter(|taken| taken.offset_width() > 0).map_or(
+        1.0,
+        |html| taken.get_bounding_client_rect().width() / f64::from(html.offset_width())
+    );
     // Until the item's sprite is read (and for a skill, which is dragged as its icon), the icon it has in
     // its window, its middle at the pointer.
     if let Some(icon) = taken.query_selector("img").ok().flatten().and_then(|icon| icon.get_attribute("src")) {
@@ -49,10 +58,17 @@ fn taken_up(event: web_sys::MouseEvent) {
     place(&event, true);
     DRAGGED.set(Some(dragged.clone()));
     // An item: its sprite, by what the cell says it is (`data-info`: the item, with a `?` if not identified).
-    let about = taken.get_attribute("data-info").filter(|_| matches!(dragged, Drag::Item(_) | Drag::Worn(_) | Drag::Attached(_) | Drag::Offer(_) | Drag::Basket(_) | Drag::Stored(_) | Drag::Carted(_) | Drag::Stock(_) | Drag::Stalled(_) | Drag::Vended(_) | Drag::Wanted(_)));
+    let about = taken.get_attribute("data-info").filter(|_| matches!(
+        dragged,
+        Drag::Item(_) | Drag::Worn(_) | Drag::Attached(_) | Drag::Offer(_) | Drag::Basket(_) | Drag::Stored(_)
+        | Drag::Carted(_) | Drag::Stock(_) | Drag::Stalled(_) | Drag::Vended(_) | Drag::Wanted(_)
+    ));
     if let Some((id, identified)) = about.and_then(|about| Some((about.trim_end_matches('?').parse::<u32>().ok()?, !about.ends_with('?')))) {
         wasm_bindgen_futures::spawn_local(async move {
-            let resource = data::item_as(id, identified).map(|(_, resource)| resource).filter(|resource| !resource.is_empty()).unwrap_or_else(|| "사과".to_owned());
+            let resource = data::item_as(id, identified)
+                .map(|(_, resource)| resource)
+                .filter(|resource| !resource.is_empty())
+                .unwrap_or_else(|| "사과".to_owned());
             if let Ok((picture, _, origin)) = figure::frame_picture(&format!("아이템/{resource}"), 0, 0).await {
                 if DRAGGED.with_borrow(|now| now.as_ref() == Some(&dragged)) {
                     show(&picture, origin, scale);

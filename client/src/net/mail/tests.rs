@@ -159,7 +159,11 @@ fn writes_a_letter() {
 
 #[test]
 fn every_packet_of_the_mail_has_its_length() {
-    for id in [ZC_NOTIFY_UNREADMAIL, ZC_ACK_WRITE_MAIL, ZC_ACK_ZENY_FROM_MAIL, ZC_ACK_ITEM_FROM_MAIL, ZC_ACK_DELETE_MAIL, ZC_ACK_REMOVE_ITEM_MAIL, ZC_ACK_OPEN_WRITE_MAIL, ZC_CHECKNAME, ZC_MAIL_LIST, ZC_ACK_ADD_ITEM_RODEX, ZC_ACK_READ_RODEX] {
+    for id in [
+        ZC_NOTIFY_UNREADMAIL, ZC_ACK_WRITE_MAIL, ZC_ACK_ZENY_FROM_MAIL, ZC_ACK_ITEM_FROM_MAIL, ZC_ACK_DELETE_MAIL,
+        ZC_ACK_REMOVE_ITEM_MAIL, ZC_ACK_OPEN_WRITE_MAIL, ZC_CHECKNAME, ZC_MAIL_LIST, ZC_ACK_ADD_ITEM_RODEX,
+        ZC_ACK_READ_RODEX
+    ] {
         assert!(crate::net::packet_length(id).is_some(), "{id:#06x} has no length");
     }
     assert_eq!(crate::net::packet_length(ZC_ACK_ADD_ITEM_RODEX), Some(64));

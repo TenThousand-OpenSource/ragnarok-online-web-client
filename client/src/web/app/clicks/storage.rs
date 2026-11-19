@@ -72,7 +72,9 @@ impl App {
     /// A thing of the storage was dragged out and let go over the inventory: it comes out, one thing at once,
     /// and of more the client asks how many.
     pub(in crate::web::app) fn storage_let_out(&mut self, index: u16) {
-        let Some(amount) = self.storage.open.as_ref().and_then(|stored| stored.items.iter().find(|item| item.index == index)).map(|item| item.amount) else { return };
+        let Some(amount) = self.storage.open.as_ref().and_then(|stored| stored.items.iter().find(|item| item.index == index)).map(
+            |item| item.amount
+        ) else { return };
         self.storage_move(Stowing::Out(index), amount);
     }
 
@@ -92,7 +94,9 @@ impl App {
     pub(in crate::web::app) fn storage_stowed(&mut self, what: Use) {
         let whole = match what {
             Use::Put(index) => self.bag.items.iter().find(|item| item.index == index && item.worn == 0).map(|item| (Stowing::In(index), item.amount)),
-            Use::Take(index) => self.storage.open.as_ref().and_then(|stored| stored.items.iter().find(|item| item.index == index)).map(|item| (Stowing::Out(index), item.amount)),
+            Use::Take(index) => self.storage.open.as_ref().and_then(|stored| stored.items.iter().find(|item| item.index == index)).map(
+                |item| (Stowing::Out(index), item.amount)
+            ),
             _ => None,
         };
         if let (Some((stowing, amount)), true) = (whole, self.storage.open.is_some()) {

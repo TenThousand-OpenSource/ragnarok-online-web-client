@@ -57,12 +57,44 @@ impl Slot {
 
     /// A wall as the effects launch one: all the way round, nothing of it showing yet.
     pub fn wall(turned: i32, out: f32, rise: i32, tall: f32, holds: i32) -> Self {
-        Self { live: true, process: 0, alpha: 0, out, turned, round: 360, rise, tall, holds, heights: [0.0; 21], at: [0.0; 3], climbs: 0.0, drifts: 0.0, flashes: false, flashing: false }
+        Self {
+            live: true,
+            process: 0,
+            alpha: 0,
+            out,
+            turned,
+            round: 360,
+            rise,
+            tall,
+            holds,
+            heights: [0.0; 21],
+            at: [0.0; 3],
+            climbs: 0.0,
+            drifts: 0.0,
+            flashes: false,
+            flashing: false
+        }
     }
 
     /// A mote as the effects launch one: not turned, nothing of it showing yet.
     pub fn mote(at: [f32; 3], out: f32, climbs: f32, flashes: bool) -> Self {
-        Self { live: true, process: 0, alpha: 0, out, turned: 0, round: 0, rise: 0, tall: 0.0, holds: 0, heights: [0.0; 21], at, climbs, drifts: 0.0, flashes, flashing: false }
+        Self {
+            live: true,
+            process: 0,
+            alpha: 0,
+            out,
+            turned: 0,
+            round: 0,
+            rise: 0,
+            tall: 0.0,
+            holds: 0,
+            heights: [0.0; 21],
+            at,
+            climbs,
+            drifts: 0.0,
+            flashes,
+            flashing: false
+        }
     }
 }
 
@@ -99,7 +131,9 @@ impl Prim {
     pub fn lit(&self, right: [f32; 3], up: [f32; 3]) -> Vec<Lit> {
         let live = self.slots.iter().filter(|slot| slot.live);
         match self.kind {
-            Shape::ParticleUp => live.filter(|slot| slot.alpha > 0).map(|slot| slot.panel(self.pictures.get(usize::from(slot.flashing)).copied().unwrap_or(self.picture), right, up)).collect(),
+            Shape::ParticleUp => live.filter(|slot| slot.alpha > 0)
+                .map(|slot| slot.panel(self.pictures.get(usize::from(slot.flashing)).copied().unwrap_or(self.picture), right, up))
+                .collect(),
             Shape::Casting3d => live.flat_map(|slot| slot.band(self.picture, self.middle([0.0; 3]))).collect(),
             Shape::Walls(walls) => self.lit_walls(walls),
             Shape::Streak { .. } => self.lit_streaks(),
@@ -202,7 +236,10 @@ impl Slot {
             .map(|order| {
                 let ((before_foot, before_top), (foot, top)) = (edge(order - 1), edge(order));
                 let (left, right) = ((order - 1) as f32 / 21.0, order as f32 / 21.0);
-                let corners = [(before_foot, [left, 1.0]), (foot, [right, 1.0]), (top, [right, 0.0]), (before_top, [left, 0.0]), (top, [right, 0.0]), (before_foot, [left, 1.0])];
+                let corners = [
+                    (before_foot, [left, 1.0]), (foot, [right, 1.0]), (top, [right, 0.0]), (before_top, [left, 0.0]),
+                    (top, [right, 0.0]), (before_foot, [left, 1.0])
+                ];
                 Lit { picture, corners, alpha: self.alpha as f32 }
             })
             .collect()

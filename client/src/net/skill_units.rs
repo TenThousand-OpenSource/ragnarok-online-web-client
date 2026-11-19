@@ -46,7 +46,15 @@ pub struct Entry {
 /// Reads ZC_SKILL_ENTRY5.
 pub fn entry(packet: &[u8]) -> Option<Entry> {
     let packet = packet.get(..23)?;
-    Some(Entry { id: long(packet, 4)?, creator: long(packet, 8)?, cell: (word(packet, 12)?, word(packet, 14)?), unit: long(packet, 16)?, range: packet[20], visible: packet[21] != 0, level: packet[22] })
+    Some(Entry {
+        id: long(packet, 4)?,
+        creator: long(packet, 8)?,
+        cell: (word(packet, 12)?, word(packet, 14)?),
+        unit: long(packet, 16)?,
+        range: packet[20],
+        visible: packet[21] != 0,
+        level: packet[22]
+    })
 }
 
 /// Reads ZC_UPDATE_MAPINFO: the cell and its new type.
@@ -169,7 +177,10 @@ mod tests {
         let mut said = packet(ZC_TALKBOX_CHATCONTENTS, &[&77u32.to_le_bytes(), b"beware"]);
         said.resize(86, 0);
         assert_eq!(talkie(&said), Some((77, "beware".to_owned())));
-        let mut wall = packet(ZC_SKILL_ENTRY2, &[&77u32.to_le_bytes(), &5u32.to_le_bytes(), &150u16.to_le_bytes(), &160u16.to_le_bytes(), &[0xb0, 1, 1], b"hello"]);
+        let mut wall = packet(
+            ZC_SKILL_ENTRY2,
+            &[&77u32.to_le_bytes(), &5u32.to_le_bytes(), &150u16.to_le_bytes(), &160u16.to_le_bytes(), &[0xb0, 1, 1], b"hello"]
+        );
         wall.resize(97, 0);
         assert_eq!(written(&wall), Some(Written { id: 77, maker: 5, cell: (150, 160), kind: 0xb0, seen: true, words: "hello".to_owned() }));
     }

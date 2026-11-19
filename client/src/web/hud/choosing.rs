@@ -84,13 +84,22 @@ impl App {
     pub(in crate::web) fn choose_line_window(&self) -> String {
         let listed = |things: &[crate::net::choosing::Listed]| things.iter().map(|thing| called(thing.id)).collect::<Vec<String>>();
         let (title, inside) = match &self.choosing.open {
-            Some(Choice::Make(items)) => (Self::words(425, "Manufacturing List"), line_list(12, 22, 256, 95, &items.iter().map(|id| called(*id)).collect::<Vec<_>>(), self.choosing.picked)),
+            Some(Choice::Make(items)) => (
+                Self::words(425, "Manufacturing List"),
+                line_list(12, 22, 256, 95, &items.iter().map(|id| called(*id)).collect::<Vec<_>>(), self.choosing.picked)
+            ),
             Some(Choice::Repair(things)) => (Self::words(812, "Repairable items"), line_list(12, 22, 256, 95, &listed(things), self.choosing.picked)),
             Some(Choice::Refine(things)) => (Self::words(910, "Upgradeable weapons"), line_list(12, 22, 256, 95, &listed(things), self.choosing.picked)),
             Some(Choice::Forge(make, put)) => (String::new(), Self::forge_pane(*make, put)),
             _ => return String::new(),
         };
-        format!("{}{}{inside}{}{}", title_bar(280, &title), panel(280, 150), picture_press(189, 126, "btn_ok", Press::Ok), picture_press(234, 126, "btn_cancel", Press::Cancel))
+        format!(
+            "{}{}{inside}{}{}",
+            title_bar(280, &title),
+            panel(280, 150),
+            picture_press(189, 126, "btn_ok", Press::Ok),
+            picture_press(234, 126, "btn_cancel", Press::Cancel)
+        )
     }
 
     /// A thing about to be forged (`UIMakeTargetProcessWnd::Paint`): its name and " Create" (line 426) in the

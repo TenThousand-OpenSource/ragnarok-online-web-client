@@ -39,7 +39,21 @@ pub struct Part {
 impl Default for Part {
     /// A part as the client makes one (`EffectPrimitiveSlot::EffectPrimitiveSlot` leaves it at nothing), alive.
     fn default() -> Self {
-        Self { live: true, process: 0, alpha: 0, alpha_top: 0, round: 0, turned: 0, rise: 0, tall: 0.0, out: 0.0, heights: [0.0; 21], flags: [0; 21], at: [[0.0; 3]; 4], seed: 0 }
+        Self {
+            live: true,
+            process: 0,
+            alpha: 0,
+            alpha_top: 0,
+            round: 0,
+            turned: 0,
+            rise: 0,
+            tall: 0.0,
+            out: 0.0,
+            heights: [0.0; 21],
+            flags: [0; 21],
+            at: [[0.0; 3]; 4],
+            seed: 0
+        }
     }
 }
 

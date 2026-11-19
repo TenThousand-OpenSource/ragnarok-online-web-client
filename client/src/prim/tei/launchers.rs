@@ -70,7 +70,12 @@ impl Prim {
     pub fn asks(&self) -> Vec<(u32, [f32; 3])> {
         let up = |at: [f32; 3]| [at[0], -at[1], at[2]];
         match self.kind {
-            Shape::Tei(Tei::Sma) => self.parts.first().filter(|part| part.live && part.flags[0] == 1).map(|part| (EF_SMA3, up(part.at[0]))).into_iter().collect(),
+            Shape::Tei(Tei::Sma) => self.parts
+                .first()
+                .filter(|part| part.live && part.flags[0] == 1)
+                .map(|part| (EF_SMA3, up(part.at[0])))
+                .into_iter()
+                .collect(),
             Shape::Tei(Tei::SpiralFade) => {
                 let lit = self.parts.iter().filter(|part| part.live && part.process < 300 && part.heights[13] as i32 > 0);
                 lit.map(|part| (if part.flags[0] == 0 { EF_SOULLIGHT2 } else { EF_SOULLIGHT3 }, up(part.at[2]))).collect()

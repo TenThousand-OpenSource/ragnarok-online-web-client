@@ -137,12 +137,19 @@ pub(super) fn effect_carried(name: &str, on: Option<u32>, carried: Option<Carryi
     wasm_bindgen_futures::spawn_local(async move {
         let Ok(bytes) = fetch_asset(&format!("data/texture/effect/{name}")).await else { return };
         let Ok(korean) = web_sys::TextDecoder::new_with_label("euc-kr") else { return };
-        let Ok(effect) = crate::effect::parse(&bytes, |raw| korean.decode_with_u8_array(raw).unwrap_or_else(|_| String::from_utf8_lossy(raw).into_owned())) else { return };
+        let Ok(effect) = crate::effect::parse(
+            &bytes,
+            |raw| korean.decode_with_u8_array(raw).unwrap_or_else(|_| String::from_utf8_lossy(raw).into_owned())
+        ) else { return };
         // Each picture once, however many layers show it.
         let names: BTreeSet<&str> = effect.layers.iter().flat_map(|layer| layer.textures.iter().map(String::as_str)).collect();
         // (Each is in the folder of the effect's file: `crate::effect::texture_path`.)
         let folder = name.as_str();
-        let read: HashMap<&str, Option<bmp::Image>> = futures_util::future::join_all(names.iter().map(|name| async move { (*name, picture(&format!("effect\\{}", crate::effect::texture_path(folder, name))).await.ok()) })).await.into_iter().collect();
+        let read: HashMap<&str, Option<bmp::Image>> = futures_util::future::join_all(names.iter().map(
+            |name| async move { (*name, picture(&format!("effect\\{}", crate::effect::texture_path(folder, name))).await.ok()) }
+        )).await
+            .into_iter()
+            .collect();
         STATE.with_borrow_mut(|state| {
             let Some(gpu) = &state.gpu else { return };
             let on_gpu: HashMap<&str, Rc<[wgpu::BindGroup; 2]>> = read

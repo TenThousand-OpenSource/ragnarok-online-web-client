@@ -47,7 +47,10 @@ impl Prim {
         let middle = self.middle([0.0; 3]);
         let live = self.slots.iter().enumerate().filter(|(_, slot)| slot.live);
         match cast {
-            Cast::Stone { last_only: true } => live.filter(|(index, _)| *index == 3).flat_map(|(_, slot)| slot.band(self.picture, middle)).map(|lit| Lit { alpha: 80.0, ..lit }).collect(),
+            Cast::Stone { last_only: true } => live.filter(|(index, _)| *index == 3)
+                .flat_map(|(_, slot)| slot.band(self.picture, middle))
+                .map(|lit| Lit { alpha: 80.0, ..lit })
+                .collect(),
             Cast::Rays { wide } => live.filter(|(_, slot)| slot.alpha > 0).map(|(_, slot)| slot.beam(self.picture, wide, middle, right, up)).collect(),
             _ => live.flat_map(|(_, slot)| slot.band(self.picture, middle)).collect(),
         }
@@ -113,7 +116,12 @@ mod tests {
     fn stone(last_only: bool, duration: i32) -> Prim {
         let mut walls = Prim::new(Shape::Cast(Cast::Stone { last_only }), "a");
         walls.duration = duration;
-        walls.slots = vec![Slot::wall(0, 4.5, 70, 25.0, 0), Slot::wall(90, 5.0, 57, 22.0, 0), Slot::wall(180, 5.5, 45, 19.0, 0), Slot::wall(0, 4.0, 89, 250.0, 0)];
+        walls.slots = vec![
+            Slot::wall(0, 4.5, 70, 25.0, 0),
+            Slot::wall(90, 5.0, 57, 22.0, 0),
+            Slot::wall(180, 5.5, 45, 19.0, 0),
+            Slot::wall(0, 4.0, 89, 250.0, 0)
+        ];
         walls
     }
 

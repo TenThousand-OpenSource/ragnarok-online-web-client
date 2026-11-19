@@ -13,8 +13,13 @@ use super::*;
 ///   low, top, middle) and the direction it is seen from (0 to 7), as `GetLayerPriority(direction, layer,
 ///   view)` gives it (`TB_Layer_Priority.lub`): the lower is drawn first. `usual` is what a view the table
 ///   does not name gets; `views` has those that differ from it anywhere, each with its three rows.
-pub fn figures(grf: &Grf) -> serde_json::Value {
-    let lua = run(grf, &["jobidentity", "npcidentity", "accessoryid", "spriterobeid", "shadowtable", "shadowtable_f", "npclocationradius", "npclocationradius_f", "tb_layer_priority"]);
+pub fn figures(read: &Sources) -> serde_json::Value {
+    let lua = read.run(
+        &[
+            "jobidentity", "npcidentity", "accessoryid", "spriterobeid", "shadowtable", "shadowtable_f",
+            "npclocationradius", "npclocationradius_f", "tb_layer_priority"
+        ]
+    );
     let globals = lua.globals();
     let numbers = |table: &str| -> Vec<i64> {
         let Ok(table) = globals.get::<Table>(table) else { return Vec::new() };
@@ -38,7 +43,9 @@ pub fn figures(grf: &Grf) -> serde_json::Value {
     let mut views = serde_json::Map::new();
     let mut usual = [-1i64; 3];
     if let Ok(priority) = globals.get::<mlua::Function>("GetLayerPriority") {
-        let rows = |view: i64| -> [[i64; 8]; 3] { [2, 3, 4].map(|layer| std::array::from_fn(|direction| priority.call::<i64>((direction as i64, layer, view)).unwrap_or(-1))) };
+        let rows = |view: i64| -> [[i64; 8]; 3] {
+            [2, 3, 4].map(|layer| std::array::from_fn(|direction| priority.call::<i64>((direction as i64, layer, view)).unwrap_or(-1)))
+        };
         // A view no table names: what every other gets.
         let plain = rows(i64::from(i32::MAX));
         usual = plain.map(|row| row[0]);

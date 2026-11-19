@@ -1,7 +1,7 @@
 //! What the chat commands send to the map server and hear back: how many play (`/who`), whose whispers are let
 //! in (`/ex`, `/in` and their kin), a place kept for Warp Portal (`/memo`), the shake of the head
-//! (`/doridori`), and the rankings (`/blacksmith`, `/alchemist`, `/taekwon`) with the lines the client writes
-//! of one into the chat.
+//! (`/doridori`), and the rankings (`/blacksmith`, `/alchemist`, `/taekwon`); the lines the client writes of
+//! one into the chat are `crate::commands::ranking_lines`.
 
 use super::bytes::{long, name_at, records, text, u16_at, u32_at, Writer};
 
@@ -76,23 +76,25 @@ pub fn ranking_ask(kind: u16) -> Vec<u8> {
     Writer::new(0x097c).u16(kind).done()
 }
 
-/// ZC_ACK_RANKING (0x097d, 288 bytes): `u16 kind`, ten times `char name[24]`, `u32 points`, then `u32` the
-/// player's own points. Gives the kind, the ten and the player's own.
-pub fn ranking(packet: &[u8]) -> Option<(u16, Vec<(String, u32)>, u32)> {
-    let packet = packet.get(..288)?;
-    let ranked = (0..10).map(|place| (name_at(packet, 4 + place * 28, 24), u32_at(packet, 4 + place * 28 + 24))).collect();
-    Some((u16_at(packet, 2), ranked, u32_at(packet, 284)))
+/// A ranking, as ZC_ACK_RANKING tells it.
+#[derive(Debug, PartialEq)]
+pub struct Ranking {
+    /// Blacksmiths (0), alchemists (1) or taekwons (2).
+    pub kind: u16,
+    /// The ten first, each by name and points.
+    pub ranked: Vec<(String, u32)>,
+    /// The player's own points.
+    pub own: u32,
 }
 
-/// A ranking as the client writes it into the chat: a heading with the ranking's name, a line to each of the
-/// ten ("[ %2d ] %-18s  :  %4d POINT"), a rule, the player's own points and a rule again.
-pub fn ranking_lines(kind: u16, ranked: &[(String, u32)], own: u32) -> Vec<String> {
-    let named = ["BLACKSMITH", "ALCHEMIST", "TAEKWON"].get(usize::from(kind)).copied().unwrap_or("KILLER");
-    let rule = "=".repeat(39);
-    let mut lines = vec![format!("========== {named} RANK ============")];
-    lines.extend(ranked.iter().enumerate().map(|(place, (name, points))| format!("[ {:2} ] {name:<18}  :  {points:4} POINT", place + 1)));
-    lines.extend([rule.clone(), format!("MY POINT    :  {own:4} POINT "), rule]);
-    lines
+/// ZC_ACK_RANKING (0x097d, 288 bytes): `u16 kind`, ten times `char name[24]`, `u32 points`, then `u32` the
+/// player's own points.
+pub fn ranking(packet: &[u8]) -> Option<Ranking> {
+    let packet = packet.get(..288)?;
+    let ranked = (0..10)
+        .map(|place| (name_at(packet, 4 + place * 28, 24), u32_at(packet, 4 + place * 28 + 24)))
+        .collect();
+    Some(Ranking { kind: u16_at(packet, 2), ranked, own: u32_at(packet, 284) })
 }
 
 #[cfg(test)]
@@ -107,13 +109,9 @@ mod tests {
         packet[4..8].copy_from_slice(b"Kick");
         packet[28..32].copy_from_slice(&1200u32.to_le_bytes());
         packet[284..288].copy_from_slice(&7u32.to_le_bytes());
-        let (kind, ranked, own) = ranking(&packet).unwrap();
+        let Ranking { kind, ranked, own } = ranking(&packet).unwrap();
         assert_eq!((kind, ranked.len(), ranked[0].clone(), own), (2, 10, ("Kick".to_owned(), 1200), 7));
         assert_eq!(ranking(&packet[..200]), None);
-        let lines = ranking_lines(kind, &ranked[..1], own);
-        assert_eq!(lines[0], "========== TAEKWON RANK ============");
-        assert_eq!(lines[1], "[  1 ] Kick                :  1200 POINT");
-        assert_eq!(lines[3], "MY POINT    :     7 POINT ");
     }
 
     #[test]

@@ -17,7 +17,19 @@ pub(in crate::web::world) enum Piece {
     /// colour its file gives it instead of `colour`; `lit`, whether every layer is in the red, green and blue
     /// its file gives it at the alpha of `colour` (`RenderSegmentSpriteGlow`). With a `rim` every layer is in
     /// the colour and of the size that makes of the layer's own (`RenderSegmentSprites`, `crate::prim::Rim`).
-    Sprite { sprite: &'static str, action: usize, frame: usize, at: Vector, scale: f32, roll: f32, colour: [f32; 4], own: bool, lit: bool, adds: bool, rim: Option<crate::prim::Rim> },
+    Sprite {
+        sprite: &'static str,
+        action: usize,
+        frame: usize,
+        at: Vector,
+        scale: f32,
+        roll: f32,
+        colour: [f32; 4],
+        own: bool,
+        lit: bool,
+        adds: bool,
+        rim: Option<crate::prim::Rim>
+    },
 }
 
 impl Burst {
@@ -31,15 +43,30 @@ impl Burst {
             let colour = |alpha: f32| [prim.colour[0] / 255.0, prim.colour[1] / 255.0, prim.colour[2] / 255.0, alpha.trunc() / 255.0];
             let place = prim.left.map_or(place, |left| std::array::from_fn(|axis| place[axis] - self.course.walked[axis] + left[axis]));
             // (The kind 167 is drawn at each of its parts, every layer twice in colours made of its own.)
+            // The primitive's sprite as a piece: where, how large, its colour, how it is coloured and lit and
+            // laid on (`own`, `lit`, `adds`), and its rim.
+            let sprite = |at, scale, colour, (own, lit, adds): (bool, bool, bool), rim| Piece::Sprite {
+                sprite: prim.picture,
+                action: prim.action,
+                frame: prim.motion,
+                at,
+                scale,
+                roll: prim.rolled(yaw),
+                colour,
+                own,
+                lit,
+                adds,
+                rim
+            };
             for (at, scale, rim) in prim.fourfold() {
-                draw(Piece::Sprite { sprite: prim.picture, action: prim.action, frame: prim.motion, at: along(place, at, 1.0), scale, roll: prim.rolled(yaw), colour: [1.0; 4], own: true, lit: false, adds: prim.adds, rim: Some(rim) });
+                draw(sprite(along(place, at, 1.0), scale, [1.0; 4], (true, false, prim.adds), Some(rim)));
             }
             for seen in prim.seen().into_iter().filter(|seen| prim.shows_sprite() && !prim.is_fourfold() && seen.alpha >= 1.0) {
                 let at = [place[0] + seen.at[0], place[1] + seen.at[1], place[2] + seen.at[2]];
-                draw(Piece::Sprite { sprite: prim.picture, action: prim.action, frame: prim.motion, at, scale: seen.scale, roll: prim.rolled(yaw), colour: colour(seen.alpha), own: prim.own_colours, lit: prim.glows(), adds: prim.adds, rim: None });
+                draw(sprite(at, seen.scale, colour(seen.alpha), (prim.own_colours, prim.glows(), prim.adds), None));
                 // (The kind 153 is drawn once more, its light added: `RenderSegmentSpriteGlow`.)
                 if prim.glows() {
-                    draw(Piece::Sprite { sprite: prim.picture, action: prim.action, frame: prim.motion, at, scale: seen.scale, roll: prim.rolled(yaw), colour: colour(seen.alpha), own: false, lit: true, adds: true, rim: None });
+                    draw(sprite(at, seen.scale, colour(seen.alpha), (false, true, true), None));
                 }
             }
             for lit in prim.lit(right, up).into_iter().filter(|lit| lit.alpha >= 1.0) {
@@ -48,7 +75,17 @@ impl Burst {
             }
             for rect in prim.rects(right, up).into_iter().filter(|rect| rect.alpha >= 1.0) {
                 let corners = rect.corners.map(|(at, uv)| ([place[0] + at[0], place[1] + at[1], place[2] + at[2]], uv));
-                draw(Piece::Picture(rect.picture, corners, [[f32::from(rect.colour[0]) / 255.0, f32::from(rect.colour[1]) / 255.0, f32::from(rect.colour[2]) / 255.0, rect.alpha / 255.0]; 6], rect.adds));
+                draw(Piece::Picture(
+                    rect.picture,
+                    corners,
+                    [[
+                        f32::from(rect.colour[0]) / 255.0,
+                        f32::from(rect.colour[1]) / 255.0,
+                        f32::from(rect.colour[2]) / 255.0,
+                        rect.alpha / 255.0
+                    ]; 6],
+                    rect.adds
+                ));
             }
             // (A kite has a corner that shows whatever its alpha is.)
             if prim.alpha < 1.0 && !prim.glares(1) {
@@ -58,7 +95,10 @@ impl Burst {
                 draw(Piece::Picture(prim.shown(), std::array::from_fn(|index| pair[index]), [colour(prim.alpha); 6], prim.adds));
             }
             for pair in prim.corners().chunks_exact(6) {
-                let corner = |index: usize| (along(along(place, right, pair[index][0] * SPRITE_SCALE), up, -pair[index][1] * SPRITE_SCALE), [pair[index][2], pair[index][3]]);
+                let corner = |index: usize| (
+                    along(along(place, right, pair[index][0] * SPRITE_SCALE), up, -pair[index][1] * SPRITE_SCALE),
+                    [pair[index][2], pair[index][3]]
+                );
                 let colours = std::array::from_fn(|index| if prim.glares(index) { [1.0; 4] } else { colour(prim.alpha) });
                 draw(Piece::Picture(prim.picture, std::array::from_fn(corner), colours, prim.adds));
             }

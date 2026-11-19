@@ -174,7 +174,10 @@ mod tests {
     #[test]
     fn the_larger_drawing_is_four_pixels_out_on_every_side() {
         // A quad 10 wide and 6 tall as `layer_quads` gives one: left top, right top, left bottom, and again.
-        let quad = |left: f32, right: f32| [[left, 0.0, 0.0, 0.0], [right, 0.0, 1.0, 0.0], [left, 6.0, 0.0, 1.0], [left, 6.0, 0.0, 1.0], [right, 0.0, 1.0, 0.0], [right, 6.0, 1.0, 1.0]];
+        let quad = |left: f32, right: f32| [
+            [left, 0.0, 0.0, 0.0], [right, 0.0, 1.0, 0.0], [left, 6.0, 0.0, 1.0], [left, 6.0, 0.0, 1.0],
+            [right, 0.0, 1.0, 0.0], [right, 6.0, 1.0, 1.0]
+        ];
         let plain = quad(0.0, 10.0);
         assert_eq!(Rim { look: 0, outer: false }.widened(plain), plain);
         let wide = Rim { look: 0, outer: true }.widened(plain);

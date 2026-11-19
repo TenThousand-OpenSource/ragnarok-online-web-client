@@ -33,7 +33,7 @@ impl App {
             // the one who used it goes through the motion the client has for the skill, and the skill's
             // effect plays at the place. (The client also turns the caster to the place, which is not done.)
             skills::ZC_NOTIFY_GROUNDSKILL => {
-                if let Some((skill, who, _, cell)) = skills::on_ground(packet) {
+                if let Some(skills::OnGround { skill, who, cell, .. }) = skills::on_ground(packet) {
                     let own = self.own_account();
                     world::cast_over(who, own, false);
                     world::uses_skill(who, own, effect_tables::skill_state(skill));

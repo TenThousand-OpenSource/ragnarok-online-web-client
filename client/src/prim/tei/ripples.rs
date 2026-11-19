@@ -121,7 +121,10 @@ mod tests {
     fn rings(kind: i32) -> Prim {
         let mut prim = Prim::new(Shape::Tei(Tei::Ripple), "ring");
         (prim.duration, prim.size) = (9999, 5.0);
-        prim.parts = [(0, 0, 2), (-10, 25, 3), (-20, 50, 4)].into_iter().map(|(process, turned, rise)| Part { process, round: 360, tall: 6.001, turned, rise, alpha_top: 100, ..Part::default() }).collect();
+        prim.parts = [(0, 0, 2), (-10, 25, 3), (-20, 50, 4)]
+            .into_iter()
+            .map(|(process, turned, rise)| Part { process, round: 360, tall: 6.001, turned, rise, alpha_top: 100, ..Part::default() })
+            .collect();
         prim.parts.push(Part { live: false, alpha_top: kind, ..Part::default() });
         prim
     }

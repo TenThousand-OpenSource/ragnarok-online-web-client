@@ -42,7 +42,10 @@ check.sh                what a change passes before it is committed: tests, the 
 rules.sh                switches the local server between the classic rules and Renewal's
 public.sh               opens the local server to invited friends: the invitation word, a Cloudflare tunnel
 tools/
-  limits.py             rules 4, 10 and 12 as far as a script can hold them, and that this map is the tree's
+  limits.py             rules 4, 10 and 12 as far as a script can hold them (files, functions and lines of
+                        `src` and `tests`), and that this map is the tree's
+  duplicates.py         measures rule 11: blocks of lines written in two places (`--loose`: but for their
+                        names and literals) and functions of one shape (`--shape`); `--max N` fails over N
   directory_map.py      writes this map
   split_module.py       moves functions of a file that grew too large into child modules
   packet-names.py       writes out what rAthena's headers call each packet (client/src/net/packet_names.txt)

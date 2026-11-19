@@ -91,7 +91,13 @@ impl Gnd {
             let (texture, lightmap) = (reader.u16()? as i16, reader.u16()?);
             // Stored blue, green, red, alpha.
             let colour = reader.take(4)?;
-            surfaces.push(Surface { u: corners[..4].try_into().unwrap(), v: corners[4..].try_into().unwrap(), texture, lightmap, colour: [colour[2], colour[1], colour[0]] });
+            surfaces.push(Surface {
+                u: corners[..4].try_into().unwrap(),
+                v: corners[4..].try_into().unwrap(),
+                texture,
+                lightmap,
+                colour: [colour[2], colour[1], colour[0]]
+            });
         }
 
         if width.saturating_mul(height).saturating_mul(28) > bytes.len() {
@@ -116,7 +122,10 @@ impl Gnd {
     /// The cubes (east, north) with a corner lower than `level`: where water of that level shows
     /// (`GroundGeometry::DrawWaterCell` draws a cell's water when a corner of its ground is under it).
     pub fn under(&self, level: f32) -> Vec<(usize, usize)> {
-        (0..self.width * self.height).filter(|&index| self.cubes[index].heights.iter().any(|&height| height < level)).map(|index| (index % self.width, index / self.width)).collect()
+        (0..self.width * self.height)
+            .filter(|&index| self.cubes[index].heights.iter().any(|&height| height < level))
+            .map(|index| (index % self.width, index / self.width))
+            .collect()
     }
 
     /// The ground as triangles: the top of every cube, and the walls between cubes of different heights.
@@ -158,7 +167,12 @@ impl Gnd {
             let Some(triangles) = usize::try_from(surface.texture).ok().and_then(|texture| by_texture.get_mut(texture)) else { return };
             let first = vertices.len() as u32;
             for corner in 0..4 {
-                vertices.push(Vertex { position: positions[corner], uv: [surface.u[corner], surface.v[corner]], light_uv: light_uv(surface.lightmap, corner), colour: colours[corner] });
+                vertices.push(Vertex {
+                    position: positions[corner],
+                    uv: [surface.u[corner], surface.v[corner]],
+                    light_uv: light_uv(surface.lightmap, corner),
+                    colour: colours[corner]
+                });
             }
             triangles.extend([first, first + 1, first + 2, first + 2, first + 1, first + 3]);
         };
@@ -179,12 +193,30 @@ impl Gnd {
                 // The wall on the north side, down (or up) to the cube north of this one.
                 if let (Some(surface), Some(next)) = (self.surface(cube.north), self.cube(x, y + 1)) {
                     let colour = [surface.colour.map(|channel| f32::from(channel) / 255.0); 4];
-                    face(surface, [[west, cube.heights[2], north], [east, cube.heights[3], north], [west, next.heights[0], north], [east, next.heights[1], north]], colour);
+                    face(
+                        surface,
+                        [
+                            [west, cube.heights[2], north],
+                            [east, cube.heights[3], north],
+                            [west, next.heights[0], north],
+                            [east, next.heights[1], north]
+                        ],
+                        colour
+                    );
                 }
                 // The wall on the east side.
                 if let (Some(surface), Some(next)) = (self.surface(cube.east), self.cube(x + 1, y)) {
                     let colour = [surface.colour.map(|channel| f32::from(channel) / 255.0); 4];
-                    face(surface, [[east, cube.heights[3], north], [east, cube.heights[1], south], [east, next.heights[2], north], [east, next.heights[0], south]], colour);
+                    face(
+                        surface,
+                        [
+                            [east, cube.heights[3], north],
+                            [east, cube.heights[1], south],
+                            [east, next.heights[2], north],
+                            [east, next.heights[0], south]
+                        ],
+                        colour
+                    );
                 }
             }
         }

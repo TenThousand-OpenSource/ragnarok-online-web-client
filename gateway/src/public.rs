@@ -82,13 +82,19 @@ fn word_sent(body: &[u8]) -> Option<String> {
 /// The page that asks for the word.
 fn asking(wrong: bool) -> Response {
     let said = if wrong { "<p>That is not the word.</p>" } else { "" };
-    let page = format!(
-        r#"<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Ragnarok 2026</title>
+    let page = [
+        format!(
+            r#"<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Ragnarok 2026</title>
 <body style="margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#1b2140;color:#e9ecf7;font:14px Tahoma,Arial,sans-serif">
 <form method="post" action="{PATH}" style="text-align:center"><p>This server is open by invitation.</p>{said}
-<input name="word" type="password" autofocus autocomplete="off" placeholder="invitation word" style="padding:6px 8px;border:1px solid #7f93b8;border-radius:3px">
+"#
+        ),
+        format!(r#"<input name="word" type="password" autofocus autocomplete="off" placeholder="invitation word""#),
+        format!(
+            r#" style="padding:6px 8px;border:1px solid #7f93b8;border-radius:3px">
 <button style="padding:6px 12px">Enter</button></form>"#
-    );
+        )
+    ].concat();
     (StatusCode::UNAUTHORIZED, [(header::CONTENT_TYPE, "text/html; charset=utf-8"), (header::CACHE_CONTROL, "no-store")], page).into_response()
 }
 

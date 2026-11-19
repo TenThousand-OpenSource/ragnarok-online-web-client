@@ -54,13 +54,19 @@ pub(in crate::web) fn text_ending(right: i32, width: i32, y: i32, colour: &str, 
 /// A line of text with its middle at `x`, in the font the client asks for there (`DrawCenteredText`): it has
 /// 96 to stand in, and takes no press.
 pub(in crate::web) fn text_centred(font: Font, x: i32, y: i32, colour: &str, words: &str) -> String {
-    format!(r#"<div class="a t" style="left:{}px;top:{y}px;width:96px;text-align:center;pointer-events:none;color:{colour};{}">{}</div>"#, x - 48, font.style(), escape(words))
+    [
+        format!(r#"<div class="a t" style="left:{}px;top:{y}px;width:96px;text-align:center;pointer-events:none;"#, x - 48),
+        format!(r#"color:{colour};{}">{}</div>"#, font.style(), escape(words))
+    ].concat()
 }
 
 /// A text cut to the width it has, three dots where it was cut, as the client's fitted labels are
 /// (`UIStaticText::SetTextFitted`); what was cut is told when it is pointed at, as the client's tooltip tells it.
 pub(in crate::web) fn fitted(x: i32, y: i32, width: i32, colour: &str, words: &str) -> String {
-    format!(r#"<div class="a t" style="left:{x}px;top:{y}px;width:{width}px;overflow:hidden;text-overflow:ellipsis;color:{colour}" title="{0}">{0}</div>"#, escape(words))
+    format!(
+        r#"<div class="a t" style="left:{x}px;top:{y}px;width:{width}px;overflow:hidden;text-overflow:ellipsis;color:{colour}" title="{0}">{0}</div>"#,
+        escape(words)
+    )
 }
 
 /// A window's title at its place in the title bar: black over a white copy of itself (the page's `titled`).

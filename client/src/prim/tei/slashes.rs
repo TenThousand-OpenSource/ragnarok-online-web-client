@@ -40,8 +40,14 @@ impl Part {
                 let angle = (self.turned - 1 + blade).rem_euclid(360) as f32;
                 let (cos, sin) = (cosine(angle), sine(angle));
                 let (near, far) = (self.heights[0], self.heights[0] + self.out);
-                let (near_tall, far_tall, alpha) = if blade == 1 { (self.tall * 0.2, self.tall, self.alpha) } else { (self.tall * 0.1, self.tall * 0.4, self.alpha / 3) };
-                let corners = [[cos * near, 0.0, sin * near], [cos * far, 0.0, sin * far], [cos * far, -far_tall, sin * far], [cos * near, -near_tall, sin * near]];
+                let (near_tall, far_tall, alpha) =
+                    if blade == 1 { (self.tall * 0.2, self.tall, self.alpha) } else { (self.tall * 0.1, self.tall * 0.4, self.alpha / 3) };
+                let corners = [
+                    [cos * near, 0.0, sin * near],
+                    [cos * far, 0.0, sin * far],
+                    [cos * far, -far_tall, sin * far],
+                    [cos * near, -near_tall, sin * near]
+                ];
                 Rect::new(picture, alpha, corners, (0.0, 1.0), [255; 3], true)
             })
             .collect()

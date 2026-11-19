@@ -36,29 +36,17 @@ pub struct Boss {
 /// char name[51]`.
 pub fn boss(packet: &[u8]) -> Option<Boss> {
     let packet = packet.get(..70)?;
-    Some(Boss { kind: packet[2], cell: (long(packet, 3)?, long(packet, 7)?), hours: word(packet, 11)?, minutes: word(packet, 13)?, name: name_at(packet, 19, 51) })
+    Some(Boss {
+        kind: packet[2],
+        cell: (long(packet, 3)?, long(packet, 7)?),
+        hours: word(packet, 11)?,
+        minutes: word(packet, 13)?,
+        name: name_at(packet, 19, 51)
+    })
 }
 
-impl Boss {
-    /// Where the minimap marks it: only one that lives has a place (`CGameMode::ReceiveBossMonsterInfo` sets
-    /// the place to none first, whatever is told).
-    pub fn marked(&self) -> Option<(u16, u16)> {
-        matches!(self.kind, 1 | 2).then_some((u16::try_from(self.cell.0).ok()?, u16::try_from(self.cell.1).ok()?))
-    }
-
-    /// What the chat says of it, in white: the line of the message table and what is written into it. None
-    /// here (1223); its place will be shown (1225, said for kind 2 only); it comes within a minute (1261,
-    /// when the time told is 0 hours and 1 minute) or in so many hours and minutes (1224).
-    pub fn says(&self) -> Option<(usize, Vec<String>)> {
-        Some(match self.kind {
-            0 => (1223, Vec::new()),
-            2 => (1225, vec![self.name.clone()]),
-            3 if self.hours == 0 && self.minutes == 1 => (1261, vec![self.name.clone()]),
-            3 => (1224, vec![self.name.clone(), self.hours.to_string(), self.minutes.to_string()]),
-            _ => return None,
-        })
-    }
-}
+// Where the minimap marks a boss and what the chat says of it (`Boss::marked`, `Boss::says`) are rules of the
+// client's, not of the packet: `crate::marks`.
 
 #[cfg(test)]
 mod tests {
@@ -89,16 +77,16 @@ mod tests {
         let packet = told(1, 0, 0);
         assert_eq!(packet.len(), 70);
         let boss = boss(&packet).unwrap();
-        assert_eq!((boss.name.as_str(), boss.marked(), boss.says()), ("Baphome", Some((120, 85)), None));
-        assert_eq!(super::boss(&told(2, 0, 0)).unwrap().says(), Some((1225, vec!["Baphome".to_owned()])));
+        assert_eq!(boss, Boss { kind: 1, cell: (120, 85), hours: 0, minutes: 0, name: "Baphome".to_owned() });
+        assert_eq!(super::boss(&told(2, 0, 0)).unwrap().kind, 2);
     }
 
     #[test]
     fn a_dead_boss_tells_when_it_comes_again() {
         let dead = boss(&told(3, 2, 30)).unwrap();
-        assert_eq!((dead.marked(), dead.says()), (None, Some((1224, vec!["Baphome".to_owned(), "2".to_owned(), "30".to_owned()]))));
-        assert_eq!(boss(&told(3, 0, 1)).unwrap().says().map(|said| said.0), Some(1261));
-        assert_eq!(boss(&told(0, 0, 0)).unwrap().says(), Some((1223, Vec::new())));
+        assert_eq!((dead.kind, dead.hours, dead.minutes), (3, 2, 30));
+        assert_eq!(boss(&told(3, 0, 1)).unwrap().minutes, 1);
+        assert_eq!(boss(&told(0, 0, 0)).unwrap().kind, 0);
         assert_eq!(boss(&told(3, 0, 1)[..69]), None);
     }
 }

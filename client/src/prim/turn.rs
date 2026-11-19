@@ -15,7 +15,11 @@ impl Prim {
     /// Where its middle is in the world, around `place`: where it was put (the client's y points down) and as
     /// far as it has gone since.
     pub(super) fn middle(&self, place: [f32; 3]) -> [f32; 3] {
-        [place[0] + self.put.0 + self.moved[0] + self.aside[0], place[1] - self.put.1 + self.moved[1] + self.aside[1], place[2] + self.deep + self.moved[2] + self.aside[2]]
+        [
+            place[0] + self.put.0 + self.moved[0] + self.aside[0],
+            place[1] - self.put.1 + self.moved[1] + self.aside[1],
+            place[2] + self.deep + self.moved[2] + self.aside[2]
+        ]
     }
 }
 

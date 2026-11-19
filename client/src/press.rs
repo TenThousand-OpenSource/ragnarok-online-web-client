@@ -56,6 +56,45 @@ macro_rules! presses {
     (@read $variant:ident $arg:ident $with:ty) => { $arg.parse::<$with>().ok().map(Self::$variant) };
 }
 
+/// What goes with a press and is one of a few words (a row of a menu): written as its `text()` and read back
+/// as the one of its `ALL` that is written so.
+macro_rules! worded {
+    ($name:ident) => {
+        impl std::fmt::Display for $name {
+            fn fmt(&self, to: &mut std::fmt::Formatter) -> std::fmt::Result {
+                to.write_str(self.text())
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = ();
+
+            fn from_str(text: &str) -> Result<Self, ()> {
+                $name::ALL.into_iter().find(|one| one.text() == text).ok_or(())
+            }
+        }
+    };
+}
+
+/// What the tests of every system's presses share.
+#[cfg(test)]
+pub mod testing {
+    use super::Named;
+
+    /// Every name of the kind is among the presses tried, and each of them is read back from what it is
+    /// written as.
+    pub fn read_back<P: Named + PartialEq + std::fmt::Debug>(all: impl IntoIterator<Item = P>) {
+        let all: Vec<P> = all.into_iter().collect();
+        for name in P::NAMES {
+            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
+        }
+        for press in all {
+            let (what, arg) = press.name();
+            assert_eq!(P::parse(what, &arg), Some(press));
+        }
+    }
+}
+
 /// One step of something that goes up and down: a plus or a minus button.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Step {

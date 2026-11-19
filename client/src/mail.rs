@@ -87,7 +87,15 @@ impl Store {
         let unread = !listed.read;
         letters.insert(
             listed.id,
-            Letter { read: listed.read, has: listed.has, sender: listed.sender, title: listed.title, expires: now + f64::from(listed.expires_in), known, ..Letter::default() },
+            Letter {
+                read: listed.read,
+                has: listed.has,
+                sender: listed.sender,
+                title: listed.title,
+                expires: now + f64::from(listed.expires_in),
+                known,
+                ..Letter::default()
+            },
         );
         unread
     }

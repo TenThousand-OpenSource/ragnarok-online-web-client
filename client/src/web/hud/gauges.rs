@@ -51,10 +51,8 @@ pub(in crate::web) fn plain_bar(x: i32, y: i32, width: i32, now: i64, most: i64,
     }
     let ratio = if most > 0 { now.max(0) as f64 / most as f64 } else { 0.0 };
     let colour = if warns && ratio * 100.0 < 25.0 { RED } else { "#567fcf" };
-    format!(
-        r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf;box-sizing:border-box"><div style="width:{}px;height:{}px;background:{colour}"></div></div>"#,
-        at(x, y, width, 6),
-        ((width - 2) as f64 * ratio) as i32,
-        4
-    )
+    [
+        format!(r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf;box-sizing:border-box">"#, at(x, y, width, 6)),
+        format!(r#"<div style="width:{}px;height:{}px;background:{colour}"></div></div>"#, ((width - 2) as f64 * ratio) as i32, 4)
+    ].concat()
 }

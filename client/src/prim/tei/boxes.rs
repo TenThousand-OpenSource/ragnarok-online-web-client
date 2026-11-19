@@ -42,7 +42,10 @@ impl Part {
         let [first, second, third, fourth] = [floor(long, wide), floor(long, -wide), floor(-long, -wide), floor(-long, wide)];
         let wall = |near: [f32; 3], far: [f32; 3]| Rect::new(picture, self.alpha, [near, far, roof(far), roof(near)], (0.0, 1.0), [255; 3], false);
         let ground = |corners: [[f32; 3]; 4]| Rect::new(picture, self.alpha / 2, corners, (0.0, 1.0), [255; 3], true);
-        vec![wall(first, second), wall(second, third), wall(third, fourth), wall(fourth, first), ground([first, second, third, fourth]), ground([fourth, third, second, first])]
+        vec![
+            wall(first, second), wall(second, third), wall(third, fourth), wall(fourth, first),
+            ground([first, second, third, fourth]), ground([fourth, third, second, first])
+        ]
     }
 }
 

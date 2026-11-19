@@ -11,9 +11,14 @@ pub const MAX_WALK_PATH: usize = 32;
 /// The longest path, in cells, a player may ask the server to walk in one go (rAthena's `max_walk_path`, 17 as
 /// on the official servers): a longer one is refused without a word.
 pub const MAX_ASKED_PATH: usize = 17;
+/// The longest path the server walks a player when something stands between the two cells (rAthena's
+/// `OFFICIAL_WALKPATH` in `unit_walktoxy`: more than 14 cells are walked only along a clear straight line).
+pub const MAX_ASKED_ROUND: usize = 14;
 /// How many cells the Windows client's search for a way looks at before it gives up (the 149 nodes of
 /// `CPathFinder::FindOrCreateNode`, rodecomp Source/Contents/Movement/TerrainPathSearch.cpp).
 pub const CLIENT_PATH_NODES: usize = 149;
+/// How far beside the two cells the far walk looks for a way round, in cells (this project's own).
+pub const FAR_PATH_MARGIN: i32 = 20;
 
 impl Gat {
     /// The path from one cell to another, the start left out and the goal last; empty when there is none within
@@ -77,6 +82,21 @@ impl Gat {
     /// altogether when it needs one more, so it finds a way round what is near and never one across a map.
     /// The neighbours are tried in the client's order, and what is left is estimated in straight steps.
     pub fn client_path(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)> {
+        self.looked(from, to, CLIENT_PATH_NODES, |_| true)
+    }
+
+    /// The way round what is near, for the project's far walk (`goal_towards` with `far`): the same search
+    /// without the client's count of cells, looking only at cells no farther than `FAR_PATH_MARGIN` from the
+    /// rectangle the two cells span — a way round something close by is found however long it is, and one
+    /// that would lead across the map is not looked for. The margin is this project's own.
+    pub fn near_path(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)> {
+        let (west, east) = (from.0.min(to.0) - FAR_PATH_MARGIN, from.0.max(to.0) + FAR_PATH_MARGIN);
+        let (south, north) = (from.1.min(to.1) - FAR_PATH_MARGIN, from.1.max(to.1) + FAR_PATH_MARGIN);
+        self.looked(from, to, usize::MAX, |(x, y)| (west..=east).contains(&x) && (south..=north).contains(&y))
+    }
+
+    /// The client's search (`client_path`), over the cells `allowed` and no more than `most` of them.
+    fn looked(&self, from: (i32, i32), to: (i32, i32), most: usize, allowed: impl Fn((i32, i32)) -> bool) -> Vec<(i32, i32)> {
         if from == to || !self.walkable(to.0, to.1) {
             return Vec::new();
         }
@@ -103,13 +123,13 @@ impl Gat {
             for (dx, dy) in [(1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1)] {
                 let next = (cell.0 + dx, cell.1 + dy);
                 let diagonal = dx != 0 && dy != 0;
-                if !self.walkable(next.0, next.1) || diagonal && (!self.walkable(cell.0, next.1) || !self.walkable(next.0, cell.1)) {
+                if !allowed(next) || !self.walkable(next.0, next.1) || diagonal && (!self.walkable(cell.0, next.1) || !self.walkable(next.0, cell.1)) {
                     continue;
                 }
                 let through = costed + if diagonal { 14 } else { 10 };
                 match nodes.get(&next) {
                     Some((cost, _)) if *cost <= through => continue,
-                    None if nodes.len() >= CLIENT_PATH_NODES => return Vec::new(),
+                    None if nodes.len() >= most => return Vec::new(),
                     _ => {}
                 }
                 nodes.insert(next, (through, cell));
@@ -130,13 +150,15 @@ impl Gat {
     ///
     /// The client asks for the cell however long the way found is, and this server refuses without a word a
     /// way longer than `MAX_ASKED_PATH`: such a press does nothing, there as here. With `far` — this project's
-    /// own switch, off unless the player turns it on — the cell that far along the way found is given instead,
-    /// from which the character is sent on (`world/pursuit.rs`, the journey).
+    /// own switch, on unless the player turns it off — the way is found round what is near (`near_path`) and
+    /// the cell `MAX_ASKED_ROUND` along it is given, from which the character is sent on (`world/pursuit.rs`,
+    /// the journey).
     pub fn goal_towards(&self, from: (i32, i32), to: (i32, i32), taken: impl Fn((i32, i32)) -> bool, far: bool) -> Option<(i32, i32)> {
         let free = |cell: (i32, i32)| self.walkable(cell.0, cell.1) && !taken(cell);
         let reached = |cell: (i32, i32)| {
-            let way = self.client_path(from, cell);
-            if far { way.get(way.len().min(MAX_ASKED_PATH).wrapping_sub(1)).copied() } else { way.last().copied() }
+            let way = if far { self.near_path(from, cell) } else { self.client_path(from, cell) };
+            // A stretch of the far walk is one the server walks whatever stands beside it.
+            if far { way.get(way.len().min(MAX_ASKED_ROUND).wrapping_sub(1)).copied() } else { way.last().copied() }
         };
         if let Some(cell) = Some(to).filter(|to| free(*to)).and_then(reached) {
             return Some(cell);

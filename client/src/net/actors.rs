@@ -227,15 +227,37 @@ pub fn slid(packet: &[u8]) -> Option<(u32, (u16, u16))> {
     (packet.len() >= 10).then(|| (u32_at(packet, 2), (u16_at(packet, 6), u16_at(packet, 8))))
 }
 
-/// Reads ZC_CHANGE_DIRECTION: whose, the head's turn and the direction.
-pub fn turned(packet: &[u8]) -> Option<(u32, u8, u8)> {
-    (packet.len() >= 9).then(|| (u32_at(packet, 2), u16_at(packet, 6) as u8, packet[8] % 8))
+/// What ZC_CHANGE_DIRECTION tells: whose, the head's turn and the direction.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Turned {
+    pub who: u32,
+    pub head: u8,
+    pub direction: u8,
 }
 
-/// Reads ZC_ACK_REQNAMEALL_NPC: who is named, in which group, by what name and title.
-pub fn named(packet: &[u8]) -> Option<(u32, u32, String, String)> {
+/// Reads ZC_CHANGE_DIRECTION.
+pub fn turned(packet: &[u8]) -> Option<Turned> {
+    (packet.len() >= 9).then(|| Turned { who: u32_at(packet, 2), head: u16_at(packet, 6) as u8, direction: packet[8] % 8 })
+}
+
+/// What ZC_ACK_REQNAMEALL_NPC tells: who is named, in which group, by what name and title.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Named {
+    pub who: u32,
+    pub group: u32,
+    pub name: String,
+    pub title: String,
+}
+
+/// Reads ZC_ACK_REQNAMEALL_NPC.
+pub fn named(packet: &[u8]) -> Option<Named> {
     let packet = packet.get(..58)?;
-    Some((u32_at(packet, 2), u32_at(packet, 6), name_at(packet, 10, 24), name_at(packet, 34, 24)))
+    Some(Named {
+        who: u32_at(packet, 2),
+        group: u32_at(packet, 6),
+        name: name_at(packet, 10, 24),
+        title: name_at(packet, 34, 24),
+    })
 }
 
 /// What ZC_NOTIFY_ACT tells.

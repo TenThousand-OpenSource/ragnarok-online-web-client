@@ -36,7 +36,8 @@ mod tests {
     #[test]
     fn the_levels_and_the_effects_are_read_and_what_is_not_said_is_nothing() {
         let lua = Lua::new();
-        lua.load("MaxLevelTable = { BaseLevel = 99, BaseLevelHomun = 275 } Level99AuraTable = { Default99LvAura = 200, Default99LvAura_sub = 976, Baby99LvAura = 200, Baby99LvAura_sub = 977, SecondHigh99LvAura = 0 }").exec().expect("the tables");
+        lua.load("MaxLevelTable = { BaseLevel = 99, BaseLevelHomun = 275 } Level99AuraTable = { Default99LvAura = \
+            200, Default99LvAura_sub = 976, Baby99LvAura = 200, Baby99LvAura_sub = 977, SecondHigh99LvAura = 0 }").exec().expect("the tables");
         assert_eq!(told(&lua), serde_json::json!({ "highest": 99, "homunculus": 275, "plain": [200, 976], "baby": [200, 977], "high": [0, 0] }));
         assert_eq!(told(&Lua::new())["highest"], 0);
     }

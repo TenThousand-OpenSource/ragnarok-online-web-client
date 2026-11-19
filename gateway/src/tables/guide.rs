@@ -9,8 +9,8 @@ use super::*;
 /// database only; what kind of monster it is the client takes from its navigation tables, and here it is taken
 /// from the server's own database (`mob_db.yml`): its number, name, level, size, race, element and whether it is
 /// a boss.
-pub fn guide(grf: &Grf, database: &std::path::Path, client_dir: &std::path::Path) -> serde_json::Value {
-    let lua = run(grf, &[
+pub fn guide(read: &Sources, database: &std::path::Path) -> serde_json::Value {
+    let lua = read.run(&[
         "adventureguide\\availablejoblist",
         "adventureguide\\availablejoblist_f",
         "adventureguide\\adventureguide_f",
@@ -24,7 +24,10 @@ pub fn guide(grf: &Grf, database: &std::path::Path, client_dir: &std::path::Path
     ]);
     // Each tip's title and its first page, by the tip's number: what the guide shows of a quest.
     let tips: std::collections::HashMap<u32, (String, String)> =
-        tips::read(client_dir).into_iter().filter_map(|tip| Some((u32::try_from(tip.id).ok()?, (tip.title, tip.pages.into_iter().next().unwrap_or_default())))).collect();
+        read.tips
+            .iter()
+            .filter_map(|tip| Some((u32::try_from(tip.id).ok()?, (tip.title.clone(), tip.pages.first().cloned().unwrap_or_default()))))
+            .collect();
     let intro = global(&lua, "GuideIntro");
     let tabs = tabs(&intro);
     let monsters = monsters(&global(&lua, "GuideMonster"), &known_monsters(database));
@@ -87,7 +90,10 @@ fn known_monsters(database: &std::path::Path) -> std::collections::HashMap<Strin
             let value = value.trim();
             match key {
                 "Name" | "Size" | "Race" | "Element" | "Class" => drop(about.insert(key.to_lowercase(), value.into())),
-                "Level" | "ElementLevel" => drop(about.insert(if key == "Level" { "level" } else { "element_level" }.to_owned(), value.parse::<u32>().unwrap_or(0).into())),
+                "Level" | "ElementLevel" => drop(about.insert(
+                    if key == "Level" { "level" } else { "element_level" }.to_owned(),
+                    value.parse::<u32>().unwrap_or(0).into()
+                )),
                 _ => {}
             }
         }
@@ -132,7 +138,12 @@ fn monsters(guided: &serde_json::Value, known: &std::collections::HashMap<String
 /// The other pages: each a table with its kinds (`SubMenu`, by number) and its entries (`Contents`). These are
 /// the kinds, in the order of their numbers.
 fn kinds(table: &serde_json::Value) -> Vec<serde_json::Value> {
-    by_number(&table["SubMenu"]).into_iter().map(|(at, kind)| serde_json::json!({ "at": at, "title": kind["SubMenuTitle"], "min": kind["SubMenuMinLevel"], "max": kind["SubMenuMaxLevel"] })).collect()
+    by_number(&table["SubMenu"])
+        .into_iter()
+        .map(|(at, kind)| serde_json::json!(
+            { "at": at, "title": kind["SubMenuTitle"], "min": kind["SubMenuMinLevel"], "max": kind["SubMenuMaxLevel"] }
+        ))
+        .collect()
 }
 
 /// The lines of a list of the guide's, each without its marks.
@@ -145,7 +156,14 @@ fn lines(lines: &serde_json::Value) -> Vec<String> {
 fn entries(table: &serde_json::Value, entry: &dyn Fn(u32, &serde_json::Value) -> serde_json::Value) -> Vec<serde_json::Value> {
     let mut entries: Vec<(i64, u32, serde_json::Value)> = table["Contents"]
         .as_object()
-        .map(|contents| contents.iter().filter_map(|(id, about)| Some((about["RequireMinLevel"].as_i64().unwrap_or(0), id.parse().ok()?, entry(id.parse().ok()?, about)))).collect())
+        .map(
+            |contents| contents
+                .iter()
+                .filter_map(
+                    |(id, about)| Some((about["RequireMinLevel"].as_i64().unwrap_or(0), id.parse().ok()?, entry(id.parse().ok()?, about)))
+                )
+                .collect()
+        )
         .unwrap_or_default();
     entries.sort_by_key(|(least, id, _)| (*least, *id));
     entries.into_iter().map(|(_, _, entry)| entry).collect()

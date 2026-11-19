@@ -123,7 +123,10 @@ mod tests {
 
     #[test]
     fn the_results_have_the_clients_lines() {
-        assert_eq!([purchase_line(0), purchase_line(1), purchase_line(2), purchase_line(3), purchase_line(9), purchase_line(4)], [Some((54, false)), Some((55, true)), Some((56, true)), Some((221, true)), Some((1940, true)), None]);
+        assert_eq!(
+            [purchase_line(0), purchase_line(1), purchase_line(2), purchase_line(3), purchase_line(9), purchase_line(4)],
+            [Some((54, false)), Some((55, true)), Some((56, true)), Some((221, true)), Some((1940, true)), None]
+        );
         assert_eq!([sell_line(0), sell_line(1)], [Some((54, false)), Some((57, true))]);
         // The result is the packet's third byte, and "done" where it has none.
         assert_eq!((result(&[0xca, 0, 2]), result(&[0xcb, 0, 1]), result(&[0xca, 0])), (2, 1, 0));

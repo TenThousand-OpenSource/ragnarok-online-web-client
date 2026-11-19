@@ -136,7 +136,11 @@ mod tests {
         // 179, which is its mark passed, and has a new mark of 175 to 185.
         assert_eq!((part.heights[2], part.heights[7], part.heights[4], part.heights[12], part.heights[13]), (82.0, 118.0, 179.0, 25.0, 25.0));
         assert!((175.0..=185.0).contains(&part.heights[3]) && (175.0..=185.0).contains(&part.heights[8]));
-        assert!((part.at[2][0] - 0.8 * cosine(82.0)).abs() < 1e-5 && (part.at[2][2] - 0.8 * sine(82.0)).abs() < 1e-5 && (part.at[2][1] + 5.0 + 0.8 * sine(179.0)).abs() < 1e-5);
+        assert!(
+            (part.at[2][0] - 0.8 * cosine(82.0)).abs() < 1e-5
+                && (part.at[2][2] - 0.8 * sine(82.0)).abs() < 1e-5
+                && (part.at[2][1] + 5.0 + 0.8 * sine(179.0)).abs() < 1e-5
+        );
         assert!((part.at[0][0] - 0.8 * cosine(118.0)).abs() < 1e-5 && (part.at[0][1] + 5.0 - 0.8 * sine(179.0)).abs() < 1e-5);
         // White, the picture turned over, added: one square to a light.
         let rects = prim.rects(RIGHT, UP);

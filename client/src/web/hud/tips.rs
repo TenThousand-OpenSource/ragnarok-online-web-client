@@ -26,7 +26,11 @@ fn page_html(page: &str) -> String {
         let inside = &rest[end + 1..close];
         let (name, info) = inside.split_once("<INFO>").map_or((inside, ""), |(name, info)| (name, info.trim_end_matches("</INFO>")));
         match (tag, info.trim().parse::<u32>()) {
-            ("TIPBOX", Ok(tip)) => html.push_str(&format!(r#"<span style="color:#3b488c;text-decoration:underline;cursor:pointer" {}>{}</span>"#, pressed(Press::Tip(tip)), escape(name))),
+            ("TIPBOX", Ok(tip)) => html.push_str(&format!(
+                r#"<span style="color:#3b488c;text-decoration:underline;cursor:pointer" {}>{}</span>"#,
+                pressed(Press::Tip(tip)),
+                escape(name)
+            )),
             _ => html.push_str(&escape(name)),
         }
         rest = &rest[close + closing.len()..];
@@ -51,47 +55,81 @@ impl App {
         window.push_str(&art("tipbox/TipboxBG.bmp", 0, 17, 241, 320));
         window.push_str(&art("tipbox/bg_tipbox.bmp", 241, 17, 239, 320));
         window.push_str(&art("tipbox/btnbar_bottom.bmp", 0, 337, 480, 28));
-        window.push_str(&format!(
-            r#"<form {} class="a" style="{}"><input class="a in" id="{}" maxlength="150" autocomplete="off" placeholder="{}" style="{};background:#fff"><button type="submit" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')"></button></form>"#,
-            sent(Form::TipSearch),
-            at(253, 21, 222, 18),
-            windows::TIPS.field(),
-            escape(&Self::words(3253, "Please enter a search term")),
-            at(0, 1, 193, 15),
-            at(195, 0, 26, 18),
-            picture("tipbox/btn_searchbar_normal.bmp"),
-            picture("tipbox/btn_searchbar_over.bmp"),
-            picture("tipbox/btn_searchbar_press.bmp"),
-        ));
+        window.push_str(&[
+            format!(
+                r#"<form {} class="a" style="{}"><input class="a in" id="{}" maxlength="150" autocomplete="off" "#,
+                sent(Form::TipSearch),
+                at(253, 21, 222, 18),
+                windows::TIPS.field()
+            ),
+            format!(r#"placeholder="{}" style="{};background:#fff">"#, escape(&Self::words(3253, "Please enter a search term")), at(0, 1, 193, 15)),
+            format!(
+                r#"<button type="submit" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')"></button></form>"#,
+                at(195, 0, 26, 18),
+                picture("tipbox/btn_searchbar_normal.bmp"),
+                picture("tipbox/btn_searchbar_over.bmp"),
+                picture("tipbox/btn_searchbar_press.bmp")
+            )
+        ].concat());
         let blue = "rgb(44,77,160)";
         if let Some(found) = &self.tips.found {
             let rows: String = found
                 .iter()
                 .filter_map(|id| tips.iter().find(|tip| tip.id == *id))
-                .map(|tip| format!(r#"<div class="t" style="height:16px;cursor:pointer;white-space:nowrap;overflow:hidden" {}>{}</div>"#, pressed(Press::Tip(tip.id)), escape(tip.title.split('#').next().unwrap_or_default())))
+                .map(|tip| format!(
+                    r#"<div class="t" style="height:16px;cursor:pointer;white-space:nowrap;overflow:hidden" {}>{}</div>"#,
+                    pressed(Press::Tip(tip.id)),
+                    escape(tip.title.split('#').next().unwrap_or_default())
+                ))
                 .collect();
             window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-y:auto;background:#f0f0f0">{rows}</div>"#, at(250, 50, 216, 266)));
         } else if let Some(tip) = tips.iter().find(|tip| tip.id == self.tips.tip) {
             let pages = tip.pages.len().max(1);
             let page = self.tips.page.min(pages - 1);
-            window.push_str(&format!(r#"<div class="a t" style="{};color:{blue};{};white-space:normal;line-height:18px">{}</div>"#, at(254, 50, 220, 36), Font(0, 13, true).style(), escape(tip.title.split('#').next().unwrap_or_default())));
+            window.push_str(&format!(
+                r#"<div class="a t" style="{};color:{blue};{};white-space:normal;line-height:18px">{}</div>"#,
+                at(254, 50, 220, 36),
+                Font(0, 13, true).style(),
+                escape(tip.title.split('#').next().unwrap_or_default())
+            ));
             window.push_str(&format!(
                 r#"<div class="a t scroll" style="{};overflow-y:auto;white-space:normal;line-height:15px;color:{BLACK}">{}</div>"#,
                 at(250, 90, 226, 225),
                 tip.pages.get(page).map(|page| page_html(page)).unwrap_or_default()
             ));
-            window.push_str(&pictured(415, 319, (11, 12), ["tipbox/bt_arrowL_off.bmp", "tipbox/bt_arrowL_on.bmp", "tipbox/bt_arrowL_on.bmp"], Press::Page(Step::Less), ""));
-            window.push_str(&pictured(462, 319, (11, 12), ["tipbox/bt_arrowR_off.bmp", "tipbox/bt_arrowR_on.bmp", "tipbox/bt_arrowR_on.bmp"], Press::Page(Step::More), ""));
+            window.push_str(&pictured(
+                415,
+                319,
+                (11, 12),
+                ["tipbox/bt_arrowL_off.bmp", "tipbox/bt_arrowL_on.bmp", "tipbox/bt_arrowL_on.bmp"],
+                Press::Page(Step::Less),
+                ""
+            ));
+            window.push_str(&pictured(
+                462,
+                319,
+                (11, 12),
+                ["tipbox/bt_arrowR_off.bmp", "tipbox/bt_arrowR_on.bmp", "tipbox/bt_arrowR_on.bmp"],
+                Press::Page(Step::More),
+                ""
+            ));
             window.push_str(&format!(r#"<div class="a t" style="{};text-align:center;color:{blue}"><b>{}</b>/{pages}</div>"#, at(426, 320, 36, 14), page + 1));
         }
-        window.push_str(&format!(
-            r#"<div class="a t" style="left:9px;top:347px;height:12px;line-height:12px;padding-left:14px;cursor:default;white-space:nowrap;color:{BLACK};background:url('{}') 0 1px no-repeat" {}>{}</div>"#,
-            picture(if self.tips.not_at_start { "tipbox/checkBox.bmp" } else { "tipbox/checkBox_check.bmp" }),
-            pressed(Press::Startup),
-            escape(&Self::words(3939, "Open on Startup"))
-        ));
+        window.push_str(&[
+            format!(r#"<div class="a t" style="left:9px;top:347px;height:12px;line-height:12px;padding-left:14px;"#),
+            format!(
+                r#"cursor:default;white-space:nowrap;color:{BLACK};background:url('{}') 0 1px no-repeat" {}>{}</div>"#,
+                picture(if self.tips.not_at_start { "tipbox/checkBox.bmp" } else { "tipbox/checkBox_check.bmp" }),
+                pressed(Press::Startup),
+                escape(&Self::words(3939, "Open on Startup"))
+            )
+        ].concat());
         window.push_str(&pictured_by(Convention::NormalOverPress, 415, 341, (60, 20), "tipbox/btn_close", Press::Window, ""));
-        window.push_str(&format!(r#"<div class="a t" style="{};text-align:center;line-height:20px;pointer-events:none;color:{BLACK}">{}</div>"#, at(415, 341, 60, 20), escape(&Self::words(1299, "Close"))));
+        window.push_str(&format!(
+            r#"<div class="a t" style="{};text-align:center;line-height:20px;pointer-events:none;color:{BLACK}">{}</div>"#,
+            at(415, 341, 60, 20),
+            escape(&Self::words(1299, "Close"))
+        ));
         window
     }
 }

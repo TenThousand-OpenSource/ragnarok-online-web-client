@@ -25,7 +25,11 @@ fn linked(line: &str) -> String {
             _ => String::new(),
         };
         let colour = if link.kind == Kind::Url { links::URL_COLOUR } else { links::LINK_COLOUR };
-        format!(r#"<span style="color:{colour};text-decoration:underline;cursor:{}"{does}>{}</span>"#, if does.is_empty() { "default" } else { "pointer" }, escape(&link.words))
+        format!(
+            r#"<span style="color:{colour};text-decoration:underline;cursor:{}"{does}>{}</span>"#,
+            if does.is_empty() { "default" } else { "pointer" },
+            escape(&link.words)
+        )
     })
 }
 
@@ -63,12 +67,15 @@ impl App {
     /// What the NPC says, and "next" or "close" under it.
     fn said_box(dialog: &Dialog) -> String {
         let said: String = dialog.lines.iter().map(|line| format!("<div>{}</div>", linked(line))).collect();
-        let mut window = format!(
-            r#"{}<div class="a t said scroll" style="{};background:#f2f2f2;padding:1px 42px 0 3px;line-height:{}px;box-sizing:border-box;white-space:normal;user-select:text">{said}</div>"#,
-            system_box(0, 280, 180),
-            at(10, 10, 260, 140),
-            crate::font::cell(0, 12) + 6
-        );
+        let mut window = [
+            format!(
+                r#"{}<div class="a t said scroll" style="{};background:#f2f2f2;padding:1px 42px 0 3px;line-height:{}px;"#,
+                system_box(0, 280, 180),
+                at(10, 10, 260, 140),
+                crate::font::cell(0, 12) + 6
+            ),
+            format!(r#"box-sizing:border-box;white-space:normal;user-select:text">{said}</div>"#)
+        ].concat();
         match dialog.button {
             Some(true) => window.push_str(&picture_press(232, 156, "btn_next", Press::Next)),
             Some(false) => window.push_str(&picture_press(232, 156, "btn_close", Press::Close)),
@@ -89,7 +96,11 @@ impl App {
                 format!(r#"<div style="{picked}padding:1px 3px;cursor:default" {}>{}</div>"#, pressed(Press::Pick(index)), linked(choice))
             })
             .collect();
-        let mut window = format!(r#"{}<div class="a t scroll" style="{};background:#f0f0f0;white-space:normal">{choices}</div>"#, system_box(top, 280, 120), at(12, top + 12, 256, 78));
+        let mut window = format!(
+            r#"{}<div class="a t scroll" style="{};background:#f0f0f0;white-space:normal">{choices}</div>"#,
+            system_box(top, 280, 120),
+            at(12, top + 12, 256, 78)
+        );
         window.push_str(&picture_press(188, top + 96, "btn_ok", Press::Ok));
         window.push_str(&picture_press(233, top + 96, "btn_cancel", Press::Cancel));
         window

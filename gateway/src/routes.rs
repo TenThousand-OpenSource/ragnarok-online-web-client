@@ -31,10 +31,14 @@ impl App {
     /// Reads the tables out of the archives, the client's folder and the server's database; the items are
     /// given read (the gateway says how many it has before anything else starts).
     pub fn new(grf: grf::Grf, items: tables::Items, client_dir: &FilePath, item_database: &FilePath) -> Self {
+        // What the tables and the skills' texts both read is read once (`tables::Sources`).
+        let read = tables::Sources::read(&grf, client_dir);
+        let (tables, skill_texts) = (tables::for_browser(&read, client_dir, item_database).to_string(), tables::skill_texts(&read));
+        drop(read);
         Self {
-            tables: tables::for_browser(&grf, client_dir, item_database).to_string(),
+            tables,
             items,
-            skill_texts: tables::skill_texts(&grf),
+            skill_texts,
             skills_russian: tables::translated(FilePath::new("translations/ru"), "skills"),
             client_dir: client_dir.to_owned(),
             grf,
@@ -72,7 +76,11 @@ fn ids(list: &str, most: usize) -> impl Iterator<Item = u32> + '_ {
 
 /// The answer for a file of the archives that could not be read: not there, or why not.
 fn unread(error: std::io::Error) -> Response {
-    if error.kind() == std::io::ErrorKind::NotFound { StatusCode::NOT_FOUND.into_response() } else { (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response() }
+    if error.kind() == std::io::ErrorKind::NotFound {
+        StatusCode::NOT_FOUND.into_response()
+    } else {
+        (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response()
+    }
 }
 
 async fn asset(State(app): State<Arc<App>>, Path(path): Path<String>) -> Response {
@@ -140,7 +148,8 @@ async fn client_items(State(app): State<Arc<App>>, Path(list): Path<String>) -> 
 /// The descriptions of the skills a path names (at most a hundred of them), line by line and by ID, each as
 /// `lines` gives it; a skill it gives nothing for is left out.
 fn skills_described<'app>(list: &str, lines: impl Fn(u32) -> Option<&'app Vec<String>>) -> Response {
-    let found: serde_json::Map<String, serde_json::Value> = ids(list, 100).filter_map(|id| lines(id).map(|lines| (id.to_string(), serde_json::json!(lines)))).collect();
+    let found: serde_json::Map<String, serde_json::Value> =
+        ids(list, 100).filter_map(|id| lines(id).map(|lines| (id.to_string(), serde_json::json!(lines)))).collect();
     json(serde_json::Value::from(found).to_string())
 }
 
@@ -156,7 +165,11 @@ async fn client_skills_russian(State(app): State<Arc<App>>, Path(list): Path<Str
 
 /// `GET /tables/ru/skill-names.json`: what the translated skills are called in Russian, by ID.
 async fn client_skill_names_russian(State(app): State<Arc<App>>) -> Response {
-    let names: serde_json::Map<String, serde_json::Value> = app.skills_russian.iter().filter(|(_, (name, _))| !name.is_empty()).map(|(id, (name, _))| (id.to_string(), name.as_str().into())).collect();
+    let names: serde_json::Map<String, serde_json::Value> = app.skills_russian
+        .iter()
+        .filter(|(_, (name, _))| !name.is_empty())
+        .map(|(id, (name, _))| (id.to_string(), name.as_str().into()))
+        .collect();
     json(serde_json::Value::from(names).to_string())
 }
 

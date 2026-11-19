@@ -48,7 +48,12 @@ impl Part {
                 [tip_cos * along, tip_sin * along + lift, self.out * sine(angle as f32)]
             };
             let (before, after) = (self.rise - spread, self.rise + spread);
-            let corners = [edge(if before < 0 { before + 360 } else { before }), edge(if after >= 360 { after - 360 } else { after }), [0.0, lift, 0.0], [0.0, lift, 0.0]];
+            let corners = [
+                edge(if before < 0 { before + 360 } else { before }),
+                edge(if after >= 360 { after - 360 } else { after }),
+                [0.0, lift, 0.0],
+                [0.0, lift, 0.0]
+            ];
             Rect::new(picture, self.alpha, corners, (0.0, 1.0), colour, adds)
         };
         let narrow = if kind == 2.0 || kind == 4.0 {

@@ -253,7 +253,10 @@ fn placed(nodes: &[Node], root: usize, frame: i32) -> Vec<Option<(Matrix, Matrix
             continue;
         }
         let node = &nodes[index];
-        let (in_box, in_model) = (parent_box.after(&own(node, Matrix::rotation(node.rotation_axis, node.rotation_angle))), parent.after(&own(node, turn(node, frame))));
+        let (in_box, in_model) = (
+            parent_box.after(&own(node, Matrix::rotation(node.rotation_axis, node.rotation_angle))),
+            parent.after(&own(node, turn(node, frame)))
+        );
         placed[index] = Some((in_box, in_model));
         for (child, other) in nodes.iter().enumerate() {
             if child != index && other.parent == node.name && placed[child].is_none() {
@@ -296,11 +299,21 @@ fn assemble(nodes: &[Node], root: &[u8], frame: i32) -> Vec<Triangle> {
         let (flat, smooth) = normals(node, &in_mesh);
         let to_model = to_base.after(in_model);
         for (index, face) in node.faces.iter().enumerate() {
-            let corner = |corner: usize| Some((to_model.point(*in_mesh.get(usize::from(face.vertices[corner]))?), *node.texture_vertices.get(usize::from(face.texture_vertices[corner]))?));
+            let corner = |corner: usize| Some((
+                to_model.point(*in_mesh.get(usize::from(face.vertices[corner]))?),
+                *node.texture_vertices.get(usize::from(face.texture_vertices[corner]))?
+            ));
             let (Some(a), Some(b), Some(c)) = (corner(0), corner(1), corner(2)) else { continue };
             let Some(texture) = node.textures.get(usize::from(face.texture)).and_then(|&texture| usize::try_from(texture).ok()) else { continue };
             let outward = unit(to_model.direction(flat[index]));
-            triangles.push(Triangle { positions: [a.0, b.0, c.0], uvs: [a.1, b.1, c.1], texture, normals: smooth[index].map(|normal| unit(to_model.direction(normal))), outward, two_sided: face.two_sided });
+            triangles.push(Triangle {
+                positions: [a.0, b.0, c.0],
+                uvs: [a.1, b.1, c.1],
+                texture,
+                normals: smooth[index].map(|normal| unit(to_model.direction(normal))),
+                outward,
+                two_sided: face.two_sided
+            });
         }
     }
     triangles

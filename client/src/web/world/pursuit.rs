@@ -49,10 +49,14 @@ impl State {
     }
 }
 
+/// How long a journey waits, in milliseconds, for the server to set the character walking after a stretch
+/// was asked for, before it takes the stretch as refused (this project's own).
+const JOURNEY_PATIENCE: f64 = 1000.0;
+
 /// A place pressed that is farther than the server walks in one go (its `max_walk_path`) is walked to in
 /// stretches: arrived at the end of one, the character is sent on towards the place, until it is there or
 /// the way is shut. The client asks once and does not go on; this is the project's own, and happens only with
-/// its far walk switched on (`Options::far_walk`, the command `/farwalk`).
+/// its far walk on (`Options::far_walk`; on at first, the command `/farwalk` switches it).
 fn journey(state: &mut State, time: f64, pursuit: &mut Pursuit) {
     let (Some(scene), Some((to, asked))) = (&state.scene, state.journey) else { return };
 
@@ -62,8 +66,10 @@ fn journey(state: &mut State, time: f64, pursuit: &mut Pursuit) {
     }
     let cell = scene.player.cell;
     if scene.player.walk.is_some() || cell != asked {
-        // On its way; or stopped short of the stretch's end (struck, or walked elsewhere): then it stays.
-        if scene.player.walk.is_none() {
+        // On its way; or the server has not yet answered the request (the character still stands where it
+        // was: the journey waits); or it stopped short of the stretch's end (struck, or walked elsewhere, or
+        // the server would not walk it): then it stays.
+        if scene.player.walk.is_none() && time - state.walk_asked > JOURNEY_PATIENCE {
             state.journey = None;
         }
         return;
@@ -96,7 +102,10 @@ fn walk_on(state: &mut State, view: &View, (width, height): (f32, f32), time: f6
         // The pointer leads now, not the place pressed before.
         state.journey = None;
     }
-    pursuit.follow = follow.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
+    // Only a pointer that leads replaces the walk a journey asked for a step before.
+    if let Some(goal) = follow {
+        pursuit.follow = state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal));
+    }
 }
 
 /// A thing to pick up is walked to, and picked up from beside it.
@@ -148,7 +157,10 @@ fn chase(state: &mut State, time: f64, pursuit: &mut Pursuit) {
             } else if far {
                 // The way to the monster, as far as the cell from which the weapon reaches it.
                 let way = scene.gat.path(cell, unit.cell);
-                let near = way.get(way.len().saturating_sub(1 + range as usize).min(way.len().saturating_sub(1))).copied().filter(|goal| *goal != cell).unwrap_or(unit.cell);
+                let near = way.get(way.len().saturating_sub(1 + range as usize).min(way.len().saturating_sub(1)))
+                    .copied()
+                    .filter(|goal| *goal != cell)
+                    .unwrap_or(unit.cell);
                 let goal = scene.goal_towards(cell, near, state.options.far_walk).filter(|goal| *goal != state.asked || scene.player.walk.is_none());
                 pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
             } else if !told || (scene.player.walk.is_none() && time - state.own_struck > 1500.0 && time - state.strike_asked > 1500.0) {

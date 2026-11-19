@@ -47,7 +47,7 @@ presses! {
 #[cfg(test)]
 mod tests {
     use super::{LevelStep, Press};
-    use crate::press::{Named, Step};
+    use crate::press::Step;
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
@@ -61,13 +61,7 @@ mod tests {
             Press::Level(LevelStep { skill: 5, step: Step::More }),
             Press::Level(LevelStep { skill: 5, step: Step::Less }),
         ];
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        crate::press::testing::read_back(all);
     }
 
     #[test]

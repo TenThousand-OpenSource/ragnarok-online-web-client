@@ -29,7 +29,9 @@ impl App {
             // The character recovers life or spirit (a potion, food): the client shows the amount as a number
             // over the character, green for life and blue for spirit.
             skills::ZC_RECOVERY | skills::ZC_RECOVERY2 => {
-                if let Some((which, amount)) = skills::recovered(packet).filter(|(which, amount)| *amount > 0 && matches!(*which, packets::parameter::HP | packets::parameter::SP)) {
+                if let Some((which, amount)) = skills::recovered(packet).filter(
+                    |(which, amount)| *amount > 0 && matches!(*which, packets::parameter::HP | packets::parameter::SP)
+                ) {
                     world::number_over(own, own, amount, if which == packets::parameter::SP { crate::blow::signs::BLUE } else { crate::blow::signs::GREEN });
                     sound::effect("_heal_effect.wav", 1.0);
                 }
@@ -47,7 +49,8 @@ impl App {
             // A skill could not be used: the client says why in the chat, in red, with the line of its message
             // table for the cause (`ReceiveSkillFailure`). A cause this has no line for says the plain one.
             skills::ZC_ACK_TOUSESKILL => {
-                if let Some((skill, value, _, cause)) = skills::failed(packet).filter(|(_, _, worked, _)| !worked) {
+                let failed = skills::failed(packet).filter(|failed| !failed.worked);
+                if let Some(skills::Failed { skill, value, cause, .. }) = failed {
                     let line = crate::skills::failure(skill, value, cause).and_then(data::message);
                     // With the player's `/skillfail` off the plain failure is not told (the client's option
                     // 113 hides its lines of no particular cause); one with a cause of its own still is.
@@ -132,7 +135,18 @@ impl App {
                 // The hits it is made of, each with what it shows and sounds like as it lands (a monster's
                 // own sounds are in its sprite).
                 let hits = crate::blow::landing::of_act(act.kind, act.damage, i32::from(act.hits), act.extra, world::two_handed(act.source, own));
-                let lands = world::struck(world::Strike { source: act.source, target: act.target, own, lasts: f64::from(act.speed), flinch: f64::from(act.delay), hits, ring: true, guarded: self.wards_blows(), skill: None, follow: None });
+                let lands = world::struck(world::Strike {
+                    source: act.source,
+                    target: act.target,
+                    own,
+                    lasts: f64::from(act.speed),
+                    flinch: f64::from(act.delay),
+                    hits,
+                    ring: true,
+                    guarded: self.wards_blows(),
+                    skill: None,
+                    follow: None
+                });
                 // One who holds a bow sends an arrow, which arrives as the blow lands.
                 world::arrow(act.source, act.target, own, lands);
             }
@@ -174,14 +188,28 @@ impl App {
     /// another.
     fn skill_landed(&mut self, packet: &[u8]) {
         // (A kind of blow the client does not show gives no hits, and nothing is shown of the skill.)
-        if let Some((landed, blows)) = skills::landing(packet).map(|landed| (landed, crate::blow::landing::of_skill(landed.skill, landed.action, landed.damage, i32::from(landed.hits)))).filter(|(_, blows)| !blows.is_empty()) {
+        if let Some((landed, blows)) = skills::landing(packet)
+            .map(|landed| (landed, crate::blow::landing::of_skill(landed.skill, landed.action, landed.damage, i32::from(landed.hits))))
+            .filter(|(_, blows)| !blows.is_empty())
+        {
             let own = self.own_account();
             world::cast_over(landed.source, own, false);
             // The hits as the client counts them, and when each lands after the first.
             let hits = blows.len() as i32;
             let (each, later): (i32, Vec<f64>) = (blows[0].damage, blows.iter().map(|blow| blow.after).collect());
             let delay = f64::from(landed.attack_motion.clamp(0, 1500));
-            let lands = world::struck(world::Strike { source: landed.source, target: landed.target, own, lasts: f64::from(landed.attack_motion), flinch: delay, hits: blows, ring: false, guarded: false, skill: Some(landed.skill), follow: effect_tables::skill_follow(landed.skill) });
+            let lands = world::struck(world::Strike {
+                source: landed.source,
+                target: landed.target,
+                own,
+                lasts: f64::from(landed.attack_motion),
+                flinch: delay,
+                hits: blows,
+                ring: false,
+                guarded: false,
+                skill: Some(landed.skill),
+                follow: effect_tables::skill_follow(landed.skill)
+            });
             // What the skill looks and sounds like on the one struck (the client's `PlaySkillEffect`
             // for the bolts themselves, and the effect of each hit by the skill's element).
             let on = (landed.target != own).then_some(landed.target);
@@ -202,7 +230,11 @@ impl App {
             // The striker's effect is told how many hits the blow is and where the one struck stands
             // (`AM_SETCOUNT`, `AM_SETPOS`): Soul Strike sends a bolt for each hit there.
             if let Some(effect) = effect_tables::skill_launch(landed.skill) {
-                let blow = world::Blow { striker: (landed.source != own).then_some(landed.source), place_of: (landed.target != own).then_some(landed.target), hits: hits as u32 };
+                let blow = world::Blow {
+                    striker: (landed.source != own).then_some(landed.source),
+                    place_of: (landed.target != own).then_some(landed.target),
+                    hits: hits as u32
+                };
                 self.effect_shown(effect, landed.source, own, 0.0, Some(blow));
             }
             // What follows begins at the moment the blow lands, with its number (the client hands both to the one
@@ -226,7 +258,11 @@ impl App {
                 let when = lands + after;
                 if let Some(effect) = effect_tables::skill_struck(landed.skill).filter(|_| each > 0) {
                     // It is on the one struck and told where the striker stands.
-                    let told = world::Blow { striker: (landed.target != own).then_some(landed.target), place_of: (landed.source != own).then_some(landed.source), hits: 0 };
+                    let told = world::Blow {
+                        striker: (landed.target != own).then_some(landed.target),
+                        place_of: (landed.source != own).then_some(landed.source),
+                        hits: 0
+                    };
                     self.effect_shown(effect, landed.target, own, when, Some(told));
                 }
             }
@@ -234,7 +270,7 @@ impl App {
     }
 
     fn skill_used(&mut self, packet: &[u8]) {
-        if let Some((skill, level, target, who, _)) = skills::used(packet) {
+        if let Some(skills::Used { skill, level, target, who, .. }) = skills::used(packet) {
             let own = self.own_account();
             world::cast_over(who, own, false);
             // The one who used it goes through the motion the client has for that skill.

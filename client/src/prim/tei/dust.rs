@@ -35,7 +35,14 @@ impl Part {
             2 => Some([255, 90, 90]),
             _ => None,
         };
-        let square = |reach: f32, colour: [u8; 3]| Rect::new(picture, self.alpha.max(0), Self::facing(self.at[0], reach, 45, right, up), (0.0, 1.0), colour, true);
+        let square = |reach: f32, colour: [u8; 3]| Rect::new(
+            picture,
+            self.alpha.max(0),
+            Self::facing(self.at[0], reach, 45, right, up),
+            (0.0, 1.0),
+            colour,
+            true
+        );
         colour.map(|colour| square(self.out, colour)).into_iter().chain([square(self.out * 1.1, [255, 1, 1])]).collect()
     }
 }

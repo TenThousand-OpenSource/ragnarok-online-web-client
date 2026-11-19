@@ -67,7 +67,13 @@ impl App {
         }
         // A button that was pressed waits for the server's answer, dimmed; what was taken has no button.
         let take = |y: i32, waits: bool, press: Press| {
-            if waits { format!(r#"<div class="a dim" style="{};background:url('{}') 0 0 no-repeat"></div>"#, at(252, y, 26, 20), picture(&rodex("btn_receive_out"))) } else { picture_button(252, y, (26, 20), "btn_receive", press, "") }
+            if waits {
+                format!(r#"<div class="a dim" style="{};background:url('{}') 0 0 no-repeat"></div>"#, at(252, y, 26, 20), picture(&rodex(
+                    "btn_receive_out"
+                )))
+            } else {
+                picture_button(252, y, (26, 20), "btn_receive", press, "")
+            }
         };
         if !letter.items.is_empty() {
             window.push_str(&take(312, self.mail.taking.0, Press::TakeItems));
@@ -136,13 +142,16 @@ impl App {
         ));
         let body = typed("mail-body", &writing.body);
         let pale = Font(0, 10, false);
+        window.push_str(&[
+            format!(r#"<textarea id="mail-body" class="a in viewer" style="{};resize:none;color:#313131;line-height:15px;"#, at(15, 81, 267, 192)),
+            format!(r#"white-space:pre-wrap" maxlength="{}" "#, crate::mail::MOST_TEXT),
+            format!(r#"oninput="document.getElementById('mail-letters').textContent=this.value.length">{}</textarea>"#, escape(&body))
+        ].concat());
         window.push_str(&format!(
-            r#"<textarea id="mail-body" class="a in viewer" style="{};resize:none;color:#313131;line-height:15px;white-space:pre-wrap" maxlength="{}" oninput="document.getElementById('mail-letters').textContent=this.value.length">{}</textarea>"#,
-            at(15, 81, 267, 192),
-            crate::mail::MOST_TEXT,
-            escape(&body)
+            r#"<div id="mail-letters" class="a t" style="right:42px;top:276px;color:#446ed6;{}">{}</div>"#,
+            pale.style(),
+            body.chars().count()
         ));
-        window.push_str(&format!(r#"<div id="mail-letters" class="a t" style="right:42px;top:276px;color:#446ed6;{}">{}</div>"#, pale.style(), body.chars().count()));
         window.push_str(&text_in(pale, 261, 276, "#446ed6", &format!("/ {}", crate::mail::MOST_TEXT)));
         window.push_str(&art(&rodex("bg_weight"), 199, 305, 82, 32));
         window.push_str(&text_ending_in(SMALL, 244, 300, 316, "#737373", &writing.weight.to_string()));
@@ -167,16 +176,25 @@ impl App {
         let mut zeny = format!(r#"<div class="a" style="{};background:#fff;border:1px solid #a6a6a6;box-sizing:border-box"></div>"#, at(35, 347, 95, 16));
         zeny.push_str(&art(&rodex("icon_zeny"), 19, 342, 28, 25));
         // The fee follows the typing: 2500 a thing and two hundredths of the zeny, as `crate::mail::fee` counts it.
-        zeny.push_str(&format!(
-            r#"<input id="mail-zeny" class="a in" style="{};color:{}" type="text" inputmode="numeric" maxlength="13" autocomplete="off" value="{}" oninput="document.getElementById('mail-fee').textContent=({things}*2500+Math.floor((parseInt(this.value.replace(/,/g,''))||0)*2/100)).toLocaleString('en-US')">"#,
-            at(45, 348, 84, 14),
-            if short && !typed.is_empty() { "#ff0000" } else { "#000" },
-            escape(typed)
-        ));
+        zeny.push_str(&[
+            format!(
+                r#"<input id="mail-zeny" class="a in" style="{};color:{}" type="text" inputmode="numeric" maxlength="13" autocomplete="off" value="{}""#,
+                at(45, 348, 84, 14),
+                if short && !typed.is_empty() { "#ff0000" } else { "#000" },
+                escape(typed)
+            ),
+            format!(r#" oninput="document.getElementById('mail-fee').textContent=({things}*2500+"#),
+            format!(r#"Math.floor((parseInt(this.value.replace(/,/g,''))||0)*2/100)).toLocaleString('en-US')">"#)
+        ].concat());
         zeny.push_str(&text_in(SMALL, 135, 350, "#737373", "/"));
         zeny.push_str(&text_in(SMALL_BOLD, 144, 350, "#737373", &format!("{} Zeny", grouped(has))));
         zeny.push_str(&art(&rodex("bg_tax"), 9, 377, 112, 18));
-        zeny.push_str(&format!(r#"<div id="mail-fee" class="a t" style="right:196px;top:382px;color:{};{}">{}</div>"#, if short { "#cf714e" } else { "#000" }, SMALL.style(), grouped(fee)));
+        zeny.push_str(&format!(
+            r#"<div id="mail-fee" class="a t" style="right:196px;top:382px;color:{};{}">{}</div>"#,
+            if short { "#cf714e" } else { "#000" },
+            SMALL.style(),
+            grouped(fee)
+        ));
         zeny
     }
 }

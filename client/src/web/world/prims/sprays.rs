@@ -32,7 +32,10 @@ use crate::prim::{Tei, angle_of};
 pub(super) const FILE: File = File { known, thrown, stays: none, run, pictures: &[&PICTURES, &RINGS, &WEAPONS, &GUNS], sprites: &[] };
 
 /// The pictures the effects here are drawn with, among the client's pictures of effects.
-const PICTURES: [&str; 11] = ["coin_a.bmp", "shield.bmp", "sword.bmp", "melody_a.bmp", "melody_b.bmp", "thunder_center.bmp", "lens1.tga", "lens2.tga", "alpha_center.tga", "white02.bmp", "whitelight.tga"];
+const PICTURES: [&str; 11] = [
+    "coin_a.bmp", "shield.bmp", "sword.bmp", "melody_a.bmp", "melody_b.bmp", "thunder_center.bmp", "lens1.tga",
+    "lens2.tga", "alpha_center.tga", "white02.bmp", "whitelight.tga"
+];
 
 /// The pictures of items that `EF_RG_COIN5`, `EF_RG_COIN4` and `EF_RG_COIN3` show, named from the folder of
 /// the interface's pictures.

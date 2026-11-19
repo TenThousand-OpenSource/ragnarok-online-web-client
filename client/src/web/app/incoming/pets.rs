@@ -89,7 +89,10 @@ impl App {
         self.pets.fed = None;
         if fed {
             let left: u32 = self.bag.items.iter().filter(|item| item.id == food).map(|item| u32::from(item.amount)).sum();
-            self.chat_line(crate::i18n::tr("Your pet has been fed. {} ({}) remaining").replacen("{}", &name, 1).replacen("{}", &left.to_string(), 1), PALE_CYAN);
+            self.chat_line(
+                crate::i18n::tr("Your pet has been fed. {} ({}) remaining").replacen("{}", &name, 1).replacen("{}", &left.to_string(), 1),
+                PALE_CYAN
+            );
         } else {
             self.chat_line(crate::i18n::tr("Pet food [{}] is not available.").replace("{}", &name), "#f51e1e");
         }
@@ -104,7 +107,9 @@ impl App {
                 pet.intimacy = value;
                 // A pet grown awkward has its window opened, once, when the player has the client's Pet
                 // Information Window option on (`UpdatePetFriendlyWindow`).
-                if value <= 100 && !self.pets.alerted && self.settings.set.get("TT_PETINFO_ALERT_ONOFF").copied().unwrap_or_else(|| data::option_starts("TT_PETINFO_ALERT_ONOFF")) {
+                if value <= 100 && !self.pets.alerted && self.settings.set.get("TT_PETINFO_ALERT_ONOFF").copied().unwrap_or_else(
+                    || data::option_starts("TT_PETINFO_ALERT_ONOFF")
+                ) {
                     (self.pets.alerted, self.pets.open) = (true, true);
                     self.render();
                 }

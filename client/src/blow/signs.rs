@@ -113,10 +113,14 @@ pub fn two_handed(job: u16, is_character: bool) -> bool {
 /// unless the job is listed as wearing leather or metal).
 pub fn struck_sound(job: u16) -> &'static str {
     match job {
-        3 | 6 | 11..=12 | 17 | 19..=20 | 24..=25 | 4004 | 4007 | 4012..=4013 | 4018 | 4020..=4021 | 4026 | 4029 | 4034..=4035 | 4040 | 4042..=4043 | 4046 | 4050 | 4056 | 4059 | 4062 | 4065 | 4068..=4069 | 4072 | 4075..=4076 | 4079 | 4211..=4212 | 4222..=4225 | 4228..=4229 | 4254 | 4257 | 4260 | 4263..=4264 | 4304..=4306 => {
+        3 | 6 | 11..=12 | 17 | 19..=20 | 24..=25 | 4004 | 4007 | 4012..=4013 | 4018 | 4020..=4021 | 4026 | 4029
+        | 4034..=4035 | 4040 | 4042..=4043 | 4046 | 4050 | 4056 | 4059 | 4062 | 4065 | 4068..=4069 | 4072 | 4075..=4076
+        | 4079 | 4211..=4212 | 4222..=4225 | 4228..=4229 | 4254 | 4257 | 4260 | 4263..=4264 | 4304..=4306 => {
             "player_wooden_male.wav"
         }
-        1 | 7 | 14..=15 | 4002 | 4008 | 4015..=4016 | 4024 | 4030 | 4037..=4038 | 4047..=4048 | 4051 | 4054 | 4060 | 4066 | 4070 | 4073 | 4077 | 4226 | 4238..=4239 | 4241 | 4252 | 4255 | 4258 | 4262 | 4280..=4281 | 4302 | 4316 => "player_metal.wav",
+        1 | 7 | 14..=15 | 4002 | 4008 | 4015..=4016 | 4024 | 4030 | 4037..=4038 | 4047..=4048 | 4051 | 4054 | 4060
+        | 4066 | 4070 | 4073 | 4077 | 4226 | 4238..=4239 | 4241 | 4252 | 4255 | 4258 | 4262 | 4280..=4281 | 4302
+        | 4316 => "player_metal.wav",
         _ => "player_clothes.wav",
     }
 }
@@ -145,7 +149,10 @@ mod tests {
         assert_eq!(flash(How::Skill, Some(198)), Some([4, 43, 164]));
         assert_eq!(flash(How::SkillStill, Some(184)), Some([80, 80, 80]));
         // No other effect, no hit that carries none, and no hit that is not a skill's one.
-        assert_eq!((flash(How::Skill, Some(115)), flash(How::Skill, None), flash(How::Many, Some(198)), flash(How::Plain, Some(184))), (None, None, None, None));
+        assert_eq!(
+            (flash(How::Skill, Some(115)), flash(How::Skill, None), flash(How::Many, Some(198)), flash(How::Plain, Some(184))),
+            (None, None, None, None)
+        );
     }
 
     #[test]

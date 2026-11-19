@@ -19,8 +19,9 @@ pub struct Options {
     pub hide_players: bool,
     /// The camera may go out to 730 instead of 400 (`/zoom`).
     pub zoom_out: bool,
-    /// This project's own, off as in the client: a press farther than the server walks in one go sends the
-    /// character there in stretches instead of doing nothing (`pursuit::journey`).
+    /// This project's own, on unless the player switches it off (`/farwalk`): a press farther than the
+    /// server walks in one go sends the character there in stretches (`pursuit::journey`). Off, such a press
+    /// is asked once and does nothing, as in the client.
     pub far_walk: bool,
     /// The screen shakes when an effect asks for it (`/quake`: the client's `MM_QUAKE` does nothing with it off).
     pub quake: bool,
@@ -35,7 +36,22 @@ pub struct Options {
 
 impl Default for Options {
     fn default() -> Self {
-        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false, zoom_out: true, far_walk: false, quake: true, name_above: false, emblems: true, auras: true, aura_full: false }
+        Self {
+            no_ctrl: true,
+            quick_right: false,
+            quick_wheel: false,
+            effects: true,
+            misses: true,
+            monster_life: true,
+            hide_players: false,
+            zoom_out: true,
+            far_walk: true,
+            quake: true,
+            name_above: false,
+            emblems: true,
+            auras: true,
+            aura_full: false
+        }
     }
 }
 

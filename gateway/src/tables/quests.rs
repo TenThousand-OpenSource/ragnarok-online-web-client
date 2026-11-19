@@ -22,16 +22,29 @@ use super::*;
 pub fn quests(client_dir: &std::path::Path, database: &std::path::Path) -> serde_json::Value {
     let known = known_quests(database);
     let list = |files: &[&str], name: &str| beside(client_dir, files).map(|lua| numbered(&lua, name)).unwrap_or_default();
-    let ongoing: serde_json::Map<String, serde_json::Value> = list(&["SystemEN/OngoingQuests.lub", "System/OngoingQuestInfoList_True.lub", "System/OngoingQuestInfoList.lub"], "QuestInfoList")
+    let ongoing: serde_json::Map<String, serde_json::Value> =
+        list(&["SystemEN/OngoingQuests.lub", "System/OngoingQuestInfoList_True.lub", "System/OngoingQuestInfoList.lub"], "QuestInfoList")
         .iter()
         .filter(|(number, _)| known.is_empty() || known.contains(number))
         .map(|(number, entry)| (number.to_string(), ongoing(entry).into()))
         .collect();
     let recommended: serde_json::Map<String, serde_json::Value> =
-        list(&["SystemEN/RecommendedQuests.lub", "System/RecommendedQuestInfoList_True.lub", "System/RecommendedQuestInfoList.lub"], "RecommendedQuestInfoList").iter().map(|(number, entry)| (number.to_string(), recommended(entry).into())).collect();
+        list(
+            &["SystemEN/RecommendedQuests.lub", "System/RecommendedQuestInfoList_True.lub", "System/RecommendedQuestInfoList.lub"],
+            "RecommendedQuestInfoList"
+        )
+            .iter()
+            .map(|(number, entry)| (number.to_string(), recommended(entry).into()))
+            .collect();
     let sorting = beside(client_dir, &["SystemEN/QuestClassificationInfo.lub", "System/QuestClassificationInfo_EN.lub", "System/QuestClassificationInfo.lub"]);
     let tooltips = sorting.as_ref().and_then(|lua| lua.globals().get::<Value>("QuestIconTooltipTable").ok()).map(|table| json_of(&table)).unwrap_or_default();
-    let filters: serde_json::Map<String, serde_json::Value> = sorting.as_ref().map(|lua| numbered(lua, "QuestFilterTable")).unwrap_or_default().iter().map(|(number, entry)| (number.to_string(), filter(entry))).collect();
+    let filters: serde_json::Map<String, serde_json::Value> = sorting
+        .as_ref()
+        .map(|lua| numbered(lua, "QuestFilterTable"))
+        .unwrap_or_default()
+        .iter()
+        .map(|(number, entry)| (number.to_string(), filter(entry)))
+        .collect();
     serde_json::json!({ "ongoing": ongoing, "recommended": recommended, "tooltips": tooltips, "filters": filters })
 }
 
@@ -67,12 +80,23 @@ fn copied(entry: &serde_json::Value, fields: &[(&str, &str)]) -> serde_json::Map
 /// Whom a quest sends the character to: `[sprite, map, x, y]`, when the table names a sprite.
 fn npc(entry: &serde_json::Value) -> Option<serde_json::Value> {
     let sprite = filled(entry, "NpcSpr")?;
-    Some(serde_json::json!([sprite, entry.get("NpcNavi").and_then(|map| map.as_str()).unwrap_or(""), entry.get("NpcPosX").and_then(|x| x.as_i64()).unwrap_or(0), entry.get("NpcPosY").and_then(|y| y.as_i64()).unwrap_or(0)]))
+    Some(serde_json::json!([
+        sprite,
+        entry.get("NpcNavi").and_then(|map| map.as_str()).unwrap_or(""),
+        entry.get("NpcPosX").and_then(|x| x.as_i64()).unwrap_or(0),
+        entry.get("NpcPosY").and_then(|y| y.as_i64()).unwrap_or(0)
+    ]))
 }
 
 /// What the journal writes of one of the server's quests, out of its entry of `QuestInfoList`.
 fn ongoing(entry: &serde_json::Value) -> serde_json::Map<String, serde_json::Value> {
-    let mut about = copied(entry, &[("Title", "title"), ("Summary", "summary"), ("IconName", "icon"), ("Description", "lines"), ("RewardEXP", "base"), ("RewardJEXP", "job")]);
+    let mut about = copied(
+        entry,
+        &[
+            ("Title", "title"), ("Summary", "summary"), ("IconName", "icon"), ("Description", "lines"),
+            ("RewardEXP", "base"), ("RewardJEXP", "job")
+        ]
+    );
     if filled(entry, "CoolTimeQuest").is_some() {
         about.insert("waits".to_owned(), true.into());
     }
@@ -82,7 +106,14 @@ fn ongoing(entry: &serde_json::Value) -> serde_json::Map<String, serde_json::Val
     let rewards: Vec<serde_json::Value> = entry
         .get("RewardItemList")
         .and_then(|list| list.as_array())
-        .map(|list| list.iter().filter_map(|reward| Some(serde_json::json!([reward.get("ItemID")?.as_i64()?, reward.get("ItemNum").and_then(|count| count.as_i64()).unwrap_or(1)]))).collect())
+        .map(
+            |list| list
+                .iter()
+                .filter_map(|reward| Some(serde_json::json!(
+                    [reward.get("ItemID")?.as_i64()?, reward.get("ItemNum").and_then(|count| count.as_i64()).unwrap_or(1)]
+                )))
+                .collect()
+        )
         .unwrap_or_default();
     if !rewards.is_empty() {
         about.insert("rewards".to_owned(), rewards.into());
@@ -96,14 +127,20 @@ fn recommended(entry: &serde_json::Value) -> serde_json::Map<String, serde_json:
     if let Some(npc) = npc(entry) {
         about.insert("npc".to_owned(), npc);
     }
-    let info: Vec<serde_json::Value> = ["QuestInfo1", "QuestInfo2", "QuestInfo3"].iter().map(|part| filled(entry, part).cloned().unwrap_or_else(|| serde_json::json!([]))).collect();
+    let info: Vec<serde_json::Value> = ["QuestInfo1", "QuestInfo2", "QuestInfo3"]
+        .iter()
+        .map(|part| filled(entry, part).cloned().unwrap_or_else(|| serde_json::json!([])))
+        .collect();
     about.insert("info".to_owned(), info.into());
     about
 }
 
 /// A filter of the journal's lower row, out of its entry of `QuestFilterTable`: its words and the icons it takes.
 fn filter(entry: &serde_json::Value) -> serde_json::Value {
-    serde_json::json!({ "name": entry.get("Tooltip").and_then(|name| name.as_str()).unwrap_or(""), "icons": entry.get("QuestIcons").cloned().unwrap_or_else(|| serde_json::json!([])) })
+    serde_json::json!({
+        "name": entry.get("Tooltip").and_then(|name| name.as_str()).unwrap_or(""),
+        "icons": entry.get("QuestIcons").cloned().unwrap_or_else(|| serde_json::json!([]))
+    })
 }
 
 #[cfg(test)]
@@ -131,7 +168,12 @@ mod tests {
         assert_eq!(quests.keys().copied().collect::<Vec<_>>(), [1001, 5849, 9999]);
         assert_eq!(
             serde_json::Value::from(ongoing(&quests[&1001])),
-            serde_json::json!({ "title": "Job Change to Acolyte", "summary": "Talk to Father Rubalkabara", "lines": ["Visit ^0000FFFather Rubalkabara^000000."], "npc": ["4_M_ORIENT02", "prt_fild03", 365, 255] })
+            serde_json::json!({
+                "title": "Job Change to Acolyte",
+                "summary": "Talk to Father Rubalkabara",
+                "lines": ["Visit ^0000FFFather Rubalkabara^000000."],
+                "npc": ["4_M_ORIENT02", "prt_fild03", 365, 255]
+            })
         );
         let waiting = ongoing(&quests[&5849]);
         assert_eq!(waiting["waits"], true);
@@ -153,7 +195,13 @@ mod tests {
             QuestInfo1 = { "We invite you." }, QuestInfo3 = { "Not a quest." } } }"#;
         assert_eq!(
             serde_json::Value::from(recommended(&table(source, "RecommendedQuestInfoList")[&3])),
-            serde_json::json!({ "title": "Festival", "summary": "See you", "icon": "ico_ev.bmp", "picture": "reco_03.bmp", "info": [["We invite you."], [], ["Not a quest."]] })
+            serde_json::json!({
+                "title": "Festival",
+                "summary": "See you",
+                "icon": "ico_ev.bmp",
+                "picture": "reco_03.bmp",
+                "info": [["We invite you."], [], ["Not a quest."]]
+            })
         );
     }
 

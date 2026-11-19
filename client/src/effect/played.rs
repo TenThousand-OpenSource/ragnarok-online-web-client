@@ -199,7 +199,15 @@ mod tests {
     fn the_hits_go_round_three_places() {
         let mut turn = 0;
         let hows: Vec<Carried> = (0..4).map(|_| launched(2080, 0, &mut turn).unwrap().files[0].1.unwrap()).collect();
-        assert_eq!(hows.iter().map(|how| (how.offset, how.turn, how.delay)).collect::<Vec<_>>(), vec![([0.0, 7.0, 0.0], Turn::By(0.0), 0), ([4.0, 6.0, 0.0], Turn::By(320.0), 200), ([-4.0, 5.0, 0.0], Turn::By(40.0), 400), ([0.0, 7.0, 0.0], Turn::By(0.0), 0)]);
+        assert_eq!(
+            hows.iter().map(|how| (how.offset, how.turn, how.delay)).collect::<Vec<_>>(),
+            vec![
+                ([0.0, 7.0, 0.0], Turn::By(0.0), 0),
+                ([4.0, 6.0, 0.0], Turn::By(320.0), 200),
+                ([-4.0, 5.0, 0.0], Turn::By(40.0), 400),
+                ([0.0, 7.0, 0.0], Turn::By(0.0), 0)
+            ]
+        );
         assert_eq!((hows[0].pace, turn), (2, 1));
     }
 
@@ -209,7 +217,13 @@ mod tests {
         assert_eq!(cannon.files[0].1, Some(Carried::new(Way::Steps).turned(Turn::Flight).delayed(200).looped()));
         assert_eq!(launched(1755, 0, &mut 0).unwrap().files.len(), 2);
         let bottle = launched(2214, 0, &mut 0).unwrap();
-        assert_eq!(bottle.files.iter().map(|(file, _)| file.as_str()).collect::<Vec<_>>()[..2], ["acidified_zone_water/acidified_zone_water_c/acidified_zone_water_c.str", "acidified_zone_water/acidified_zone_water_b/acidified_zone_water_b.str"]);
+        assert_eq!(
+            bottle.files.iter().map(|(file, _)| file.as_str()).collect::<Vec<_>>()[..2],
+            [
+                "acidified_zone_water/acidified_zone_water_c/acidified_zone_water_c.str",
+                "acidified_zone_water/acidified_zone_water_b/acidified_zone_water_b.str"
+            ]
+        );
         assert_eq!(bottle.files[1].1.unwrap().delay, (BOW_LANDS + 1) * TICK_MS);
         assert_eq!(bottle.sounds, vec![(BOW_LANDS, "effect/BO_ACIDIFIED_ZONE.wav".to_owned()), (BOW_LANDS, "effect/BO_ACIDIFIED_ZONE_WATER.wav".to_owned())]);
     }

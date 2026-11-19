@@ -31,7 +31,8 @@ pub(super) const FILE: File = File { known, thrown, stays, run, pictures: &[&PIC
 const PICTURES: [&str; 8] = ["thunder_center.bmp", "stone.bmp", "line3y.tga", "line3.tga", LINE_PITCH, LINE_RED, LINE_HELL, "alpha_center.tga"];
 
 /// The pictures the ball of Jupitel Thunder runs through, one a tick.
-const THUNDER_BALL: [&str; 6] = ["thunder_ball_a.bmp", "thunder_ball_b.bmp", "thunder_ball_c.bmp", "thunder_ball_d.bmp", "thunder_ball_e.bmp", "thunder_ball_f.bmp"];
+const THUNDER_BALL: [&str; 6] =
+    ["thunder_ball_a.bmp", "thunder_ball_b.bmp", "thunder_ball_c.bmp", "thunder_ball_d.bmp", "thunder_ball_e.bmp", "thunder_ball_f.bmp"];
 
 /// The pictures of the streaks of Cross Impact and of Gate of Hell. (With the option to show fewer effects on,
 /// `TT_MIN_EFFECT_ON_OFF`, the client takes pictures of the same names from `mineffect`; what is here is what

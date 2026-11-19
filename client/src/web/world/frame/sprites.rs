@@ -44,7 +44,11 @@ fn bodied(gpu: &mut Gpu, mover: &Mover, shown: &SpriteKey, feet: Vector, left: f
     };
     // (Until the weapon's own picture is there, the body stays as it is.)
     let armed = armed.map(|(figure, quad, bare)| (SpriteKey::Weapon(figure.clone()), figure, quad, bare)).filter(|(weapon, ..)| gpu.has_sprite(weapon));
-    let bare = armed.as_ref().filter(|(.., bare)| *bare).map(|(_, figure, ..)| SpriteKey::Player(Figure { weapon: 0, ..(*figure).clone() })).filter(|bare| gpu.has_sprite(bare));
+    let bare = armed
+        .as_ref()
+        .filter(|(.., bare)| *bare)
+        .map(|(_, figure, ..)| SpriteKey::Player(Figure { weapon: 0, ..(*figure).clone() }))
+        .filter(|bare| gpu.has_sprite(bare));
     // A baby job is drawn smaller, whatever else is done to it (`GetSkillFactor`, over `ScaleByPulse`).
     let size = if character { crate::pose::size(mover.job) } else { 1.0 };
     // One a skill's hit has flashed is drawn in that colour and no other for 100 milliseconds (the client's

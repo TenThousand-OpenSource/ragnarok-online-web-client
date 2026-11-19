@@ -26,7 +26,12 @@ impl App {
         window.push_str(&self.guide_strip(&tabs, &kinds, picked_kind));
         let title = if self.guide.tab == 0 { guide.intro.as_str() } else { tabs.get(self.guide.tab).copied().unwrap_or_default() };
         // The page's title: `CUIAdventureGuide::OnCreate`, "Gulim" at 14, bold.
-        window.push_str(&format!(r#"<div class="a t" style="{};text-align:center;{};color:#1b2689">{}</div>"#, at(312, 30, 204, 20), Font(0, 14, true).style(), escape(title)));
+        window.push_str(&format!(
+            r#"<div class="a t" style="{};text-align:center;{};color:#1b2689">{}</div>"#,
+            at(312, 30, 204, 20),
+            Font(0, 14, true).style(),
+            escape(title)
+        ));
         match self.guide.tab {
             0 => window.push_str(&Self::guide_intro(&guide)),
             // The monsters recommended for the character's level (the guide's second kind of page).
@@ -62,8 +67,16 @@ impl App {
         let job = self.game.as_ref().map_or(0, |game| game.job);
         let for_level = |least: u32, most: u32| in_levels(least, most, base_level);
         let filled: std::collections::HashSet<u32> = match self.guide.tab {
-            1 | 3 | 4 => guide.quests[[0, 0, 0, 1, 2][self.guide.tab]].list.iter().filter(|quest| for_level(quest.min, quest.max)).map(|quest| quest.kind).collect(),
-            5 | 6 => guide.items[self.guide.tab - 5].list.iter().filter(|item| for_level(item.min, item.max) && guide.wears(job, item)).map(|item| item.kind).collect(),
+            1 | 3 | 4 => guide.quests[[0, 0, 0, 1, 2][self.guide.tab]].list
+                .iter()
+                .filter(|quest| for_level(quest.min, quest.max))
+                .map(|quest| quest.kind)
+                .collect(),
+            5 | 6 => guide.items[self.guide.tab - 5].list
+                .iter()
+                .filter(|item| for_level(item.min, item.max) && guide.wears(job, item))
+                .map(|item| item.kind)
+                .collect(),
             _ => Default::default(),
         };
         kinds.into_iter().filter(|(kind, _, least, most)| for_level(*least, *most) && filled.contains(kind)).collect()
@@ -80,20 +93,25 @@ impl App {
         for (index, name) in tabs.iter().enumerate() {
             let state = if index == self.guide.tab { "press" } else { "normal" };
             let press = pressed(Press::Tab(index));
-            strip.push_str(&format!(
-                r#"<button type="button" class="t" style="display:block;width:98px;height:40px;padding:0;{bold};color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:40px;cursor:default" {press}>{}</button>"#,
-                picture(&format!("adventureguide/tab_btn_{state}.bmp")),
-                escape(name)
-            ));
+            strip.push_str(&[
+                format!(r#"<button type="button" class="t" style="display:block;width:98px;height:40px;padding:0;{bold};"#),
+                format!(r#"color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;"#, picture(&format!(
+                    "adventureguide/tab_btn_{state}.bmp"
+                ))),
+                format!(r#"line-height:40px;cursor:default" {press}>{}</button>"#, escape(name))
+            ].concat());
             if index == self.guide.tab && !self.guide.folded {
                 for (kind, name, ..) in kinds {
                     let state = if Some(*kind) == picked_kind { "press" } else { "normal" };
                     let press = pressed(Press::Kind(*kind));
-                    strip.push_str(&format!(
-                        r#"<button type="button" class="t" style="display:block;width:98px;height:26px;padding:0 6px 0 0;box-sizing:border-box;{bold};color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:26px;cursor:default;white-space:nowrap;overflow:hidden" {press}>{}</button>"#,
-                        picture(&format!("adventureguide/tab_btn_sub_{state}.bmp")),
-                        escape(name)
-                    ));
+                    strip.push_str(&[
+                        format!(r#"<button type="button" class="t" style="display:block;width:98px;height:26px;padding:0 6px 0 0;"#),
+                        format!(
+                            r#"box-sizing:border-box;{bold};color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;"#,
+                            picture(&format!("adventureguide/tab_btn_sub_{state}.bmp"))
+                        ),
+                        format!(r#"text-align:center;line-height:26px;cursor:default;white-space:nowrap;overflow:hidden" {press}>{}</button>"#, escape(name))
+                    ].concat());
                 }
             }
         }
@@ -111,13 +129,16 @@ impl App {
             .iter()
             .enumerate()
             .map(|(index, (name, about))| {
-                format!(
-                    r#"<div style="position:relative;width:603px;height:44px;cursor:pointer" {}>{}<div class="a t" style="left:32px;top:0;width:100px;line-height:44px;font-weight:bold;color:#485a81;white-space:nowrap">{}</div><div class="a t" style="left:140px;top:0;width:442px;line-height:44px;color:#5d432a;white-space:nowrap;overflow:hidden">{}</div></div>"#,
-                    pressed(Press::Tab(index + 1)),
-                    art("adventureguide/list_1.bmp", 0, 0, 603, 44),
-                    escape(name),
-                    escape(about)
-                )
+                [
+                    format!(
+                        r#"<div style="position:relative;width:603px;height:44px;cursor:pointer" {}>{}"#,
+                        pressed(Press::Tab(index + 1)),
+                        art("adventureguide/list_1.bmp", 0, 0, 603, 44)
+                    ),
+                    format!(r#"<div class="a t" style="left:32px;top:0;width:100px;line-height:44px;font-weight:bold;color:#485a81;"#),
+                    format!(r#"white-space:nowrap">{}</div><div class="a t" style="left:140px;top:0;width:442px;line-height:44px;"#, escape(name)),
+                    format!(r#"color:#5d432a;white-space:nowrap;overflow:hidden">{}</div></div>"#, escape(about))
+                ].concat()
             })
             .collect();
         let mut page = art("adventureguide/bg_banner.bmp", 112, 63, 630, 216);
@@ -139,11 +160,14 @@ impl App {
                 rest = after;
                 continue;
             };
-            out.push_str(&format!(
-                r#"<span class="cell" style="position:relative;display:inline-block;width:24px;height:24px;vertical-align:middle" data-info="{id}" data-tip="{}">{}</span>"#,
-                escape(&data::item(id).map(|(name, _)| name).unwrap_or_default()),
-                Self::item_icon(id, true)
-            ));
+            out.push_str(&[
+                format!(r#"<span class="cell" style="position:relative;display:inline-block;width:24px;height:24px;"#),
+                format!(
+                    r#"vertical-align:middle" data-info="{id}" data-tip="{}">{}</span>"#,
+                    escape(&data::item(id).map(|(name, _)| name).unwrap_or_default()),
+                    Self::item_icon(id, true)
+                )
+            ].concat());
             rest = &after[end + 1..];
         }
         out.push_str(&escape(rest));

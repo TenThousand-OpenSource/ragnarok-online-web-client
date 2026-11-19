@@ -20,16 +20,21 @@ impl App {
     /// and at 31,8 in 106 by 15 what the room is called and how many are in it, cut where it does not fit.
     /// A double click on it enters (`OnLBtnDblClk`); the hand shows over it.
     pub(in crate::web) fn room_sign(room: &Room) -> String {
-        format!(
-            r#"<div class="a" style="{};cursor:pointer" {}>{}<img class="a" src="{}" alt="" draggable="false" style="left:50%;bottom:0;transform:translateX(-50%)" onerror="this.remove()"><img class="a" src="{}" alt="" draggable="false" style="left:3px;top:3px" onerror="this.remove()"><div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div></div>"#,
-            at(0, 0, crate::web::world::SIGN.0, crate::web::world::SIGN.1),
-            used(Use::Room(room.id)),
-            system_box(0, 140, 28),
-            picture("sysbox_arr_l.bmp"),
-            picture(if room.kind == kind::PRIVATE { "chat_close.bmp" } else { "chat_open.bmp" }),
-            at(31, 8, 106, 15),
-            escape(&room.sign())
-        )
+        [
+            format!(
+                r#"<div class="a" style="{};cursor:pointer" {}>{}"#,
+                at(0, 0, crate::web::world::SIGN.0, crate::web::world::SIGN.1),
+                used(Use::Room(room.id)),
+                system_box(0, 140, 28)
+            ),
+            format!(r#"<img class="a" src="{}" alt="" draggable="false" style="left:50%;bottom:0;"#, picture("sysbox_arr_l.bmp")),
+            format!(r#"transform:translateX(-50%)" onerror="this.remove()">"#),
+            format!(
+                r#"<img class="a" src="{}" alt="" draggable="false" style="left:3px;top:3px" onerror="this.remove()">"#,
+                picture(if room.kind == kind::PRIVATE { "chat_close.bmp" } else { "chat_open.bmp" })
+            ),
+            format!(r#"<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div></div>"#, at(31, 8, 106, 15), escape(&room.sign()))
+        ].concat()
     }
 
     /// The window that makes or changes a room (`UIChatRoomMakeWnd::OnCreate`, `OnDraw`): `titlebar_fix.bmp`
@@ -45,8 +50,18 @@ impl App {
         let people = |count: u16| format!("{count} {}", Self::words(131, "ppl"));
         let field = "border:0;background:#f2f2f2;padding:0 2px;box-sizing:border-box";
         let limits = if making.limits_open {
-            let rows: String = LIMITS.iter().map(|count| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default" {}>{}</div>"#, pressed(Press::Limit(*count)), escape(&people(*count)))).collect();
-            format!(r#"<div class="a scroll" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:border-box;overflow-y:auto">{rows}</div>"#, at(45, 64, 74, 48))
+            let rows: String = LIMITS
+                .iter()
+                .map(|count| format!(
+                    r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default" {}>{}</div>"#,
+                    pressed(Press::Limit(*count)),
+                    escape(&people(*count))
+                ))
+                .collect();
+            [
+                format!(r#"<div class="a scroll" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:border-box;"#, at(45, 64, 74, 48)),
+                format!(r#"overflow-y:auto">{rows}</div>"#)
+            ].concat()
         } else {
             String::new()
         };
@@ -73,7 +88,10 @@ impl App {
             pictured_by(Convention::ABC, 119, 46, (16, 18), "basic_interface/txtbox_btn", Press::Limits, ""),
             at(187, 49, 68, 14),
             escape(&Self::words(130, "Chat Room")),
-            format!(r#"<img class="a" src="{}" alt="" draggable="false" style="left:256px;top:46px" onerror="this.remove()">"#, picture("basic_interface/txtbox_btn_a.bmp")),
+            format!(
+                r#"<img class="a" src="{}" alt="" draggable="false" style="left:256px;top:46px" onerror="this.remove()">"#,
+                picture("basic_interface/txtbox_btn_a.bmp")
+            ),
             radio_marked(44, 70, making.public, true, &Self::words(201, "Public"), &pressed(Press::Public(true))),
             radio_marked(96, 70, !making.public, true, &Self::words(200, "Private"), &pressed(Press::Public(false))),
             escape(&making.password),
@@ -101,34 +119,62 @@ impl App {
             .iter()
             .enumerate()
             .map(|(row, (role, name))| {
-                format!(
-                    r#"<div class="t" style="height:14px;line-height:14px;padding:0 2px;overflow:hidden;white-space:nowrap;cursor:default;color:{};{}" {} {}>{}</div>"#,
-                    if *role == OWNER { OWNED } else { BLACK },
-                    if sitting.picked == Some(row) { format!("background:{PICKED}") } else { String::new() },
-                    pressed(Press::Member(row)),
-                    menued(Menu::RoomMember(row)),
-                    escape(name)
-                )
+                [
+                    format!(r#"<div class="t" style="height:14px;line-height:14px;padding:0 2px;overflow:hidden;white-space:nowrap;"#),
+                    format!(
+                        r#"cursor:default;color:{};{}" {} {}>{}</div>"#,
+                        if *role == OWNER { OWNED } else { BLACK },
+                        if sitting.picked == Some(row) { format!("background:{PICKED}") } else { String::new() },
+                        pressed(Press::Member(row)),
+                        menued(Menu::RoomMember(row)),
+                        escape(name)
+                    )
+                ].concat()
             })
             .collect();
-        format!(
-            r#"{}{}{}{}<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div>{}
-               <div class="a t" style="{};background:#fff;padding:0 2px;box-sizing:border-box;display:flex;flex-direction:column-reverse;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;white-space:normal;line-height:14px;user-select:text"><div>{lines}</div></div>
-               <div class="a" style="{};background:#c8c8c8"></div>
-               <div class="a scroll" style="{};background:#fff;padding-top:3px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin">{members}</div>
+        [
+            format!(
+                r#"{}{}{}{}<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div>{}
+               "#,
+                art("basic_interface/titlebar_left.bmp", 0, 0, 12, 17),
+                art("basic_interface/titlebar_mid.bmp", 12, 0, width - 24, 17),
+                art("basic_interface/titlebar_right.bmp", width - 12, 0, 12, 17),
+                panel(width, height),
+                at(9, 2, width - 30, 15),
+                escape(&heading),
+                pictured(
+                    width - 14,
+                    3,
+                    (11, 11),
+                    ["basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "basic_interface/sys_close_on.bmp"],
+                    Press::Leave,
+                    r#" data-tip="/q""#
+                )
+            ),
+            format!(r#"<div class="a t" style="{};background:#fff;padding:0 2px;box-sizing:border-box;"#, at(1, 17, width - list - 3, height - 38)),
+            format!(r#"display:flex;flex-direction:column-reverse;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;"#),
+            format!(
+                r#"white-space:normal;line-height:14px;user-select:text"><div>{lines}</div></div>
+               "#
+            ),
+            format!(
+                r#"<div class="a" style="{};background:#c8c8c8"></div>
+               <div class="a scroll" style="{};background:#fff;padding-top:3px;box-sizing:border-box;"#,
+                at(width - list - 2, 17, 1, height - 38),
+                at(width - list - 1, 17, list, height - 38)
+            ),
+            format!(
+                r#"overflow-x:hidden;overflow-y:auto;scrollbar-width:thin">{members}</div>
                {}"#,
-            art("basic_interface/titlebar_left.bmp", 0, 0, 12, 17),
-            art("basic_interface/titlebar_mid.bmp", 12, 0, width - 24, 17),
-            art("basic_interface/titlebar_right.bmp", width - 12, 0, 12, 17),
-            panel(width, height),
-            at(9, 2, width - 30, 15),
-            escape(&heading),
-            pictured(width - 14, 3, (11, 11), ["basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", "basic_interface/sys_close_on.bmp"], Press::Leave, r#" data-tip="/q""#),
-            at(1, 17, width - list - 3, height - 38),
-            at(width - list - 2, 17, 1, height - 38),
-            at(width - list - 1, 17, list, height - 38),
-            typed_line(&sent(Form::Room), &at(0, height - 21, width, 21), "room-input", &at(3, 3, width - 30, 16), "background:#f2f2f2;border:0;padding:0 2px;box-sizing:border-box"),
-        )
+                typed_line(
+                    &sent(Form::Room),
+                    &at(0, height - 21, width, 21),
+                    "room-input",
+                    &at(3, 3, width - 30, 16),
+                    "background:#f2f2f2;border:0;padding:0 2px;box-sizing:border-box"
+                )
+            )
+        ].concat()
     }
 
     /// The box that asks a room's password (`UIPasswordWnd::OnCreate`), 176 by 46 in the frame of the system
@@ -138,15 +184,17 @@ impl App {
         if self.chat_rooms.password_for.is_none() {
             return String::new();
         }
-        format!(
-            r#"{}<form {} class="a" style="{}">{}<input id="room-key" class="a in" type="password" maxlength="8" autocomplete="off" style="{};background:#e8e8e8">{}<button type="submit" hidden></button></form>"#,
-            system_box(0, 176, 46),
-            sent(Form::RoomPassword),
-            at(0, 0, 176, 46),
-            text(15, 6, BLACK, &Self::words(15, "Please enter the password.")),
-            at(15, 22, 90, 16),
-            picture_press(121, 14, "btn_ok", Press::PasswordOk)
-        )
+        [
+            format!(
+                r#"{}<form {} class="a" style="{}">{}"#,
+                system_box(0, 176, 46),
+                sent(Form::RoomPassword),
+                at(0, 0, 176, 46),
+                text(15, 6, BLACK, &Self::words(15, "Please enter the password."))
+            ),
+            format!(r#"<input id="room-key" class="a in" type="password" maxlength="8" autocomplete="off" style="{};"#, at(15, 22, 90, 16)),
+            format!(r#"background:#e8e8e8">{}<button type="submit" hidden></button></form>"#, picture_press(121, 14, "btn_ok", Press::PasswordOk))
+        ].concat()
     }
 
     /// The menu of the room's window (`UIChatRoomWnd::SendMsg`, `UM_MAKEMENU`). On a member, for the one the

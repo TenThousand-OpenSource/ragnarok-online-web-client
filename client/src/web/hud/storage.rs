@@ -3,7 +3,7 @@
 //! found (`UIItemStoreFindWnd`), and the box that asks how many go in or out.
 
 use super::*;
-use crate::storage::{Sorted, TABS, TAB_LINES, tab_of};
+use crate::storage::{Sorted, TABS, TAB_LINES};
 use crate::press::storage::Press;
 use crate::web::app::Stowing;
 
@@ -18,15 +18,7 @@ impl App {
     /// own list.
     fn storage_rows(&self, tab: Option<usize>, sought: Option<&str>, room: i32) -> String {
         let Some(storage) = &self.storage.open else { return String::new() };
-        let mut things: Vec<(String, &Item)> = storage
-            .items
-            .iter()
-            .filter(|item| tab.is_none_or(|tab| tab_of(item) == Some(tab)))
-            .map(|item| (Self::item_name(item), item))
-            .filter(|(name, _)| sought.is_none_or(|sought| name.contains(sought)))
-            .collect();
-        self.storage.sorted.order(&mut things);
-        things
+        crate::storage::listed(&storage.items, tab, sought, self.storage.sorted, Self::item_name)
             .iter()
             .map(|(name, item)| {
                 let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
@@ -57,7 +49,12 @@ impl App {
         window.push_str(&art(&format!("basic_interface/tab_item_{:02}.bmp", self.storage.tab + 1), 0, 18, 20, 235));
         for (tab, (line, otherwise)) in TAB_LINES.iter().enumerate() {
             // A tab of the picture is an eighth of its height (`UITab::OnLBtnDown`).
-            window.push_str(&format!(r#"<div class="a" style="{};cursor:pointer" title="{}" {}></div>"#, at(0, 18 + tab as i32 * 29, 20, 29), escape(&Self::words(*line, otherwise)), pressed(Press::Tab(tab))));
+            window.push_str(&format!(
+                r#"<div class="a" style="{};cursor:pointer" title="{}" {}></div>"#,
+                at(0, 18 + tab as i32 * 29, 20, 29),
+                escape(&Self::words(*line, otherwise)),
+                pressed(Press::Tab(tab))
+            ));
             let shown = if self.storage.apart & (1 << tab) != 0 { 1 } else { 2 };
             window.push_str(&format!(
                 r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat;cursor:pointer" title="{}" {}></div>"#,
@@ -71,14 +68,19 @@ impl App {
         window.push_str(&self.storage_order(214, height - 52));
         window.push_str(&Self::storage_fullness(storage.count, height));
         // The search (`bg_search.bmp`, 77 in and 23 from the bottom; its button 185 in) and "close" (220 in).
-        window.push_str(&format!(
-            r#"<form {} class="a" style="{};background:url('{}') 0 0 no-repeat"><input id="{}" class="a in" style="{}" type="text" maxlength="20" autocomplete="off"></form>"#,
-            sent(Form::StorageSearch),
-            at(77, height - 23, 122, 18),
-            picture("bg_search.bmp"),
-            windows::STORAGE.field(),
-            at(2, 1, 104, 16)
-        ));
+        window.push_str(&[
+            format!(
+                r#"<form {} class="a" style="{};background:url('{}') 0 0 no-repeat">"#,
+                sent(Form::StorageSearch),
+                at(77, height - 23, 122, 18),
+                picture("bg_search.bmp")
+            ),
+            format!(
+                r#"<input id="{}" class="a in" style="{}" type="text" maxlength="20" autocomplete="off"></form>"#,
+                windows::STORAGE.field(),
+                at(2, 1, 104, 16)
+            )
+        ].concat());
         window.push_str(&pictured_by(Convention::NormalOverPress, 185, height - 23, (23, 18), "bt_search", Press::Search, ""));
         window.push_str(&picture_press(220, height - 23, "btn_close", Press::Close));
         format!("<div {}>{window}</div>", dropped(Drop::Storage))
@@ -90,12 +92,14 @@ impl App {
     fn storage_order(&self, x: i32, y: i32) -> String {
         let choice = |y: i32, sorted: Sorted, press: Press| {
             let (line, otherwise) = sorted.line();
-            format!(
-                r#"<div class="a t opt" style="{};line-height:16px;padding:0 3px;box-sizing:border-box;background:#fff;border:1px solid #9a9a9a;cursor:default;overflow:hidden;white-space:nowrap" {}>{}</div>"#,
-                at(x, y, 62, 18),
-                pressed(press),
-                escape(&Self::words(line, otherwise))
-            )
+            [
+                format!(r#"<div class="a t opt" style="{};line-height:16px;padding:0 3px;box-sizing:border-box;background:#fff;"#, at(x, y, 62, 18)),
+                format!(
+                    r#"border:1px solid #9a9a9a;cursor:default;overflow:hidden;white-space:nowrap" {}>{}</div>"#,
+                    pressed(press),
+                    escape(&Self::words(line, otherwise))
+                )
+            ].concat()
         };
         let mut order = choice(y, self.storage.sorted, Press::Sorting);
         if self.storage.sorting {
@@ -109,13 +113,15 @@ impl App {
     /// How full the storage is (`UIItemStoreWnd::Paint`): `icon_num.bmp` 6 in and 21 from the bottom, the
     /// number of kinds after it in the smaller text, red once the storage is full, and the most that fit.
     fn storage_fullness((kinds, most): (u16, u16), height: i32) -> String {
-        format!(
-            r#"{}<div class="a t" style="left:22px;top:{}px;color:#000;white-space:nowrap;{}"><span style="color:{}">{kinds}</span><span style="margin-left:1px">/{most}</span></div>"#,
-            art("inventory/icon_num.bmp", 6, height - 21, 11, 14),
-            height - 19,
-            SMALL.style(),
-            if kinds >= most { RED } else { "#232323" },
-        )
+        [
+            format!(
+                r#"{}<div class="a t" style="left:22px;top:{}px;color:#000;white-space:nowrap;{}">"#,
+                art("inventory/icon_num.bmp", 6, height - 21, 11, 14),
+                height - 19,
+                SMALL.style()
+            ),
+            format!(r#"<span style="color:{}">{kinds}</span><span style="margin-left:1px">/{most}</span></div>"#, if kinds >= most { RED } else { "#232323" })
+        ].concat()
     }
 
     /// A smaller window of the storage's things (`UIItemStoreFindWnd::Paint`, which `UIItemStoreSubWnd` shares):
@@ -130,7 +136,10 @@ impl App {
             panel(width, height),
             list_of(10, width - 25, (height - 38) / 32, rows, ""),
             text(16, height - 20, BLACK, footer),
-            close.map_or(String::new(), |close| press_button(width - 16, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", close)),
+            close.map_or(
+                String::new(),
+                |close| press_button(width - 16, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", close)
+            ),
         )
     }
 
@@ -139,7 +148,14 @@ impl App {
     pub(in crate::web) fn storage_apart_window(&self, tab: usize) -> String {
         let Some(storage) = &self.storage.open else { return String::new() };
         let (line, otherwise) = TAB_LINES[tab.min(TABS - 1)];
-        Self::storage_part(140, 145, &Self::words(line, otherwise), &self.storage_rows(Some(tab), None, 140 - 76), &format!("{}/{}", storage.count.0, storage.count.1), None)
+        Self::storage_part(
+            140,
+            145,
+            &Self::words(line, otherwise),
+            &self.storage_rows(Some(tab), None, 140 - 76),
+            &format!("{}/{}", storage.count.0, storage.count.1),
+            None
+        )
     }
 
     /// The window of what a search found (`UIItemStoreFindWnd`, 280 by 312; its title is the client's line

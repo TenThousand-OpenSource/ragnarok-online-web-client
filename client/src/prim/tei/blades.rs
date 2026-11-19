@@ -67,7 +67,17 @@ impl Part {
             let level = self.out * cosine(angle);
             [level * cos + self.at[0][0], level * sin + self.heights[0] + self.at[0][1], self.out * sine(angle) + self.at[0][2]]
         };
-        [(2, thin), (8, thick)].into_iter().map(|(half, colour)| Rect::new(picture, self.alpha, [point(-half), point(half), point(180 - half), point(180 + half)], (0.0, 1.0), colour, true)).collect()
+        [(2, thin), (8, thick)]
+            .into_iter()
+            .map(|(half, colour)| Rect::new(
+                picture,
+                self.alpha,
+                [point(-half), point(half), point(180 - half), point(180 + half)],
+                (0.0, 1.0),
+                colour,
+                true
+            ))
+            .collect()
     }
 }
 

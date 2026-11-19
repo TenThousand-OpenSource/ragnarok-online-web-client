@@ -117,7 +117,11 @@ impl App {
         let Drag::Item(item) = dragged else { return };
         if let Some(Choice::Forge(make, put)) = &mut self.choosing.open {
             // No more of a thing goes in than is carried.
-            let carried = self.bag.items.iter().filter(|carried| carried.id == item && carried.worn == 0).map(|carried| usize::from(carried.amount)).sum::<usize>();
+            let carried = self.bag.items
+                .iter()
+                .filter(|carried| carried.id == item && carried.worn == 0)
+                .map(|carried| usize::from(carried.amount))
+                .sum::<usize>();
             if crate::choosing::goes_in(*make, put, item) && put.iter().filter(|put| **put == item).count() < carried {
                 put.push(item);
                 self.redraw_choice();

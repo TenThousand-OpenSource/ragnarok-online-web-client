@@ -131,7 +131,7 @@ impl App {
     }
 
     fn item_used(&mut self, packet: &[u8]) {
-        if let Some((index, item, who, left)) = net::inventory::used(packet) {
+        if let Some(net::inventory::Used { index, item, who, left }) = net::inventory::used(packet) {
             let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
             // What the item looks and sounds like when used, by the client's own tables: its effect, launched
             // on the one who used it as any effect is, with that effect's sounds heard from there.
@@ -200,7 +200,11 @@ impl App {
             return;
         }
         let after = weight::percent(value(self, packets::parameter::WEIGHT), value(self, packets::parameter::MAX_WEIGHT));
-        let lines = if name == packets::parameter::WEIGHT { weight::weight_changed(before, after, self.notices.overweight.clamp(1, 100) as u8) } else { weight::most_grew(before, after) };
+        let lines = if name == packets::parameter::WEIGHT {
+            weight::weight_changed(before, after, self.notices.overweight.clamp(1, 100) as u8)
+        } else {
+            weight::most_grew(before, after)
+        };
         for said in lines {
             let otherwise = match said.line {
                 307 => "Attacks and skills cannot be used when your Weight is over 90%.",
@@ -217,7 +221,11 @@ impl App {
     /// Asks what the items carried and on the bar are called, and redraws their windows.
     pub(in crate::web::app) fn items_changed(&self) {
         let stored = self.storage.open.iter().flat_map(|storage| storage.items.iter().map(|item| item.id));
-        let ids = self.bag.items.iter().map(|item| item.id).chain(self.skills.hotkeys.iter().filter(|hotkey| !hotkey.skill).map(|hotkey| hotkey.id)).chain(stored);
+        let ids = self.bag.items
+            .iter()
+            .map(|item| item.id)
+            .chain(self.skills.hotkeys.iter().filter(|hotkey| !hotkey.skill).map(|hotkey| hotkey.id))
+            .chain(stored);
         data::want_items(ids, || dispatch(Action::ItemsKnown));
         // The weapon in hand (bit 2 of where a thing is worn) is drawn on the character.
         world::own_weapon(self.bag.items.iter().find(|item| item.worn & 2 != 0).map_or(0, |item| item.id));

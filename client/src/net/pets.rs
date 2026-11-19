@@ -110,6 +110,10 @@ pub fn acted(packet: &[u8]) -> Option<(u32, Act)> {
     let packet = packet.get(..10)?;
     let (unit, number) = (u32_at(packet, 2), i32_at(packet, 6));
     let rest = number / 10;
-    let act = if number % 10 == 2 { Act::Emotion(u16::try_from(rest).ok()?) } else { Act::Speech { job: u16::try_from(rest / 100).ok()?, moment: rest / 10 % 10, hunger: usize::try_from(rest % 10).ok()? } };
+    let act = if number % 10 == 2 {
+        Act::Emotion(u16::try_from(rest).ok()?)
+    } else {
+        Act::Speech { job: u16::try_from(rest / 100).ok()?, moment: rest / 10 % 10, hunger: usize::try_from(rest % 10).ok()? }
+    };
     Some((unit, act))
 }

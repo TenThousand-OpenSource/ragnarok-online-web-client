@@ -238,7 +238,9 @@ pub(super) fn set_field(id: &str, value: &str) {
 /// browser's page commands. Typing, copying and reloading stay the browser's.
 pub(super) fn browsers_own(event: &KeyboardEvent) -> bool {
     let (key, code) = (event.key(), event.code());
-    let writing = event.target().and_then(|target| target.dyn_into::<web_sys::Element>().ok()).is_some_and(|target| matches!(target.tag_name().as_str(), "INPUT" | "TEXTAREA" | "SELECT"));
+    let writing = event.target().and_then(|target| target.dyn_into::<web_sys::Element>().ok()).is_some_and(
+        |target| matches!(target.tag_name().as_str(), "INPUT" | "TEXTAREA" | "SELECT")
+    );
     // F11 is the full screen, which suits the game.
     if code.starts_with('F') && code.len() > 1 && code[1..].parse::<u8>().is_ok_and(|number| number != 11) {
         return true;
@@ -249,7 +251,10 @@ pub(super) fn browsers_own(event: &KeyboardEvent) -> bool {
     if event.ctrl_key() || event.meta_key() {
         return matches!(code.as_str(), "KeyS" | "KeyF" | "KeyG" | "KeyP" | "KeyD" | "KeyO" | "KeyE" | "KeyU" | "KeyH" | "KeyJ" | "KeyL");
     }
-    key == "Tab" || (!writing && matches!(key.as_str(), " " | "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight" | "PageUp" | "PageDown" | "Home" | "End" | "Backspace" | "/" | "'"))
+    key == "Tab" || (!writing && matches!(
+        key.as_str(),
+        " " | "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight" | "PageUp" | "PageDown" | "Home" | "End" | "Backspace" | "/" | "'"
+    ))
 }
 
 /// What this browser remembers under a name. Storage may be switched off: then nothing is remembered.

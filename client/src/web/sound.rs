@@ -193,7 +193,11 @@ pub fn piece(piece: Option<(String, bool)>) {
     SOUNDS.with_borrow_mut(|sounds| {
         // A piece that played once and is over is put away, so that it can be played again.
         sounds.streams.retain(|stream| !stream.audio.ended());
-        sounds.piece = piece.map(|(name, once)| (name.chars().filter(|letter| letter.is_ascii_alphanumeric() || matches!(letter, '_' | '-')).collect(), once)).filter(|(name, _): &(String, bool)| !name.is_empty());
+        sounds.piece = piece
+            .map(
+                |(name, once)| (name.chars().filter(|letter| letter.is_ascii_alphanumeric() || matches!(letter, '_' | '-')).collect(), once)
+            )
+            .filter(|(name, _): &(String, bool)| !name.is_empty());
         sounds.tune();
     });
 }

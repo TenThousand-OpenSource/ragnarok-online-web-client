@@ -30,7 +30,8 @@ classic game not made yet.
 
 ### Movement
 - `/farwalk` and the far-walk journey: a press farther than the server walks in one go is walked in stretches.
-  In the client such a press does nothing. Off unless switched on (`web/app/commands.rs`,
+  In the client such a press does nothing. ON by default by the owner's decision (a place in sight is to be
+  walked to when the way round is there); `/farwalk` switches it off (`web/app/commands.rs`,
   `web/world/pursuit.rs journey`, `map/paths.rs goal_towards`, `web/world/hooks.rs Options::far_walk`).
 - One who walks does not sit down: the Sit key does nothing until the character stands
   (`web/app/keys.rs interface_key`).
@@ -317,6 +318,17 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   `JobSkillTab_GetTabName`, `UINewSkillListWnd`); the places of the skills stand before them and are read
   whole. The gateway gives no such names to the browser.
 
+### Noticed during the second round of refactoring (left as they are, some pinned by tests)
+- `scenery/views.rs held_turn`, `kept`: `rem_euclid(360.0)` of a tiny negative turn gives exactly 360;
+  `held_turn` panics if a map's table has `rotationFrom` over `rotationTo` (tilt and distance are guarded).
+- `scenery/views.rs kept` takes "x,10,45,300": what is no number is skipped, not refused.
+- `bars::member` divides by `most` (both callers filter nought out); `bars::monster` does not cap a life over
+  its most; `pose::direction_of` underflows for a facing over 12 (facings are 0 to 7 wherever read).
+- `shops::kept` takes the first entry of a row the basket has twice, while the basket's window lists both.
+- Gateway: `skilltreeview.lub` fails at its line 1603 (`JobSkillTab` is nil), so the tree is what the file
+  built before; `System/mapInfo_true_EN.lub` and `Towninfo_EN.lub` fail on `io`, and the file without `_EN`
+  is never tried after that, because the first file there is the one taken.
+
 ### Found in the game by the owner and the lead, not explained or not compared
 - The readied arrow's name lies over the figure's face in the Equipment window; the places are the client's
   (`client/src/web/hud/equipment.rs equipment_ammunition`). To compare with a video.
@@ -352,46 +364,41 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - Deleting packet constants and parsers nothing calls yet; pet and homunculus intimacy words as one table.
 
 ### Native rules and protocol (`client/src/net/**`, native modules)
-- Rules still in `net/` with no native home: `net/marks.rs`, `net/link.rs watch` / `ban_line`,
-  `net/broadcast.rs wrapped`, `net/unread.rs Tally`, `net/commands.rs ranking_lines`, the line rules of
-  `net/notices.rs`.
-- Parsers that return wide tuples instead of structs: `net/actors.rs named` / `turned`,
-  `actors/changes.rs look`, `actors/ground.rs dropped`, `net/party.rs joined`, `net/skills.rs used` /
-  `on_ground` / `failed`, `net/inventory.rs used`, `inventory/skills.rs skill_raised`,
-  `net/commands.rs ranking`, `net/quests.rs hunting_info`.
+- Rules still inside parsers of `net/`: the balloon's `SHOWN_FOR`, `SHOWN_AT_ONCE`, `LETTERS`, `LINE`
+  (`net/broadcast.rs`: the parsers fill the announcement with them); `net/notices.rs overweight` (only over
+  nought) and `damaged` (drops the place 0). `Boss::marked` / `says` (`marks.rs`) and `Experience::lines` /
+  `colour` (`notices.rs`) are native rules written as methods of types that stay in `net/`, where the parsers
+  build them.
 - The 16 ms and 24 ms ticks have several homes: `effect/carried.rs TICK_MS`, `falcon.rs TICK_MS`,
   `pose.rs PASS_MS`, `blow.rs FRAME_MS`, `web/world.rs CAST_FRAME_MS` / `EFFECT_FRAME_MS`.
-- Mercenary's `FLEE` 165, `KILLS` 189, `FAITH` 190 are its own constants (`net/mercenary.rs`), not entries of
-  `net/packets` `parameter`.
 - Kept though nothing but tests names them: `map/gat.rs Gat::block`, `net/inventory/hotkeys.rs hotkeys_bar`,
   `net/notices.rs user_value` / `MANNER` / `ZC_ACK_PVPPOINT`, `net/packets.rs PARAMETER_SPEED`,
   `ai.rs command::NONE`, `whispers.rs answer::ABSENT`, `net/guild.rs menu::INFO` / `EXPELLED`,
   `chat_rooms.rs kind::ARENA`.
 - `.gat` trimmed by hand beside `maps::bare`: `web/hud/worldmap.rs` (five places), `web/app/commands.rs`;
-  also `scenery.rs` and `net/packets/chars.rs`.
+  also `scenery.rs`. `net/packets/chars.rs` is another rule and stays: it takes one `.gat` off, `maps::bare`
+  takes off `.rsw` too and a repeated ending.
 - `net/golden.rs` calls four renamed files (`units`, `items`, `trade`, `npc`) and four moved builders
   (`restart`, `whisper`, `config::set`, `ask_name`) by their old names, so that `golden.txt` stays as written.
 
 ### Gateway and tables (`gateway/src/**`, `client/src/web/data/**`)
-- Client files read more than once per start: `gamesettings` (`tables/interface.rs`, `tables/commands.rs`),
-  `tipbox.lub` (`tables/tips.rs`, `tables/guide.rs`), `msgstringtable` (`tables.rs for_client`,
-  `tables/interface.rs`), `skillid` (three times in `tables/skills.rs`).
-- Pure rules still under `web/data`: `skills.rs skill_pages`, `figures.rs head_layers`,
-  `statuses.rs status_icon`.
+- The debug commands of the gateway (`main.rs`: `items`, `chat-tabs`, `dump`, `lua`) read the client's files
+  on their own, not through `tables::Sources`: each is one purpose and not on the way of `for_browser`.
 - `js_sys::Math::random` picks in `web/data/pets.rs` and `song_talk.rs`; rAthena's YAML read by hand in
   `tables/items.rs`, `quests.rs`, `guide.rs`.
-- `gateway/tests/bridge.rs` is 577 lines (`tools/limits.py` checks `src` only).
 - Four changes of the refactoring that are not strictly the old behaviour, none seen on real data: the
   debug commands' parsing (`config.rs enum Command`), `items.rs with_english` would run a bytecode file, a
   tip's first page in the guide, the `commands` state.
 
 ### Windows (`client/src/web/hud/**`, `web/view/**`)
-- Pure rules still under `web/hud`: `quests.rs quest_lines`; the filter and order in
-  `inventory.rs inventory_cells`; `storage.rs storage_rows`; `shops.rs shop_kept` and the basket total;
-  `vending.rs stall_height`, `vending/buying.rs vendor_rows`; `status.rs` `(2000 - delay) / 10`;
-  `basic.rs percent` / `basic_height`; `chat.rs chat_height`.
-- Four `js_sys::Date` formatters: `hud/guild/members.rs`, `hud/mercenary.rs`, `hud/quests/pane.rs`,
-  `view/characters.rs`.
+- Pure rules still under `web/hud`: the experience bar's hundredths under the pointer (`basic.rs
+  experience`); the vendor's basket total (`vending/buying.rs`); the date of a guild's member
+  (`guild/members.rs`, `%y.%m.%d`: there is no native `guild.rs` to take it). `quests.rs quest_lines` still
+  gathers its rows in the window (each needs the tables and `App`); its rules are `quests::boxes` and
+  `put_away_last`.
+- Alike and kept apart: `status::attack_speed` (i64) and `homunculus::attack_speed` (i32) are one formula of
+  two windows of the client; `basic::weight_share` is not `inventory::weight::percent` (a most of nought is 0
+  in the first and counted as 1 in the second).
 - Fields of the page named by hand (`field("room-title")`, `field("mail-sought")`… in `web/app/**`) instead
   of `Window::field` (`web/hud/windows.rs`).
 - `web/view.rs` still has its own `states_ab` and `button`.
@@ -419,9 +426,13 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   `LOADING_PICTURES` stay in `web/app.rs` though only `app/page.rs` uses them.
 
 ### World and primitives (`client/src/web/world/**`, `prim/**`)
-- Pure rules still under `web/world`: `pursuit.rs`, the bits of `pose.rs`, the easing of `camera.rs`,
-  `overlays/bars.rs`.
-- `web/world/loading.rs`, `land.rs` and `launch.rs` keep their own Korean decoders instead of `web::korean`.
+- Pure rules still under `web/world`: `pursuit.rs`; in `camera.rs` the vector arithmetic of `Camera::view`
+  and `View::ray` / `project` / `pick` (tied to the types of the world and to `Gat`) and `shaken` (draws a
+  lot of the browser); `overlays/pointer.rs` (`DISTANCE / distance * height / 480.0`). `pose.rs` keeps only
+  what writes to a `Mover`.
+- `web/world/loading.rs`, `land.rs` and `launch.rs` keep their own Korean decoders instead of `web::korean`:
+  they are the same with a decoder and differ without one, where `web::korean` reads the bytes as UTF-8:
+  `loading.rs` fails the map, `land.rs` shows no model, `launch.rs` plays no effect.
 - No shared `ticks_due`: each catch-up site has its own bound. Cells are turned into world places by hand in
   `camera.rs`, `scenery.rs`, `frame/marks.rs`, `frame/effects.rs`.
 - Action numbers are literals where `pose` has names (characters' and monsters' are mixed).
@@ -430,6 +441,21 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   `fn sounds` tables of `web/world/prims/*.rs` are not merged.
 - "Not ported…" headers in `prim/horn.rs`, `particle.rs`, `slots.rs`, `walls.rs`, `plate.rs` were not each
   read against the code again.
+
+### Written twice and left (`python3 tools/duplicates.py`: 11 groups, 93 lines, of 21 groups and 218)
+- `scenery/makers.rs heard_as_it_was` (and its last lines against `earshot.rs`), `prim/tei/max_level.rs
+  swirls`, `prim/tei/forest.rs light`: a test's own copy of the rule, kept whole to hold the rule to it.
+- `net/notices/tests.rs a_line_takes_what_it_asks_for` is the test of `numbers.rs` once more: no test's name
+  was to be lost.
+- `web/world/shaders.rs`: two programs of WGSL share lines of their text; a text is not divided here.
+- `web/world/prims/*.rs`: `known` / `thrown` / `run` begin alike in every file of effects (the table and the
+  rule differ), `blows.rs cloud_streaks` / `cloud_spread` draw their lots in another order: see "Risky".
+- Alike in shape only (`--shape`, `--loose`): the parsers of `net/` (each another layout through the same
+  helpers), `cart_counted` / `storage_counted` (the seven count boxes, "Risky"), `guild_oppose_answered` /
+  `guild_invite_answered` (two tables of the client), `Window::question` / `pick` (another width, in a `const
+  fn`), the homunculus's and the mercenary's windows and presses (two systems with rules of their own).
+- Lines over 160 characters left (4): Lua, JavaScript and tests' tables inside a text
+  (`web/app/screenshot.rs`, `ai/tests.rs`, `gateway/src/tables/quests.rs`), which are the text's content.
 
 ---
 

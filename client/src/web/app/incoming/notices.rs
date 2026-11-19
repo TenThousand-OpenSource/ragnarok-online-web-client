@@ -12,14 +12,14 @@ impl App {
         match id {
             notices::ZC_ACTION_FAILURE => {
                 let job = self.game.as_ref().map_or(0, |game| game.job);
-                self.notice(notices::kind(packet).and_then(|kind| notices::action_failure(kind, job)));
+                self.notice(notices::kind(packet).and_then(|kind| crate::notices::action_failure(kind, job)));
             }
-            notices::ZC_NOTIFY_MAPINFO => self.notice(notices::kind(packet).and_then(notices::map_info)),
+            notices::ZC_NOTIFY_MAPINFO => self.notice(notices::kind(packet).and_then(crate::notices::map_info)),
             // A line with a number written into it, in yellow (`CGameMode::ReceiveFormattedMessage`); one
             // line takes the name of an item instead.
             notices::ZC_MSG_VALUE => {
                 if let Some((line, value)) = notices::value(packet) {
-                    let with = if line == notices::NAMES_AN_ITEM { Self::item_called(value as u32) } else { value.to_string() };
+                    let with = if line == crate::notices::NAMES_AN_ITEM { Self::item_called(value as u32) } else { value.to_string() };
                     self.say_filled(said::GENERAL, line, &[&with], YELLOW);
                 }
             }
@@ -28,7 +28,7 @@ impl App {
             notices::ZC_MSG_SKILL => {
                 if let Some((skill, words)) = notices::skill(packet).and_then(|(skill, line)| Some((skill, data::message(line)?))) {
                     let name = data::skill(skill).map_or_else(|| skill.to_string(), |(_, name, _)| name);
-                    self.chat_line_of(said::SKILL_FAILED, format!("[{name}] {}", crate::i18n::tr(&words)), notices::SKILL);
+                    self.chat_line_of(said::SKILL_FAILED, format!("[{name}] {}", crate::i18n::tr(&words)), crate::notices::SKILL);
                 }
             }
             notices::ZC_MSG_COLOR => {
@@ -38,7 +38,7 @@ impl App {
             }
             notices::ZC_SKILLMSG => {
                 if let Some(line) = notices::skill_message(packet) {
-                    self.say_filled(said::STATUS, line, &[], notices::GOSPEL);
+                    self.say_filled(said::STATUS, line, &[], crate::notices::GOSPEL);
                 }
             }
             notices::ZC_NOTIFY_EXP2 => self.experience_told(packet),
@@ -66,7 +66,7 @@ impl App {
             notices::ZC_NOTIFY_BIND_ON_EQUIP => {
                 let bound = notices::kind(packet).and_then(|index| self.bag.at(index)).map(Self::item_name);
                 if let Some(name) = bound {
-                    self.say_filled(said::GENERAL, 1328, &[&name], notices::BOUND);
+                    self.say_filled(said::GENERAL, 1328, &[&name], crate::notices::BOUND);
                 }
             }
             // The client's `CGameMode` has no reader for it.
@@ -110,7 +110,7 @@ impl App {
                 self.say_filled(said::DAMAGED, 1300, &[&name], RED);
             }
         } else if let Some(member) = self.party.members.iter().find(|member| member.account == who).map(|member| member.name.clone()) {
-            if let Some(part) = notices::damaged_part(place).and_then(data::message) {
+            if let Some(part) = crate::notices::damaged_part(place).and_then(data::message) {
                 self.say_filled(said::DAMAGED, 1301, &[&member, crate::i18n::tr(&part)], RED);
             }
         }
@@ -120,7 +120,7 @@ impl App {
     fn rental_told(&mut self, packet: &[u8]) {
         let Some((item, seconds)) = notices::rental_time(packet) else { return };
         let name = Self::item_called(item);
-        let (line, left, last) = notices::rental_lines(seconds);
+        let (line, left, last) = crate::notices::rental_lines(seconds);
         self.say_filled(said::GENERAL, line, &[&name, &left.to_string()], YELLOW);
         if let Some(last) = last {
             self.say_filled(said::GENERAL, last, &[&name], YELLOW);

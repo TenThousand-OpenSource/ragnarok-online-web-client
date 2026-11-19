@@ -26,7 +26,11 @@ impl App {
                 return false;
             }
             net::inventory::ZC_INVENTORY_ITEMLIST_NORMAL | net::inventory::ZC_INVENTORY_ITEMLIST_EQUIP => {
-                let listed = if id == net::inventory::ZC_INVENTORY_ITEMLIST_NORMAL { net::inventory::stackable_of(packet, cart::LIST) } else { net::inventory::equipment_of(packet, cart::LIST) };
+                let listed = if id == net::inventory::ZC_INVENTORY_ITEMLIST_NORMAL {
+                    net::inventory::stackable_of(packet, cart::LIST)
+                } else {
+                    net::inventory::equipment_of(packet, cart::LIST)
+                };
                 if !listed.is_empty() {
                     self.cart.items.extend(listed);
                     self.cart_changed();
@@ -107,7 +111,10 @@ impl App {
     /// What is in the cart changed: the names of its things are asked for, and the windows that show them are
     /// drawn anew.
     pub(in crate::web::app) fn cart_changed(&mut self) {
-        data::want_items(self.cart.items.iter().flat_map(|item| std::iter::once(item.id).chain(crate::item_names::Named::from(item).cards_set())), || dispatch(Action::ItemsKnown));
+        data::want_items(
+            self.cart.items.iter().flat_map(|item| std::iter::once(item.id).chain(crate::item_names::Named::from(item).cards_set())),
+            || dispatch(Action::ItemsKnown)
+        );
         self.stall_kept();
         self.redraw(&wnd::CART_WINDOWS);
     }

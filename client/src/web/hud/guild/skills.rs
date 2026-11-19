@@ -23,7 +23,11 @@ impl App {
     pub(super) fn guild_skills(&self) -> String {
         let rows: String = self.guild_skills_listed().iter().enumerate().map(|(row, skill)| self.guild_skill_row(row, skill)).collect();
         [
-            format!(r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{rows}</div></div>"#, at(0, 43, WIDTH - 6, 7 * 34), self.guild_skills_listed().len() * 34),
+            format!(
+                r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{rows}</div></div>"#,
+                at(0, 43, WIDTH - 6, 7 * 34),
+                self.guild_skills_listed().len() * 34
+            ),
             picture_press(46, HEIGHT - 24, "btn_use", Press::UseSkill),
             picture_press(92, HEIGHT - 24, "btn_close", Press::Window),
             text(WIDTH - 100, HEIGHT - 20, BLACK, &format!("SkillPoint : {}", self.guild.skill_points)),
@@ -42,10 +46,22 @@ impl App {
             (true, ..) => MARK,
         };
         // Only one learnt that is used goes onto the hotkey bar.
-        let drag = if skill.level != 0 && skill.kind != 0 { dragged(Drag::Skill(Leveled { id: u32::from(skill.id), level: skill.level })) } else { String::new() };
-        let mut line = format!(r#"<div style="position:absolute;left:40px;top:{y}px;width:{}px;height:34px" {} {drag} data-skill="{}">"#, WIDTH - 60, pressed(Press::Skill(row)), skill.id);
+        let drag = if skill.level != 0
+            && skill.kind != 0 { dragged(Drag::Skill(Leveled { id: u32::from(skill.id), level: skill.level })) } else { String::new() };
+        let mut line = format!(
+            r#"<div style="position:absolute;left:40px;top:{y}px;width:{}px;height:34px" {} {drag} data-skill="{}">"#,
+            WIDTH - 60,
+            pressed(Press::Skill(row)),
+            skill.id
+        );
         line.push_str(&fill(64, 0, 164, 28, mark));
-        line.push_str(&format!(r#"<img class="a" alt="" draggable="false" src="{}" style="left:4px;top:2px;pointer-events:none" onerror="this.remove()">"#, picture(&format!("item/{}.bmp", skill.name.to_lowercase()))));
+        line.push_str(&[
+            format!(
+                r#"<img class="a" alt="" draggable="false" src="{}" style="left:4px;top:2px;pointer-events:none" "#,
+                picture(&format!("item/{}.bmp", skill.name.to_lowercase()))
+            ),
+            format!(r#"onerror="this.remove()">"#)
+        ].concat());
         line.push_str(&text(72, 3, if skill.level == 0 { GREY } else { BLACK }, &name));
         if skill.level != 0 {
             line.push_str(&text(73, 15, BLACK, &format!("Lv : {}", skill.level)));

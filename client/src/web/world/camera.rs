@@ -2,16 +2,14 @@
 //! world a point of the screen is.
 
 use super::*;
+use crate::scenery::views;
 
 pub(super) const FIELD_OF_VIEW: f32 = 15.0;
 pub(super) const NEAR: f32 = 10.0;
 pub(super) const FAR: f32 = 5000.0;
-pub(super) const DISTANCE: f32 = 300.0;
-pub(super) const DISTANCE_RANGE: [f32; 2] = [150.0, 730.0];
-/// How far the camera goes outdoors without the client's Zoom Out option (with it: `DISTANCE_RANGE`'s end).
-pub(super) const DISTANCE_NEAR_MOST: f32 = 400.0;
-pub(super) const PITCH: f32 = 45.0;
-pub(super) const PITCH_RANGE: [f32; 2] = [20.0, 70.0];
+/// How far away and how tilted the camera is when never moved (the rules of it: `crate::scenery::views`).
+pub(super) use views::DISTANCE;
+use views::PITCH;
 
 /// The camera: where it looks, and from where.
 #[derive(Clone, Copy)]
@@ -44,17 +42,9 @@ pub(super) struct View {
 }
 
 impl Camera {
-    /// How far the camera may tilt and how far away it may be, outdoors or inside (the original's limits: 20
-    /// degrees either way of 45 outdoors and 10 inside, and inside no farther than where it starts).
-    pub(super) fn limits(indoor: bool, zoom_out: bool) -> ([f32; 2], [f32; 2]) {
-        // Outdoors as far as the client's Zoom Out option lets it: 730 with it, 400 without.
-        let far = if zoom_out { DISTANCE_RANGE[1] } else { DISTANCE_NEAR_MOST };
-        if indoor { ([35.0, 55.0], [DISTANCE_RANGE[0], DISTANCE]) } else { (PITCH_RANGE, [DISTANCE_RANGE[0], far]) }
-    }
-
     /// The camera a map starts with: looking north outdoors, turned 45 degrees inside, as near as it was left.
     pub(super) fn starting(indoor: bool, zoom_out: bool) -> Self {
-        let (_, distances) = Self::limits(indoor, zoom_out);
+        let (_, distances) = views::limits(indoor, zoom_out);
         Self { yaw: if indoor { 45.0 } else { 0.0 }, pitch: PITCH, distance: Self::remembered().distance.clamp(distances[0], distances[1]) }
     }
 
@@ -67,10 +57,9 @@ impl Camera {
     /// The camera as the player last left it, on any map and in any earlier visit; the game's own if never moved.
     pub(super) fn remembered() -> Self {
         let kept = web_sys::window().and_then(|window| window.local_storage().ok().flatten()).and_then(|storage| storage.get_item(CAMERA_KEPT).ok().flatten());
-        let numbers: Vec<f32> = kept.unwrap_or_default().split(',').filter_map(|number| number.parse().ok()).filter(|number: &f32| number.is_finite()).collect();
-        match numbers[..] {
-            [yaw, pitch, distance] => Self { yaw: yaw.rem_euclid(360.0), pitch: pitch.clamp(PITCH_RANGE[0], PITCH_RANGE[1]), distance: distance.clamp(DISTANCE_RANGE[0], DISTANCE_RANGE[1]) },
-            _ => Self::default(),
+        match views::kept(&kept.unwrap_or_default()) {
+            Some([yaw, pitch, distance]) => Self { yaw, pitch, distance },
+            None => Self::default(),
         }
     }
 
@@ -93,7 +82,11 @@ impl Camera {
         let depth = FAR / (FAR - NEAR);
         // Projection times view, written out: each column is what a world axis (or the origin) becomes.
         let column = |axis: Vector, offset: f32| {
-            let (x, y, z) = (dot(right, axis) + offset * -dot(right, eye), dot(up, axis) + offset * -dot(up, eye), dot(forward, axis) + offset * -dot(forward, eye));
+            let (x, y, z) = (
+                dot(right, axis) + offset * -dot(right, eye),
+                dot(up, axis) + offset * -dot(up, eye),
+                dot(forward, axis) + offset * -dot(forward, eye)
+            );
             [x * focal / aspect, y * focal, z * depth - offset * NEAR * depth, z]
         };
         let columns = [column([1.0, 0.0, 0.0], 0.0), column([0.0, 1.0, 0.0], 0.0), column([0.0, 0.0, 1.0], 0.0), column([0.0, 0.0, 0.0], 1.0)];
@@ -138,8 +131,7 @@ impl Scene {
     pub(super) fn follow(&mut self, feet: Vector, time: f64) -> Vector {
         let aim = match self.aim {
             Some((aim, moved)) => {
-                let share = crate::scenery::views::share((time - moved) / CAMERA_FRAME_MS);
-                [0, 1, 2].map(|axis| aim[axis] + (feet[axis] - aim[axis]) * share)
+                views::followed(aim, feet, views::share((time - moved) / CAMERA_FRAME_MS))
             }
             None => feet,
         };
@@ -156,7 +148,7 @@ impl Scene {
         match &self.scenery.view {
             Some(view) => (view.pitches, view.distances, Some(view.yaws)),
             None => {
-                let (pitches, distances) = Camera::limits(self.indoor, zoom_out);
+                let (pitches, distances) = views::limits(self.indoor, zoom_out);
                 (pitches, distances, None)
             }
         }
@@ -167,14 +159,11 @@ impl Scene {
         let (pitches, distances, yaws) = self.camera_limits(zoom_out);
         let asked = &mut self.wanted.0;
         change(asked);
-        asked.pitch = asked.pitch.clamp(pitches[0].min(pitches[1]), pitches[1].max(pitches[0]));
-        asked.distance = asked.distance.clamp(distances[0], distances[1].max(distances[0]));
-        asked.yaw = match yaws {
-            // (A map of the table holds the turn between two marks; one it lets go all the way round, from
-            // -360 to 360, turns as any other.)
-            Some([from, to]) if to - from < 720.0 => asked.yaw.clamp(from, to),
-            _ => asked.yaw.rem_euclid(360.0),
-        };
+        asked.pitch = views::held_tilt(asked.pitch, pitches);
+        asked.distance = views::held_distance(asked.distance, distances);
+        // (A map of the table holds the turn between two marks; one it lets go all the way round, from
+        // -360 to 360, turns as any other.)
+        asked.yaw = views::held_turn(asked.yaw, yaws);
         // Only the camera of a map without a view of its own is the player's to keep.
         if !self.indoor && self.scenery.view.is_none() {
             asked.remember();
@@ -186,10 +175,10 @@ impl Scene {
     /// (`CameraState::Smooth`).
     pub(super) fn ease_camera(&mut self, time: f64) {
         let (asked, eased) = self.wanted;
-        let share = crate::scenery::views::share((time - eased) / CAMERA_FRAME_MS);
-        self.camera.yaw = crate::scenery::views::eased_turn(self.camera.yaw, asked.yaw, share);
-        self.camera.pitch += (asked.pitch - self.camera.pitch) * share;
-        self.camera.distance += (asked.distance - self.camera.distance) * share;
+        let share = views::share((time - eased) / CAMERA_FRAME_MS);
+        self.camera.yaw = views::eased_turn(self.camera.yaw, asked.yaw, share);
+        self.camera.pitch = views::eased(self.camera.pitch, asked.pitch, share);
+        self.camera.distance = views::eased(self.camera.distance, asked.distance, share);
         self.wanted.1 = time;
     }
 }

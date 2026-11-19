@@ -208,10 +208,21 @@ pub fn gained(packet: &[u8]) -> Option<Item> {
     Item::read(packet, &GAINED)
 }
 
-/// ZC_USE_ITEM_ACK (0x01c8): `i16 index, u32 id, u32 who, i16 left, u8 ok`. Returns the index, the item, who
-/// used it and how many are left, when it was used. Everyone near is told of it, not only the one who did.
-pub fn used(packet: &[u8]) -> Option<(u16, u32, u32, u16)> {
-    (packet.len() >= 15 && packet[14] != 0).then(|| (u16_at(packet, 2), u32_at(packet, 4), u32_at(packet, 8), u16_at(packet, 12)))
+/// An item used, as ZC_USE_ITEM_ACK tells it: where it is carried, which item, who used it and how many are
+/// left.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Used {
+    pub index: u16,
+    pub item: u32,
+    pub who: u32,
+    pub left: u16,
+}
+
+/// ZC_USE_ITEM_ACK (0x01c8): `i16 index, u32 id, u32 who, i16 left, u8 ok`: read when the item was used.
+/// Everyone near is told of it, not only the one who did.
+pub fn used(packet: &[u8]) -> Option<Used> {
+    (packet.len() >= 15 && packet[14] != 0)
+        .then(|| Used { index: u16_at(packet, 2), item: u32_at(packet, 4), who: u32_at(packet, 8), left: u16_at(packet, 12) })
 }
 
 /// How many of an item left the inventory: ZC_DELETE_ITEM_FROM_BODY (0x07fa: `i16 reason, u16 index, i16 count`)

@@ -39,6 +39,36 @@ async fn head_under(figure: &Figure, sex: &str, job: &str) -> bool {
     read.is_some_and(|imf| imf.head_under(figure.action, figure.frame))
 }
 
+/// What a body's sprite tells of every figure of its job and sex is kept the first time one is made: how long
+/// each action is, the sounds of its frames, and where its blows land.
+fn body_known(figure: &Figure, body_act: &Act) {
+    BODIES.with_borrow_mut(|bodies| {
+        bodies.entry((figure.job, figure.sex)).or_insert_with(
+            || body_act.actions
+                .iter()
+                .enumerate()
+                .map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0))
+                .collect()
+        );
+    });
+    BODY_VOICES.with_borrow_mut(|voices| {
+        voices.entry((figure.job, figure.sex)).or_insert_with(
+            || body_act.actions
+                .iter()
+                .map(
+                    |frames| frames
+                        .iter()
+                        .map(|frame| frame.sound.and_then(|sound| body_act.sounds.get(sound)).filter(|name| name.contains(".wav")).cloned())
+                        .collect()
+                )
+                .collect()
+        );
+    });
+    BODY_STRIKES.with_borrow_mut(|strikes| {
+        strikes.entry((figure.job, figure.sex)).or_insert_with(|| lands_at(body_act));
+    });
+}
+
 pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
     let sex = if figure.sex == 1 { "남" } else { "여" };
     let doram = crate::jobs::doram(figure.job);
@@ -56,15 +86,7 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
         }
     }
     let (body_sprite, body_act) = sprite(&format!("data/sprite/{race}/몸통/{sex}/{job}_{sex}")).await?;
-    BODIES.with_borrow_mut(|bodies| {
-        bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
-    });
-    BODY_VOICES.with_borrow_mut(|voices| {
-        voices.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().map(|frames| frames.iter().map(|frame| frame.sound.and_then(|sound| body_act.sounds.get(sound)).filter(|name| name.contains(".wav")).cloned()).collect()).collect());
-    });
-    BODY_STRIKES.with_borrow_mut(|strikes| {
-        strikes.entry((figure.job, figure.sex)).or_insert_with(|| lands_at(&body_act));
-    });
+    body_known(figure, &body_act);
     let (head_sprite, head_act) = sprite(&format!("data/sprite/{race}/머리통/{sex}/{hair}_{sex}")).await?;
     // Colour 0 is the sprite's own; the others are palettes of their own.
     let palette_folder = if doram { "data/palette/도람족" } else { "data/palette" };

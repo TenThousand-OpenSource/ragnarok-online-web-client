@@ -67,7 +67,12 @@ impl App {
         window.push_str(&picture_button(248, 20, (24, 26), "btn_refresh", Press::Refresh, &Self::words(2849, "Refresh")));
         window.push_str(&picture_button(277, 18, (24, 26), "btn_write", Press::Write, &Self::words(1026, "Write Mail")));
         window.push_str(&self.mail_search());
-        for (x, line, name, shown) in [(19, 3546, "Notice", tab::ACCOUNT), (87, 3547, "General", tab::NORMAL), (155, 3548, "Return", tab::RETURNED), (223, 3549, "Search", 3)] {
+        for (x, line, name, shown) in [
+            (19, 3546, "Notice", tab::ACCOUNT),
+            (87, 3547, "General", tab::NORMAL),
+            (155, 3548, "Return", tab::RETURNED),
+            (223, 3549, "Search", 3)
+        ] {
             let open = if shown == 3 { mail.searching } else { !mail.searching && mail.tab == shown };
             let (out, over) = if open { ("press", "press") } else { ("out", "over") };
             // The tab's name stands three pixels above the middle (`AddText`), pale until the tab is open.
@@ -106,7 +111,10 @@ impl App {
         // The two buttons are for the rows ticked while any is, and for the whole tab otherwise; they and the
         // pages wait while the mailbox is asked for anew.
         let ticked = mail.checked.contains(&true);
-        let (delete, claim) = if ticked { (Self::words(3588, "Delete"), Self::words(3591, "Claim")) } else { (Self::words(3589, "Delete All"), Self::words(3592, "Claim All")) };
+        let (delete, claim) = if ticked { (Self::words(3588, "Delete"), Self::words(3591, "Claim")) } else { (
+            Self::words(3589, "Delete All"),
+            Self::words(3592, "Claim All")
+        ) };
         window.push_str(&basic_button(4, 392, 70, &delete, (!mail.waiting).then_some(Press::Delete.into())));
         window.push_str(&basic_button(84, 392, 70, &claim, (!mail.waiting).then_some(Press::Claim.into())));
         window.push_str(&picture_button(255, 390, (24, 24), "btn_prev", Press::Page(Step::Less), &Self::words(1297, "Previous")));
@@ -120,7 +128,8 @@ impl App {
     /// OK and Cancel.
     pub(in crate::web) fn mail_question(&self) -> String {
         let words = match &self.mail.asks {
-            Some(MailAsk::DeleteAll) => Self::words(3590, "Are you sure you want to delete all mails in the [%s] mailbox?").replace("%s", &self.mail_tab_name()),
+            Some(MailAsk::DeleteAll) => Self::words(3590, "Are you sure you want to delete all mails in the [%s] mailbox?")
+                .replace("%s", &self.mail_tab_name()),
             Some(MailAsk::ClaimAll) => Self::words(3594, "Would you like to claim all attachments in the [%s] mailbox?").replace("%s", &self.mail_tab_name()),
             Some(MailAsk::Delete(_)) => Self::words(2854, "Do you want to delete the message?"),
             Some(MailAsk::Claim(_)) => Self::words(3593, "Would you like to claim the attachment of the selected email?"),

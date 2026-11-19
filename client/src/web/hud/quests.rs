@@ -75,14 +75,22 @@ impl App {
     /// recommended first those not put away, then those that were.
     fn quest_lines(&self) -> Vec<Line> {
         let filters = data::quest_filters();
-        let passes = |icon: &str, title: &str, summary: &str| rules::in_filter(self.quests.filter, icon, &filters) && rules::found(&self.quests.search, title, summary);
+        let passes = |icon: &str, title: &str, summary: &str| rules::in_filter(self.quests.filter, icon, &filters)
+            && rules::found(&self.quests.search, title, summary);
         if self.quests.tab == tab::RECOMMENDED {
             let mut lines: Vec<Line> = data::recommended_quests()
                 .into_iter()
                 .filter(|(_, about)| passes(&about.icon, &about.title, &about.summary))
-                .map(|(number, about)| Line { row: Row { number, recommended: true }, title: about.title, summary: about.summary, icon: about.icon, listed: None, lock: Some(!self.quests.passed.contains(&number)) })
+                .map(|(number, about)| Line {
+                    row: Row { number, recommended: true },
+                    title: about.title,
+                    summary: about.summary,
+                    icon: about.icon,
+                    listed: None,
+                    lock: Some(!self.quests.passed.contains(&number))
+                })
                 .collect();
-            lines.sort_by_key(|line| line.lock != Some(true));
+            rules::put_away_last(&mut lines, |line| line.lock != Some(true));
             return lines;
         }
         self.quests
@@ -91,14 +99,11 @@ impl App {
             .filter_map(|quest| {
                 let about = data::quest_text(quest.id).unwrap_or_default();
                 let title = self.quest_title(quest.id);
-                (rules::tab_of(about.waits, quest.active) == self.quests.tab && passes(&about.icon, &title, &about.summary)).then(|| Line {
-                    row: Row { number: quest.id, recommended: false },
-                    title,
-                    summary: about.summary,
-                    icon: about.icon,
+                (rules::tab_of(about.waits, quest.active) == self.quests.tab && passes(&about.icon, &title, &about.summary)).then(|| {
                     // A quest that only waits has neither box (`CUIQuestList::BindItem`).
-                    listed: (!about.waits).then(|| !self.quests.unlisted.contains(&quest.id)),
-                    lock: (!about.waits).then_some(quest.active),
+                    let (listed, lock) = rules::boxes(about.waits, self.quests.unlisted.contains(&quest.id), quest.active);
+                    let row = Row { number: quest.id, recommended: false };
+                    Line { row, title, summary: about.summary, icon: about.icon, listed, lock }
                 })
             })
             .collect()
@@ -109,7 +114,14 @@ impl App {
     /// and the lock.
     fn quest_row(&self, top: i32, line: &Line) -> String {
         let fitted = "width:260px;overflow:hidden;text-overflow:ellipsis;pointer-events:none";
-        let mut row = pictured(0, top, (330, 46), ["renew_questui/bg_questlist.bmp", "renew_questui/bg_questlist_check.bmp", "renew_questui/bg_questlist_press.bmp"], Press::Pick(line.row), "");
+        let mut row = pictured(
+            0,
+            top,
+            (330, 46),
+            ["renew_questui/bg_questlist.bmp", "renew_questui/bg_questlist_check.bmp", "renew_questui/bg_questlist_press.bmp"],
+            Press::Pick(line.row),
+            ""
+        );
         row.push_str(&format!(
             r#"<img class="a" alt="" draggable="false" style="left:8px;top:{}px" src="{}" title="{}" onerror="this.remove()">"#,
             top + 7,
@@ -117,11 +129,28 @@ impl App {
             escape(&data::quest_tooltip(&line.icon))
         ));
         let picked = self.quests.pane == Some((line.row.number, line.row.recommended));
-        row.push_str(&format!(r#"<div class="a t" style="left:42px;top:{}px;color:{};{};{fitted}">{}</div>"#, top + 6, if picked { PICKED } else { TITLE }, BOLD.style(), escape(&line.title)));
-        row.push_str(&format!(r#"<div class="a t" style="left:42px;top:{}px;color:{WORDS};{fitted}">{}</div>"#, top + 24, escape(&rules::shown(&line.summary))));
+        row.push_str(&format!(
+            r#"<div class="a t" style="left:42px;top:{}px;color:{};{};{fitted}">{}</div>"#,
+            top + 6,
+            if picked { PICKED } else { TITLE },
+            BOLD.style(),
+            escape(&line.title)
+        ));
+        row.push_str(&format!(
+            r#"<div class="a t" style="left:42px;top:{}px;color:{WORDS};{fitted}">{}</div>"#,
+            top + 24,
+            escape(&rules::shown(&line.summary))
+        ));
         if let Some(listed) = line.listed {
             // `MSI_PASSWORD` in the decompiled client's names: line 3409, "Display small quest window".
-            row.push_str(&check_box(312, top + 3, (14, 14), if listed { "bt_check_on" } else { "bt_check_off" }, &Self::words(3409, "Display small quest window"), Press::Listed(line.row.number)));
+            row.push_str(&check_box(
+                312,
+                top + 3,
+                (14, 14),
+                if listed { "bt_check_on" } else { "bt_check_off" },
+                &Self::words(3409, "Display small quest window"),
+                Press::Listed(line.row.number)
+            ));
         }
         if let Some(open) = line.lock {
             // Lines 3407 ("Show/Hide") for a quest of the server and 3408 ("Hide") for a recommended one.
@@ -145,13 +174,36 @@ impl App {
         }
         let lines = self.quest_lines();
         let rows: String = lines.iter().enumerate().map(|(place, line)| self.quest_row(7 + place as i32 * 46, line)).collect();
-        window.push_str(&format!(r#"<div class="a viewer" style="{}"><div style="position:relative;height:{}px">{rows}</div></div>"#, at(38, 17, 343, 394), 7 + lines.len() * 46));
+        window.push_str(&format!(
+            r#"<div class="a viewer" style="{}"><div style="position:relative;height:{}px">{rows}</div></div>"#,
+            at(38, 17, 343, 394),
+            7 + lines.len() * 46
+        ));
         window.push_str(&art("renew_questui/bg_search.bmp", 29, 411, 352, 28));
         // The filters, by the client's numbers for them, in the order they stand in.
-        for (place, (number, name)) in [(0, "btn_all"), (2, "btn_normal"), (3, "btn_sub"), (4, "btn_daily"), (5, "btn_event"), (1, "btn_etc")].into_iter().enumerate() {
-            window.push_str(&tab_button(35 + place as i32 * 31, 414, (26, 22), name, self.quests.filter == number, &data::quest_filter_name(number), Press::Filter(number)));
+        for (place, (number, name)) in [
+            (0, "btn_all"), (2, "btn_normal"), (3, "btn_sub"), (4, "btn_daily"), (5, "btn_event"), (1, "btn_etc")
+        ]
+            .into_iter()
+            .enumerate()
+        {
+            window.push_str(&tab_button(
+                35 + place as i32 * 31,
+                414,
+                (26, 22),
+                name,
+                self.quests.filter == number,
+                &data::quest_filter_name(number),
+                Press::Filter(number)
+            ));
         }
-        window.push_str(&field("quest-search", (223, 417, 119, 16), &self.quests.search, 20, "border:1px solid #c6c6c6;background:transparent;box-sizing:border-box"));
+        window.push_str(&field(
+            "quest-search",
+            (223, 417, 119, 16),
+            &self.quests.search,
+            20,
+            "border:1px solid #c6c6c6;background:transparent;box-sizing:border-box"
+        ));
         window.push_str(&pictured_by(Convention::NormalOverPress, 342, 416, (23, 18), "renew_questui/btn_search", Press::Search, ""));
         window.push_str(&check_box(38, 448, (10, 10), if self.quests.display_off { "checkbox_off" } else { "checkbox_on" }, "", Press::Display));
         window.push_str(&text(52, 447, BLACK, &Self::words(2019, "Show Quest")));
@@ -171,7 +223,10 @@ impl App {
     /// black copy. A quest with one hunt takes 50, any other 40, and one with several hunts as much again.
     /// (The client's menu on a quest of the list, under the right button, is not made.)
     pub(in crate::web) fn quest_list(&self) -> String {
-        let shadowed = |x: i32, y: i32, colour: &str, words: &str| format!(r#"<div class="a t" style="left:{x}px;top:{y}px;color:{colour};text-shadow:1px 1px 0 #000">{}</div>"#, escape(words));
+        let shadowed = |x: i32, y: i32, colour: &str, words: &str| format!(
+            r#"<div class="a t" style="left:{x}px;top:{y}px;color:{colour};text-shadow:1px 1px 0 #000">{}</div>"#,
+            escape(words)
+        );
         let complete = Self::words(2030, "Complete");
         let (mut top, mut shown, mut list) = (0, 0, String::new());
         for quest in self.quests.log.values().filter(|quest| quest.active && !self.quests.unlisted.contains(&quest.id)) {
@@ -181,9 +236,14 @@ impl App {
                 continue;
             }
             shown += 1;
-            let title = about.as_ref().map(|about| about.title.clone()).filter(|title| !title.is_empty()).unwrap_or_else(|| format!("Unknown Quest, ID = {}", quest.id));
+            let title = about.as_ref().map(|about| about.title.clone()).filter(|title| !title.is_empty()).unwrap_or_else(
+                || format!("Unknown Quest, ID = {}", quest.id)
+            );
             list.push_str(&shadowed(0, top, "#e1d600", &title));
-            let summary = about.filter(|about| !about.lines.is_empty()).map(|about| crate::markup::uncoloured(&rules::shown(&about.summary))).unwrap_or_default();
+            let summary = about
+                .filter(|about| !about.lines.is_empty())
+                .map(|about| crate::markup::uncoloured(&rules::shown(&about.summary)))
+                .unwrap_or_default();
             if !summary.is_empty() {
                 let cut = if summary.chars().count() > 30 { format!("{}...", summary.chars().take(30).collect::<String>()) } else { summary };
                 list.push_str(&shadowed(0, top + 15, "#fff", &cut));
@@ -212,7 +272,10 @@ impl App {
             .filter_map(|mark| {
                 let file = rules::minimap_picture(mark.effect, mark.colour)?;
                 let (x, y) = crate::web::view::minimap_spot(game, self.minimap_zoom, (f32::from(mark.cell.0), f32::from(mark.cell.1)))?;
-                Some(format!(r#"<img class="mark" src="{}" alt="" draggable="false" style="left:{x:.2}%;top:{y:.2}%" onerror="this.remove()">"#, picture(&file)))
+                Some(format!(
+                    r#"<img class="mark" src="{}" alt="" draggable="false" style="left:{x:.2}%;top:{y:.2}%" onerror="this.remove()">"#,
+                    picture(&file)
+                ))
             })
             .collect()
     }

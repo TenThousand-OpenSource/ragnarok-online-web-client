@@ -35,7 +35,11 @@ pub(super) fn kept(state: &mut State, time: f64) {
     let cards = &state.cards;
     let own = std::iter::once((None, &scene.player, state.own_level));
     let others = scene.units.iter().map(|(id, unit)| (Some(*id), unit, cards.get(id).map_or(0, |card| card.level)));
-    let mut wanted: BTreeSet<(Option<u32>, u32)> = own.chain(others).flat_map(|(on, mover, level)| crate::aura::shown(mover.job, level, mover.state, &table, options).into_iter().flatten().map(move |effect| (on, effect))).collect();
+    let mut wanted: BTreeSet<(Option<u32>, u32)> = own.chain(others)
+        .flat_map(|(on, mover, level)| crate::aura::shown(mover.job, level, mover.state, &table, options).into_iter().flatten().map(
+            move |effect| (on, effect)
+        ))
+        .collect();
     let all = table.effects();
     // (One that runs and is wanted is left as it is, and is wanted no more.)
     state.bursts.retain(|burst| match all.iter().find(|effect| burst.is(**effect, burst.on)) {

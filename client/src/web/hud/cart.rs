@@ -70,14 +70,16 @@ impl App {
         if self.cart.kind == 0 {
             return String::new();
         }
-        format!(
-            r#"<button type="button" class="a" style="left:126px;top:107px;border:0;padding:0;background:none" {} data-tip="{}"><img src="{}" alt="" draggable="false" onmouseover="this.src='{}'" onmouseout="this.src='{}'"></button>"#,
-            pressed(Press::Window),
-            escape(&Self::words(237, "Cart Items [Alt+W]")),
-            picture("basic_interface/btn_items_off.bmp"),
-            picture("basic_interface/btn_items_on.bmp"),
-            picture("basic_interface/btn_items_off.bmp"),
-        )
+        [
+            format!(r#"<button type="button" class="a" style="left:126px;top:107px;border:0;padding:0;background:none" {} "#, pressed(Press::Window)),
+            format!(
+                r#"data-tip="{}"><img src="{}" alt="" draggable="false" onmouseover="this.src='{}'" "#,
+                escape(&Self::words(237, "Cart Items [Alt+W]")),
+                picture("basic_interface/btn_items_off.bmp"),
+                picture("basic_interface/btn_items_on.bmp")
+            ),
+            format!(r#"onmouseout="this.src='{}'"></button>"#, picture("basic_interface/btn_items_off.bmp"))
+        ].concat()
     }
 
     /// The window of the looks a cart may be given (`UISelectCartWnd`): 385 wide and 98 high for every five
@@ -94,9 +96,20 @@ impl App {
             .filter_map(|(place, kind)| {
                 let (_, (x, y)) = crate::cart::offered(*kind, place)?;
                 let cart = looks.pictures.get(kind).map_or(String::new(), |(picture, origin)| {
-                    format!(r#"<img src="{picture}" alt="" draggable="false" style="position:absolute;left:{:.0}px;top:{:.0}px;image-rendering:pixelated">"#, 50.0 - origin.0, 50.0 - origin.1)
+                    [
+                        format!(
+                            r#"<img src="{picture}" alt="" draggable="false" style="position:absolute;left:{:.0}px;top:{:.0}px;"#,
+                            50.0 - origin.0,
+                            50.0 - origin.1
+                        ),
+                        format!(r#"image-rendering:pixelated">"#)
+                    ].concat()
                 });
-                Some(format!(r#"<button type="button" class="a" style="{};border:0;padding:0;background:none;overflow:hidden" {}>{cart}</button>"#, at(x, y, 100, 100), pressed(Press::Look(*kind))))
+                Some(format!(
+                    r#"<button type="button" class="a" style="{};border:0;padding:0;background:none;overflow:hidden" {}>{cart}</button>"#,
+                    at(x, y, 100, 100),
+                    pressed(Press::Look(*kind))
+                ))
             })
             .collect();
         format!(

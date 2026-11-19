@@ -94,7 +94,9 @@ async fn connect(
         return StatusCode::TOO_MANY_REQUESTS.into_response();
     }
     eprintln!("bridge: {} connects to port {port}", peer.ip());
-    let watch = bridge.login_guard.clone().filter(|guard| guard.port == port).map(|guard| Watch { guard, address: address_key(peer.ip()), account: Mutex::new(None) });
+    let watch = bridge.login_guard.clone().filter(|guard| guard.port == port).map(
+        |guard| Watch { guard, address: address_key(peer.ip()), account: Mutex::new(None) }
+    );
     let target = format!("{}:{port}", bridge.host);
     let lag = bridge.lag;
     upgrade.max_message_size(MAX_MESSAGE).on_upgrade(move |mut socket| async move {
@@ -140,7 +142,13 @@ type Waiting = tokio::sync::mpsc::Sender<(Instant, Vec<u8>)>;
 /// Reads what the browser sends and leaves it to be written to the server when it is due. With a `watch`, a
 /// login request for an account that is out of attempts is not passed on: it ends with how long the account
 /// stays blocked. Ends with nothing when the browser closes or the writing has ended.
-async fn from_browser(mut browser: futures_util::stream::SplitStream<WebSocket>, for_server: Waiting, watch: Option<&Watch>, lag: Lag, count: &AtomicUsize) -> Option<Duration> {
+async fn from_browser(
+    mut browser: futures_util::stream::SplitStream<WebSocket>,
+    for_server: Waiting,
+    watch: Option<&Watch>,
+    lag: Lag,
+    count: &AtomicUsize
+) -> Option<Duration> {
     let mut last = None;
     // The start of the stream, held back until it is known whether it may pass.
     let mut held = watch.map(|_| Vec::new());

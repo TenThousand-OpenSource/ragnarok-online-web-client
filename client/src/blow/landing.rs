@@ -129,7 +129,12 @@ pub fn of_skill(skill: u16, kind: u8, damage: i32, hits: i32) -> Vec<Hit> {
         MO_COMBOFINISH | CH_TIGERFIST => Hit { after: 0.0, damage: each, total: each, how: many },
         skill if KICKS_LATE.contains(&skill) => Hit { after: 300.0, damage: each, total: each, how: How::Kick },
         skill if KICKS.contains(&skill) => Hit { after: 0.0, damage: each, total: each, how: How::Kick },
-        _ => Hit { after: if skill == PR_TURNUNDEAD { 500.0 } else { 0.0 }, damage: each, total: if hits == 1 { 0 } else { each }, how: if hits == 1 { how } else { many } },
+        _ => Hit {
+            after: if skill == PR_TURNUNDEAD { 500.0 } else { 0.0 },
+            damage: each,
+            total: if hits == 1 { 0 } else { each },
+            how: if hits == 1 { how } else { many }
+        },
     };
     // Pierce's hits are 280 apart.
     let apart = if skill == KN_PIERCE { BETWEEN_HITS + 80.0 } else { BETWEEN_HITS };
@@ -170,7 +175,10 @@ mod tests {
 
     #[test]
     fn the_other_hand_lands_350_after_the_first() {
-        assert_eq!(of_act(0, 100, 1, 40, true), [Hit { after: 0.0, damage: 100, total: 0, how: How::Plain }, Hit { after: 350.0, damage: 40, total: 0, how: How::Plain }]);
+        assert_eq!(
+            of_act(0, 100, 1, 40, true),
+            [Hit { after: 0.0, damage: 100, total: 0, how: How::Plain }, Hit { after: 350.0, damage: 40, total: 0, how: How::Plain }]
+        );
         // Only for those the client shows it for.
         assert_eq!(of_act(0, 100, 1, 40, false).len(), 1);
         let hits = of_act(8, 200, 2, 30, true);

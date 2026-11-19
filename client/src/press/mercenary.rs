@@ -23,19 +23,7 @@ impl Order {
     }
 }
 
-impl std::fmt::Display for Order {
-    fn fmt(&self, to: &mut std::fmt::Formatter) -> std::fmt::Result {
-        to.write_str(self.text())
-    }
-}
-
-impl std::str::FromStr for Order {
-    type Err = ();
-
-    fn from_str(text: &str) -> Result<Self, ()> {
-        Order::ALL.into_iter().find(|order| order.text() == text).ok_or(())
-    }
-}
+worded!(Order);
 
 presses! {
     /// What can be pressed here.
@@ -69,15 +57,18 @@ mod tests {
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
-        let mut all = vec![Press::Window, Press::Fire, Press::Skills, Press::Yes, Press::No, Press::SkillPick(1), Press::SkillUse, Press::SkillLevel(LevelStep { skill: 8201, step: Step::More })];
+        let mut all = vec![
+            Press::Window,
+            Press::Fire,
+            Press::Skills,
+            Press::Yes,
+            Press::No,
+            Press::SkillPick(1),
+            Press::SkillUse,
+            Press::SkillLevel(LevelStep { skill: 8201, step: Step::More })
+        ];
         all.extend(Order::ALL.map(Press::Do));
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        crate::press::testing::read_back(all);
         assert_eq!(Press::parse("mercenary-do", "feed"), None);
     }
 }

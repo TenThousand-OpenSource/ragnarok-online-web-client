@@ -22,9 +22,7 @@ thread_local! {
 /// files are asked first, then what it has compiled into it (`crate::statuses`). A file under `data\texture`,
 /// written with forward strokes.
 pub fn status_icon(state: u32, kind: u8, taekwon: bool) -> Option<String> {
-    ICONS
-        .with_borrow(|icons| icons.get(&state).filter(|(of, _)| *of == kind).map(|(_, file)| file.replace('\\', "/")))
-        .or_else(|| crate::statuses::compiled_icon(state, kind, taekwon).map(|file| format!("effect/{file}")))
+    ICONS.with_borrow(|icons| crate::statuses::icon(icons.get(&state).map(|(of, file)| (*of, file.as_str())), state, kind, taekwon))
 }
 
 /// What the client says of a state.
@@ -45,7 +43,9 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         let lines = lines.iter().filter_map(|line| {
             let line: js_sys::Array = line.dyn_into().ok()?;
             // A line without a colour is white.
-            let colour = line.get(1).dyn_into::<js_sys::Array>().map_or([255; 3], |colour| [0, 1, 2].map(|part| colour.get(part).as_f64().unwrap_or(255.0) as u8));
+            let colour = line.get(1).dyn_into::<js_sys::Array>().map_or([255; 3], |colour| [0, 1, 2].map(
+                |part| colour.get(part).as_f64().unwrap_or(255.0) as u8
+            ));
             Some((line.get(0).as_string()?, colour))
         });
         Some((state, StatusText { lines: lines.collect(), time: number(&text, "time").unwrap_or(0.0) as usize }))

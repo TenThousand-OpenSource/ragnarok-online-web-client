@@ -5,9 +5,11 @@ use super::*;
 /// Where the browser keeps it: the options switched (`name=1`), and the sound (`music,effects,music off,effects off`).
 const OPTIONS_KEPT: &str = "roweb.options";
 const SOUND_KEPT: &str = "roweb.levels";
-/// This project's own option, kept with the client's: walking in stretches to a place pressed too far away
-/// (`world::Options::far_walk`). Off until switched on with `/farwalk`.
-pub(super) const FAR_WALK: &str = "ROWEB_FAR_WALK";
+/// This project's own option, kept with the client's: a far press is asked of the server once, as the Windows
+/// client does, instead of being walked in stretches (`world::Options::far_walk`). The stretches are what a
+/// player has until this is switched on with `/farwalk` — the owner's choice: a place in sight is walked to
+/// when the way round is there, however far.
+pub(super) const CLIENT_WALK: &str = "ROWEB_CLIENT_WALK";
 
 impl App {
     /// Reads what the browser keeps.
@@ -71,7 +73,7 @@ impl App {
             monster_life: self.option("TT_MONSTERHP_ON_OFF"),
             hide_players: self.option("TT_HIDE_PLAYER_ON_OFF"),
             zoom_out: self.option("TT_EXPAND_SIGHT_ON_OFF"),
-            far_walk: self.option(FAR_WALK),
+            far_walk: !self.option(CLIENT_WALK),
             quake: self.option("TT_QUAKE_ON_OFF"),
             name_above: self.option("TT_NAME_ABOVE_HEAD_ON_OFF"),
             emblems: self.option("TT_SHOW_EMBLEM_ON_OFF"),
@@ -89,7 +91,14 @@ impl App {
     pub(super) fn sound_levels(&self) {
         let level = |level: u8, off: bool| if off { 0.0 } else { f64::from(level) / 100.0 };
         sound::levels(level(self.settings.music, self.settings.music_off), level(self.settings.effects, self.settings.effects_off));
-        store(SOUND_KEPT, crate::kept::numbered([self.settings.music, self.settings.effects, u8::from(self.settings.music_off), u8::from(self.settings.effects_off)], ',').as_deref());
+        store(
+            SOUND_KEPT,
+            crate::kept::numbered(
+                [self.settings.music, self.settings.effects, u8::from(self.settings.music_off), u8::from(self.settings.effects_off)],
+                ','
+            )
+                .as_deref()
+        );
     }
 
     /// Reset in the window: every option as the client's table starts it, the sound at full.

@@ -81,7 +81,13 @@ impl App {
             // is on entering the game too.
             party::ZC_PARTY_CONFIG => {
                 let refused = party::refuses(packet).unwrap_or(false);
-                self.chat_line(if refused { Self::words(1325, "Block all party invitations.") } else { Self::words(1326, "Allow all party invitations.") }, PALE_YELLOW);
+                self.chat_line(
+                    if refused { Self::words(1325, "Block all party invitations.") } else { Self::words(
+                        1326,
+                        "Allow all party invitations."
+                    ) },
+                    PALE_YELLOW
+                );
             }
             _ => return false,
         }
@@ -127,7 +133,7 @@ impl App {
 
     /// ZC_ADD_MEMBER_TO_GROUP: a member is new, or is somewhere else now, or went offline or came back.
     fn party_member(&mut self, packet: &[u8]) {
-        let Some((member, name, cell, (pickup, items))) = party::joined(packet) else { return };
+        let Some(party::Joined { member, party: name, cell, pickup, items }) = party::joined(packet) else { return };
         let own = self.own_account();
         self.party.name = name;
         (self.party.sharing.pickup, self.party.sharing.items) = (pickup, items);
@@ -207,7 +213,11 @@ impl App {
                 2 => Some(format!("{setup} - {experience} : {each}({})", Self::words(1535, "Can't be changed because of level gap"))),
                 _ => None,
             },
-            Some(format!("{setup} - {} : {}", Self::words(293, "How to share Items"), if sharing.pickup { Self::words(290, "Party Share") } else { each.clone() })),
+            Some(format!(
+                "{setup} - {} : {}",
+                Self::words(293, "How to share Items"),
+                if sharing.pickup { Self::words(290, "Party Share") } else { each.clone() }
+            )),
             Some(format!("{setup} - {} : {}", Self::words(738, "Item sharing type"), if sharing.items { even.clone() } else { each.clone() })),
         ];
         for line in lines.into_iter().flatten() {

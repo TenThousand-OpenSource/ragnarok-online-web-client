@@ -34,7 +34,8 @@ own_window!(CHAT_OWN_8, "chat-own-8", 8);
 own_window!(CHAT_OWN_9, "chat-own-9", 9);
 
 /// The own windows of the tabs, by the tabs' places.
-pub(in crate::web) static CHAT_OWN: [&Window; crate::chat_tabs::MOST] = [&CHAT_OWN_0, &CHAT_OWN_1, &CHAT_OWN_2, &CHAT_OWN_3, &CHAT_OWN_4, &CHAT_OWN_5, &CHAT_OWN_6, &CHAT_OWN_7, &CHAT_OWN_8, &CHAT_OWN_9];
+pub(in crate::web) static CHAT_OWN: [&Window; crate::chat_tabs::MOST] =
+    [&CHAT_OWN_0, &CHAT_OWN_1, &CHAT_OWN_2, &CHAT_OWN_3, &CHAT_OWN_4, &CHAT_OWN_5, &CHAT_OWN_6, &CHAT_OWN_7, &CHAT_OWN_8, &CHAT_OWN_9];
 
 /// The window that sets what a tab lists (`UIBattleMsgOptionWnd`): 280 by 200, 400 across the client's stage
 /// and 200 of 480 down.

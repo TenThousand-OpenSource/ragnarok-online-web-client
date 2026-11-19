@@ -25,7 +25,17 @@ impl App {
                 match exchange::put(packet) {
                     Some(exchange::Put::Zeny(zeny)) => self.exchange.zeny.1 = zeny,
                     Some(exchange::Put::Item { id, kind, amount, identified, refine, cards }) => {
-                        self.exchange.theirs.push(Item { index: 0, id, kind, amount: amount.min(u32::from(u16::MAX)) as u16, wearable: 0, worn: 0, refine, identified, cards });
+                        self.exchange.theirs.push(Item {
+                            index: 0,
+                            id,
+                            kind,
+                            amount: amount.min(u32::from(u16::MAX)) as u16,
+                            wearable: 0,
+                            worn: 0,
+                            refine,
+                            identified,
+                            cards
+                        });
                         data::want_items(std::iter::once(id), || dispatch(Action::ItemsKnown));
                     }
                     None => {}
@@ -102,8 +112,14 @@ impl App {
                 self.refresh_items();
             }
             (OVERWEIGHT, _) => self.chat_line(Self::words(73, "You cannot trade because this character will exceed his weight limit."), RED),
-            (TOO_MANY, _) => self.chat_line(Self::words(1938, "Relative character that has possession of the items cannot trade because amount is exceeded.."), RED),
-            (TOO_MANY_OF_IT, _) => self.chat_line(Self::words(1939, "Relative character that has possession of the item amount which exceeds makes it impossible to trade."), RED),
+            (TOO_MANY, _) => self.chat_line(
+                Self::words(1938, "Relative character that has possession of the items cannot trade because amount is exceeded.."),
+                RED
+            ),
+            (TOO_MANY_OF_IT, _) => self.chat_line(
+                Self::words(1939, "Relative character that has possession of the item amount which exceeds makes it impossible to trade."),
+                RED
+            ),
             _ => {}
         }
         self.redraw(&[&wnd::EXCHANGE]);

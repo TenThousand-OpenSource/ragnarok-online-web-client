@@ -4,7 +4,10 @@ use super::*;
 
 /// The form fields whose content survives a redraw of the same window.
 const KEPT_FIELDS: [&str; 13] =
-    ["user", "password", "reg-id", "reg-password", "reg-repeat", "reg-email", "reg-sex", "rec-id", "rec-email", "new-password", "new-repeat", "char-name", "birthdate"];
+    [
+        "user", "password", "reg-id", "reg-password", "reg-repeat", "reg-email", "reg-sex", "rec-id", "rec-email",
+        "new-password", "new-repeat", "char-name", "birthdate"
+    ];
 /// The action of a sitting character, facing south: how one waiting to be deleted is shown.
 const SITTING: usize = 16;
 /// The narrowest view the client is used in, for now: the width of the original client's smallest screen.
@@ -108,7 +111,18 @@ impl App {
             Screen::CharCreate(_) => {
                 let make = &self.make;
                 let job = if make.doram { crate::jobs::SUMMONER } else { 0 };
-                let figure = Figure { job, sex: make.sex, hair_style: make.hair_style, hair_colour: make.hair_colour, headgear: [0; 3], body_palette: 0, weapon: 0, shield: 0, action: usize::from(make.direction), frame: 0 };
+                let figure = Figure {
+                    job,
+                    sex: make.sex,
+                    hair_style: make.hair_style,
+                    hair_colour: make.hair_colour,
+                    headgear: [0; 3],
+                    body_palette: 0,
+                    weapon: 0,
+                    shield: 0,
+                    action: usize::from(make.direction),
+                    frame: 0
+                };
                 figure::paint("pc-make", figure);
             }
             _ => {}

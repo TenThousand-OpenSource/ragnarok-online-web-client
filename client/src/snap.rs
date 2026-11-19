@@ -30,8 +30,14 @@ pub fn shift(moved: Rect, others: &[Rect], screen: (f64, f64), near: f64) -> (f6
     // Docked one way only, the window lines up with the one it is docked to the other way.
     let touches_side = |other: &&Rect, by: f64| (other[2] - (left + by)).abs() < 0.5 || (other[0] - (right + by)).abs() < 0.5;
     let touches_level = |other: &&Rect, by: f64| (other[3] - (top + by)).abs() < 0.5 || (other[1] - (bottom + by)).abs() < 0.5;
-    let down = down.or_else(|| across.and_then(|by| nearest(others.iter().filter(level).filter(|other| touches_side(other, by)).flat_map(|other| [other[1] - top, other[3] - bottom]), near)));
-    let across = across.or_else(|| down.and_then(|by| nearest(others.iter().filter(upright).filter(|other| touches_level(other, by)).flat_map(|other| [other[0] - left, other[2] - right]), near)));
+    let down = down.or_else(|| across.and_then(|by| nearest(
+        others.iter().filter(level).filter(|other| touches_side(other, by)).flat_map(|other| [other[1] - top, other[3] - bottom]),
+        near
+    )));
+    let across = across.or_else(|| down.and_then(|by| nearest(
+        others.iter().filter(upright).filter(|other| touches_level(other, by)).flat_map(|other| [other[0] - left, other[2] - right]),
+        near
+    )));
     (across.unwrap_or(0.0), down.unwrap_or(0.0))
 }
 

@@ -35,14 +35,20 @@ fn answers_what_the_script_asks() {
     assert_eq!(ask(0, 7), [100.0]);
     assert_eq!((ask(1, 7), ask(1, 100), ask(1, 12)), (vec![53.0, 50.0], vec![50.0, 50.0], vec![-1.0, -1.0]));
     assert_eq!((ask(3, 9), ask(3, 12), ask(4, 7), ask(5, 9), ask(5, 12)), (vec![2.0], vec![-1.0], vec![1.0], vec![100.0], vec![-1.0]));
-    assert_eq!((ask(7, 7), ask(8, 7), ask(8, 100), ask(8, 9), ask(11, 100), ask(11, 7)), (vec![1.0], vec![150.0], vec![900.0], vec![-1.0], vec![50.0], vec![30.0]));
+    assert_eq!(
+        (ask(7, 7), ask(8, 7), ask(8, 100), ask(8, 9), ask(11, 100), ask(11, 7)),
+        (vec![1.0], vec![150.0], vec![900.0], vec![-1.0], vec![50.0], vec![30.0])
+    );
     // A skill it has reaches as far as the server said; one it has not, one cell.
     assert_eq!((sight.value(Kind::Homunculus, 6, 7, 8013), sight.value(Kind::Homunculus, 14, 7, 8001)), (vec![9.0], vec![1.0]));
     // A mercenary's script is told which mercenary it is, and no target of the dead.
     let mut hired = sight.clone();
     hired.actors[0].job = 6018;
     hired.actors[1].motion = motion::DEAD;
-    assert_eq!((hired.value(Kind::Mercenary, 12, 7, 0), hired.value(Kind::Mercenary, 5, 9, 0), hired.value(Kind::Mercenary, 7, 7, 0)), (vec![2.0], vec![-1.0], vec![]));
+    assert_eq!(
+        (hired.value(Kind::Mercenary, 12, 7, 0), hired.value(Kind::Mercenary, 5, 9, 0), hired.value(Kind::Mercenary, 7, 7, 0)),
+        (vec![2.0], vec![-1.0], vec![])
+    );
     assert!(sight.is_monster(9) && !sight.is_monster(11) && !sight.is_monster(100));
 }
 
@@ -166,7 +172,11 @@ fn tells_what_is_wrong_with_a_script() {
     // A script without `AI`, one that fails, and one that never ends are errors of the call, not a hang.
     assert!(Ai::load(Kind::Homunculus, false, broken(b"x = 1")).unwrap().call(sight()).is_err());
     assert!(Ai::load(Kind::Homunculus, false, broken(b"function AI(id) local t = nil; return t.x end")).unwrap().call(sight()).is_err());
-    assert!(Ai::load(Kind::Homunculus, false, broken(b"function AI(id) while true do end end")).unwrap().call(sight()).unwrap_err().contains("does not come to an end"));
+    assert!(
+        Ai::load(Kind::Homunculus, false, broken(b"function AI(id) while true do end end")).unwrap().call(sight()).unwrap_err().contains(
+            "does not come to an end"
+        )
+    );
 }
 
 #[test]

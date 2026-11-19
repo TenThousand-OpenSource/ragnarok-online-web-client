@@ -37,7 +37,10 @@ pub fn cells(cell: (i32, i32), side: usize, angle: f32) -> Vec<((i32, i32), [[f3
         .flat_map(|row| (0..side).map(move |column| (row, column)))
         .map(|(row, column)| {
             let (row0, column0) = (row as f32 - centre, column as f32 - centre);
-            ((left + column as i32, top + row as i32), [shown(row0, column0), shown(row0, column0 + 1.0), shown(row0 + 1.0, column0), shown(row0 + 1.0, column0 + 1.0)])
+            (
+                (left + column as i32, top + row as i32),
+                [shown(row0, column0), shown(row0, column0 + 1.0), shown(row0 + 1.0, column0), shown(row0 + 1.0, column0 + 1.0)]
+            )
         })
         .collect()
 }

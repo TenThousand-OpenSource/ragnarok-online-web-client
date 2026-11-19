@@ -40,7 +40,8 @@ impl App {
                 }
             }
             commands::ZC_SETTING_WHISPER_STATE => match commands::whisper_set(packet) {
-                Some((allow, result @ (commands::DONE | commands::FAILED))) => self.say_line(if allow { ALL_LET_IN } else { ALL_BLOCKED }[usize::from(result)], "", ""),
+                Some((allow, result @ (commands::DONE | commands::FAILED))) =>
+                    self.say_line(if allow { ALL_LET_IN } else { ALL_BLOCKED }[usize::from(result)], "", ""),
                 _ => {}
             },
             // The characters whose whispers are blocked: a heading, then each name in its own line (`0xFFFF00`).
@@ -53,8 +54,8 @@ impl App {
             }
             // A ranking asked for with `/blacksmith`, `/alchemist` or `/taekwon`: its lines in the chat.
             commands::ZC_ACK_RANKING => {
-                if let Some((kind, ranked, own)) = commands::ranking(packet) {
-                    for line in commands::ranking_lines(kind, &ranked, own) {
+                if let Some(commands::Ranking { kind, ranked, own }) = commands::ranking(packet) {
+                    for line in crate::commands::ranking_lines(kind, &ranked, own) {
                         self.chat_line(line, YELLOW);
                     }
                 }

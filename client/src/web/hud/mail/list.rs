@@ -9,18 +9,27 @@ impl App {
     pub(super) fn mail_search(&self) -> String {
         let mut search = String::new();
         for (x, line, name, by_sender) in [(22, 3192, "Title", false), (73, 3193, "Sender", true)] {
-            search.push_str(&format!(
-                r#"<div class="a t" style="left:{x}px;top:68px;height:12px;line-height:12px;padding-left:13px;cursor:default;color:#394965;background:url('{}') 0 1px no-repeat" {}>{}</div>"#,
-                picture(&rodex(if by_sender == self.mail.by_sender { "checkbox_search_on" } else { "checkbox_search_off" })),
-                pressed(Press::SearchIn(by_sender)),
-                escape(&Self::words(line, name))
-            ));
+            search.push_str(&[
+                format!(r#"<div class="a t" style="left:{x}px;top:68px;height:12px;line-height:12px;padding-left:13px;"#),
+                format!(
+                    r#"cursor:default;color:#394965;background:url('{}') 0 1px no-repeat" {}>{}</div>"#,
+                    picture(&rodex(if by_sender == self.mail.by_sender { "checkbox_search_on" } else { "checkbox_search_off" })),
+                    pressed(Press::SearchIn(by_sender)),
+                    escape(&Self::words(line, name))
+                )
+            ].concat());
         }
         search.push_str(&format!(
             r#"<form {} class="a" style="{}">{}{}</form>"#,
             sent(Form::MailSearch),
             at(133, 65, 163, 18),
-            field("mail-sought", (0, 0, 132, 18), &crate::web::app::written("mail-sought").unwrap_or_default(), 16, "background:#fff;border:1px solid #adadad;box-sizing:border-box"),
+            field(
+                "mail-sought",
+                (0, 0, 132, 18),
+                &crate::web::app::written("mail-sought").unwrap_or_default(),
+                16,
+                "background:#fff;border:1px solid #adadad;box-sizing:border-box"
+            ),
             picture_button_as(Kind::Submit, 131, 0, (32, 18), "btn_search", Press::Search, "")
         ));
         search
@@ -40,7 +49,12 @@ impl App {
         let mut html = if letter.gone {
             art(&rodex(status), 36, y + 3, 24, 24)
         } else {
-            format!(r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat;cursor:pointer" {}></div>"#, at(36, y + 3, 24, 24), picture(&rodex(status)), pressed(Press::Title(row)))
+            format!(
+                r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat;cursor:pointer" {}></div>"#,
+                at(36, y + 3, 24, 24),
+                picture(&rodex(status)),
+                pressed(Press::Title(row))
+            )
         };
         let inside = match letter.has & (has::ZENY | has::ITEMS) {
             0 => None,
@@ -70,7 +84,10 @@ impl App {
         let clipped = "max-width:140px;overflow:hidden;cursor:default";
         let colour = crate::mail::title_colour(kind, letter);
         if letter.gone {
-            html.push_str(&format!(r#"<div class="a t" style="left:69px;top:{y}px;{clipped};color:{colour}">{}</div>"#, escape(&Self::words(2907, "The mail has been deleted."))));
+            html.push_str(&format!(
+                r#"<div class="a t" style="left:69px;top:{y}px;{clipped};color:{colour}">{}</div>"#,
+                escape(&Self::words(2907, "The mail has been deleted."))
+            ));
             return html;
         }
         html.push_str(&format!(

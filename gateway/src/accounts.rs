@@ -131,7 +131,12 @@ struct RegisterForm {
     email: String,
 }
 
-async fn register(State(accounts): State<Arc<Accounts>>, ConnectInfo(peer): ConnectInfo<SocketAddr>, headers: HeaderMap, Form(form): Form<RegisterForm>) -> Response {
+async fn register(
+    State(accounts): State<Arc<Accounts>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
+    Form(form): Form<RegisterForm>
+) -> Response {
     if !same_origin(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }

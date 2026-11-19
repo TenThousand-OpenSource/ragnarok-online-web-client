@@ -47,13 +47,16 @@ pub(super) fn side_tabs(x: i32, y: i32, padding: i32, uniform: bool, open: usize
         let (shift, right) = if index == open { (0, "border-right:0;") } else { (1, "") };
         let room = height - letters_tall(words);
         let letters: String = words.chars().map(|letter| format!("<span>{}</span>", escape(&letter.to_string()))).collect();
-        strip.push_str(&format!(
-            r#"<button type="button" class="a" style="{};padding:0;border:1px solid {LINE};{right}border-radius:2px 0 0 2px;box-sizing:border-box;background:{};color:#000;cursor:pointer;{font}" {more}><span style="position:absolute;left:2px;top:{}px;display:flex;flex-direction:column;align-items:center">{letters}</span></button>"#,
-            at(x + shift, top, SIDE_TABS - shift, height),
-            ground.unwrap_or("#fff"),
-            // (The letters begin half the room down, the odd pixel over them; the tab's own line is one of it.)
-            room / 2 + room % 2 - 1,
-        ));
+        strip.push_str(&[
+            format!(r#"<button type="button" class="a" style="{};padding:0;border:1px solid {LINE};"#, at(x + shift, top, SIDE_TABS - shift, height)),
+            format!(r#"{right}border-radius:2px 0 0 2px;box-sizing:border-box;background:{};color:#000;cursor:pointer;"#, ground.unwrap_or("#fff")),
+            format!(
+                r#"{font}" {more}><span style="position:absolute;left:2px;top:{}px;"#,
+                // (The letters begin half the room down, the odd pixel over them; the tab's own line is one of it.)
+                room / 2 + room % 2 - 1
+            ),
+            format!(r#"display:flex;flex-direction:column;align-items:center">{letters}</span></button>"#)
+        ].concat());
         top += height - 1;
     }
     strip

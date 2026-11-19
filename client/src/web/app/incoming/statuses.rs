@@ -15,7 +15,11 @@ impl App {
                 if let Some(change) = statuses::changed(packet) {
                     self.rides(&change);
                     // The effects that live for as long as the state (`crate::state_effects`).
-                    world::state_effects((Some(change.who) != self.account.as_ref().map(|account| account.account_id)).then_some(change.who), u32::from(change.state), change.on);
+                    world::state_effects(
+                        (Some(change.who) != self.account.as_ref().map(|account| account.account_id)).then_some(change.who),
+                        u32::from(change.state),
+                        change.on
+                    );
                     // Playing dead (EFST_TRICKDEAD, 29) lays anyone down.
                     if change.state == 29 {
                         world::plays_dead(change.who, self.own_account(), change.on);
@@ -64,7 +68,9 @@ impl App {
     fn state_changed(&mut self, change: &Change) {
         let now = now();
         if change.on && change.state == statuses::POSTDELAY {
-            self.cooldowns.waits.begin(crate::cooldowns::Wait { skill: crate::cooldowns::ANY, end: now.saturating_add(change.remaining), duration: change.total });
+            self.cooldowns.waits.begin(
+                crate::cooldowns::Wait { skill: crate::cooldowns::ANY, end: now.saturating_add(change.remaining), duration: change.total }
+            );
             self.redraw(&[&wnd::HOTKEYS]);
         }
         let end = change.timed().then(|| now.saturating_add(change.remaining));

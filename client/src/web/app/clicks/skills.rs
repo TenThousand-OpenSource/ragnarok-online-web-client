@@ -82,7 +82,10 @@ impl App {
 
     /// Writes the skill being aimed and the level it will be used at by the pointer.
     pub(in crate::web::app) fn aim_words(&self) {
-        let words = self.skills.aimed.filter(|(skill, _)| *skill != TAME).map(|(skill, level)| format!("{} Lv {level}", data::skill(skill).map(|(_, name, _)| name).unwrap_or_default())).unwrap_or_default();
+        let words = self.skills.aimed
+            .filter(|(skill, _)| *skill != TAME)
+            .map(|(skill, level)| format!("{} Lv {level}", data::skill(skill).map(|(_, name, _)| name).unwrap_or_default()))
+            .unwrap_or_default();
         world::aim_words(&words);
     }
 
@@ -111,7 +114,12 @@ impl App {
     /// (the client's `MM_USESKILL_LEVEL_PLUS`).
     pub(in crate::web::app) fn aim_level_stepped(&mut self, step: i32) {
         if let Some((skill, level)) = self.skills.aimed.filter(|(skill, _)| *skill != TAME) {
-            let most = self.skills.known.iter().find(|known| known.id == skill).cloned().or_else(|| self.companion_skill(skill).map(|(known, ..)| known)).map_or(1, |known| known.level.max(1));
+            let most = self.skills.known
+                .iter()
+                .find(|known| known.id == skill)
+                .cloned()
+                .or_else(|| self.companion_skill(skill).map(|(known, ..)| known))
+                .map_or(1, |known| known.level.max(1));
             self.skills.aimed = Some((skill, (i32::from(level) + step).clamp(1, i32::from(most)) as u16));
             self.aim_words();
         }

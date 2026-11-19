@@ -35,7 +35,9 @@ impl App {
             }
             // A line of the message table: that the other's equipment is not open to be looked at comes so.
             crate::net::notices::ZC_MSG => {
-                if let Some((line, words)) = crate::net::notices::said(packet).map(|line| (line, Self::words(line, ""))).filter(|(_, words)| !words.is_empty()) {
+                if let Some((line, words)) = crate::net::notices::said(packet).map(|line| (line, Self::words(line, ""))).filter(
+                    |(_, words)| !words.is_empty()
+                ) {
                     self.chat_line(words, if SAID_IN_RED.contains(&line) { RED } else { WHITE });
                 }
             }
@@ -48,7 +50,10 @@ impl App {
     /// the message table, in the client's `0x64FFFF`.
     fn equipment_open_told(&mut self, on: bool) {
         self.viewequip.allowed = on;
-        let words = if on { Self::words(1359, "Equipment information open to the public.") } else { Self::words(1358, "Equipment information not open to the public.") };
+        let words = if on { Self::words(1359, "Equipment information open to the public.") } else { Self::words(
+            1358,
+            "Equipment information not open to the public."
+        ) };
         self.chat_line(words, PALE_YELLOW);
         self.redraw(&[&wnd::EQUIPMENT]);
     }

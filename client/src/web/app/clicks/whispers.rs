@@ -28,7 +28,8 @@ impl App {
     /// What the browser keeps of the Friend Setup's boxes is read: each is on unless it was switched off.
     pub(in crate::web::app) fn load_whispers(&mut self) {
         let on = |name: &str| stored(name).as_deref() != Some("off");
-        (self.whispers.strangers, self.whispers.friends, self.whispers.sound) = (on("roweb.whisper.strangers"), on("roweb.whisper.friends"), on("roweb.whisper.sound"));
+        (self.whispers.strangers, self.whispers.friends, self.whispers.sound) =
+            (on("roweb.whisper.strangers"), on("roweb.whisper.friends"), on("roweb.whisper.sound"));
     }
 
     /// A box of the Friend Setup window was pressed (`UIFriendOptionWnd::SendMsg`, `ID_CHECK`): 0 whether a
@@ -66,7 +67,8 @@ impl App {
         let scale = crate::web::stage_scale();
         let view = crate::web::page_size();
         let at = whispers::place(open, ((view.0 / scale) as i32, (view.1 / scale) as i32));
-        self.whispers.talks[place] = Some(Talk { with: name.to_owned(), title: whispers::title(name, self.whisper_kin(name).as_deref()), lines: Vec::new(), at });
+        self.whispers.talks[place] =
+            Some(Talk { with: name.to_owned(), title: whispers::title(name, self.whisper_kin(name).as_deref()), lines: Vec::new(), at });
         self.open_at(wnd::WHISPERS[place], &self.whisper_style(place));
         true
     }

@@ -37,7 +37,9 @@ fn pointed(state: &mut State, view: &View) -> Option<Option<(u32, (f32, f32))>> 
     // A player who is fought on this map is marked and pressed as a monster is (`pvp.rs`).
     let foe = |id: u32, unit: &Mover| state.pvp.foe(id, unit);
     let pointed = unit.filter(|(id, unit)| (unit.lively || foe(*id, unit)) && Some(*id) != fought).map(|(id, _)| id);
-    state.target_at = [fought, pointed].map(|id| id.and_then(|id| scene.units.get(&id)).filter(|unit| unit.dying.is_none()).map(|unit| on_ground(&scene.gat, unit.at)));
+    state.target_at = [fought, pointed].map(
+        |id| id.and_then(|id| scene.units.get(&id)).filter(|unit| unit.dying.is_none()).map(|unit| on_ground(&scene.gat, unit.at))
+    );
     state.over = unit.filter(|(id, unit)| matches!(unit.look, Look::Creature(_)) || foe(*id, unit)).map(|(id, unit)| (id, unit.lively || foe(id, unit)));
     Some(over)
 }
@@ -48,7 +50,7 @@ fn named(state: &mut State, view: &View, over: Option<(u32, (f32, f32))>, (width
     let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return };
     // 20 pixels of a screen 480 high under the feet, nearer when the camera is; with the player's `/font` on,
     // 100 over them (the client's `PlaceWindowAtActor`).
-    let below = height * if state.options.name_above { -100.0 } else { 20.0 } / 480.0 * DISTANCE / scene.camera.distance;
+    let below = crate::bars::below(if state.options.name_above { -100.0 } else { 20.0 }, height, scene.camera.distance);
     let fought = state.chase.and_then(|(id, ..)| Some((id, scene.units.get(&id)?))).filter(|(_, unit)| !unit.name.is_empty() && unit.dying.is_none());
     // A thing on the ground under the pointer, when nobody is: what it is and how many (`lying_name`).
     let lying = || {
@@ -63,7 +65,9 @@ fn named(state: &mut State, view: &View, over: Option<(u32, (f32, f32))>, (width
         let (label, colour, mark) = names::written(state, id, unit, label);
         (id, label, colour, at, mark)
     };
-    let of_fought = || fought.and_then(|(id, unit)| view.project(on_ground(&scene.gat, unit.at)).map(|feet| of_unit(id, unit, unit.name.clone(), (feet.0 * width, feet.1 * height + below))));
+    let of_fought = || fought.and_then(|(id, unit)| view.project(on_ground(&scene.gat, unit.at)).map(
+        |feet| of_unit(id, unit, unit.name.clone(), (feet.0 * width, feet.1 * height + below))
+    ));
     let pointed = over.and_then(|(id, feet)| Some((id, scene.units.get(&id)?, feet))).filter(|(_, unit, _)| !unit.name.is_empty());
     // The player's own character under the pointer, when nobody else is: it has its name too (`guild.rs`).
     let own = || {

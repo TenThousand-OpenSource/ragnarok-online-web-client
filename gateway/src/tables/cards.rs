@@ -30,7 +30,11 @@ pub fn card_names(prefixes: &str, postfixes: &str, listed: &str, pictures: &str)
             cards.entry(id).or_default().1 = 1;
         }
     }
-    cards.into_iter().map(|(id, (word, after, picture))| (id.to_string(), serde_json::json!([word, after, picture]))).collect::<serde_json::Map<String, serde_json::Value>>().into()
+    cards
+        .into_iter()
+        .map(|(id, (word, after, picture))| (id.to_string(), serde_json::json!([word, after, picture])))
+        .collect::<serde_json::Map<String, serde_json::Value>>()
+        .into()
 }
 
 /// `{"<id>": bits}` out of `data\itemmoveinfov5.txt`, whose lines are an item and eight numbers: whether it

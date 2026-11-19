@@ -36,7 +36,28 @@ pub(in crate::web::world) struct Burst {
 /// and aims at the place it is told. (The client lets it be told of 50 hits at most.)
 pub(in crate::web::world) fn burst(effect: u32, on: Option<u32>, blow: Option<Blow>, begins: f64) -> Option<(Burst, &'static str)> {
     let (file, lasts, sound) = file_of(effect)?;
-    let course = Course { tick: 0, lasts, facing: 0.0, shared: Master::left(lasts), count: blow.map_or(0, |blow| blow.hits.min(50) as i32), reach: [0.0; 3], step: [0.0; 3], longitude: 0.0, latitude: 0.0, walked: [0.0; 3], yaw: 0.0, sounds: Vec::new(), touch: Default::default(), quake: None, ends: Vec::new(), other: None, copies: Vec::new(), lift: 0.0, figures: [0.0; 4], ground: 0.0 };
+    let course = Course {
+        tick: 0,
+        lasts,
+        facing: 0.0,
+        shared: Master::left(lasts),
+        count: blow.map_or(0, |blow| blow.hits.min(50) as i32),
+        reach: [0.0; 3],
+        step: [0.0; 3],
+        longitude: 0.0,
+        latitude: 0.0,
+        walked: [0.0; 3],
+        yaw: 0.0,
+        sounds: Vec::new(),
+        touch: Default::default(),
+        quake: None,
+        ends: Vec::new(),
+        other: None,
+        copies: Vec::new(),
+        lift: 0.0,
+        figures: [0.0; 4],
+        ground: 0.0
+    };
     let thrown = blow.filter(|_| (file.thrown)(effect));
     // One the client launches on the one struck and tells where the striker stands stays where it is and
     // aims back.
@@ -44,14 +65,39 @@ pub(in crate::web::world) fn burst(effect: u32, on: Option<u32>, blow: Option<Bl
         Some(blow) => (on, Some(blow.striker)),
         None => (thrown.map_or(on, |blow| blow.striker), thrown.map(|blow| blow.place_of)),
     };
-    Some((Burst { on, begins, ticks: 0, effect, file, lasts, prims: Vec::new(), course, begun: false, aims_at, began_at: None, touch: Default::default(), fresh: false, told: None }, sound))
+    Some((
+        Burst {
+            on,
+            begins,
+            ticks: 0,
+            effect,
+            file,
+            lasts,
+            prims: Vec::new(),
+            course,
+            begun: false,
+            aims_at,
+            began_at: None,
+            touch: Default::default(),
+            fresh: false,
+            told: None
+        },
+        sound
+    ))
 }
 
 /// The effect of that number begins at `begins` on someone, among the effects under way (`bursts`), and the
 /// sound it starts with is due then (`sounds`): the one way an effect drawn by code is launched, whoever
 /// launches it. Gives back the effect, to be told more (`Burst::tell`, `Burst::stood`); nothing for an effect
 /// not ported yet.
-pub(in crate::web::world) fn begin<'a>(effect: u32, on: Option<u32>, blow: Option<Blow>, begins: f64, bursts: &'a mut Vec<Burst>, sounds: &mut Vec<(f64, String)>) -> Option<&'a mut Burst> {
+pub(in crate::web::world) fn begin<'a>(
+    effect: u32,
+    on: Option<u32>,
+    blow: Option<Blow>,
+    begins: f64,
+    bursts: &'a mut Vec<Burst>,
+    sounds: &mut Vec<(f64, String)>
+) -> Option<&'a mut Burst> {
     let (burst, sound) = burst(effect, on, blow, begins)?;
     if !sound.is_empty() {
         sounds.push((begins, sound.to_owned()));

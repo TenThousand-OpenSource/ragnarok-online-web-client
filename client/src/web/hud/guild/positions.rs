@@ -13,7 +13,9 @@ impl App {
     /// master the name and the tax are fields (30 and 2 letters, on grey 242) and the boxes are pressed; once
     /// something was changed the button that sends it shows (`btn_ok`, 61 from the right, 23 from the bottom).
     pub(super) fn guild_positions(&self) -> String {
-        let headers = [(510, "Rank"), (511, "Position Title"), (512, "Invite"), (513, "Expel"), (2499, "Storage"), (514, "Tax %")].map(|(line, otherwise)| Self::words(line, otherwise));
+        let headers = [(510, "Rank"), (511, "Position Title"), (512, "Invite"), (513, "Expel"), (2499, "Storage"), (514, "Tax %")].map(
+            |(line, otherwise)| Self::words(line, otherwise)
+        );
         let rows: Vec<String> = self.guild.positions.iter().map(|position| self.guild_position_row(&self.guild.position_shown(position))).collect();
         let mut tab = table(&POSITION_COLUMNS, &headers, &rows);
         if self.guild.master {
@@ -34,11 +36,14 @@ impl App {
         let box_of = |x: i32, on: bool, press: Press| check(x, 3, on, &if master { pressed(press) } else { String::new() });
         // What is typed shows the button that sends it.
         let field = |what: &str, x: i32, width: i32, most: usize, value: &str| {
-            format!(
-                r#"<input id="guild-{what}-{id}" class="a in" style="{};background:{FIELD}" type="text" maxlength="{most}" autocomplete="off" value="{}" oninput="document.getElementById('guild-positions-ok').hidden=false">"#,
-                at(x, 1, width, 16),
-                escape(&crate::web::app::written(&format!("guild-{what}-{id}")).unwrap_or_else(|| value.to_owned()))
-            )
+            [
+                format!(r#"<input id="guild-{what}-{id}" class="a in" style="{};background:{FIELD}" type="text" "#, at(x, 1, width, 16)),
+                format!(
+                    r#"maxlength="{most}" autocomplete="off" value="{}" "#,
+                    escape(&crate::web::app::written(&format!("guild-{what}-{id}")).unwrap_or_else(|| value.to_owned()))
+                ),
+                format!(r#"oninput="document.getElementById('guild-positions-ok').hidden=false">"#)
+            ].concat()
         };
         [
             text(8, 3, BLACK, &id.to_string()),
@@ -46,7 +51,11 @@ impl App {
             box_of(number + name + 10, position.invites, Press::Invites(id)),
             box_of(number + name + invite + 11, position.expels, Press::Expels(id)),
             box_of(number + name + invite + expel + 12, position.storage, Press::Stores(id)),
-            if master { [field("tax", tax, storage / 2 - 4, 2, &position.tax.to_string()), text(tax + POSITION_COLUMNS[5] / 2, 3, BLACK, "%")].concat() } else { text(tax, 1, BLACK, &format!("{} %", position.tax)) },
+            if master {
+                [field("tax", tax, storage / 2 - 4, 2, &position.tax.to_string()), text(tax + POSITION_COLUMNS[5] / 2, 3, BLACK, "%")].concat()
+            } else {
+                text(tax, 1, BLACK, &format!("{} %", position.tax))
+            },
         ]
         .concat()
     }

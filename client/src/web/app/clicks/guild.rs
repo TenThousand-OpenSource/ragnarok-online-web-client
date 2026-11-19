@@ -197,7 +197,8 @@ impl App {
             GuildAsk::Ally(account, _) => self.send_on_map(&guild::answer_ally(account, yes)),
             GuildAsk::Leave if yes => self.send_on_map(&guild::leave(self.guild.id, self.own_account(), self.own_character(), reason.trim())),
             // Expelling is for the master and for a position that allows it (`MM_REQ_BAN_GUILD`).
-            GuildAsk::Expel(account, character) if yes && (self.guild.master || self.guild.expels) => self.send_on_map(&guild::expel(self.guild.id, account, character, reason.trim())),
+            GuildAsk::Expel(account, character) if yes && (self.guild.master || self.guild.expels) =>
+                self.send_on_map(&guild::expel(self.guild.id, account, character, reason.trim())),
             // The guild goes to the member: the first position is the master's (`MM_REQ_CHANGE_MEMBERPOS`).
             GuildAsk::Hand(account, character, _) if yes && self.guild.master => self.send_on_map(&guild::move_members(&[(account, character, 0)])),
             GuildAsk::Leave | GuildAsk::Expel(..) | GuildAsk::Hand(..) => {}

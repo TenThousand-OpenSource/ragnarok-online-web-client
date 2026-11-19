@@ -31,8 +31,13 @@ impl App {
         }
         let pair = |first: u16, second: u16| format!("{} + {}", self.value(first), self.value(second));
         // The server keeps the delay between attacks; the window shows the speed it means.
-        let attack_speed = (2000 - self.value(parameter::ATTACK_DELAY)) / 10;
-        let left = [pair(parameter::ATK, parameter::ATK_BONUS), pair(parameter::MATK_MIN, parameter::MATK_MAX), self.value(parameter::HIT).to_string(), self.value(parameter::CRITICAL).to_string()];
+        let attack_speed = crate::status::attack_speed(self.value(parameter::ATTACK_DELAY));
+        let left = [
+            pair(parameter::ATK, parameter::ATK_BONUS),
+            pair(parameter::MATK_MIN, parameter::MATK_MAX),
+            self.value(parameter::HIT).to_string(),
+            self.value(parameter::CRITICAL).to_string()
+        ];
         let right = [
             pair(parameter::DEF, parameter::DEF_BONUS),
             pair(parameter::MDEF, parameter::MDEF_BONUS),

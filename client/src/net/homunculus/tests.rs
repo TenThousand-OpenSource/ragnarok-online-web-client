@@ -50,7 +50,10 @@ fn reads_the_older_layouts_too() {
     packet.extend_from_slice(&[2, 0, 1, 0]);
     assert_eq!(packet.len(), 71);
     let read = property(ZC_PROPERTY_HOMUN, &packet).unwrap();
-    assert_eq!((read.level, read.intimacy, read.stats, read.hp, read.max_sp, read.exp, read.next_exp, read.skill_points, read.range), (3, 900, [1, 2, 3, 4, 5, 6, 7, 8], 100, 40, 7, 50, 2, 1));
+    assert_eq!(
+        (read.level, read.intimacy, read.stats, read.hp, read.max_sp, read.exp, read.next_exp, read.skill_points, read.range),
+        (3, 900, [1, 2, 3, 4, 5, 6, 7, 8], 100, 40, 7, 50, 2, 1)
+    );
     // 0x09f7: the same with the life in 32 bits.
     let mut packet = packet[..51].to_vec();
     packet[..2].copy_from_slice(&[0xf7, 0x09]);

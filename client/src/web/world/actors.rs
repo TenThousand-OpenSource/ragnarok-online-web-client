@@ -89,7 +89,7 @@ pub fn unit_shown(unit: &Unit) {
                 mover.put(cell);
                 // The server counts directions from the north and turning left, the sprites from the south and
                 // turning the other way.
-                mover.facing = (12 - unit.direction % 8) % 8;
+                mover.facing = crate::pose::facing_of(unit.direction);
                 // How it is there: sitting, or lying dead (the packet's `state`; the client's `AM_STANDENTRY`
                 // puts it straight into that state, lying in the last picture of its fall).
                 if unit.kind == Kind::Player {

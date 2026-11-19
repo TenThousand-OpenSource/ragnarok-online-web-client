@@ -177,7 +177,10 @@ mod tests {
 
     #[test]
     fn finds_the_lines() {
-        let table = "<monster_talk_table>\n<poring>\n<hungry>\n<feeding>\tNot bad.\t</feeding>\n<feeding>\tMore?\t</feeding>\n<stand>\tHm.\t</stand>\n</hungry>\n<full>\n<feeding>\tEnough.\t</feeding>\n</full>\n</poring>\n<drops>\n<hungry>\n<feeding>\tYum.\t</feeding>\n</hungry>\n</drops>\n</monster_talk_table>";
+        let table = "<monster_talk_table>\n<poring>\n<hungry>\n<feeding>\tNot bad.\t</feeding>\n<feeding>\tMore?\t</feeding>\n\
+            <stand>\tHm.\t</stand>\n</hungry>\n\
+            <full>\n<feeding>\tEnough.\t</feeding>\n</full>\n</poring>\n\
+            <drops>\n<hungry>\n<feeding>\tYum.\t</feeding>\n</hungry>\n</drops>\n</monster_talk_table>";
         assert_eq!(lines(table, "poring", "hungry", "feeding"), ["Not bad.", "More?"]);
         assert_eq!(lines(table, "poring", "full", "feeding"), ["Enough."]);
         assert_eq!(lines(table, "drops", "hungry", "feeding"), ["Yum."]);

@@ -37,7 +37,8 @@ pub(super) const GROUND_SHADER: &str = concat!(
 @group(1) @binding(2) var light: texture_2d<f32>;
 
 struct In { @location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) light_uv: vec2<f32>, @location(3) colour: vec3<f32> }
-struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) light_uv: vec2<f32>, @location(2) colour: vec3<f32>, @location(3) depth: f32 }
+struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) light_uv: vec2<f32>, ",
+    "@location(2) colour: vec3<f32>, @location(3) depth: f32 }
 
 @vertex fn vs(in: In) -> Out {
     var out: Out;
@@ -72,7 +73,8 @@ macro_rules! model_shader {
 @group(1) @binding(0) var picture: texture_2d<f32>;
 @group(1) @binding(1) var picture_sampler: sampler;
 
-struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) colour: vec3<f32>, @location(2) outward: vec3<f32>, @location(3) world: vec3<f32>, @location(4) depth: f32 }
+struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) colour: vec3<f32>, ",
+            "@location(2) outward: vec3<f32>, @location(3) world: vec3<f32>, @location(4) depth: f32 }
 
 @vertex fn vs(@location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) colour: vec3<f32>, @location(3) outward: vec3<f32>) -> Out {
     var out: Out;

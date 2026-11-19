@@ -110,21 +110,23 @@ pub(super) fn depth_view(device: &wgpu::Device, config: &wgpu::SurfaceConfigurat
         .create_view(&Default::default())
 }
 
-/// A buffer for the corners of `room` quads of effects: six corners each, of three coordinates, two texture ones
-/// and four of colour.
-pub(super) fn effect_buffer(device: &wgpu::Device, room: usize) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor { label: None, size: (room * 6 * 36) as u64, usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false })
-}
-
-/// A buffer for the corners of `room` sprites: six corners each, of three coordinates, two texture ones and
-/// four of colour.
-pub(super) fn sprite_buffer(device: &wgpu::Device, room: usize) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor { label: None, size: (room * 6 * 36) as u64, usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false })
+/// A buffer for the corners of `room` quads, of effects or of sprites alike: six corners each, of three
+/// coordinates, two texture ones and four of colour.
+pub(super) fn quad_buffer(device: &wgpu::Device, room: usize) -> wgpu::Buffer {
+    device.create_buffer(&wgpu::BufferDescriptor {
+        label: None,
+        size: (room * 6 * 36) as u64,
+        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false
+    })
 }
 
 /// The canvas's surface, the device that draws on it and its queue, and how the surface is set up for a canvas
 /// of this size.
-async fn connect(canvas: &HtmlCanvasElement, (width, height): (u32, u32)) -> Result<(wgpu::Surface<'static>, wgpu::Device, wgpu::Queue, wgpu::SurfaceConfiguration), String> {
+async fn connect(
+    canvas: &HtmlCanvasElement,
+    (width, height): (u32, u32)
+) -> Result<(wgpu::Surface<'static>, wgpu::Device, wgpu::Queue, wgpu::SurfaceConfiguration), String> {
     // WebGPU where the browser has it, WebGL2 otherwise.
     let instance = wgpu::util::new_instance_with_webgpu_detection(wgpu::InstanceDescriptor::new_without_display_handle()).await;
     let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone())).map_err(|error| error.to_string())?;
@@ -147,7 +149,15 @@ async fn connect(canvas: &HtmlCanvasElement, (width, height): (u32, u32)) -> Res
 }
 
 /// A pipeline drawing corners of these attributes with this shader onto a surface of this format.
-fn pipeline(device: &wgpu::Device, format: wgpu::TextureFormat, shader: &str, attributes: &[wgpu::VertexAttribute], stride: u64, blend: wgpu::BlendState, depth_write: bool) -> wgpu::RenderPipeline {
+fn pipeline(
+    device: &wgpu::Device,
+    format: wgpu::TextureFormat,
+    shader: &str,
+    attributes: &[wgpu::VertexAttribute],
+    stride: u64,
+    blend: wgpu::BlendState,
+    depth_write: bool
+) -> wgpu::RenderPipeline {
     let module = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: None, source: wgpu::ShaderSource::Wgsl(shader.into()) });
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: None,
@@ -178,6 +188,29 @@ fn pipeline(device: &wgpu::Device, format: wgpu::TextureFormat, shader: &str, at
     })
 }
 
+/// The three samplers: the usual one, smooth; the same that repeats its picture (the water's); and the one
+/// that takes the nearest pixel.
+fn samplers(device: &wgpu::Device) -> (wgpu::Sampler, wgpu::Sampler, wgpu::Sampler) {
+    let smooth = wgpu::SamplerDescriptor { mag_filter: wgpu::FilterMode::Linear, min_filter: wgpu::FilterMode::Linear, ..Default::default() };
+    let repeating = wgpu::SamplerDescriptor {
+        address_mode_u: wgpu::AddressMode::Repeat,
+        address_mode_v: wgpu::AddressMode::Repeat,
+        mag_filter: wgpu::FilterMode::Linear,
+        min_filter: wgpu::FilterMode::Linear,
+        ..Default::default()
+    };
+    (device.create_sampler(&smooth), device.create_sampler(&repeating), device.create_sampler(&wgpu::SamplerDescriptor::default()))
+}
+
+/// The bind group through which a pipeline reads the camera.
+fn camera_bind(device: &wgpu::Device, camera: &wgpu::Buffer, pipeline: &wgpu::RenderPipeline) -> wgpu::BindGroup {
+    device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: None,
+        layout: &pipeline.get_bind_group_layout(0),
+        entries: &[wgpu::BindGroupEntry { binding: 0, resource: camera.as_entire_binding() }],
+    })
+}
+
 impl Gpu {
     pub(super) async fn new() -> Result<Self, String> {
         let canvas = canvas()?;
@@ -193,14 +226,38 @@ impl Gpu {
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor { mag_filter: wgpu::FilterMode::Linear, min_filter: wgpu::FilterMode::Linear, ..Default::default() });
+        let (sampler, repeating, pixel_sampler) = samplers(&device);
 
-        let pipeline = |shader: &str, attributes: &[wgpu::VertexAttribute], stride: u64, blend: wgpu::BlendState, depth_write: bool| pipeline(&device, config.format, shader, attributes, stride, blend, depth_write);
-        let ground_pipeline = pipeline(GROUND_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x2, 3 => Float32x3], 40, wgpu::BlendState::REPLACE, true);
+        let pipeline =
+            |shader: &str, attributes: &[wgpu::VertexAttribute], stride: u64, blend: wgpu::BlendState, depth_write: bool| pipeline(
+                &device,
+                config.format,
+                shader,
+                attributes,
+                stride,
+                blend,
+                depth_write
+            );
+        let ground_pipeline = pipeline(
+            GROUND_SHADER,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x2, 3 => Float32x3],
+            40,
+            wgpu::BlendState::REPLACE,
+            true
+        );
         // The models: those whose pictures are cut out by their colour, and those mixed in by their alpha.
         let model_attributes = wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x3, 3 => Float32x3];
-        let model_pipelines = [pipeline(MODEL_SHADER, &model_attributes, 44, wgpu::BlendState::REPLACE, true), pipeline(MODEL_BLENDING_SHADER, &model_attributes, 44, wgpu::BlendState::ALPHA_BLENDING, false)];
-        let water_pipeline = pipeline(WATER_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32], 24, wgpu::BlendState::ALPHA_BLENDING, false);
+        let model_pipelines = [
+            pipeline(MODEL_SHADER, &model_attributes, 44, wgpu::BlendState::REPLACE, true),
+            pipeline(MODEL_BLENDING_SHADER, &model_attributes, 44, wgpu::BlendState::ALPHA_BLENDING, false)
+        ];
+        let water_pipeline = pipeline(
+            WATER_SHADER,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32],
+            24,
+            wgpu::BlendState::ALPHA_BLENDING,
+            false
+        );
         let effect_attributes = wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x4];
         let adding = wgpu::BlendComponent { src_factor: wgpu::BlendFactor::SrcAlpha, dst_factor: wgpu::BlendFactor::One, operation: wgpu::BlendOperation::Add };
         let sprite_pipeline = pipeline(SPRITE_SHADER, &effect_attributes, 36, wgpu::BlendState::ALPHA_BLENDING, false);
@@ -209,32 +266,17 @@ impl Gpu {
             pipeline(EFFECT_SHADER, &effect_attributes, 36, wgpu::BlendState::ALPHA_BLENDING, false),
             pipeline(EFFECT_SHADER, &effect_attributes, 36, wgpu::BlendState { color: adding, alpha: adding }, false),
         ];
-        let repeating = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::Repeat,
-            address_mode_v: wgpu::AddressMode::Repeat,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            ..Default::default()
-        });
 
-        // Both pipelines read the same camera, each through a bind group of its own layout.
-        let camera = |pipeline: &wgpu::RenderPipeline| {
-            device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: None,
-                layout: &pipeline.get_bind_group_layout(0),
-                entries: &[wgpu::BindGroupEntry { binding: 0, resource: camera_buffer.as_entire_binding() }],
-            })
-        };
+        // The pipelines read the same camera, each through a bind group of its own layout.
+        let camera = |pipeline: &wgpu::RenderPipeline| camera_bind(&device, &camera_buffer, pipeline);
         let (camera_bind, sprite_camera_bind) = (camera(&ground_pipeline), camera(&sprite_pipeline));
         let (model_camera_binds, water_camera_bind) = ([camera(&model_pipelines[0]), camera(&model_pipelines[1])], camera(&water_pipeline));
 
         let effect_camera_binds = [camera(&effect_pipelines[0]), camera(&effect_pipelines[1])];
         let sprite_adding_camera_bind = camera(&sprite_adding_pipeline);
-        let pixel_sampler = device.create_sampler(&wgpu::SamplerDescriptor::default());
         let sprite_room = 64;
-        let sprite_vertices = sprite_buffer(&device, sprite_room);
+        let (sprite_vertices, effect_vertices) = (quad_buffer(&device, sprite_room), quad_buffer(&device, 64));
         let depth = depth_view(&device, &config);
-        let effect_vertices = effect_buffer(&device, 64);
         Ok(Self {
             canvas,
             surface,

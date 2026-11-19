@@ -144,13 +144,7 @@ mod tests {
             Press::Back,
         ];
         // Every name is in the list at least once.
-        for name in Press::NAMES {
-            assert!(presses.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in presses {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        crate::press::testing::read_back(presses);
     }
 
     #[test]

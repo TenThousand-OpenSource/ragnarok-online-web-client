@@ -18,7 +18,12 @@ pub(super) const SETUP: (i32, i32) = (213, 90);
 
 /// A button of the bar that cannot be pressed: its one picture, and what it says when pointed at.
 fn bar_still(x: i32, y: i32, name: &str, tip: &str) -> String {
-    format!(r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat" data-tip="{}"></div>"#, at(x, y, 26, 20), picture(&format!("basic_interface/{name}.bmp")), escape(tip))
+    format!(
+        r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat" data-tip="{}"></div>"#,
+        at(x, y, 26, 20),
+        picture(&format!("basic_interface/{name}.bmp")),
+        escape(tip)
+    )
 }
 
 impl App {
@@ -71,7 +76,12 @@ impl App {
             if self.friends.picked == Some(row) { "background:#c6d6f7" } else { "" },
             escape(&friend.name)
         ));
-        format!(r#"<div style="position:relative;height:{ROW}px;cursor:default" {} {} {}>{inside}</div>"#, pressed(Press::Row(row)), menued(Menu::Friend(row)), used(Use::Friend(row)))
+        format!(
+            r#"<div style="position:relative;height:{ROW}px;cursor:default" {} {} {}>{inside}</div>"#,
+            pressed(Press::Row(row)),
+            menued(Menu::Friend(row)),
+            used(Use::Friend(row))
+        )
     }
 
     /// The bar of buttons under the list (`OnCreate`, `LayoutButtons` and `UM_REFRESHITEM` with `mode` 0), 26

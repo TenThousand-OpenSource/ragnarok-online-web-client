@@ -25,7 +25,9 @@ pub fn cells(gat: &[u8], water_level: Option<f32>) -> Result<(i16, i16, Vec<u8>)
     }
     let size = |at: usize| i32::from_le_bytes(gat[at..at + 4].try_into().unwrap());
     let (width, height) = (size(6), size(10));
-    let count = usize::try_from(width).ok().zip(usize::try_from(height).ok()).map(|(width, height)| width.saturating_mul(height)).ok_or("a GAT of negative size")?;
+    let count = usize::try_from(width).ok().zip(usize::try_from(height).ok()).map(|(width, height)| width.saturating_mul(height)).ok_or(
+        "a GAT of negative size"
+    )?;
     if width > i32::from(i16::MAX) || height > i32::from(i16::MAX) || gat.len() < 14 + count.saturating_mul(20) {
         return Err("a GAT larger than its file".to_owned());
     }
@@ -70,7 +72,12 @@ pub fn write(grf: &Grf, mut out: impl Write) -> std::io::Result<usize> {
         .filter(|name| !name.contains('\\') && name.is_ascii() && name.len() < NAME_LENGTH)
         .collect();
     // Maps that are another map's files under a name of their own (instances of dungeons, mostly).
-    names.extend(grf.alias_names().filter_map(|name| name.strip_suffix(".gat")).filter(|name| !name.contains('\\') && name.is_ascii() && name.len() < NAME_LENGTH).map(str::to_owned));
+    names.extend(
+        grf.alias_names()
+            .filter_map(|name| name.strip_suffix(".gat"))
+            .filter(|name| !name.contains('\\') && name.is_ascii() && name.len() < NAME_LENGTH)
+            .map(str::to_owned)
+    );
     names.sort();
     names.dedup();
 

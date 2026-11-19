@@ -55,7 +55,7 @@ fn told(grf: &grf::Grf, config: &Config, command: Command) {
                 }
             }
         }
-        Command::Tables => println!("{}", tables::for_browser(grf, &config.client_dir, &config.item_database)),
+        Command::Tables => println!("{}", tables::for_browser(&tables::Sources::read(grf, &config.client_dir), &config.client_dir, &config.item_database)),
         Command::ChatTabs => println!("{}", tables::chat_tabs(grf)),
         Command::Items(ids) => {
             let items = tables::Items::load(grf).with_server_names(&config.item_database).with_english(&config.client_dir);
@@ -81,7 +81,9 @@ fn told(grf: &grf::Grf, config: &Config, command: Command) {
 /// would run it against a newer page. The files the page names by their build (`?v=…`) never change under that
 /// name, so they may be kept, where the configuration lets them.
 fn client(web_dir: &std::path::Path, cache_client: bool) -> Router {
-    Router::new().fallback_service(ServeDir::new(web_dir)).layer(axum::middleware::from_fn(move |request: axum::extract::Request, next: axum::middleware::Next| async move {
+    Router::new().fallback_service(
+        ServeDir::new(web_dir)
+    ).layer(axum::middleware::from_fn(move |request: axum::extract::Request, next: axum::middleware::Next| async move {
         let by_build = cache_client && request.uri().query().is_some_and(|query| query.starts_with("v="));
         let mut response = next.run(request).await;
         let keep = if by_build && response.status().is_success() { "public, max-age=31536000, immutable" } else { "no-cache" };
@@ -125,7 +127,9 @@ async fn main() {
 
     // The first port is the login server's.
     let login_guard = Arc::new(bridge::LoginGuard::new(config.server_ports.first().copied().unwrap_or(6900)));
-    let items = tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).with_russian(std::path::Path::new("translations/ru"));
+    let items = tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).with_russian(
+        std::path::Path::new("translations/ru")
+    );
     eprintln!("tables: {} items", items.len());
     let accounts = accounts::router(config.accounts, accounts::Limits::default(), Some(login_guard.clone())).unwrap_or_else(|error| {
         eprintln!("{error}");
@@ -133,7 +137,13 @@ async fn main() {
     });
     let client = client(&config.web_dir, config.cache_client);
     let router = routes::router(routes::App::new(grf, items, &config.client_dir, &config.item_database))
-        .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60, lag: config.lag }))
+        .merge(bridge::router(bridge::Bridge {
+            host: config.server_host,
+            ports: config.server_ports,
+            login_guard: Some(login_guard.clone()),
+            connections_per_minute: 60,
+            lag: config.lag
+        }))
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
         .merge(client);
@@ -145,7 +155,11 @@ async fn main() {
     });
     eprintln!("gateway: http://{}", config.listen);
     if !config.lag.fixed.is_zero() || !config.lag.jitter.is_zero() {
-        eprintln!("gateway: DEBUG DELAY on everything to and from the game server: {} ms and up to {} ms more, each way", config.lag.fixed.as_millis(), config.lag.jitter.as_millis());
+        eprintln!(
+            "gateway: DEBUG DELAY on everything to and from the game server: {} ms and up to {} ms more, each way",
+            config.lag.fixed.as_millis(),
+            config.lag.jitter.as_millis()
+        );
     }
     axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }

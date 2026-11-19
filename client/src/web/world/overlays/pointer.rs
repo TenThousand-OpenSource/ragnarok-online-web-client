@@ -42,14 +42,23 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, over: Option<u32>
         Some(unit) if matches!(unit.look, Look::Creature(_)) => 1,
         None if on_portal => 3,
         // Over ground nobody can walk on, or off the map (the client's action 13, when nothing else is pointed at).
-        None if state.pointer.is_some_and(|pointer| view.pick(&scene.gat, (pointer.0 / width.max(1.0), pointer.1 / height.max(1.0))).is_none_or(|cell| !scene.gat.walkable(cell.0, cell.1))) => 8,
+        None if state.pointer.is_some_and(
+            |pointer| view.pick(&scene.gat, (pointer.0 / width.max(1.0), pointer.1 / height.max(1.0))).is_none_or(
+                |cell| !scene.gat.walkable(cell.0, cell.1)
+            )
+        ) => 8,
         _ => 0,
     };
     if pointing != state.pointing {
         state.pointing_since = time;
     }
     let pictures = state.pointers.get(pointing).map_or(0, |(pictures, _)| pictures.len());
-    let pointer_frame = crate::cursor::frame(POINTERS.get(pointing).copied().unwrap_or(0), pictures, time - state.pointing_since, state.held.map(|_| time - state.held_since));
+    let pointer_frame = crate::cursor::frame(
+        POINTERS.get(pointing).copied().unwrap_or(0),
+        pictures,
+        time - state.pointing_since,
+        state.held.map(|_| time - state.held_since)
+    );
     if pointing != state.pointing || pointer_frame != state.pointer_frame {
         state.pointing = pointing;
         state.pointer_frame = pointer_frame;
@@ -69,7 +78,9 @@ fn finger_goes_down(finger: Vec<String>) {
         let pressed_at = pressed_at.clone();
         Closure::<dyn FnMut()>::new(move || {
             let Some(since) = pressed_at.get() else { return };
-            let Some(root) = crate::web::document().and_then(|document| document.document_element()).and_then(|root| root.dyn_into::<web_sys::HtmlElement>().ok()) else { return };
+            let Some(root) = crate::web::document().and_then(|document| document.document_element()).and_then(
+                |root| root.dyn_into::<web_sys::HtmlElement>().ok()
+            ) else { return };
             if let Some(picture) = finger.get(crate::cursor::frame(2, finger.len(), 0.0, Some(now() - since))) {
                 let _ = root.style().set_property("--pressed", picture);
             }

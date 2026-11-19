@@ -26,22 +26,34 @@ impl App {
                 tab.push_str(&fill(x + 5, 46, 1, 241, LINE));
             }
             let arrow = match self.guild.sort {
-                Some((by, down)) if by == column => format!(r#"<img alt="" draggable="false" src="{}" style="margin-top:2px">"#, picture(if down { "guild/guild_arrow_down.bmp" } else { "guild/guild_arrow_up.bmp" })),
+                Some((by, down)) if by == column => format!(
+                    r#"<img alt="" draggable="false" src="{}" style="margin-top:2px">"#,
+                    picture(if down { "guild/guild_arrow_down.bmp" } else { "guild/guild_arrow_up.bmp" })
+                ),
                 _ => String::new(),
             };
-            tab.push_str(&format!(
-                r#"<div class="a t" style="{};padding:4px 0 0 4px;display:flex;align-items:flex-start;overflow:hidden;cursor:default;color:{BLACK};background:{}" {}>{}{arrow}</div>"#,
-                at(x + 6, 47, MEMBER_COLUMNS[column], 19),
-                if arrow.is_empty() { "transparent" } else { SORTED },
-                pressed(Press::Sort(column)),
-                escape(&Self::words(line, otherwise))
-            ));
+            tab.push_str(&[
+                format!(
+                    r#"<div class="a t" style="{};padding:4px 0 0 4px;display:flex;align-items:flex-start;overflow:hidden;"#,
+                    at(x + 6, 47, MEMBER_COLUMNS[column], 19)
+                ),
+                format!(
+                    r#"cursor:default;color:{BLACK};background:{}" {}>{}{arrow}</div>"#,
+                    if arrow.is_empty() { "transparent" } else { SORTED },
+                    pressed(Press::Sort(column)),
+                    escape(&Self::words(line, otherwise))
+                )
+            ].concat());
             x += MEMBER_COLUMNS[column] + 1;
         }
         let members = self.guild_listed();
         let mut rows: String = members.iter().enumerate().map(|(row, member)| self.guild_member_row(row, member)).collect();
         rows.push_str(&self.guild_position_combo());
-        tab.push_str(&format!(r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{rows}</div></div>"#, at(6, 67, WIDTH - 12, 5 * MEMBER_ROW), members.len() as i32 * MEMBER_ROW));
+        tab.push_str(&format!(
+            r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{rows}</div></div>"#,
+            at(6, 67, WIDTH - 12, 5 * MEMBER_ROW),
+            members.len() as i32 * MEMBER_ROW
+        ));
         tab.push_str(&check_words(12, HEIGHT - 18, self.guild.online_first, &Self::words(2864, "Show guild member login status"), Press::OnlineFirst));
         if self.guild.master && !self.guild.member_moves.is_empty() {
             tab.push_str(&picture_press(WIDTH - 61, HEIGHT - 23, "btn_ok", Press::MembersOk));
@@ -74,17 +86,30 @@ impl App {
             String::new()
         } else {
             let date = js_sys::Date::new(&(f64::from(member.seen) * 1000.0).into());
-            Self::words(3011, "%y.%m.%d").replace("%y", &format!("{:02}", date.get_full_year() % 100)).replace("%m", &format!("{:02}", date.get_month() + 1)).replace("%d", &format!("{:02}", date.get_date()))
+            Self::words(3011, "%y.%m.%d")
+                .replace("%y", &format!("{:02}", date.get_full_year() % 100))
+                .replace("%m", &format!("{:02}", date.get_month() + 1))
+                .replace("%d", &format!("{:02}", date.get_date()))
         };
         let head = match self.guild.heads.get(&crate::web::figure::head_sprite(member.job, member.sex as u8, member.hair)).filter(|_| member.online) {
-            Some(Some((picture, (width, _)))) => format!(r#"<img alt="" draggable="false" src="{picture}" style="position:absolute;left:{}px;top:3px;pointer-events:none">"#, 22 - *width as i32 / 2),
+            Some(Some((picture, (width, _)))) => format!(
+                r#"<img alt="" draggable="false" src="{picture}" style="position:absolute;left:{}px;top:3px;pointer-events:none">"#,
+                22 - *width as i32 / 2
+            ),
             _ => String::new(),
         };
-        let combo = if self.guild.master { pictured_by(Convention::ABC, 144, 12, (18, 18), "basic_interface/txtbox_btn", Press::Combo(row), "") } else { String::new() };
+        let combo = if self.guild.master {
+            pictured_by(Convention::ABC, 144, 12, (18, 18), "basic_interface/txtbox_btn", Press::Combo(row), "")
+        } else {
+            String::new()
+        };
         // The columns start 6 into the window, as the rows do.
         let right = |edge: i32, words: String| text_ending(edge - 6, 375, 16, BLACK, &words);
         [
-            format!(r#"<div style="position:absolute;left:0;top:{}px;width:375px;height:44px;border-bottom:1px solid {LINE};background:{ground}" {} {}>"#, row as i32 * MEMBER_ROW, pressed(Press::Member(row)), menued(Menu::GuildMember(row))),
+            [
+                format!(r#"<div style="position:absolute;left:0;top:{}px;width:375px;height:44px;border-bottom:1px solid "#, row as i32 * MEMBER_ROW),
+                format!(r#"{LINE};background:{ground}" {} {}>"#, pressed(Press::Member(row)), menued(Menu::GuildMember(row)))
+            ].concat(),
             head,
             fitted(37, 12, MEMBER_COLUMNS[0] / 2 + 2, BLACK, &member.name),
             fitted(MEMBER_COLUMNS[0] + 5, 16, MEMBER_COLUMNS[1] - 16, BLACK, &self.guild.position_name(self.guild.position_of(member))),
@@ -104,10 +129,13 @@ impl App {
     fn guild_position_combo(&self) -> String {
         let Some(row) = self.guild.combo else { return String::new() };
         let options: String = self.guild.positions.iter().map(|position| menu_row(&position.name, Press::Position(position.id))).collect();
-        format!(
-            r#"<div class="viewer" style="position:absolute;left:82px;top:{}px;width:150px;height:{}px;background:#fff;border:1px solid #9a9a9a;z-index:2">{options}</div>"#,
-            row as i32 * MEMBER_ROW + MEMBER_ROW - 2,
-            (self.guild.positions.len() as i32 * 16).clamp(16, 80) + 2
-        )
+        [
+            format!(
+                r#"<div class="viewer" style="position:absolute;left:82px;top:{}px;width:150px;height:{}px;"#,
+                row as i32 * MEMBER_ROW + MEMBER_ROW - 2,
+                (self.guild.positions.len() as i32 * 16).clamp(16, 80) + 2
+            ),
+            format!(r#"background:#fff;border:1px solid #9a9a9a;z-index:2">{options}</div>"#)
+        ].concat()
     }
 }

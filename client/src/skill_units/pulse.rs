@@ -74,7 +74,12 @@ impl Pulse {
         (0..4)
             .map(|side| {
                 let (from, to) = (corners[side], corners[(side + 1) % 4]);
-                [([from[0], 1.0, from[1]], [0.0, 1.0]), ([to[0], 1.0, to[1]], [1.0, 1.0]), ([to[0], 1.0 + self.height, to[1]], [1.0, 0.0]), ([from[0], 1.0 + self.height, from[1]], [0.0, 0.0])]
+                [
+                    ([from[0], 1.0, from[1]], [0.0, 1.0]),
+                    ([to[0], 1.0, to[1]], [1.0, 1.0]),
+                    ([to[0], 1.0 + self.height, to[1]], [1.0, 0.0]),
+                    ([from[0], 1.0 + self.height, from[1]], [0.0, 0.0])
+                ]
             })
             .collect()
     }

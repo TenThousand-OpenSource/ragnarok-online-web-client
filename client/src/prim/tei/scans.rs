@@ -59,7 +59,11 @@ impl Part {
         let mut point = |along: f32| {
             let shake: [f32; 3] = std::array::from_fn(|_| lots.lot(7) as f32 * 0.1 - 0.3);
             let far = if along > 0.0 { along / 90.0 * self.out } else { 0.0 };
-            [cosine(self.rise as f32) * far + shake[0] + self.at[0][0], -self.out * sine(along) * self.at[1][0] + shake[1] - 2.0 + self.at[0][1], sine(self.rise as f32) * far + shake[2] + self.at[0][2]]
+            [
+                cosine(self.rise as f32) * far + shake[0] + self.at[0][0],
+                -self.out * sine(along) * self.at[1][0] + shake[1] - 2.0 + self.at[0][1],
+                sine(self.rise as f32) * far + shake[2] + self.at[0][2]
+            ]
         };
         (point(self.heights[piece]), point(self.heights[piece + 1]))
     }
@@ -113,7 +117,9 @@ impl Part {
             let alpha = self.alpha - piece as i32 * 5;
             if alpha > 0 {
                 let pale = (piece * 6) as u8;
-                rects.extend(self.line_tube(piece).windows(2).map(|pair| Rect::new(picture, alpha, [pair[1].0, pair[1].1, pair[0].1, pair[0].0], (0.0, 1.0), [pale, pale, 255], true)));
+                rects.extend(self.line_tube(piece).windows(2).map(
+                    |pair| Rect::new(picture, alpha, [pair[1].0, pair[1].1, pair[0].1, pair[0].0], (0.0, 1.0), [pale, pale, 255], true)
+                ));
             }
         }
         rects
@@ -137,7 +143,14 @@ impl Prim {
                 let alpha = part.alpha - piece as i32 * 5;
                 if alpha > 0 && layer == 0 {
                     let pale = (piece * 3) as u8;
-                    rects.extend(edges.windows(2).map(|pair| Rect::new(self.picture, alpha, [pair[1].0, pair[1].1, pair[0].1, pair[0].0], (0.0, 1.0), [255, pale, pale], true)));
+                    rects.extend(edges.windows(2).map(|pair| Rect::new(
+                        self.picture,
+                        alpha,
+                        [pair[1].0, pair[1].1, pair[0].1, pair[0].0],
+                        (0.0, 1.0),
+                        [255, pale, pale],
+                        true
+                    )));
                 }
                 let last = edges[3];
                 if layer == 0 {
@@ -189,7 +202,15 @@ mod tests {
         prim.duration = 300;
         prim.parts = (0..4)
             .map(|index| {
-                let mut part = Part { tall: 0.1, alpha: if index == 0 { 250 } else { 140 - index * 30 }, rise: 270, out: 20.0, alpha_top: fade, seed: index as u32, ..Part::default() };
+                let mut part = Part {
+                    tall: 0.1,
+                    alpha: if index == 0 { 250 } else { 140 - index * 30 },
+                    rise: 270,
+                    out: 20.0,
+                    alpha_top: fade,
+                    seed: index as u32,
+                    ..Part::default()
+                };
                 part.at[1] = [0.05, 20.0, 0.0];
                 part
             })

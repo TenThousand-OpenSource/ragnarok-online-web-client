@@ -14,7 +14,8 @@ impl App {
                 }
             }
             net::actors::ZC_ITEM_FALL_ENTRY | net::actors::ZC_ITEM_ENTRY => {
-                if let Some((drop, item, cell, within, identified, count)) = net::actors::dropped(id, packet) {
+                let dropped = net::actors::dropped(id, packet);
+                if let Some(net::actors::Dropped { id: drop, item, cell, within, identified, count }) = dropped {
                     // Its picture is drawn once the item's name is known. One that falls now (not one that
                     // already lay there) is seen falling.
                     data::want_items(std::iter::once(item), || {});
@@ -40,7 +41,7 @@ impl App {
             net::actors::ZC_NOTIFY_VANISH => self.unit_vanished(packet),
             // Someone turns on the spot, or turns its head.
             net::actors::ZC_CHANGE_DIRECTION => {
-                if let Some((who, head, direction)) = net::actors::turned(packet) {
+                if let Some(net::actors::Turned { who, head, direction }) = net::actors::turned(packet) {
                     let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
                     world::turned((!own).then_some(who), head, direction);
                 }
@@ -119,7 +120,7 @@ impl App {
 
     /// ZC_ACK_REQNAMEALL_NPC (0x0adf): `u32 who, u32 group, char[24] name, char[24] title`.
     fn unit_named(packet: &[u8]) {
-        if let Some((who, group, name, title)) = net::actors::named(packet) {
+        if let Some(net::actors::Named { who, group, name, title }) = net::actors::named(packet) {
             world::unit_named(who, &name);
             // The title and the group are written with the name (`world/names.rs`).
             world::unit_titled(who, group, &title);
@@ -167,7 +168,7 @@ impl App {
 
     /// What someone wears or holds changes (ZC_SPRITE_CHANGE): it shows on them at once.
     fn look_changed(&mut self, packet: &[u8]) {
-        if let Some((who, kind, value, second)) = net::actors::look(packet) {
+        if let Some(net::actors::Look { who, kind, value, second }) = net::actors::look(packet) {
             let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
             world::looked((!own).then_some(who), kind, value, second);
             // A unit of a skill on the ground changes its kind in the same packet (`world/skill_units.rs`).

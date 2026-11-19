@@ -1,5 +1,6 @@
 //! Skills as rules, and no packets: which line of the client's message table says why a skill could not be
-//! used, and which effect a notice of the server shows. (The packets that bring them are `net/skills.rs`.)
+//! used, which effect a notice of the server shows, and the pages of a job's skill window. (The packets that
+//! bring them are `net/skills.rs`.)
 
 /// The causes the client answers with one line of its message table each (its `ReceiveSkillFailure`): the cause,
 /// and the line's number.
@@ -22,7 +23,10 @@ pub fn failure(skill: u16, value: i32, cause: u8) -> Option<usize> {
     match cause {
         // Not learned far enough. For the Basic Skill the value says what was tried: trading, an emotion,
         // sitting, a chat room, a party, shouting, fighting players, joining a party.
-        0 if skill == 1 => [(0, 159), (1, 160), (2, 161), (3, 162), (4, 163), (5, 164), (6, 165), (8, 1304)].iter().find(|(tried, _)| *tried == value).map(|(_, line)| *line),
+        0 if skill == 1 => [(0, 159), (1, 160), (2, 161), (3, 162), (4, 163), (5, 164), (6, 165), (8, 1304)]
+            .iter()
+            .find(|(tried, _)| *tried == value)
+            .map(|(_, line)| *line),
         // Warp Portal, Steal and Envenom have lines of their own.
         0 => Some(match skill {
             27 => 214,
@@ -62,9 +66,61 @@ pub fn use_level_stepped(used: u16, known: u16, more: bool) -> Option<u16> {
     (wanted != known).then_some(wanted)
 }
 
+/// The pages of a job's skill window, as the client lays them out (`skilltreeview.lub`): one for each job it
+/// grew through, the first with the Novice's skills among its own. `tree` has, by job, the job it grew out of
+/// and where its skills stand. Each page: the place of each skill (counting the cells row by row, seven to a
+/// row) and the skill.
+pub fn pages(job: u16, tree: &std::collections::HashMap<u16, (Option<u16>, Vec<(u16, u16)>)>) -> Vec<Vec<(u16, u16)>> {
+    // From the job back to the Novice.
+    let mut line = Vec::new();
+    let mut at = Some(job);
+    while let Some(job) = at.filter(|job| !line.contains(job) && line.len() < 8) {
+        line.push(job);
+        at = tree.get(&job).and_then(|(from, _)| *from).filter(|from| *from != job);
+    }
+    line.reverse();
+    let mut pages: Vec<Vec<(u16, u16)>> = Vec::new();
+    for (index, job) in line.iter().enumerate() {
+        let slots = tree.get(job).map(|(_, slots)| slots.clone()).unwrap_or_default();
+        // The Novice's page is the first job's too.
+        if index == 1 && line[0] == 0 {
+            pages[0].extend(slots);
+        } else {
+            pages.push(slots);
+        }
+    }
+    pages
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_job_has_a_page_for_each_job_it_grew_through() {
+        let tree: std::collections::HashMap<u16, (Option<u16>, Vec<(u16, u16)>)> = [
+            (0, (None, vec![(0, 1)])),
+            (1, (Some(0), vec![(1, 2), (2, 3)])),
+            (7, (Some(1), vec![(0, 55)])),
+            // One that grew out of itself, two that grew out of each other, one out of a job not in the table.
+            (20, (Some(20), vec![(0, 9)])),
+            (30, (Some(31), vec![(0, 10)])),
+            (31, (Some(30), vec![(0, 11)])),
+            (40, (Some(99), vec![(0, 12)])),
+        ]
+        .into_iter()
+        .collect();
+        assert_eq!(pages(0, &tree), [vec![(0, 1)]]);
+        // The Novice's page is the first job's too.
+        assert_eq!(pages(1, &tree), [vec![(0, 1), (1, 2), (2, 3)]]);
+        assert_eq!(pages(7, &tree), [vec![(0, 1), (1, 2), (2, 3)], vec![(0, 55)]]);
+        assert_eq!(pages(20, &tree), [vec![(0, 9)]]);
+        assert_eq!(pages(30, &tree), [vec![(0, 11)], vec![(0, 10)]]);
+        // A job the table does not have has an empty page, and so has one a job grew out of.
+        assert_eq!(pages(5, &tree), [Vec::new()]);
+        assert_eq!(pages(40, &tree), [Vec::new(), vec![(0, 12)]]);
+        assert_eq!(pages(3, &std::collections::HashMap::new()), [Vec::new()]);
+    }
 
     #[test]
     fn a_notified_effect_is_the_clients_number_for_its_kind() {

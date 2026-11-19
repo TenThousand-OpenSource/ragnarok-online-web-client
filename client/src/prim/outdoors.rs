@@ -81,7 +81,11 @@ mod tests {
         part.heights[..4].copy_from_slice(&[90.0, 200.0, 30.0, 100.0]);
         petal.parts.push(part);
         petal.tick(99_999_999);
-        assert!((petal.moved[0] - 0.24 * sine(93.0)).abs() < 1e-5 && (petal.moved[1] - 199.7).abs() < 1e-4 && (petal.moved[2] - 0.30 * sine(33.0)).abs() < 1e-5);
+        assert!(
+            (petal.moved[0] - 0.24 * sine(93.0)).abs() < 1e-5
+                && (petal.moved[1] - 199.7).abs() < 1e-4
+                && (petal.moved[2] - 0.30 * sine(33.0)).abs() < 1e-5
+        );
         // It keeps its alpha: nothing fades it.
         assert_eq!(petal.alpha, 200.0);
         let mut leaf = Prim { kind: Shape::Petal { slow: true }, moved: [0.0, 200.0, 0.0], ..petal.clone() };

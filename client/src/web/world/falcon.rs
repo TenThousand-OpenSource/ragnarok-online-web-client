@@ -58,7 +58,10 @@ pub(super) fn drawn(state: &mut State, time: f64, pictures: &mut Vec<Stood>) {
     let ticks = ((time - falcons.ticked) / crate::falcon::TICK_MS) as u32;
     falcons.ticked = if ticks > MOST_TICKS { time } else { falcons.ticked + f64::from(ticks) * crate::falcon::TICK_MS };
     let keeps = |mover: &Mover| matches!(mover.look, Look::Character(_)) && mover.state & crate::falcon::BIT != 0 && mover.state & crate::falcon::HIDDEN == 0;
-    let owners: Vec<(Option<u32>, &Mover)> = std::iter::once((None, &scene.player)).chain(scene.units.iter().map(|(id, mover)| (Some(*id), mover))).filter(|(_, mover)| keeps(mover)).collect();
+    let owners: Vec<(Option<u32>, &Mover)> = std::iter::once((None, &scene.player))
+        .chain(scene.units.iter().map(|(id, mover)| (Some(*id), mover)))
+        .filter(|(_, mover)| keeps(mover))
+        .collect();
     falcons.birds.retain(|owner, _| owners.iter().any(|(keeper, _)| keeper == owner));
     let ground = |place: (f32, f32)| on_ground(&scene.gat, place)[1];
     let yaw = scene.camera.yaw;

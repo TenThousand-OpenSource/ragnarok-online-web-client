@@ -17,7 +17,11 @@ impl Prim {
             Shape::Sphere3d => self.ball(place),
             Shape::CrossTexture3d => self.cross(place),
             Shape::QuadHorn3d => self.horn(place),
-            Shape::Texture2d | Shape::Quad2d | Shape::Flash2d | Shape::Circle2d | Shape::Particle3d | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::ParticleUp | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Texture3d | Shape::Cast(_) | Shape::Streak { .. } | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer | Shape::Petal { .. } => Vec::new(),
+            Shape::Texture2d | Shape::Quad2d | Shape::Flash2d | Shape::Circle2d | Shape::Particle3d
+            | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::ParticleUp
+            | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Texture3d | Shape::Cast(_)
+            | Shape::Streak { .. } | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer
+            | Shape::Petal { .. } => Vec::new(),
         }
     }
 
@@ -35,7 +39,11 @@ impl Prim {
         while angle <= 360.0 - self.arc {
             let next = angle + self.arc;
             corners.extend([point(angle, self.inner, 0.0, u, 1.0), point(angle, self.outer, self.height, u, 0.0), point(next, self.inner, 0.0, u + 0.25, 1.0)]);
-            corners.extend([point(next, self.inner, 0.0, u + 0.25, 1.0), point(angle, self.outer, self.height, u, 0.0), point(next, self.outer, self.height, u + 0.25, 0.0)]);
+            corners.extend([
+                point(next, self.inner, 0.0, u + 0.25, 1.0),
+                point(angle, self.outer, self.height, u, 0.0),
+                point(next, self.outer, self.height, u + 0.25, 0.0)
+            ]);
             u = if u + 0.25 >= 1.0 { 0.0 } else { u + 0.25 };
             angle = next;
         }

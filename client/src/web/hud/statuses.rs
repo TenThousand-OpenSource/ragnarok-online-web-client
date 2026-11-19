@@ -27,11 +27,13 @@ impl App {
                 let left = active.end.map(|end| end.saturating_sub(now));
                 let shade = left.map(|left| cooldowns::passing(active.total, left)).unwrap_or_default();
                 let (right, top) = place(index, height);
-                Some(format!(
-                    r#"<div class="a sti" style="right:{right}px;top:{top}px;width:32px;height:32px;background:url('{}') 0 0 / 100% 100% no-repeat">{shade}{}</div>"#,
-                    crate::web::image_url(&format!("data/texture/{file}")),
-                    Self::status_told(listed.pictured, left),
-                ))
+                Some([
+                    format!(
+                        r#"<div class="a sti" style="right:{right}px;top:{top}px;width:32px;height:32px;background:url('{}') 0 "#,
+                        crate::web::image_url(&format!("data/texture/{file}"))
+                    ),
+                    format!(r#"0 / 100% 100% no-repeat">{shade}{}</div>"#, Self::status_told(listed.pictured, left))
+                ].concat())
             })
             .collect()
     }
@@ -51,12 +53,16 @@ impl App {
             .enumerate()
             .map(|(index, (line, colour))| {
                 let line = if index + 1 == told.time { line.replacen("%s", &time, 1) } else { line.clone() };
-                format!(r#"<div style="color:{};min-height:11px;margin-bottom:4px;white-space:nowrap">{}</div>"#, crate::said::colour::css(*colour), escape(&line))
+                format!(
+                    r#"<div style="color:{};min-height:11px;margin-bottom:4px;white-space:nowrap">{}</div>"#,
+                    crate::said::colour::css(*colour),
+                    escape(&line)
+                )
             })
             .collect();
-        format!(
-            r#"<div class="a tip" style="right:32px;top:2px;padding:4px 6px 0;background:rgba(0,0,0,.4);border:1px solid #c0c0c0;border-radius:3px;{};text-shadow:1px 1px 0 #000">{lines}</div>"#,
-            SMALL.style()
-        )
+        [
+            format!(r#"<div class="a tip" style="right:32px;top:2px;padding:4px 6px 0;background:rgba(0,0,0,.4);border:1px "#),
+            format!(r#"solid #c0c0c0;border-radius:3px;{};text-shadow:1px 1px 0 #000">{lines}</div>"#, SMALL.style())
+        ].concat()
     }
 }

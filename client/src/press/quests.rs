@@ -55,20 +55,17 @@ presses! {
 #[cfg(test)]
 mod tests {
     use super::{Press, Row};
-    use crate::press::Named;
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
         let row = Row { number: 7122, recommended: false };
         let recommended = Row { number: 3, recommended: true };
-        let all = vec![Press::Window, Press::Tab(2), Press::Filter(4), Press::Search, Press::Pick(row), Press::Pick(recommended), Press::Listed(7122), Press::Lock(row), Press::Lock(recommended), Press::Display, Press::PaneClose, Press::Notice];
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        let all = vec![
+            Press::Window, Press::Tab(2), Press::Filter(4), Press::Search, Press::Pick(row), Press::Pick(recommended),
+            Press::Listed(7122), Press::Lock(row), Press::Lock(recommended), Press::Display, Press::PaneClose,
+            Press::Notice
+        ];
+        crate::press::testing::read_back(all);
     }
 
     #[test]

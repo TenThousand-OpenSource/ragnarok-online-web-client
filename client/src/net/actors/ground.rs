@@ -9,18 +9,32 @@ pub const ZC_ITEM_FALL_ENTRY: u16 = 0x0add;
 pub const ZC_ITEM_ENTRY: u16 = 0x009d;
 pub const ZC_ITEM_DISAPPEAR: u16 = 0x00a1;
 
-/// `(id, item, cell, where within the cell in sixteenths, identified, how many)` of a thing on the ground, from
-/// either packet (the count stands after the place within the cell in the one, before it in the other).
-pub fn dropped(id: u16, packet: &[u8]) -> Option<(u32, u32, (u16, u16), (u8, u8), bool, u16)> {
+/// A thing on the ground, as ZC_ITEM_FALL_ENTRY and ZC_ITEM_ENTRY tell of it.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Dropped {
+    /// The thing's own number on the ground.
+    pub id: u32,
+    pub item: u32,
+    pub cell: (u16, u16),
+    /// Where within the cell, in sixteenths (`sub_x`, `sub_y`).
+    pub within: (u8, u8),
+    pub identified: bool,
+    /// How many.
+    pub count: u16,
+}
+
+/// A thing on the ground, from either packet (the count stands after the place within the cell in the one,
+/// before it in the other).
+pub fn dropped(id: u16, packet: &[u8]) -> Option<Dropped> {
     let (at, within, identified, count) = if id == ZC_ITEM_FALL_ENTRY { (13, 17, 12, 19) } else { (11, 17, 10, 15) };
-    Some((
-        long(packet, 2)?,
-        long(packet, 6)?,
-        (word(packet, at)?, word(packet, at + 2)?),
-        (*packet.get(within)?, *packet.get(within + 1)?),
-        *packet.get(identified)? != 0,
-        word(packet, count)?,
-    ))
+    Some(Dropped {
+        id: long(packet, 2)?,
+        item: long(packet, 6)?,
+        cell: (word(packet, at)?, word(packet, at + 2)?),
+        within: (*packet.get(within)?, *packet.get(within + 1)?),
+        identified: *packet.get(identified)? != 0,
+        count: word(packet, count)?,
+    })
 }
 
 /// CZ_ITEM_PICKUP (0x0362): `u32 id`.

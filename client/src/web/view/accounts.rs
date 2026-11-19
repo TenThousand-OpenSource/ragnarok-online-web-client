@@ -8,7 +8,10 @@ impl App {
         // The client writes these two in the middle of their fields; here, by the player's wish, the text starts
         // at the left. The box is where the client has it, 56 in: the window's picture has a box drawn there,
         // and one anywhere else stands beside that one.
-        let field = |id: &str, y: i32, extra: &str| format!(r#"<input class="a in" id="{id}" maxlength="23" style="{};text-align:left;padding-left:4px;box-sizing:border-box" {extra}>"#, at(15, y, 153, 16));
+        let field = |id: &str, y: i32, extra: &str| [
+            format!(r#"<input class="a in" id="{id}" maxlength="23" style="{};text-align:left;padding-left:4px;"#, at(15, y, 153, 16)),
+            format!(r#"box-sizing:border-box" {extra}>"#)
+        ].concat();
         // The words by the box are the smaller text and those on the two buttons are bold (`UILoginWnd::OnCreate`:
         // `SetFont(0, 11, 0, 0)`, and `AddTextStyle` of height 12, bold).
         let (small, bold) = (SMALL.style(), BOLD.style());
@@ -25,15 +28,37 @@ impl App {
             </form>"#,
             combo = at(13, 10, 160, 22),
             service = self.text(Key::Service),
-            id = field("user", 40, &format!(r#"name="username" autocomplete="username" autofocus placeholder="{}" value="{}""#, self.text(Key::Id), escape(&self.saved_id))),
-            password = field("password", 64, &format!(r#"name="password" type="password" autocomplete="current-password" placeholder="{}""#, self.text(Key::Password))),
+            id = field(
+                "user",
+                40,
+                &format!(
+                    r#"name="username" autocomplete="username" autofocus placeholder="{}" value="{}""#,
+                    self.text(Key::Id),
+                    escape(&self.saved_id)
+                )
+            ),
+            password = field(
+                "password",
+                64,
+                &format!(r#"name="password" type="password" autocomplete="current-password" placeholder="{}""#, self.text(Key::Password))
+            ),
             check = at(56, 85, 12, 12),
             check_picture = background(checkbox),
             save = pressed(Press::SaveId),
             save_label = at(73, 85, 90, 14),
             save_text = self.text(Key::SaveId),
-            restore = button(&format!("{};{bold}", at(13, 104, 67, 21)), &states_of("login_interface/bt_close"), &pressed(Press::ToRecover), self.text(Key::Restore)),
-            register = button(&format!("{};{bold}", at(87, 104, 84, 21)), &states_of("login_interface/bt_join"), &pressed(Press::ToRegister), self.text(Key::Register)),
+            restore = button(
+                &format!("{};{bold}", at(13, 104, 67, 21)),
+                &states_of("login_interface/bt_close"),
+                &pressed(Press::ToRecover),
+                self.text(Key::Restore)
+            ),
+            register = button(
+                &format!("{};{bold}", at(87, 104, 84, 21)),
+                &states_of("login_interface/bt_join"),
+                &pressed(Press::ToRegister),
+                self.text(Key::Register)
+            ),
             login = at(192, 32, 84, 84),
             login_pictures = states_of("login_interface/bt_start"),
         );

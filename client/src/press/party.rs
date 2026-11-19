@@ -34,19 +34,7 @@ impl Entry {
     }
 }
 
-impl std::fmt::Display for Entry {
-    fn fmt(&self, to: &mut std::fmt::Formatter) -> std::fmt::Result {
-        to.write_str(self.text())
-    }
-}
-
-impl std::str::FromStr for Entry {
-    type Err = ();
-
-    fn from_str(text: &str) -> Result<Self, ()> {
-        Entry::ALL.into_iter().find(|entry| entry.text() == text).ok_or(())
-    }
-}
+worded!(Entry);
 
 presses! {
     /// What can be pressed here.
@@ -93,17 +81,21 @@ mod tests {
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
         let mut all = vec![
-            Press::Window, Press::Size, Press::Row(3), Press::Agency, Press::Setup, Press::Lock, Press::Create, Press::Leave, Press::Invite, Press::Sort, Press::Friends,
+            Press::Window,
+                Press::Size,
+                Press::Row(3),
+                Press::Agency,
+                Press::Setup,
+                Press::Lock,
+                Press::Create,
+                Press::Leave,
+                Press::Invite,
+                Press::Sort,
+                Press::Friends,
             Press::Experience(1), Press::Pickup(0), Press::SetupOk, Press::SetupCancel, Press::InviteOk, Press::InviteCancel, Press::Yes, Press::No,
         ];
         all.extend(Entry::ALL.map(Press::Do));
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        crate::press::testing::read_back(all);
     }
 
     #[test]

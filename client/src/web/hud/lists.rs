@@ -52,17 +52,23 @@ pub(super) struct Aside<'a> {
 /// the price ending at the right. The row under the pointer's press is marked as the client marks the one it
 /// hovers over.
 pub(super) fn item_row(row: &Row) -> String {
-    format!(
-        r#"<div class="row" tabindex="-1" style="position:relative;height:32px;cursor:default" {}><div class="a cell" style="left:0;top:0;background:url('{}')">{}{}</div><div class="a t" style="left:{}px;top:12px;width:{}px;overflow:hidden;white-space:nowrap;color:inherit">{}</div>{}</div>"#,
-        row.marks,
-        picture("basic_interface/itemwin_mid.bmp"),
-        App::icon(row.resource),
-        row.amount.map_or(String::new(), count),
-        row.name_at.0,
-        row.name_at.1,
-        escape(row.name),
-        row.aside.as_ref().map_or(String::new(), |Aside { html, inset, colour }| format!(r#"<div class="a t" style="right:{inset}px;top:12px;white-space:nowrap;color:{colour}">{html}</div>"#)),
-    )
+    [
+        format!(r#"<div class="row" tabindex="-1" style="position:relative;height:32px;cursor:default" {}>"#, row.marks),
+        format!(
+            r#"<div class="a cell" style="left:0;top:0;background:url('{}')">{}{}</div>"#,
+            picture("basic_interface/itemwin_mid.bmp"),
+            App::icon(row.resource),
+            row.amount.map_or(String::new(), count)
+        ),
+        format!(r#"<div class="a t" style="left:{}px;top:12px;width:{}px;overflow:hidden;white-space:nowrap;"#, row.name_at.0, row.name_at.1),
+        format!(
+            r#"color:inherit">{}</div>{}</div>"#,
+            escape(row.name),
+            row.aside.as_ref().map_or(String::new(), |Aside { html, inset, colour }| format!(
+                r#"<div class="a t" style="right:{inset}px;top:12px;white-space:nowrap;color:{colour}">{html}</div>"#
+            ))
+        )
+    ].concat()
 }
 
 /// The sum under a basket (`UIItemPurchaseWnd::Paint` and the windows like it): "Total : n Zeny", 12 in.

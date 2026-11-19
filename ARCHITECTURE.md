@@ -42,10 +42,11 @@ The rules, as `client/src/lib.rs` declares them:
 - *a system's rules*: `account`, `shops`, `inventory`, `storage`, `vending`, `exchange`, `mail`, `choosing`,
   `skills`, `pets`, `homunculus`, `mercenary`, `party`, `friends`, `pvp`, `chat`, `chat_rooms`, `chat_tabs`,
   `whispers`, `family`, `guide`, `quests`, `books`, `links`, `commands`, `cooldowns`, `statuses`, `hotkeys`,
-  `item_names`, `jobs`, `maps`, `said`, `song_talk`, `screenshot`, `ai`;
+  `item_names`, `jobs`, `maps`, `said`, `song_talk`, `screenshot`, `ai`, `status`, `basic`, `notices`,
+  `broadcast`, `marks`, `link`, `unread`;
 - *how the world is drawn*: `pose`, `blow`, `body`, `route`, `server_time`, `prim`, `scenery`,
   `effect_tables`, `state_effects`, `skill_units`, `ailments`, `aura`, `spirits`, `scope`, `quake`, `earshot`,
-  `names`, `cart`, `falcon`, `mounts`, `cursor`, `font`;
+  `names`, `cart`, `falcon`, `mounts`, `cursor`, `font`, `figures`, `bars`;
 - *shared by all*: `bytes`, `vector`, `tables`, `markup`, `kept`, `numbers`, `minimap`, `press`, `stack`,
   `snap`, `i18n`.
 
@@ -73,6 +74,8 @@ client/src/
     tests.rs              tests
     veils.rs              The two veils over the screen of the player's own character
   aura.rs               The aura of the highest level: who shows which of the client's effects, as the client…
+  bars.rs               The bars laid over the world, as figures
+  basic.rs              The Basic Information window as rules (the client's `UIBasicInfoWnd`)
   blow.rs               When a blow lands: the moment into the striker's swing at which the one struck flinches,…
     flight.rs             How the numbers and words of a fight fly
     landing.rs            The hits a blow is made of: how many land, how long after the first each lands, and as…
@@ -83,9 +86,10 @@ client/src/
     drawn.rs              The drawings of a body's picture, as the flags and the counts that effects have set on…
     tests.rs              tests
   books.rs              The books that are read in a window of their own (the client's `UIBookWnd`)
+  broadcast.rs          The server's announcements as the client shows them across the top of the screen…
   bytes.rs              Reading the game's files: one reader of little-endian numbers for every format (`.gat`,…
   cart.rs               The merchant's cart as it is drawn behind its owner
-  chat.rs               The chat window as rules: the sizes it steps through
+  chat.rs               The chat window as rules: the sizes it steps through, and how high it is at each
   chat_rooms.rs         Chat rooms as rules: what a room is and what its sign and its window say of it…
   chat_tabs.rs          The tabs of the chat window as the player has them
   choosing.rs           The lists a skill or a card opens, as rules
@@ -117,6 +121,7 @@ client/src/
   exchange.rs           A deal between two players as rules: the most zeny a side puts into it, the zeny typed…
   falcon.rs             The hunter's falcon as it is drawn by its owner
   family.rs             The family as rules: the lines the client says of a divorce and of an adoption that…
+  figures.rs            How a character is put together as rules, with the client's tables given…
   font.rs               The size the client writes a text in, from what its windows ask for
   friends.rs            The friends list as rules: how many it holds, and the colour each friend's name is…
   guide.rs              The Adventure Guide as rules (the client's `CUIAdventureGuide`, `CAdventureGuideMgr`)
@@ -133,6 +138,7 @@ client/src/
   jobs.rs               What the client knows of a job by its number alone
   kept.rs               What the game keeps in the browser between visits, as text
   lib.rs                roweb: a Ragnarok Online client for the browser
+  link.rs               The connection itself, as the client keeps it
   links.rs              The links written into what an NPC says (the client's `UITagTextViewer`, whose lines…
     items.rs              The links to items in a line of chat (`<ITEML>…</ITEML>`)
   mail.rs               The mail (the client's RODEX) as rules: how the letters are kept and ordered as the…
@@ -142,6 +148,7 @@ client/src/
     paths.rs              The paths walked on a map's cells, and the direction of a step
     tests.rs              tests
   maps.rs               A map by its name, and the client's table of the music of each (`mp3nametable.txt`)
+  marks.rs              The marks of the minimap that the server tells of, as the client takes them
   markup.rs             The marks the client's texts carry, told apart from the text here once
   mercenary.rs          The mercenary as rules: the title of its window, which mercenary it is to its script, how…
   minimap.rs            The minimap as rules: where a cell of the map lies on it, which part of the map it shows…
@@ -152,6 +159,7 @@ client/src/
     tests.rs              tests
   mounts.rs             What a job is drawn as in a state the server tells of
   names.rs              The name under someone the pointer is on
+  notices.rs            What the map server tells the player in a line of the chat, as the client says it
   numbers.rs            How the client writes a number in its windows (zeny, a price, a sum) and reads one typed…
   party.rs              The party as rules: what the client decides of its members that no packet says
   pets.rs               Pets as rules: the words of a pet's window for its hunger and its intimacy, what it feels…
@@ -313,10 +321,12 @@ client/src/
     own.rs                The player's own character arriving on a map
     seen.rs               Someone coming into sight: what the bits of its third option begin and end on it…
     tests.rs              tests
+  status.rs             The Status window as rules (the client's `UIStatusWnd`)
   statuses.rs           The states a character is in (its buffs and debuffs), as the client lists them at the…
   statuses.txt          read by statuses.rs
   storage.rs            The storage as rules, those of the client's window of it (`UIItemStoreWnd`)
   tables.rs             The shapes the client's tables of text come in, each read here once
+  unread.rs             The packets of the map server that this client does not read yet, counted
   vector.rs             Vectors of three, as far as the game needs them
   vending.rs            A player's shop as rules: what the client lets a shop have and a thing cost, what the…
   whispers.rs           The rules of a talk with one player in a window of its own (the client's `UIWhisperWnd`)
@@ -362,7 +372,7 @@ client/src/
       skills.rs             The skills a character knows: the list, one added, one raised
       tests.rs              tests
       wearing.rs            Putting things on and taking them off, as the server answers and as the Equipment…
-    link.rs               The connection itself: the client's watch on a connection gone silent, and why a server…
+    link.rs               The connection itself, as packets: the two that tell a server and the client that the…
     mail.rs               The mail (the client's RODEX): the letters the map server lists, one read, its zeny and…
       requests.rs           What the client sends about the mail: opening and closing the mailbox, reading,…
       tests.rs              tests
@@ -838,6 +848,10 @@ gateway/tests/
   accounts.rs           Registration and password recovery against the real services of `server/docker-compose.yml`
   bridge.rs             The WebSocket-to-TCP bridge, driven the way a browser drives it
   lag.rs                The bridge's debug delay (`bridge::Lag`, the gateway's `--lag` and `--jitter`)
+  live_rathena.rs       The bridge against a real server. These need the local rAthena of…
+  login_guard.rs        The bridge's login guard, against a stand-in login server
+  common/
+    mod.rs                What the tests of the bridge share (`bridge.rs`, `login_guard.rs`, `live_rathena.rs`)
 client/web/index.html   the page: its elements and its one style sheet (a layer of the windows has one rule)
 client/dist/            what build-web.sh makes of the client: the gateway serves it (not committed)
 server/                 a Docker setup of rAthena and MariaDB for development: docker-compose.yml, Dockerfile,
@@ -858,7 +872,10 @@ check.sh                what a change passes before it is committed: tests, the 
 rules.sh                switches the local server between the classic rules and Renewal's
 public.sh               opens the local server to invited friends: the invitation word, a Cloudflare tunnel
 tools/
-  limits.py             rules 4, 10 and 12 as far as a script can hold them, and that this map is the tree's
+  limits.py             rules 4, 10 and 12 as far as a script can hold them (files, functions and lines of
+                        `src` and `tests`), and that this map is the tree's
+  duplicates.py         measures rule 11: blocks of lines written in two places (`--loose`: but for their
+                        names and literals) and functions of one shape (`--shape`); `--max N` fails over N
   directory_map.py      writes this map
   split_module.py       moves functions of a file that grew too large into child modules
   packet-names.py       writes out what rAthena's headers call each packet (client/src/net/packet_names.txt)
@@ -946,8 +963,12 @@ These hold for everyone who writes here, people and agents alike. A change that 
    `use super::*;` and is about one thing. A type lives with the child that owns it (`Scene` in
    `world/scene.rs`, `State` in `world/state.rs`, a system's group in `app/state/<system>.rs`, `Window` in
    `hud/windows.rs`); `App` itself is in `app.rs`.
-4. **No file grows past about 500 lines.** One that does is cut by responsibility *in the same change* — not
-   later.
+4. **No file grows past about 500 lines, and no line past 160 characters.** A file that does is cut by
+   responsibility *in the same change* — not later. A line is written up to about 120 characters and wrapped
+   before 160 (a chain at its dots, a call at its arguments; a text too long for a line is made of pieces, see
+   "Conventions"): a long line hides size from the count of lines. `tools/limits.py` refuses a line over 200
+   and counts those over 160; the few left are lines of Lua, of JavaScript and of tests' tables inside a text,
+   which cannot be divided without changing the text.
 5. **One state, owned in one place.** What the game remembers is a field of its system's group in `App`
    (the groups are in `app/state/<system>.rs`, `App` in `app.rs`), or of the world's `State`
    (`world/state.rs`). No second copy, no hidden global except: the tables in `data/`; what `figure.rs` has
@@ -974,6 +995,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
     named for what it does: `world/frame.rs` is the pattern, a list of steps and nothing else.
 11. **Nothing is written twice.** What two places need is a function both call. Before writing a helper, look
     for one. Those in wide use, by layer:
+    - *measured*: `python3 tools/duplicates.py` prints what is written in two places; run it after a larger
+      change, and either write the thing once or say in `docs/DEBTS.md` why the two are not one thing.
     - *no browser*: `net::bytes` for reading a number, a text or a name out of a packet and
       `net::bytes::Writer` for writing one (`net::bytes::testing` for their tests); `crate::bytes::Reader` for
       a file of the game; `crate::vector` for vectors of three; `crate::tables` for a table of text;
@@ -981,7 +1004,13 @@ These hold for everyone who writes here, people and agents alike. A change that 
       `crate::numbers::{grouped, typed, filled, price_colour}` for numbers written, typed and filled into a
       line; `crate::jobs` for what a job is by its number; `crate::maps::bare` for a map's name without its
       ending; `crate::minimap` for places on the minimap; `crate::said` for the kind and the colour of a line
-      of the chat; `crate::font` for the client's sizes of text.
+      of the chat; `crate::font` for the client's sizes of text; `crate::pose::{facing_of, direction_of}` for a
+      direction of the servers as a sprite's facing and back, and `pose::hidden` for one not drawn;
+      `crate::bars::{below, over, left}` for where a bar or a name sits by the feet;
+      `crate::scenery::views::{eased, followed, limits}` for the camera's easing and a map's limits;
+      `crate::broadcast::wrapped` for words cut into lines of so many letters; in `crate::press`, `worded!`
+      for what goes with a press and is one of a few words, and `press::testing::read_back` for the test
+      every system's presses have.
     - *primitives* (`prim/`): for a kind of `prim/tei/`, `Part::waits`, `wander`, `fly_level`, `trail`
       (`tei/part.rs`), `Rect::band` and `Part::facing` (`tei/rect.rs`); `Slot::waits` for a kind of
       `prim/slots.rs`; `prim::testing` for what their tests share.
@@ -1016,7 +1045,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
       the table said with its blanks filled; `App::open_at`, `App::on_stage`, `App::counted` and
       `close_menus` (`app/windows.rs`); `App::own_account`.
     - *the gateway* (`gateway/src/tables.rs`): `state`, `exec`, `whole`, `text`, `text_only`, `lines`,
-      `numbered`, `by_number`, `latin`, `hash_fields`.
+      `numbered`, `by_number`, `latin`, `hash_fields`; `Sources` for what more than one kind of table reads of the
+      client's files, read once and handed down by `for_browser`, and `Script` for one Lua file as read.
 12. **Nothing on the page is named by hand.** What can be pressed is a value of `crate::press`, drawn through
     `web/parts.rs` (`pressed`, `used`, `dragged`, `dropped`, `menued`, `sent`) and matched as a value where
     it is handled, with no arm for "anything else": a press nobody handles, or a name nobody draws, does not
@@ -1029,7 +1059,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
     `field("quest-search")`, the account's forms…), and no script refuses that.
 
 Before finishing, and before any commit: `./check.sh`. It runs the tests, the build for the browser with no
-warnings, and `tools/limits.py`, which holds rules 4 and 10 and what a script can hold of rule 12. Its
+warnings, and `tools/limits.py`, which holds rules 4 and 10 (in each crate's `src` and `tests`) and what a
+script can hold of rule 12. Its
 `DISPATCHERS`, for a function over 100 lines that is a plain dispatcher, is empty: no function is that long
 now. A change is not committed until it ends with "all checks passed".
 
@@ -1213,6 +1244,9 @@ with its height over the head.
 - A parent module (`app.rs`, `world.rs`, `hud.rs`, `data.rs`) has what its children share and the list of
   them; a type lives with the child that owns it (`world/scene.rs`, `world/state.rs`,
   `app/state/<system>.rs`), behaviour in the children; a child starts with `use super::*;`.
+- A text of HTML too long for a line is written as its pieces, each a `format!` with the values its own
+  blanks take, joined: `[format!(…), format!(…)].concat()`. The pieces are cut between tags; the string made is
+  the one text.
 - A file that passes ~500 lines is split by responsibility (`tools/split_module.py` does the moving). The
   tests of a file that has many are in `<file>/tests.rs`.
 - A handler is named for its file: `<file>_packet` in `app/incoming/<file>.rs`, `<file>_pressed` in
@@ -1231,6 +1265,7 @@ cargo run --release -p roweb-gateway             # serves http://localhost:8080
 docker compose -f server/docker-compose.yml up   # a local rAthena
 ./rules.sh classic|renewal                       # which rules the local server plays by (rebuilds, restarts it)
 ./check.sh                                       # before a commit: tests, the browser build, tools/limits.py
+python3 tools/duplicates.py                      # what is written twice (rule 11), measured
 ```
 
 `./check.sh` must end with "all checks passed". `./rules.sh` writes `server/.env`; the gateway reads the same

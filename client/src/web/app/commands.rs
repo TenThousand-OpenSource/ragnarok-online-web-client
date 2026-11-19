@@ -39,10 +39,11 @@ impl App {
             return true;
         }
         // `/farwalk` is this project's own too: it switches walking in stretches to a place pressed farther
-        // than the server walks in one go (`world::Options::far_walk`). In the client such a press does nothing.
+        // than the server walks in one go (`world::Options::far_walk`), which is on at first. Off, such a press
+        // is asked once and does nothing, as in the client.
         if command == "/farwalk" {
-            self.switch_option(super::settings::FAR_WALK);
-            let now = if self.option(super::settings::FAR_WALK) { "far walk is on." } else { "far walk is off." };
+            self.switch_option(super::settings::CLIENT_WALK);
+            let now = if self.option(super::settings::CLIENT_WALK) { "far walk is off." } else { "far walk is on." };
             self.chat_line(crate::i18n::tr(now).to_owned(), YELLOW);
             return true;
         }
@@ -116,7 +117,10 @@ impl App {
             // `/bgm` and `/sound` switch the music and the effects' sounds, as the Game Settings' own switches
             // do, and say so (`TT_MUSIC_ON_OFF`, `TT_EFFECT_SOUND_ON_OFF`: `MSI_BGM_ON` and the like).
             "TT_MUSIC_ON_OFF" | "TT_EFFECT_SOUND_ON_OFF" => {
-                let (off, said) = if asks == "TT_MUSIC_ON_OFF" { (&mut self.settings.music_off, ["MSI_BGM_ON", "MSI_BGM_OFF"]) } else { (&mut self.settings.effects_off, ["MSI_SOUND_ON", "MSI_SOUND_OFF"]) };
+                let (off, said) = if asks == "TT_MUSIC_ON_OFF" { (&mut self.settings.music_off, ["MSI_BGM_ON", "MSI_BGM_OFF"]) } else { (
+                    &mut self.settings.effects_off,
+                    ["MSI_SOUND_ON", "MSI_SOUND_OFF"]
+                ) };
                 *off = !*off;
                 let said = crate::commands::message(said[usize::from(*off)]).and_then(data::message);
                 self.sound_levels();

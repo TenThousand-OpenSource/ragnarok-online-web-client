@@ -39,7 +39,7 @@ impl App {
 
     /// How many of a row of the shop's list are in the basket.
     pub(in crate::web) fn shop_kept(&self, row: usize) -> u32 {
-        self.shops.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount))
+        crate::shops::kept(&self.shops.basket, row)
     }
 
     /// The rows of the shop: what it sells, or what it takes of what is carried (how many of each are carried).
@@ -58,7 +58,14 @@ impl App {
                 .enumerate()
                 .filter_map(|(row, bid)| {
                     let item = self.bag.items.iter().find(|item| item.index == bid.index)?;
-                    Some(Line { row, id: item.id, identified: item.identified, name: Self::item_name(item), prices: (bid.price, bid.overcharged), amount: u32::from(item.amount) })
+                    Some(Line {
+                        row,
+                        id: item.id,
+                        identified: item.identified,
+                        name: Self::item_name(item),
+                        prices: (bid.price, bid.overcharged),
+                        amount: u32::from(item.amount)
+                    })
                 })
                 .collect(),
             _ => Vec::new(),
@@ -119,7 +126,10 @@ impl App {
             _ => return String::new(),
         };
         let lines = self.shop_lines();
-        let kept: Vec<(&Line, u32)> = self.shops.basket.iter().filter_map(|(row, amount)| Some((lines.iter().find(|line| line.row == *row)?, u32::from(*amount)))).collect();
+        let kept: Vec<(&Line, u32)> = self.shops.basket
+            .iter()
+            .filter_map(|(row, amount)| Some((lines.iter().find(|line| line.row == *row)?, u32::from(*amount))))
+            .collect();
         let rows: String = kept
             .iter()
             .map(|(line, amount)| {
@@ -127,7 +137,7 @@ impl App {
                 Self::shop_row(line, Some(*amount), if selling { 100 } else { 110 }, if selling { "Zeny" } else { "Z" }, &marks)
             })
             .collect();
-        let total: i64 = kept.iter().map(|(line, amount)| i64::from(line.prices.1) * i64::from(*amount)).sum();
+        let total = crate::shops::total(kept.iter().map(|(line, amount)| (line.prices.1, *amount)));
         let (title, deal) = if selling { (Self::words(168, "Selling Items"), "btn_sell") } else { (Self::words(166, "Buying Items"), "btn_buy") };
         format!(
             "<div {}>{}{}{}{}{}</div>",

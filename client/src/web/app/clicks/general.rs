@@ -14,7 +14,12 @@ impl App {
                 store("roweb.lang", Some(lang.code()));
                 // The items and skills are asked for again, in the new language.
                 data::forget_texts();
-                let known: Vec<u32> = self.bag.items.iter().map(|item| item.id).chain(self.skills.hotkeys.iter().filter(|hotkey| !hotkey.skill).map(|hotkey| hotkey.id)).chain(self.bag.info.map(|(id, _)| id)).collect();
+                let known: Vec<u32> = self.bag.items
+                    .iter()
+                    .map(|item| item.id)
+                    .chain(self.skills.hotkeys.iter().filter(|hotkey| !hotkey.skill).map(|hotkey| hotkey.id))
+                    .chain(self.bag.info.map(|(id, _)| id))
+                    .collect();
                 data::want_items(known.into_iter(), || dispatch(Action::ItemsKnown));
                 if let Some(skill) = self.skills.info {
                     data::want_skill(skill, || dispatch(Action::ItemsKnown));

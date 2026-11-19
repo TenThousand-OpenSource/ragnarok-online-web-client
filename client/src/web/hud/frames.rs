@@ -78,12 +78,18 @@ pub(in crate::web) fn panel_ground(x: i32, y: i32, width: i32, height: i32) -> S
 
 /// The same ground with its two lower corners rounded, for a window that has no bar of buttons under it.
 pub(in crate::web) fn panel_ground_round(x: i32, y: i32, width: i32, height: i32) -> String {
-    format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;border-radius:0 0 3px 3px;box-sizing:border-box"></div>"#, at(x, y, width, height))
+    [
+        format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;border-radius:0 0 "#, at(x, y, width, height)),
+        format!(r#"3px 3px;box-sizing:border-box"></div>"#)
+    ].concat()
 }
 
 /// A white strip with a grey line at its two sides only: what stands between a title and what is under it.
 pub(in crate::web) fn side_rimmed(x: i32, y: i32, width: i32, height: i32) -> String {
-    format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(x, y, width, height))
+    [
+        format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid "#, at(x, y, width, height)),
+        format!(r#"#c8c8c8;box-sizing:border-box"></div>"#)
+    ].concat()
 }
 
 /// The white panel every plain window has under its title (`UIWindow::DrawPanelBackground`), with the bar its
@@ -97,12 +103,14 @@ pub(in crate::web) fn panel(width: i32, height: i32) -> String {
 /// part wanted shows, and takes no press.
 pub(in crate::web) fn figure_canvas(id: &str, (x, y, width, height): (i32, i32, i32, i32), (left, top): (i32, i32)) -> String {
     let px = |length: i32| if length == 0 { "0".to_owned() } else { format!("{length}px") };
-    format!(
-        r#"<div class="a" style="{};overflow:hidden;pointer-events:none"><canvas id="{id}" width="{}" height="{}" style="position:absolute;left:{};top:{}"></canvas></div>"#,
-        at(x, y, width, height),
-        crate::web::figure::WIDTH,
-        crate::web::figure::HEIGHT,
-        px(left),
-        px(top)
-    )
+    [
+        format!(r#"<div class="a" style="{};overflow:hidden;pointer-events:none">"#, at(x, y, width, height)),
+        format!(
+            r#"<canvas id="{id}" width="{}" height="{}" style="position:absolute;left:{};top:{}"></canvas></div>"#,
+            crate::web::figure::WIDTH,
+            crate::web::figure::HEIGHT,
+            px(left),
+            px(top)
+        )
+    ].concat()
 }

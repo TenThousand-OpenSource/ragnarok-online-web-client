@@ -67,7 +67,8 @@ mod tests {
 
     /// The line of `prt_fild08` as the client's table has it (the lines after it stand right under it, with
     /// no empty line between).
-    const FIELDS: &str = "prt_fild07.rsw#\n0.25#\n0.6#\n0xffBAFF77#\n0.3#\nprt_fild08.rsw#\n0.25#\n0.6#\n0xffBAFF77#\n0.3#\nprt_fild09.rsw#\n0.25#\n0.6#\n0xffBAFF77#\n0.3#\n";
+    const FIELDS: &str =
+        "prt_fild07.rsw#\n0.25#\n0.6#\n0xffBAFF77#\n0.3#\nprt_fild08.rsw#\n0.25#\n0.6#\n0xffBAFF77#\n0.3#\nprt_fild09.rsw#\n0.25#\n0.6#\n0xffBAFF77#\n0.3#\n";
 
     /// How deep in the view the ground is that the camera looks at from `distance`, tipped 45 degrees over
     /// level ground (`web/world/camera.rs`): where it looks (the character's feet), and at the top edge of the

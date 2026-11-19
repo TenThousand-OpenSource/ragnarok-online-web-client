@@ -165,7 +165,10 @@ impl App {
     /// only among the letters of the first kind).
     fn mail_sender_pressed(&mut self, row: usize) {
         let Some((tab::NORMAL, id)) = self.mail.rows(epoch()).get(row).copied().filter(|_| self.mail.tab == tab::NORMAL) else { return };
-        let sender = self.mail.store.get(tab::NORMAL, id).filter(|letter| letter.has & has::NPC == 0 && !letter.sender.is_empty() && !letter.gone).map(|letter| letter.sender.clone());
+        let sender = self.mail.store
+            .get(tab::NORMAL, id)
+            .filter(|letter| letter.has & has::NPC == 0 && !letter.sender.is_empty() && !letter.gone)
+            .map(|letter| letter.sender.clone());
         if let Some(sender) = sender {
             self.mail_write_to(&sender);
         }

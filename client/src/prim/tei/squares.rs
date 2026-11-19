@@ -41,7 +41,14 @@ impl Part {
             let angle = ((self.turned + 45 + quarter * 90) % 360) as f32;
             [self.out * cosine(angle) + self.at[0][0], self.at[0][1], self.out * sine(angle) + self.at[0][2]]
         };
-        vec![Rect::new(picture, self.alpha, [corner(0), corner(1), corner(2), corner(3)], (0.0, 1.0), if self.flags[1] == 2 { [0, 255, 0] } else { [200, 200, 255] }, false)]
+        vec![Rect::new(
+            picture,
+            self.alpha,
+            [corner(0), corner(1), corner(2), corner(3)],
+            (0.0, 1.0),
+            if self.flags[1] == 2 { [0, 255, 0] } else { [200, 200, 255] },
+            false
+        )]
     }
 }
 

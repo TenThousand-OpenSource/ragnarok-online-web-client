@@ -52,7 +52,15 @@ mod tests {
     fn walls() -> Prim {
         let mut cones = Prim::new(Shape::Tei(Tei::Magnum2), "ring_yellow.tga");
         (cones.duration, cones.size) = (100, 5.0);
-        cones.parts.extend((0..2).map(|index| Part { round: 360, tall: 20.0, turned: index * 9, out: 5.0, rise: (35 - index * 4) * 2, alpha_top: index, ..Part::default() }));
+        cones.parts.extend((0..2).map(|index| Part {
+            round: 360,
+            tall: 20.0,
+            turned: index * 9,
+            out: 5.0,
+            rise: (35 - index * 4) * 2,
+            alpha_top: index,
+            ..Part::default()
+        }));
         cones
     }
 

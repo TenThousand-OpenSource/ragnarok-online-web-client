@@ -94,7 +94,11 @@ impl App {
                 }
             }
             Drag::Stored(index) => {
-                if let Some(amount) = self.storage.open.as_ref().and_then(|stored| stored.items.iter().find(|item| item.index == index)).map(|item| item.amount) {
+                if let Some(amount) = self.storage.open
+                    .as_ref()
+                    .and_then(|stored| stored.items.iter().find(|item| item.index == index))
+                    .map(|item| item.amount)
+                {
                     self.cart_move(Carting::FromStorage(index), amount);
                 }
             }

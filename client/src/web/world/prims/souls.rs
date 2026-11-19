@@ -48,7 +48,12 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         _ => {}
     }
     // Where the light is across the screen and over the ground, while it leaves sparks.
-    let light = prims.iter().find(|prim| prim.kind == Shape::Tei(Tei::SoulLink)).and_then(|prim| prim.parts.first()).filter(|light| light.process > 0 && light.process < 180).map(|light| light.at[2]);
+    let light = prims
+        .iter()
+        .find(|prim| prim.kind == Shape::Tei(Tei::SoulLink))
+        .and_then(|prim| prim.parts.first())
+        .filter(|light| light.process > 0 && light.process < 180)
+        .map(|light| light.at[2]);
     if let Some([across, down, _]) = light {
         prims.push(soul_light([across * cosine(course.yaw), down, -across * sine(course.yaw)], course));
     }

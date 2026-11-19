@@ -138,7 +138,12 @@ fn heal_rings(picture: &'static str, kind: u8, course: &mut Course, prims: &mut 
         let holds = if kind == 0 { 60 } else { 40 };
         let low = if kind == 0 { 12.0 } else { 18.0 };
         let (third, fourth) = (lot(360) as i32, lot(360) as i32);
-        let slots = vec![Slot::wall(0, 4.6, 90, 60.0, holds), Slot::wall(180, 5.0, 90, 60.0, holds), Slot::wall(third, 5.0, 50, low, holds), Slot::wall(fourth, 5.2, 48, low, holds)];
+        let slots = vec![
+            Slot::wall(0, 4.6, 90, 60.0, holds),
+            Slot::wall(180, 5.0, 90, 60.0, holds),
+            Slot::wall(third, 5.0, 50, low, holds),
+            Slot::wall(fourth, 5.2, 48, low, holds)
+        ];
         prims.push(walls(picture, if kind == 2 { BLUE } else { GREEN }, course.lasts, slots));
     } else if tick <= 50 && tick % 6 == 0 && kind < 2 {
         prims.push(motes(course, 2.0, if kind == 0 { 0.4 } else { 0.6 }, true));
@@ -148,7 +153,12 @@ fn heal_rings(picture: &'static str, kind: u8, course: &mut Course, prims: &mut 
     }
     if tick == 1 {
         let (third, fourth) = (lot(360) as i32, lot(360) as i32);
-        let slots = vec![Slot::wall(0, 4.2, 90, 90.0, 40), Slot::wall(90, 4.3, 90, 90.0, 40), Slot::wall(third, 5.3, 46, 10.0, 30), Slot::wall(fourth, 5.4, 44, 10.0, 30)];
+        let slots = vec![
+            Slot::wall(0, 4.2, 90, 90.0, 40),
+            Slot::wall(90, 4.3, 90, 90.0, 40),
+            Slot::wall(third, 5.3, 46, 10.0, 30),
+            Slot::wall(fourth, 5.4, 44, 10.0, 30)
+        ];
         prims.push(walls("alpha_down.tga", GREEN, course.lasts, slots));
     }
     if tick <= 50 && tick % 9 == 2 {

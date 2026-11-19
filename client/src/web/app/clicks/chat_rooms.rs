@@ -132,7 +132,10 @@ impl App {
             return;
         }
         let Some(own) = self.game.as_ref().map(|game| game.name.clone()) else { return };
-        let picked = self.chat_rooms.sitting.as_ref().and_then(|sitting| sitting.members.get(sitting.picked?)).map(|(_, name)| name.clone()).filter(|name| *name != own);
+        let picked =
+            self.chat_rooms.sitting.as_ref().and_then(|sitting| sitting.members.get(sitting.picked?)).map(|(_, name)| name.clone()).filter(
+                |name| *name != own
+            );
         match picked {
             Some(to) if !words.starts_with('/') => self.whisper_send(&to, words),
             _ => self.send_on_map(&packets::say(&own, words)),
@@ -177,7 +180,13 @@ impl App {
             // `UIChatRoomChangeWnd`). The password is not told by the server: its line is empty.
             (Press::Change, _) => {
                 if let Some(room) = self.chat_rooms.sitting.as_ref().map(|sitting| &sitting.room) {
-                    self.chat_rooms.making = Some(Making { changes: true, limit: room.limit, public: room.kind != kind::PRIVATE, title: room.title.clone(), ..Making::default() });
+                    self.chat_rooms.making = Some(Making {
+                        changes: true,
+                        limit: room.limit,
+                        public: room.kind != kind::PRIVATE,
+                        title: room.title.clone(),
+                        ..Making::default()
+                    });
                     self.redraw(&[&wnd::ROOM_MAKE]);
                 }
             }

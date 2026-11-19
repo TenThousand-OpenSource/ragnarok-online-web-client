@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Checks what of ARCHITECTURE.md's rules a script can: the two sizes (rules 4 and 10: no source file past about
-500 lines, no function past about 100; lines so long that they hide size are counted in a note), and that nothing on the page is named by hand (rule 12: what can be
+"""Checks what of ARCHITECTURE.md's rules a script can: the three sizes (rules 4 and 10: no source file past
+about 500 lines, no function past about 100, no line past 200 characters, which would hide size from the other
+two; the tests in `tests/` folders are held to the same), and that nothing on the page is named by hand (rule 12: what can be
 pressed, used, dragged or sent is written through `web/parts.rs` from a value of `crate::press`; and the page's
 style sheet names no window of the game to say how it lies over the others, which the window's entry in
 `hud/windows.rs` says with its `layer`); and that the directory map of ARCHITECTURE.md is the one
@@ -16,8 +17,14 @@ import sys
 
 FILE_LINES = 500
 FUNCTION_LINES = 100
-# A line longer than this hides size from the count of lines. Reported, not refused yet: there are some.
+# A line longer than this hides size from the count of lines, and is refused. (Lines are written up to about
+# 120 and wrapped past 160; what is between 160 and 200 is counted in a note.)
 LINE_CHARACTERS = 200
+WRAPPED_PAST = 160
+# Files whose long lines are tables of literals of a test that cannot be divided. None now.
+LONG_LINES = set()
+# Where the sources are: each crate's `src`, and its tests beside it.
+SOURCES = ["client/src", "client/tests", "gateway/src", "gateway/tests"]
 # Plain dispatchers: a `match` over packets or actions whose arms are a line or two each, as (file, function).
 # None is longer than a function may be now.
 DISPATCHERS = set()
@@ -66,14 +73,20 @@ def layered_by_name():
 def main():
     over = []
     long_lines = []
-    for path in sorted(glob.glob("client/src/**/*.rs", recursive=True) + glob.glob("gateway/src/**/*.rs", recursive=True)):
+    for path in sorted(path for root in SOURCES for path in glob.glob(f"{root}/**/*.rs", recursive=True)):
         lines = open(path, encoding="utf-8").read().split("\n")
         if len(lines) - 1 > FILE_LINES:
             over.append(f"{path}: {len(lines) - 1} lines (a file is at most about {FILE_LINES})")
         for name, at, long in functions(lines):
             if long > FUNCTION_LINES and (path, name) not in DISPATCHERS:
                 over.append(f"{path}:{at}: fn {name} is {long} lines (a function is at most about {FUNCTION_LINES})")
-        long_lines.extend((len(line), path, at + 1) for at, line in enumerate(lines) if len(line) > LINE_CHARACTERS)
+        long_lines.extend((len(line), path, at + 1) for at, line in enumerate(lines) if len(line) > WRAPPED_PAST)
+        if path not in LONG_LINES:
+            over.extend(
+                f"{path}:{at + 1}: a line of {len(line)} characters (a line is at most {LINE_CHARACTERS}; wrap it, or cut what it does into named steps)"
+                for at, line in enumerate(lines)
+                if len(line) > LINE_CHARACTERS
+            )
         if path != WRITES_NAMES:
             for at, line in enumerate(lines):
                 if BY_HAND.search(line) and not line.lstrip().startswith("//"):
@@ -85,14 +98,14 @@ def main():
     for line in over:
         print(line)
     if not over:
-        print("rules: every file and function is within the limits, and no name of the page is written by hand")
+        print("rules: every file, function and line is within the limits, and no name of the page is written by hand")
     if long_lines:
         longest, path, at = max(long_lines)
         by_file = {}
         for _, name, _ in long_lines:
             by_file[name] = by_file.get(name, 0) + 1
         most = sorted(by_file.items(), key=lambda entry: -entry[1])[:3]
-        print(f"note: {len(long_lines)} lines are longer than {LINE_CHARACTERS} characters and hide size from the count of lines "
+        print(f"note: {len(long_lines)} lines are longer than {WRAPPED_PAST} characters "
               f"(the longest: {path}:{at}, {longest}; most in " + ", ".join(f"{name} ({count})" for name, count in most) + ")")
     return 1 if over else 0
 

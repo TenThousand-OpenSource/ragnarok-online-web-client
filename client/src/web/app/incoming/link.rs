@@ -16,7 +16,7 @@ impl App {
     /// the reason's number after it in brackets (`CGameMode::ReceiveNotifyBan`), on the way in alone
     /// (`CLoginMode::ReceiveNotifyBan`). Until the table is read, this client's own words for it.
     pub(super) fn ban_words(&self, reason: u8) -> String {
-        let (line, bracketed) = link::ban_line(reason, self.server == Server::Map);
+        let (line, bracketed) = crate::link::ban_line(reason, self.server == Server::Map);
         match data::message(line) {
             Some(words) if bracketed => format!("{}({reason})", crate::i18n::tr(&words)),
             Some(words) => crate::i18n::tr(&words).to_owned(),

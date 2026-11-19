@@ -20,7 +20,8 @@ fn a_thing_on_the_ground_says_how_many_lie_there() {
     falls[15..17].copy_from_slice(&160u16.to_le_bytes());
     (falls[17], falls[18]) = (3, 9);
     falls[19..21].copy_from_slice(&11u16.to_le_bytes());
-    assert_eq!(dropped(ZC_ITEM_FALL_ENTRY, &falls), Some((77, 512, (150, 160), (3, 9), true, 11)));
+    let fell = Dropped { id: 77, item: 512, cell: (150, 160), within: (3, 9), identified: true, count: 11 };
+    assert_eq!(dropped(ZC_ITEM_FALL_ENTRY, &falls), Some(fell));
     // ZC_ITEM_ENTRY: the count before it.
     let mut lies = vec![0u8; 19];
     lies[2..6].copy_from_slice(&78u32.to_le_bytes());
@@ -29,7 +30,8 @@ fn a_thing_on_the_ground_says_how_many_lie_there() {
     lies[13..15].copy_from_slice(&160u16.to_le_bytes());
     lies[15..17].copy_from_slice(&2u16.to_le_bytes());
     (lies[17], lies[18]) = (5, 6);
-    assert_eq!(dropped(ZC_ITEM_ENTRY, &lies), Some((78, 909, (150, 160), (5, 6), false, 2)));
+    let lay = Dropped { id: 78, item: 909, cell: (150, 160), within: (5, 6), identified: false, count: 2 };
+    assert_eq!(dropped(ZC_ITEM_ENTRY, &lies), Some(lay));
 }
 
 /// A packet of `length` bytes with the fields the three kinds share at their fixed places.
@@ -100,14 +102,14 @@ fn reads_what_a_player_holds_and_how_it_is_there() {
 
 #[test]
 fn reads_the_small_packets_about_someone() {
-    assert_eq!(turned(&[0x9c, 0, 7, 0, 0, 0, 2, 0, 5]), Some((7, 2, 5)));
+    assert_eq!(turned(&[0x9c, 0, 7, 0, 0, 0, 2, 0, 5]), Some(Turned { who: 7, head: 2, direction: 5 }));
     assert_eq!(turned(&[0x9c, 0, 7, 0, 0, 0, 2, 0]), None);
     assert_eq!(spirits(&[0xd0, 0x01, 7, 0, 0, 0, 5, 0]), Some((7, 5)));
     assert_eq!(risen(&[0x48, 0x01, 9, 0, 0, 0, 0, 0]), Some(9));
     let mut changed = vec![0xd7, 0x01, 9, 0, 0, 0, 2];
     changed.extend(1201u32.to_le_bytes());
     changed.extend(2101u32.to_le_bytes());
-    assert_eq!(look(&changed), Some((9, 2, 1201, 2101)));
+    assert_eq!(look(&changed), Some(Look { who: 9, kind: 2, value: 1201, second: 2101 }));
     assert_eq!(turn(1, 3), vec![0x61, 0x03, 1, 0, 3]);
     for (id, length) in [(ZC_CHANGE_DIRECTION, 9), (ZC_FASTMOVE, 10), (ZC_SPIRITS, 8), (ZC_SPIRITS2, 8), (ZC_RESURRECTION, 8), (ZC_SPRITE_CHANGE, 15)] {
         assert_eq!(crate::net::packet_length(id), Some(length));
@@ -188,7 +190,7 @@ mod act_tests {
             field.resize(24, 0);
             packet.extend(field);
         }
-        assert_eq!(named(&packet), Some((9, 3, "Poring".to_owned(), "Angry".to_owned())));
+        assert_eq!(named(&packet), Some(Named { who: 9, group: 3, name: "Poring".to_owned(), title: "Angry".to_owned() }));
         assert_eq!(named(&packet[..57]), None);
     }
 

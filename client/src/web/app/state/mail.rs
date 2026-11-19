@@ -96,7 +96,12 @@ impl Mail {
 
     /// The letters of the rows that are ticked, without those the server has deleted.
     pub fn ticked(&self, now: f64) -> Vec<(u8, i64)> {
-        self.rows(now).into_iter().enumerate().filter(|(row, (tab, id))| self.checked[*row] && self.store.get(*tab, *id).is_some_and(|letter| !letter.gone)).map(|(_, letter)| letter).collect()
+        self.rows(now)
+            .into_iter()
+            .enumerate()
+            .filter(|(row, (tab, id))| self.checked[*row] && self.store.get(*tab, *id).is_some_and(|letter| !letter.gone))
+            .map(|(_, letter)| letter)
+            .collect()
     }
 
     /// The page is another, or what it lists is: nothing of it is ticked.

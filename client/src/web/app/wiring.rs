@@ -119,13 +119,18 @@ fn right_pressed(event: Event) {
         return dispatch(Action::Stowed(what));
     }
     // The right button on an item shows what it is.
-    if let Some((id, identified)) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| Some((id.trim_end_matches('?').parse().ok()?, !id.ends_with('?')))) {
+    if let Some((id, identified)) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(
+        |id| Some((id.trim_end_matches('?').parse().ok()?, !id.ends_with('?')))
+    ) {
         event.prevent_default();
         dispatch(Action::Info(id, identified));
     }
     // The right button on a thing that has a menu opens it there (`data-menu`).
     let place = event.dyn_ref::<web_sys::MouseEvent>().map(|event| (event.client_x() as f32, event.client_y() as f32));
-    if let (Some(what), Some(place)) = (pressed(&event, "data-menu").and_then(|thing| thing.get_attribute("data-menu")).and_then(|what| things::read(&what)), place) {
+    if let (Some(what), Some(place)) = (
+        pressed(&event, "data-menu").and_then(|thing| thing.get_attribute("data-menu")).and_then(|what| things::read(&what)),
+        place
+    ) {
         event.prevent_default();
         dispatch(Action::MenuOn(what, place));
     }
@@ -148,7 +153,9 @@ fn wire_keys(document: &web_sys::Document) -> Result<(), String> {
         let in_game = glance(|app| matches!(app.screen, Screen::Game) && app.message.is_none() && app.ask.is_none()).unwrap_or(false);
         // A key pressed while something else is being handled is left to the browser: it cannot be told in time
         // whether the game uses it.
-        let used = APP.with(|app| app.try_borrow_mut().is_ok_and(|mut app| app.key(&key, &code, crate::hotkeys::held(event.alt_key(), event.ctrl_key(), event.shift_key()))));
+        let used = APP.with(|app| app.try_borrow_mut().is_ok_and(
+            |mut app| app.key(&key, &code, crate::hotkeys::held(event.alt_key(), event.ctrl_key(), event.shift_key()))
+        ));
         if used || (in_game && browsers_own(&event)) {
             event.prevent_default();
         }
@@ -181,7 +188,7 @@ fn wire_page(window: &web_sys::Window, document: &web_sys::Document) -> Result<(
     window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("visibilitychange", on_visibility.as_ref().unchecked_ref()).map_err(js_error)?;
     window.set_interval_with_callback_and_timeout_and_arguments_0(on_timer.as_ref().unchecked_ref(), KEEP_ALIVE_MS).map_err(js_error)?;
-    window.set_interval_with_callback_and_timeout_and_arguments_0(on_watch.as_ref().unchecked_ref(), crate::net::link::WATCH_EVERY).map_err(js_error)?;
+    window.set_interval_with_callback_and_timeout_and_arguments_0(on_watch.as_ref().unchecked_ref(), crate::link::WATCH_EVERY).map_err(js_error)?;
     // These live as long as the page.
     on_watch.forget();
     on_resize.forget();

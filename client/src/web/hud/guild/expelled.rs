@@ -11,7 +11,15 @@ impl App {
     /// list.
     pub(super) fn guild_expelled(&self) -> String {
         let headers = [Self::words(407, "Name"), Self::words(462, "The Reason of Expulsion")];
-        let rows: Vec<String> = self.guild.expelled.iter().map(|(name, reason)| [fitted(8, 3, EXPELLED_COLUMNS[0] - 4, BLACK, name), fitted(EXPELLED_COLUMNS[0] + 9, 3, EXPELLED_COLUMNS[1] - 4, BLACK, reason)].concat()).collect();
+        let rows: Vec<String> = self.guild.expelled
+            .iter()
+            .map(
+                |(name, reason)| [
+                    fitted(8, 3, EXPELLED_COLUMNS[0] - 4, BLACK, name),
+                    fitted(EXPELLED_COLUMNS[0] + 9, 3, EXPELLED_COLUMNS[1] - 4, BLACK, reason)
+                ].concat()
+            )
+            .collect();
         table(&EXPELLED_COLUMNS, &headers, &rows)
     }
 }

@@ -148,8 +148,26 @@ pub(super) fn provide<'gc>(ctx: Context<'gc>, shared: &Rc<Shared>) {
         Gives::Numbers(shared.sight.borrow().value(kind, passed[0] as i32, passed[1] as u32, passed[2] as u32))
     });
     // The command is read once: after it there is none (`AiGetMsg`, `AiGetResMsg`).
-    function(ctx, "GetMsg", shared, |shared, passed| if passed[0] as u32 == shared.sight.borrow().myself { Gives::Row(shared.command.take().row()) } else { Gives::Nothing });
-    function(ctx, "GetResMsg", shared, |shared, passed| if passed[0] as u32 == shared.sight.borrow().myself { Gives::Row(shared.reserved.take().row()) } else { Gives::Nothing });
+    function(
+        ctx,
+        "GetMsg",
+        shared,
+        |shared, passed| if passed[0] as u32 == shared.sight.borrow().myself {
+            Gives::Row(shared.command.take().row())
+        } else {
+            Gives::Nothing
+        }
+    );
+    function(
+        ctx,
+        "GetResMsg",
+        shared,
+        |shared, passed| if passed[0] as u32 == shared.sight.borrow().myself {
+            Gives::Row(shared.reserved.take().row())
+        } else {
+            Gives::Nothing
+        }
+    );
     function(ctx, "Move", shared, |shared, passed| ordered(shared, shared.sight.borrow().moves(passed[0] as u32, (passed[1] as i32, passed[2] as i32))));
     function(ctx, "MoveToOwner", shared, |shared, passed| {
         let sight = shared.sight.borrow();
@@ -169,7 +187,10 @@ pub(super) fn provide<'gc>(ctx: Context<'gc>, shared: &Rc<Shared>) {
         ordered(shared, order);
         if helps { Gives::Numbers(vec![1.0]) } else { Gives::Nothing }
     });
-    function(ctx, "SkillGround", shared, |shared, passed| ordered(shared, shared.sight.borrow().skill_at(passed[0] as u32, passed[1] as i32, passed[2] as u32, (passed[3] as i32, passed[4] as i32))));
+    function(ctx, "SkillGround", shared, |shared, passed| ordered(
+        shared,
+        shared.sight.borrow().skill_at(passed[0] as u32, passed[1] as i32, passed[2] as u32, (passed[3] as i32, passed[4] as i32))
+    ));
 }
 
 /// Notes what the script asked for, if the rule let it through.

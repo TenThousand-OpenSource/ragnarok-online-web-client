@@ -37,7 +37,13 @@ impl App {
     /// menu (`menu->Move(g_mouse.x + 1, g_mouse.y + 1)`): the stage may be drawn larger or smaller than it is.
     pub(super) fn on_stage(at: (f32, f32)) -> (i32, i32) {
         let stage = crate::web::document().and_then(|document| document.query_selector(".stage").ok().flatten());
-        let scale = stage.as_ref().and_then(|stage| Some(stage.get_bounding_client_rect().width() / f64::from(stage.clone().dyn_into::<web_sys::HtmlElement>().ok()?.offset_width().max(1)))).filter(|scale| *scale > 0.0).unwrap_or(1.0);
+        let scale = stage
+            .as_ref()
+            .and_then(|stage| Some(stage.get_bounding_client_rect().width() / f64::from(
+                stage.clone().dyn_into::<web_sys::HtmlElement>().ok()?.offset_width().max(1)
+            )))
+            .filter(|scale| *scale > 0.0)
+            .unwrap_or(1.0);
         ((f64::from(at.0) / scale) as i32 + 1, (f64::from(at.1) / scale) as i32 + 1)
     }
 
@@ -83,7 +89,9 @@ impl App {
     pub(super) fn close_front(&mut self) -> bool {
         self.order_windows();
         let Some(front) = self.windows.borrow().front() else { return false };
-        let Some(close) = wnd::ALL.iter().find(|window| window.id == front).and_then(|window| window.order.as_ref()).map(|order| order.close) else { return false };
+        let Some(close) = wnd::ALL.iter().find(|window| window.id == front).and_then(|window| window.order.as_ref()).map(
+            |order| order.close
+        ) else { return false };
         close(self);
         self.order_windows();
         true

@@ -141,14 +141,21 @@ fn steal(lasts: i32) -> Vec<Prim> {
 /// over 10 ticks, slows, and fades over the last fifth of its 40 ticks. `CRagEffect::Detoxication` and
 /// `CRagEffect::PoisonAttack` launch one every fifth tick, each with its own sprite.
 fn rising(sprite: &'static str) -> Prim {
+    risen(sprite, 30, (50, 40.0))
+}
+
+/// What rises turning from the ground somewhere 2 to 7 around the one the effect is on, and fades over the
+/// last fifth of its 40 ticks: its speed is 30 and up to `fast` more of a hundred, its size `small` and up to
+/// `larger` more of a hundred. The lots are drawn in the client's order.
+fn risen(sprite: &'static str, fast: u32, (larger, small): (u32, f32)) -> Prim {
     let mut spark = Prim::new(Shape::Particle3d, sprite);
     spark.duration = 40;
     let (round, away) = (lot(360), lot(6) + 2.0);
     (spark.put.0, spark.deep) = (sine(round) * away, cosine(round) * away);
     spark.latitude = 90.0;
-    spark.speed = (lot(30) + 30.0) / 100.0;
+    spark.speed = (lot(fast) + 30.0) / 100.0;
     spark.accel = -(spark.speed / spark.duration as f32) * 0.5;
-    spark.size = (lot(50) + 40.0) / 100.0;
+    spark.size = (lot(larger) + small) / 100.0;
     spark.roll_speed = 3.0;
     spark.alpha = 0.0;
     spark.alpha_speed = spark.max_alpha / 10.0;
@@ -279,17 +286,5 @@ fn aqua(lasts: i32) -> Prim {
 /// around the one the effect is on; it comes up over 10 ticks, slows, and fades over the last fifth of its 40
 /// ticks.
 fn poison_bubble() -> Prim {
-    let mut bubble = Prim::new(Shape::Particle3d, PARTICLE3);
-    bubble.duration = 40;
-    let (round, away) = (lot(360), lot(6) + 2.0);
-    (bubble.put.0, bubble.deep) = (sine(round) * away, cosine(round) * away);
-    bubble.latitude = 90.0;
-    bubble.speed = (lot(50) + 30.0) / 100.0;
-    bubble.accel = -(bubble.speed / bubble.duration as f32) * 0.5;
-    bubble.size = (lot(20) + 20.0) / 100.0;
-    bubble.roll_speed = 3.0;
-    bubble.alpha = 0.0;
-    bubble.alpha_speed = bubble.max_alpha / 10.0;
-    bubble.fade_out = bubble.duration - bubble.duration / 5;
-    bubble
+    risen(PARTICLE3, 50, (20, 20.0))
 }

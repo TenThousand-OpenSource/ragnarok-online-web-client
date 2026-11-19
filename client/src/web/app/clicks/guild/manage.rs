@@ -99,7 +99,10 @@ impl App {
 
     /// The button of the members: the positions given go to the server (`MM_REQ_CHANGE_MEMBERPOS`).
     pub(super) fn guild_members_sent(&mut self) {
-        let moves: Vec<(u32, u32, u32)> = std::mem::take(&mut self.guild.member_moves).into_iter().map(|(character, (account, position))| (account, character, position)).collect();
+        let moves: Vec<(u32, u32, u32)> = std::mem::take(&mut self.guild.member_moves)
+            .into_iter()
+            .map(|(character, (account, position))| (account, character, position))
+            .collect();
         if self.guild.master && !moves.is_empty() {
             self.send_on_map(&guild::move_members(&moves));
         }
@@ -111,14 +114,23 @@ impl App {
     /// computer, and what is in it comes back as `GuildEvent::EmblemPicked`. A file larger than the client
     /// reads comes back empty, which is no emblem.
     pub(super) fn guild_emblem_asked(&mut self) {
-        let Some(input) = self.guild.master.then(crate::web::document).flatten().and_then(|document| document.create_element("input").ok()).and_then(|input| input.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return };
+        let Some(input) =
+            self.guild.master.then(crate::web::document).flatten().and_then(|document| document.create_element("input").ok()).and_then(
+                |input| input.dyn_into::<web_sys::HtmlInputElement>().ok()
+            ) else { return };
         input.set_type("file");
         input.set_accept(".bmp,image/bmp");
         let picked = input.clone();
         let read = Closure::once_into_js(move || {
             let Some(file) = picked.files().and_then(|files| files.get(0)) else { return };
             wasm_bindgen_futures::spawn_local(async move {
-                let bytes = if file.size() > MOST_EMBLEM_FILE { None } else { wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await.ok().map(|buffer| js_sys::Uint8Array::new(&buffer).to_vec()) };
+                let bytes = if file.size() > MOST_EMBLEM_FILE {
+                    None
+                } else {
+                    wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await.ok().map(
+                        |buffer| js_sys::Uint8Array::new(&buffer).to_vec()
+                    )
+                };
                 dispatch(Action::Guild(GuildEvent::EmblemPicked(bytes.unwrap_or_default())));
             });
         });
@@ -158,7 +170,11 @@ impl App {
         if !self.guild.open || self.guild.tab != 1 {
             return;
         }
-        let wanted: Vec<String> = self.guild.members.iter().filter(|member| member.online).map(|member| figure::head_sprite(member.job, member.sex as u8, member.hair)).collect();
+        let wanted: Vec<String> = self.guild.members
+            .iter()
+            .filter(|member| member.online)
+            .map(|member| figure::head_sprite(member.job, member.sex as u8, member.hair))
+            .collect();
         for sprite in wanted {
             if self.guild.heads.contains_key(&sprite) {
                 continue;

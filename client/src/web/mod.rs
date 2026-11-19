@@ -53,7 +53,9 @@ pub(crate) fn korean(bytes: &[u8]) -> String {
     thread_local! {
         static KOREAN: Option<web_sys::TextDecoder> = web_sys::TextDecoder::new_with_label("euc-kr").ok();
     }
-    KOREAN.with(|korean| korean.as_ref().and_then(|korean| korean.decode_with_u8_array(bytes).ok())).unwrap_or_else(|| String::from_utf8_lossy(bytes).into_owned())
+    KOREAN.with(|korean| korean.as_ref().and_then(|korean| korean.decode_with_u8_array(bytes).ok())).unwrap_or_else(
+        || String::from_utf8_lossy(bytes).into_owned()
+    )
 }
 
 /// The time everything under `web/` that is drawn, heard or told to the servers goes by: the page's

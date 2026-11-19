@@ -86,7 +86,17 @@ fn reads_an_action_file() {
     assert_eq!(act.actions.len(), 1);
     let frame = &act.actions[0][0];
     assert_eq!(frame.anchor, Some((1, -30)));
-    assert_eq!(frame.layers, [Layer { x: 4, y: -9, picture: 0, mirrored: true, colour: [255; 4], scale: (1.0, 1.0), rotation: 0, truecolor: false, size: Some((3, 2)) }]);
+    assert_eq!(frame.layers, [Layer {
+        x: 4,
+        y: -9,
+        picture: 0,
+        mirrored: true,
+        colour: [255; 4],
+        scale: (1.0, 1.0),
+        rotation: 0,
+        truecolor: false,
+        size: Some((3, 2))
+    }]);
     // A layer's turn follows its two scales, 84 bytes into this file.
     let mut turned = self::act(4, -9, true, (1, -30));
     turned[84..88].copy_from_slice(&(-30i32).to_le_bytes());

@@ -25,7 +25,23 @@ pub(in crate::web) static QUEST_PANE: Window = Window::usual(
 /// The button that tells of a new quest, and the list of quests on the screen: neither is a window that is
 /// dragged, and nothing of the list is pressed (`notice_place`, `list_place`).
 pub(in crate::web) static QUEST_NOTICE: Window =
-    Window { id: "quest-notice", open: |app| app.quests.notice, frame: |_, view| notice_place(view), draw: App::quest_notice, order: None, layer: Layer::Usual, drawn: None };
+    Window {
+        id: "quest-notice",
+        open: |app| app.quests.notice,
+        frame: |_, view| notice_place(view),
+        draw: App::quest_notice,
+        order: None,
+        layer: Layer::Usual,
+        drawn: None
+    };
 
 pub(in crate::web) static QUEST_LIST: Window =
-    Window { id: "quest-list", open: |app| !app.quests.display_off && !app.quests.log.is_empty(), frame: |_, view| list_place(view), draw: App::quest_list, order: None, layer: Layer::Usual, drawn: None };
+    Window {
+        id: "quest-list",
+        open: |app| !app.quests.display_off && !app.quests.log.is_empty(),
+        frame: |_, view| list_place(view),
+        draw: App::quest_list,
+        order: None,
+        layer: Layer::Usual,
+        drawn: None
+    };

@@ -75,35 +75,39 @@ impl App {
         let buttons: String = buttons
             .into_iter()
             .map(|(name, x, does, line, otherwise)| {
-                format!(
-                    r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;pointer-events:auto;cursor:pointer" onerror="this.remove()" {} data-tip="{}">"#,
-                    picture(&format!("minimap/i_{name}_1.bmp")),
-                    pressed(does),
-                    escape(&Self::words(line, otherwise))
-                )
+                [
+                    format!(r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;"#, picture(&format!(
+                        "minimap/i_{name}_1.bmp"
+                    ))),
+                    format!(
+                        r#"pointer-events:auto;cursor:pointer" onerror="this.remove()" {} data-tip="{}">"#,
+                        pressed(does),
+                        escape(&Self::words(line, otherwise))
+                    )
+                ].concat()
             })
             .collect();
         // The buttons under the minimap show when the player has them so (the client's `/minimap`).
         let buttons = if self.option("TT_SHOW_MINIMAP_BUTTON_ONOFF") { buttons } else { String::new() };
         let (pictured, marked) = minimap_place(game, self.minimap_zoom).unwrap_or_else(|| (String::new(), "display:none".to_owned()));
-        format!(
-            r#"<div class="minimap" style="overflow:hidden{faint}"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i><div id="map-marks">{marks}</div><div id="party-marks">{party}</div><div id="quest-marks">{quests}</div><div id="compass-marks">{compass}</div></div>
-               <div class="mapname" style="{away}"><span id="position" style="{}"> {}  {}</span>{buttons}</div>{}"#,
-            map_picture(&game.map),
-            marked,
-            // The character's cell is written in the usual text (`UIMinimapZoomWnd::Paint`: (0, 12) at 19, 128).
-            Font(0, 12, false).style(),
-            game.x,
-            game.y,
-            self.hud(view),
-            marks = minimap_marks(game, self.minimap_zoom, self.minimap_marks_off),
-            // Ctrl+Tab runs the minimap through shown, shown fainter (`0xAAFFFFFF`) and away
-            // (`HK_MINIMAP_ONOFF`).
-            faint = ["", ";opacity:.67", ";display:none"][usize::from(self.worldmap.minimap.min(2))],
-            away = if self.worldmap.minimap >= 2 { "display:none" } else { "" },
-            party = self.minimap_party(),
-            quests = self.minimap_quests(),
-            compass = self.minimap_compass(),
-        )
+        let map = map_picture(&game.map);
+        // The character's cell is written in the usual text (`UIMinimapZoomWnd::Paint`: (0, 12) at 19, 128).
+        let cell = Font(0, 12, false).style();
+        let windows = self.hud(view);
+        let marks = minimap_marks(game, self.minimap_zoom, self.minimap_marks_off);
+        // Ctrl+Tab runs the minimap through shown, shown fainter (`0xAAFFFFFF`) and away
+        // (`HK_MINIMAP_ONOFF`).
+        let faint = ["", ";opacity:.67", ";display:none"][usize::from(self.worldmap.minimap.min(2))];
+        let away = if self.worldmap.minimap >= 2 { "display:none" } else { "" };
+        let (party, quests, compass) = (self.minimap_party(), self.minimap_quests(), self.minimap_compass());
+        [
+            format!(r#"<div class="minimap" style="overflow:hidden{faint}"><img id="minimap" src="{map}" alt="" style="{pictured}" onerror="this.remove()">"#),
+            format!(r#"<i id="marker" style="{marked}"></i><div id="map-marks">{marks}</div><div id="party-marks">{party}</div>"#),
+            format!(
+                r#"<div id="quest-marks">{quests}</div><div id="compass-marks">{compass}</div></div>
+               <div class="mapname" style="{away}">"#
+            ),
+            format!(r#"<span id="position" style="{cell}"> {}  {}</span>{buttons}</div>{windows}"#, game.x, game.y)
+        ].concat()
     }
 }

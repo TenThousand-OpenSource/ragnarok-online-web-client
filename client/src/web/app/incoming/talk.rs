@@ -6,7 +6,10 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn talk_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            net::talk::ZC_SAY_DIALOG | net::talk::ZC_SAY_DIALOG2 | net::talk::ZC_WAIT_DIALOG | net::talk::ZC_WAIT_DIALOG2 | net::talk::ZC_CLOSE_DIALOG | net::talk::ZC_MENU_LIST | net::talk::ZC_CLEAR_DIALOG | net::talk::ZC_OPEN_EDITDLG | net::talk::ZC_OPEN_EDITDLGSTR => self.npc_spoke(id, packet),
+            net::talk::ZC_SAY_DIALOG | net::talk::ZC_SAY_DIALOG2 | net::talk::ZC_WAIT_DIALOG
+            | net::talk::ZC_WAIT_DIALOG2 | net::talk::ZC_CLOSE_DIALOG | net::talk::ZC_MENU_LIST
+            | net::talk::ZC_CLEAR_DIALOG | net::talk::ZC_OPEN_EDITDLG
+            | net::talk::ZC_OPEN_EDITDLGSTR => self.npc_spoke(id, packet),
             packets::ZC_NOTIFY_PLAYERCHAT | packets::ZC_NOTIFY_CHAT => self.chat_heard(id, packet),
             // A line in a colour of its own (`CGameMode::ReceiveActorColorChat`): into the chat, and over the
             // head of whoever says it when they are in sight. The server refuses some things this way.
@@ -24,7 +27,10 @@ impl App {
     fn npc_spoke(&mut self, id: u16, packet: &[u8]) {
         let Some(from) = net::talk::npc(id, packet) else { return };
         // A script that ends after its window was closed says so once more: there is nothing to show.
-        if self.dialog.is_none() && matches!(id, net::talk::ZC_CLOSE_DIALOG | net::talk::ZC_CLEAR_DIALOG | net::talk::ZC_WAIT_DIALOG | net::talk::ZC_WAIT_DIALOG2) {
+        if self.dialog.is_none() && matches!(
+            id,
+            net::talk::ZC_CLOSE_DIALOG | net::talk::ZC_CLEAR_DIALOG | net::talk::ZC_WAIT_DIALOG | net::talk::ZC_WAIT_DIALOG2
+        ) {
             if id == net::talk::ZC_CLOSE_DIALOG {
                 self.send(&net::talk::close(from));
             }

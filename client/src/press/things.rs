@@ -204,7 +204,12 @@ mod tests {
     /// One thing of every name of a kind, made from the kind's own list of names: with nothing beside it, or
     /// with what the things here take (a number, a skill and its level).
     fn every<Thing: Named>() -> Vec<Thing> {
-        Thing::NAMES.iter().map(|name| ["", "7", "19:10"].iter().find_map(|with| Thing::parse(name, with)).unwrap_or_else(|| panic!("{name} takes nothing this test knows of"))).collect()
+        Thing::NAMES
+            .iter()
+            .map(|name| ["", "7", "19:10"].iter().find_map(|with| Thing::parse(name, with)).unwrap_or_else(
+                || panic!("{name} takes nothing this test knows of")
+            ))
+            .collect()
     }
 
     /// Each is read back as itself, and no two of a kind share a name.

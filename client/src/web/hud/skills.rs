@@ -16,12 +16,18 @@ impl App {
         let Some(id) = self.skills.info else { return String::new() };
         let lines = data::skill_text(id).unwrap_or_else(|| vec![data::skill_name(id, || tr("Unknown Skill").to_owned())]);
         let height = 18 * lines.len() as i32 + 4 + 6;
-        let description: String = lines.iter().map(|line| format!(r#"<div style="height:18px;line-height:18px;white-space:nowrap">{}</div>"#, coloured(line))).collect();
-        format!(
-            r#"<div style="position:relative;width:304px;height:{height}px;max-height:calc(100vh - 50px);background:#fff;border:1px solid #c3c3c3;border-radius:4px;box-sizing:border-box;overflow:hidden">
+        let description: String = lines
+            .iter()
+            .map(|line| format!(r#"<div style="height:18px;line-height:18px;white-space:nowrap">{}</div>"#, coloured(line)))
+            .collect();
+        [
+            format!(r#"<div style="position:relative;width:304px;height:{height}px;max-height:calc(100vh - 50px);"#),
+            format!(
+                r#"background:#fff;border:1px solid #c3c3c3;border-radius:4px;box-sizing:border-box;overflow:hidden">
                <div class="t viewer" style="position:absolute;left:3px;top:3px;right:3px;bottom:3px;user-select:text">{description}</div>{}</div>"#,
-            cross(304, Press::InfoClose),
-        )
+                cross(304, Press::InfoClose)
+            )
+        ].concat()
     }
 
     /// The hotkey bar as the client draws it (`UIShortCutWnd`): one to four rows of nine, each row its frame 33
@@ -95,7 +101,9 @@ impl App {
         window.push_str(&Self::skill_window_frame(width, height));
         // The tabs: one for each job the character grew through, down the window's left from 6 under its top
         // (`UINewSkillListWnd::OnCreate`: a `UITabControl` of 15 round each tab's letters; `hud/tabs.rs`).
-        let tabs: Vec<(String, Option<&str>, String)> = (0..pages.len()).map(|tab| (tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or("")).to_owned(), None, pressed(Press::Tab(tab)))).collect();
+        let tabs: Vec<(String, Option<&str>, String)> = (0..pages.len())
+            .map(|tab| (tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or("")).to_owned(), None, pressed(Press::Tab(tab))))
+            .collect();
         window.push_str(&tabs::side_tabs(0, 6, 15, false, page, &tabs));
         // The cells, empty ones first.
         for cell in 0..42 {
@@ -109,7 +117,11 @@ impl App {
         window.push_str(&figure_canvas("pc-skill", (0, height - 130, 100, 130), (48 - 80, 130 - 25 - 137)));
         window.push_str(&text(80, height - 23, BLACK, &format!("{} : {points}", tr("Skill Point"))));
         for (name, x) in [("btn_apply", width - 100), ("btn_reset", width - 50)] {
-            window.push_str(&format!(r#"<div class="a" style="{};background:url('{}');opacity:.5"></div>"#, at(x, height - 27, 42, 20), picture(&format!("{name}.bmp"))));
+            window.push_str(&format!(
+                r#"<div class="a" style="{};background:url('{}');opacity:.5"></div>"#,
+                at(x, height - 27, 42, 20),
+                picture(&format!("{name}.bmp"))
+            ));
         }
         window
     }
@@ -117,8 +129,14 @@ impl App {
     /// The skill window's body: white between the bars, inside two rounded lines, with its title and buttons.
     fn skill_window_frame(width: i32, height: i32) -> String {
         let mut window = String::new();
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c3c3c3;border-radius:4px;box-sizing:border-box"></div>"#, at(SKILL_TABS, 0, width - SKILL_TABS, height)));
-        window.push_str(&format!(r#"<div class="a" style="{};border:1px solid #c3c3c3;border-radius:3px;box-sizing:border-box"></div>"#, at(SKILL_TABS + 2, 2, width - SKILL_TABS - 4, height - 4)));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};background:#fff;border:1px solid #c3c3c3;border-radius:4px;box-sizing:border-box"></div>"#,
+            at(SKILL_TABS, 0, width - SKILL_TABS, height)
+        ));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};border:1px solid #c3c3c3;border-radius:3px;box-sizing:border-box"></div>"#,
+            at(SKILL_TABS + 2, 2, width - SKILL_TABS - 4, height - 4)
+        ));
         window.push_str(&art("basic_interface/skill_upbar_left.bmp", SKILL_TABS, 0, 12, 20));
         window.push_str(&art("basic_interface/skill_upbar_mid.bmp", SKILL_TABS + 12, 0, width - SKILL_TABS - 24, 20));
         window.push_str(&art("basic_interface/skill_upbar_right.bmp", width - 12, 0, 12, 20));
@@ -149,24 +167,38 @@ impl App {
         let usable = learned.is_some_and(|skill| skill.level > 0 && !skill.passive());
         // The level it is used at: what the player picked with the arrows by its level, or all it has.
         let used = self.skills.use_level.get(&id).copied().filter(|used| (1..=level).contains(used)).unwrap_or(level);
-        let drag = if usable { format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(id), level: used })), super::used(Use::Skill(id))) } else { String::new() };
+        let drag = if usable {
+            format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(id), level: used })), super::used(Use::Skill(id)))
+        } else {
+            String::new()
+        };
         let dim = if level == 0 { "filter:grayscale(1) opacity(.55);" } else { "" };
         let icon = Self::skill_icon(id);
-        window.push_str(&format!(r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#, at(x + 4, y + 44, 24, 24), escape(&name)));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#,
+            at(x + 4, y + 44, 24, 24),
+            escape(&name)
+        ));
         let shade = if level == 0 { "#787878" } else { "#666666" };
         // The name, over the cell, in the smaller text (`DrawSkillTree`: (0, 11), and the level under the cell
         // the same in bold): in the middle of 48 pixels, and one that is wider cut from their left edge to what
         // fits with three dots after it (`UIWindow::ClipTextToWidth`; the page's own mark for a text cut
         // stands for the dots). The whole name is what the picture says when pointed at.
-        window.push_str(&format!(
-            r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none">{}</div>"#,
-            at(x - 8, y + 30, 48, 13),
-            SMALL.style(),
-            escape(&name)
-        ));
+        window.push_str(&[
+            format!(
+                r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;overflow:hidden;"#,
+                at(x - 8, y + 30, 48, 13),
+                SMALL.style()
+            ),
+            format!(r#"text-overflow:ellipsis;pointer-events:none">{}</div>"#, escape(&name))
+        ].concat());
         if level > 0 {
             // "Used at / known at", the first in the client's pink when it is less than all (`0x7F3CFF`).
-            let shown = if usable { format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" }) } else { level.to_string() };
+            let shown = if usable {
+                format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" })
+            } else {
+                level.to_string()
+            };
             window.push_str(&format!(
                 r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;{};pointer-events:none">{shown}</div>"#,
                 at(x - 8, y + 70, 48, 13),

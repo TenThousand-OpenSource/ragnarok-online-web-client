@@ -30,11 +30,10 @@ fn plate(name: &str, x: i32, y: i32, width: i32, height: i32) -> String {
 /// A part of the pane of a quest of the server (`OngoingQuestInfo::CUIContents`, 335 wide): the small Poring
 /// 9 in and 9 down, the part's name 25 in, and from 32 in and 30 down what is in it; the part ends 9 under that.
 fn part(name: &str, inside: &str) -> String {
-    format!(
-        r#"<div style="position:relative;width:335px;min-height:30px;padding-bottom:9px;box-sizing:border-box">{}{}<div style="padding:30px 13px 0 32px">{inside}</div></div>"#,
-        art("renew_questui/img_poring.bmp", 9, 9, 10, 9),
-        text(25, 9, BLACK, name)
-    )
+    [
+        format!(r#"<div style="position:relative;width:335px;min-height:30px;padding-bottom:9px;box-sizing:border-box">"#),
+        format!(r#"{}{}<div style="padding:30px 13px 0 32px">{inside}</div></div>"#, art("renew_questui/img_poring.bmp", 9, 9, 10, 9), text(25, 9, BLACK, name))
+    ].concat()
 }
 
 /// The line between two parts (`img_line.bmp`, 334 by 1, 1 in).
@@ -47,10 +46,11 @@ fn rule() -> String {
 /// for a quest that does not run out (the client writes it for a year after 1970).
 fn deadline(at: u32) -> String {
     let when = js_sys::Date::new(&wasm_bindgen::JsValue::from_f64(f64::from(at) * 1000.0));
-    if when.get_full_year() <= 1970 {
-        return String::new();
-    }
-    format!("{} [{:04}/{:02}/{:02} {:02}:{:02}]", App::words(2195, "Deadline"), when.get_full_year(), when.get_month() + 1, when.get_date(), when.get_hours(), when.get_minutes())
+    crate::quests::deadline(
+        &App::words(2195, "Deadline"),
+        (when.get_full_year(), when.get_month() + 1, when.get_date()),
+        (when.get_hours(), when.get_minutes())
+    )
 }
 
 impl App {
@@ -90,7 +90,11 @@ impl App {
         let about = data::quest_text(number).unwrap_or_default();
         let complete = Self::words(2030, "Complete");
         let hunts: Vec<String> = quest.hunts.iter().map(|hunt| rules::hunt_text(hunt, &hunt.name, &complete)).collect();
-        let worth = |y: i32, line: usize, otherwise: &str, value: &str| format!("{}{}", text(32, y, BLACK, &Self::words(line, otherwise)), text(110, y, WORTH, value));
+        let worth = |y: i32, line: usize, otherwise: &str, value: &str| format!(
+            "{}{}",
+            text(32, y, BLACK, &Self::words(line, otherwise)),
+            text(110, y, WORTH, value)
+        );
         let items: String = about
             .rewards
             .iter()
@@ -145,7 +149,11 @@ impl App {
     /// into some of these texts mean (`$$…$$`, `%%…%%`, `&*…*&`): they are shown as they are written.)
     fn recommended_pane(number: u32) -> String {
         let Some((_, about)) = data::recommended_quests().into_iter().find(|(known, _)| *known == number) else { return String::new() };
-        let boxed = |(x, y, width, height): (i32, i32, i32, i32), style: &str, lines: &[String]| format!(r#"<div class="a viewer" style="{};{style}">{}</div>"#, at(x, 62 + y, width, height), viewer_lines_in(&crate::font::style(1, 12), lines));
+        let boxed = |(x, y, width, height): (i32, i32, i32, i32), style: &str, lines: &[String]| format!(
+            r#"<div class="a viewer" style="{};{style}">{}</div>"#,
+            at(x, 62 + y, width, height),
+            viewer_lines_in(&crate::font::style(1, 12), lines)
+        );
         format!(
             "{}{}{}{}{}{}{}",
             Self::pane_frame("bg_detail_recommended", &about.title),

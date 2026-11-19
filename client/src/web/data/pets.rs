@@ -52,5 +52,10 @@ pub fn pet_line(job: u16, hunger: usize, moment: i32) -> Option<String> {
 /// Takes its tables out of what the gateway gave: the pets' pictures, and the actions of pets that wear something.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     PETS.set(names::<u16>(&field(tables, "pets")).into_iter().collect());
-    PET_ACTS.set(entries::<u16>(&field(tables, "pet_acts")).into_iter().filter_map(|(item, name)| Some((item, name.as_string()?.trim_end_matches(".act").to_owned()))).collect());
+    PET_ACTS.set(
+        entries::<u16>(&field(tables, "pet_acts"))
+            .into_iter()
+            .filter_map(|(item, name)| Some((item, name.as_string()?.trim_end_matches(".act").to_owned())))
+            .collect()
+    );
 }

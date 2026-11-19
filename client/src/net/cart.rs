@@ -145,7 +145,10 @@ mod tests {
         assert_eq!(change(3), [0xaf, 0x01, 3, 0]);
         assert_eq!(select(7, 11), [0x80, 0x09, 7, 0, 0, 0, 11]);
         assert_lengths(&[change(1), select(1, 10)]);
-        for (id, length) in [(ZC_NOTIFY_CARTITEM_COUNTINFO, 14), (ZC_DELETE_ITEM_FROM_CART, 8), (ZC_CARTOFF, 2), (ZC_ACK_ADDITEM_TO_CART, 3), (ZC_SELECTCART, -1), (ZC_ADD_ITEM_TO_CART, 58)] {
+        for (id, length) in [
+            (ZC_NOTIFY_CARTITEM_COUNTINFO, 14), (ZC_DELETE_ITEM_FROM_CART, 8), (ZC_CARTOFF, 2),
+            (ZC_ACK_ADDITEM_TO_CART, 3), (ZC_SELECTCART, -1), (ZC_ADD_ITEM_TO_CART, 58)
+        ] {
             assert_eq!(packet_length(id), Some(length), "{id:#06x}");
         }
     }

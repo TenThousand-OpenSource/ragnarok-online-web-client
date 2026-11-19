@@ -57,7 +57,10 @@ fn a_hunt_is_written_with_its_levels_and_its_count() {
 
 #[test]
 fn the_chat_is_told_of_a_hunts_count() {
-    assert_eq!(progress_line("[%s] quest - defeating [%s] progress (%d/%d).", "Hunting Porings", "Poring", 3, 10), "[Hunting Porings] quest - defeating [Poring] progress (3/10).");
+    assert_eq!(
+        progress_line("[%s] quest - defeating [%s] progress (%d/%d).", "Hunting Porings", "Poring", 3, 10),
+        "[Hunting Porings] quest - defeating [Poring] progress (3/10)."
+    );
 }
 
 #[test]
@@ -90,4 +93,29 @@ fn a_mark_with_a_colour_is_on_the_minimap() {
     assert_eq!(minimap_picture(1, 2).as_deref(), Some("minimap/quest_1_2.bmp"));
     assert_eq!(minimap_picture(1, 0), None);
     assert_eq!(minimap_picture(9999, 1), None);
+}
+
+#[test]
+fn a_quest_that_only_waits_has_neither_box() {
+    assert_eq!(boxes(false, false, true), (Some(true), Some(true)));
+    assert_eq!(boxes(false, true, false), (Some(false), Some(false)));
+    assert_eq!(boxes(true, false, true), (None, None));
+    assert_eq!(boxes(true, true, false), (None, None));
+}
+
+#[test]
+fn the_recommended_put_away_come_last() {
+    let mut rows = [(1, true), (2, false), (3, true), (4, false)];
+    put_away_last(&mut rows, |row| row.1);
+    assert_eq!(rows.map(|row| row.0), [2, 4, 1, 3]);
+    let mut none: [(u32, bool); 0] = [];
+    put_away_last(&mut none, |row| row.1);
+}
+
+#[test]
+fn a_deadline_is_a_day_and_a_time_after_1970() {
+    assert_eq!(deadline("Deadline", (2026, 3, 9), (7, 5)), "Deadline [2026/03/09 07:05]");
+    assert_eq!(deadline("", (1971, 12, 31), (23, 59)), " [1971/12/31 23:59]");
+    assert_eq!(deadline("Deadline", (1970, 1, 1), (3, 0)), "");
+    assert_eq!(deadline("Deadline", (0, 0, 0), (0, 0)), "");
 }

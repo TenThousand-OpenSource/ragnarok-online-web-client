@@ -28,7 +28,14 @@ impl App {
                 window.push_str(&base_button(3, 3));
                 window.push_str(&panel_ground_round(0, 17, 280, height - 17));
                 for (row, (name, press)) in buttons.into_iter().enumerate() {
-                    window.push_str(&pictured(29, 22 + row as i32 * 23, (221, 20), [&format!("{name}a.bmp"), &format!("{name}b.bmp"), &format!("{name}c.bmp")], press, ""));
+                    window.push_str(&pictured(
+                        29,
+                        22 + row as i32 * 23,
+                        (221, 20),
+                        [&format!("{name}a.bmp"), &format!("{name}b.bmp"), &format!("{name}c.bmp")],
+                        press,
+                        ""
+                    ));
                 }
                 Some(window)
             }

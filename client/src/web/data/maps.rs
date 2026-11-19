@@ -41,7 +41,12 @@ pub struct MapSign {
 /// Those the minimap marks on that map (the client's `CGameMode::DrawMiniMap`: the table's entries in turn, up to
 /// the first of kind 8 or 9, which are not for the minimap).
 pub fn town_marks(map: &str) -> Vec<(String, i32, i32, i32)> {
-    TOWNS.with_borrow(|towns| towns.get(crate::maps::bare(map)).map(|people| people.iter().take_while(|person| !matches!(person.3, 8 | 9)).cloned().collect()).unwrap_or_default())
+    TOWNS.with_borrow(
+        |towns| towns
+            .get(crate::maps::bare(map))
+            .map(|people| people.iter().take_while(|person| !matches!(person.3, 8 | 9)).cloned().collect())
+            .unwrap_or_default()
+    )
 }
 
 /// What the client calls that map, if its table has it.

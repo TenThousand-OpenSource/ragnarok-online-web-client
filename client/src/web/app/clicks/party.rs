@@ -256,7 +256,10 @@ impl App {
             return;
         }
         if name.contains('#') || name.len() >= 24 {
-            self.message = Some(if name.contains('#') { Self::words(2839, "Special symbol can't be used in name") } else { Self::words(531, "Name is too long. Please enter a name up to 23 english characters.") });
+            self.message = Some(if name.contains('#') { Self::words(2839, "Special symbol can't be used in name") } else { Self::words(
+                531,
+                "Name is too long. Please enter a name up to 23 english characters."
+            ) });
             return self.render();
         }
         self.party.making = name.to_owned();

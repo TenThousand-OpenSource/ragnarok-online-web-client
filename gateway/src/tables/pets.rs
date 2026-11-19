@@ -13,6 +13,7 @@ pub(super) fn pets(lua: &Lua, grf: &Grf) -> (Names, Names) {
     let pets: serde_json::Map<String, serde_json::Value> =
         names(lua, "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // Its `PetAccActNameTable`: by the accessory a pet wears (an item), the actions it is then drawn with.
-    let pet_acts: serde_json::Map<String, serde_json::Value> = names(lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    let pet_acts: serde_json::Map<String, serde_json::Value> =
+        names(lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     (pets, pet_acts)
 }

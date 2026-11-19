@@ -25,7 +25,8 @@ pub(super) fn cast_look(effect: u32) -> (&'static str, [f32; 3], bool) {
 pub(super) fn cast_rings(centre: Vector, frame: f32, frames: f32, tint: [f32; 3], corners: &mut Vec<f32>) -> usize {
     // Of each arc: how far round it goes, how high it rises, where it starts, how far out it stands, how steeply
     // it rises, all in degrees and the client's units.
-    const ARCS: [(i32, f32, f32, f32, f32); 4] = [(315, 25.0, 0.0, 4.5, 70.0), (315, 22.0, 90.0, 5.0, 57.0), (315, 19.0, 180.0, 5.5, 45.0), (360, 250.0, 0.0, 4.0, 89.0)];
+    const ARCS: [(i32, f32, f32, f32, f32); 4] =
+        [(315, 25.0, 0.0, 4.5, 70.0), (315, 22.0, 90.0, 5.0, 57.0), (315, 19.0, 180.0, 5.5, 45.0), (360, 250.0, 0.0, 4.0, 89.0)];
     let mut quads = 0;
     for (index, (round, tall, start, out, steep)) in ARCS.into_iter().enumerate() {
         let column = index == 3;
@@ -45,7 +46,10 @@ pub(super) fn cast_rings(centre: Vector, frame: f32, frames: f32, tint: [f32; 3]
         };
         for order in 1..=20usize {
             let (left, right) = ((order - 1) as f32 / 21.0, order as f32 / 21.0);
-            for (order, top, u) in [(order - 1, false, left), (order, false, right), (order - 1, true, left), (order - 1, true, left), (order, false, right), (order, true, right)] {
+            for (order, top, u) in [
+                (order - 1, false, left), (order, false, right), (order - 1, true, left), (order - 1, true, left),
+                (order, false, right), (order, true, right)
+            ] {
                 corners.extend(corner(order, top));
                 corners.extend([u, if top { 0.0 } else { 1.0 }]);
                 corners.extend([tint[0], tint[1], tint[2], alpha / 255.0]);
@@ -63,8 +67,15 @@ pub(super) fn lock_on(centre: Vector, frame: f32, corners: &mut Vec<f32>) -> usi
     let half = (30.0 - frame).max(10.0) / 2.0;
     for ahead in [0.0f32, 45.0] {
         let turned = (ahead + 4.5 * frame).to_radians();
-        let corner = |x: f32, z: f32| [centre[0] + (x * turned.cos() - z * turned.sin()) * half, centre[1] + 0.4, centre[2] + (x * turned.sin() + z * turned.cos()) * half];
-        for (x, z, u, v) in [(-1.0, -1.0, 0.0, 0.0), (1.0, -1.0, 1.0, 0.0), (-1.0, 1.0, 0.0, 1.0), (-1.0, 1.0, 0.0, 1.0), (1.0, -1.0, 1.0, 0.0), (1.0, 1.0, 1.0, 1.0)] {
+        let corner = |x: f32, z: f32| [
+            centre[0] + (x * turned.cos() - z * turned.sin()) * half,
+            centre[1] + 0.4,
+            centre[2] + (x * turned.sin() + z * turned.cos()) * half
+        ];
+        for (x, z, u, v) in [
+            (-1.0, -1.0, 0.0, 0.0), (1.0, -1.0, 1.0, 0.0), (-1.0, 1.0, 0.0, 1.0), (-1.0, 1.0, 0.0, 1.0),
+            (1.0, -1.0, 1.0, 0.0), (1.0, 1.0, 1.0, 1.0)
+        ] {
             corners.extend(corner(x, z));
             corners.extend([u, v]);
             corners.extend([250.0 / 255.0, 150.0 / 255.0, 150.0 / 255.0, 1.0]);
@@ -90,7 +101,11 @@ pub(super) fn rings(centre: Vector, time: f64, corners: &mut Vec<f32>) {
             for side in 0..SIDES {
                 // The picture goes around five times.
                 let (left, right) = ((side % 4) as f32 / 4.0, (side % 4 + 1) as f32 / 4.0);
-                let quad = [(side, low, 0.0, left, 1.0), (side + 1, low, 0.0, right, 1.0), (side, high, height, left, 0.0), (side, high, height, left, 0.0), (side + 1, low, 0.0, right, 1.0), (side + 1, high, height, right, 0.0)];
+                let quad = [
+                    (side, low, 0.0, left, 1.0), (side + 1, low, 0.0, right, 1.0), (side, high, height, left, 0.0),
+                    (side, high, height, left, 0.0), (side + 1, low, 0.0, right, 1.0),
+                    (side + 1, high, height, right, 0.0)
+                ];
                 for (side, radius, up, u, v) in quad {
                     corners.extend(point(side, radius, up));
                     corners.extend([u, v]);

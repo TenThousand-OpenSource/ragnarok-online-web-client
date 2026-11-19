@@ -68,7 +68,9 @@ impl App {
             }
             (Screen::ServerSelect, "ArrowUp" | "ArrowDown") => {
                 let servers = self.account.as_ref().map_or(0, |account| account.char_servers.len());
-                self.server_picked = if key == "ArrowUp" { self.server_picked.saturating_sub(1) } else { (self.server_picked + 1).min(servers.saturating_sub(1)) };
+                self.server_picked = if key == "ArrowUp" { self.server_picked.saturating_sub(1) } else { (self.server_picked + 1).min(
+                    servers.saturating_sub(1)
+                ) };
                 self.render();
                 true
             }
@@ -98,7 +100,9 @@ impl App {
     /// key for one a Mac lacks, does the same; Enter and Escape are the client's own, bound nowhere.
     pub(super) fn game_key(&mut self, key: &str, code: &str, with: u16) -> bool {
         let chat = element("chat-input").and_then(|input| input.dyn_into::<web_sys::HtmlElement>().ok());
-        let writing = chat.as_ref().is_some_and(|input| crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active == **input));
+        let writing = chat.as_ref().is_some_and(
+            |input| crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active == **input)
+        );
         let chord = Chord { key: crate::hotkeys::key_of(code).unwrap_or(0), with };
         // A row of the Shortcut Settings window is picked: the key is its new key, whatever it did before.
         if self.keys.open && self.keys.row.is_some() {
@@ -106,7 +110,9 @@ impl App {
             return true;
         }
         // Letters and digits typed into a line of text (or into the text of a letter) are text, not keys of the game.
-        let typing = crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA"));
+        let typing = crate::web::document().and_then(|document| document.active_element()).is_some_and(
+            |active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA")
+        );
         let bound = self.bound_to(chord).filter(|_| !(typing && with == 0 && !(112..=123).contains(&chord.key)));
         match (bound, key) {
             // Tab ticks the World Map's box while the map is open.
@@ -139,7 +145,9 @@ impl App {
             }
             // Enter goes to the chat's line; from there it sends (the form does that).
             // In a field of some window Enter belongs to that window.
-            (_, "Enter") if crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA") && active.id() != "chat-input") => {
+            (_, "Enter") if crate::web::document().and_then(|document| document.active_element()).is_some_and(
+                |active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA") && active.id() != "chat-input"
+            ) => {
                 false
             }
             (_, "Enter") if !writing => {
@@ -203,7 +211,11 @@ impl App {
             crate::hotkeys::interface::HOMUNCULUS => self.homunculus.open = !self.homunculus.open && self.homunculus.shown(),
             crate::hotkeys::interface::MERCENARY => self.mercenary.open = !self.mercenary.open && self.mercenary.shown(),
             crate::hotkeys::interface::HOMUNCULUS_STAND_BY | crate::hotkeys::interface::MERCENARY_STAND_BY => {
-                self.companion_stands_by(if place == crate::hotkeys::interface::MERCENARY_STAND_BY { crate::ai::Kind::Mercenary } else { crate::ai::Kind::Homunculus });
+                self.companion_stands_by(if place == crate::hotkeys::interface::MERCENARY_STAND_BY {
+                    crate::ai::Kind::Mercenary
+                } else {
+                    crate::ai::Kind::Homunculus
+                });
                 return true;
             }
             crate::hotkeys::interface::SIT => {

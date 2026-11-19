@@ -4,6 +4,6 @@
 /// list of them is shown (`/packets`: a tool of this project's own, the client has nothing of the kind).
 #[derive(Default)]
 pub(in crate::web) struct Unread {
-    pub tally: crate::net::unread::Tally,
+    pub tally: crate::unread::Tally,
     pub open: bool,
 }

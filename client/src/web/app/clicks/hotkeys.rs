@@ -93,7 +93,9 @@ impl App {
             None => Hotkey::default(),
             // From another slot of the bar: what was there moves here, and that slot is left empty.
             Some(Drag::Slot(from)) => {
-                let Some(moved) = self.skills.hotkeys.get(from).copied().filter(|moved| moved.id != 0 && from != slot && slot < net::inventory::HOTKEYS) else { return };
+                let Some(moved) = self.skills.hotkeys.get(from).copied().filter(
+                    |moved| moved.id != 0 && from != slot && slot < net::inventory::HOTKEYS
+                ) else { return };
                 self.skills.hotkeys.resize(net::inventory::HOTKEYS, Hotkey::default());
                 self.skills.hotkeys[from] = Hotkey::default();
                 self.send(&net::inventory::set_hotkey(from as u16, Hotkey::default()));

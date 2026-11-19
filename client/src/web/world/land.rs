@@ -65,7 +65,13 @@ pub(super) struct Models {
 impl Models {
     /// A map with no models.
     pub(super) fn none() -> Self {
-        Self { still: Vec::new(), moving: Vec::new(), raised: HashMap::new(), light: Light { direction: [0.0, 1.0, 0.0], diffuse: [1.0; 3], ambient: [0.3; 3] }, map_size: (0.0, 0.0) }
+        Self {
+            still: Vec::new(),
+            moving: Vec::new(),
+            raised: HashMap::new(),
+            light: Light { direction: [0.0, 1.0, 0.0], diffuse: [1.0; 3], ambient: [0.3; 3] },
+            map_size: (0.0, 0.0)
+        }
     }
 
     /// Every batch to draw, the still ones first.
@@ -83,11 +89,26 @@ impl Models {
     /// (`CSkill::ShowModel`: not turned, of its own size). One that stood there for `id` is gone.
     pub(super) fn raise(&mut self, gpu: &Gpu, id: u32, of: &Rc<Raisable>, at: Vector, light: Light, frame: i32) {
         // A placement is in the files' space: from the map's middle, y down.
-        let placement = Placement { model: String::new(), position: [at[0] - self.map_size.0 / 2.0, -at[1], at[2] - self.map_size.1 / 2.0], rotation: [0.0; 3], scale: [1.0; 3], playback: 0, speed: 1.0 };
+        let placement = Placement {
+            model: String::new(),
+            position: [at[0] - self.map_size.0 / 2.0, -at[1], at[2] - self.map_size.1 / 2.0],
+            rotation: [0.0; 3],
+            scale: [1.0; 3],
+            playback: 0,
+            speed: 1.0
+        };
         let placed = model::place(&of.model.at(frame), of.model.shade, &placement, self.map_size, &light);
         let layout = gpu.model_pipelines[0].get_bind_group_layout(1);
-        let batches = of.pictures.iter().enumerate().map(|(texture, (view, blends))| (texture, corners(&placed, texture), view, *blends)).filter(|(_, floats, _, _)| !floats.is_empty());
-        let batches = batches.map(|(texture, floats, view, blends)| (texture, batch(gpu, &layout, view, blends, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST))).collect();
+        let batches =
+            of.pictures.iter().enumerate().map(|(texture, (view, blends))| (texture, corners(&placed, texture), view, *blends)).filter(
+                |(_, floats, _, _)| !floats.is_empty()
+            );
+        let batches = batches
+            .map(|(texture, floats, view, blends)| (
+                texture,
+                batch(gpu, &layout, view, blends, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST)
+            ))
+            .collect();
         self.raised.insert(id, Raised { of: of.clone(), placement, light, shown: frame, batches });
     }
 
@@ -137,7 +158,17 @@ impl Raisable {
     /// A model and the pictures read for it (`read_raisable`), put on the GPU; a picture that could not be read
     /// is grey.
     pub(super) fn new(gpu: &Gpu, model: Rsm, pictures: Vec<Option<bmp::Image>>) -> Self {
-        let pictures = model.textures.iter().zip(pictures).map(|(name, picture)| (picture.map_or_else(|| gpu.texture(1, 1, &[160, 160, 160, 255]), |picture| gpu.texture(picture.width, picture.height, &picture.rgba)), blends(name))).collect();
+        let pictures = model.textures
+            .iter()
+            .zip(pictures)
+            .map(|(name, picture)| (
+                picture.map_or_else(
+                    || gpu.texture(1, 1, &[160, 160, 160, 255]),
+                    |picture| gpu.texture(picture.width, picture.height, &picture.rgba)
+                ),
+                blends(name)
+            ))
+            .collect();
         Self { model, pictures }
     }
 }
@@ -228,7 +259,11 @@ pub(super) async fn models(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32), decode: i
             by_texture.entry(name.as_str()).or_default().extend(corners(&placed, texture));
         }
     }
-    let wanted: BTreeSet<String> = by_texture.keys().map(|name| (*name).to_owned()).chain(turning.iter().flat_map(|(_, model, _)| model.textures.iter().cloned())).collect();
+    let wanted: BTreeSet<String> = by_texture
+        .keys()
+        .map(|name| (*name).to_owned())
+        .chain(turning.iter().flat_map(|(_, model, _)| model.textures.iter().cloned()))
+        .collect();
     let pictures: HashMap<String, wgpu::TextureView> = futures_util::future::join_all(wanted.into_iter().map(|name| async move {
         let loaded = picture(&name).await;
         (name, loaded)
@@ -250,8 +285,12 @@ pub(super) async fn models(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32), decode: i
     let moving = turning
         .into_iter()
         .map(|(placement, model, placed)| {
-            let batches = model.textures.iter().enumerate().map(|(texture, name)| (texture, corners(&placed, texture), name)).filter(|(_, floats, _)| !floats.is_empty());
-            let batches = batches.map(|(texture, floats, name)| (texture, batch(name, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST))).collect();
+            let batches = model.textures.iter().enumerate().map(|(texture, name)| (texture, corners(&placed, texture), name)).filter(
+                |(_, floats, _)| !floats.is_empty()
+            );
+            let batches = batches
+                .map(|(texture, floats, name)| (texture, batch(name, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST)))
+                .collect();
             Moving { model, placement: placement.clone(), at: in_world(placement), shown: 0, batches }
         })
         .collect();
@@ -302,9 +341,18 @@ pub(super) async fn water(gpu: &Gpu, rsw: &Rsw, gnd: &Gnd) -> Option<WaterSurfac
             floats.extend([column as f32 * gnd.zoom, water.level, row as f32 * gnd.zoom, u, v, (column + row) as f32 - 1.0]);
         }
     }
-    let vertices = gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(&floats), usage: wgpu::BufferUsages::VERTEX });
+    let vertices = gpu.device.create_buffer_init(
+        &wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(&floats), usage: wgpu::BufferUsages::VERTEX }
+    );
     // The water of kind 4 hides the ground whole and is in the colour of the map's ambient light; any other
     // lets the ground show through (the client's 0x90 of 255).
     let colour = if kind == 4 { [rsw.light.ambient[0], rsw.light.ambient[1], rsw.light.ambient[2], 1.0] } else { [1.0, 1.0, 1.0, 144.0 / 255.0] };
-    Some(WaterSurface { vertices, count: (floats.len() / 6) as u32, frames, frame_ticks: water.frame_ticks, wave: (water.wave_height, water.wave_speed, water.wave_pitch), colour })
+    Some(WaterSurface {
+        vertices,
+        count: (floats.len() / 6) as u32,
+        frames,
+        frame_ticks: water.frame_ticks,
+        wave: (water.wave_height, water.wave_speed, water.wave_pitch),
+        colour
+    })
 }

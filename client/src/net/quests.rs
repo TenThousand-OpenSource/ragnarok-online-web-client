@@ -102,7 +102,8 @@ pub fn list(packet: &[u8]) -> Vec<Quest> {
     let mut at = 8;
     let mut quests = Vec::new();
     for _ in 0..count {
-        let (Some(id), Some(active), Some(deadline), Some(hunts)) = (long(packet, at), packet.get(at + 4), long(packet, at + 9), word(packet, at + 13)) else { break };
+        let (Some(id), Some(active), Some(deadline), Some(hunts)) =
+            (long(packet, at), packet.get(at + 4), long(packet, at + 9), word(packet, at + 13)) else { break };
         at += 15;
         let Some(hunts) = (0..usize::from(hunts)).map(|index| hunt(packet.get(at + index * 44..)?, true)).collect::<Option<Vec<_>>>() else { break };
         at += hunts.len() * 44;
@@ -135,12 +136,30 @@ pub fn hunted(packet: &[u8]) -> Vec<Progress> {
         .collect()
 }
 
+/// An entry of ZC_HUNTING_QUEST_INFO: how many of a monster a quest wants and has.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct HuntInfo {
+    pub quest: u32,
+    pub mob: u32,
+    pub goal: i16,
+    pub killed: i16,
+}
+
 /// ZC_HUNTING_QUEST_INFO (0x08fe): `u16 length`, then entries of `u32 quest`, `u32 mob`, `u16 goal`,
-/// `u16 killed`, as the client reads them (its `questUpdateType2`): each `(quest, mob, goal, killed)`. (rAthena
-/// writes the hunt's own number where the client reads the quest's, so from that server no entry is of a quest
-/// the journal has, and the counts come with ZC_UPDATE_MISSION_HUNT_EX.)
-pub fn hunting_info(packet: &[u8]) -> Vec<(u32, u32, i16, i16)> {
-    records(packet, 4, 12).filter_map(|entry| Some((long(entry, 0)?, long(entry, 4)?, short(entry, 8)?, short(entry, 10)?))).collect()
+/// `u16 killed`, as the client reads them (its `questUpdateType2`). (rAthena writes the hunt's own number where
+/// the client reads the quest's, so from that server no entry is of a quest the journal has, and the counts
+/// come with ZC_UPDATE_MISSION_HUNT_EX.)
+pub fn hunting_info(packet: &[u8]) -> Vec<HuntInfo> {
+    records(packet, 4, 12)
+        .filter_map(|entry| {
+            Some(HuntInfo {
+                quest: long(entry, 0)?,
+                mob: long(entry, 4)?,
+                goal: short(entry, 8)?,
+                killed: short(entry, 10)?,
+            })
+        })
+        .collect()
 }
 
 /// ZC_DEL_QUEST (0x02b4, 6 bytes): `u32 quest`.

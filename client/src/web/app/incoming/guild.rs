@@ -218,7 +218,11 @@ impl App {
         let Some((character, reason)) = gone else { return };
         if character == self.own_character() {
             self.guild.left();
-            self.chat_line_of(said::GUILD, if expelled { Self::words(490, "You have been expelled from the Guild.") } else { Self::words(489, "You left the guild.") }, RED);
+            self.chat_line_of(
+                said::GUILD,
+                if expelled { Self::words(490, "You have been expelled from the Guild.") } else { Self::words(489, "You left the guild.") },
+                RED
+            );
             self.guild_own_shown();
             return;
         }
@@ -228,7 +232,10 @@ impl App {
         self.guild.member_moves.remove(&character);
         let lines = if expelled {
             self.guild.expelled.push((name.clone(), reason.clone()));
-            [Self::words(370, "%s has been expelled from the guild.").replacen("%s", &name, 1), Self::words(371, "Expulsion Reason: %s").replacen("%s", &reason, 1)]
+            [
+                Self::words(370, "%s has been expelled from the guild.").replacen("%s", &name, 1),
+                Self::words(371, "Expulsion Reason: %s").replacen("%s", &reason, 1)
+            ]
         } else {
             [Self::words(364, "%s has left the guild.").replacen("%s", &name, 1), Self::words(365, "Withdrawal Reason: %s").replacen("%s", &reason, 1)]
         };

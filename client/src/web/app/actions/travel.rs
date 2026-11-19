@@ -188,7 +188,9 @@ impl App {
     /// Shows the sign of the map come into, when the player has it so (the client's `ShowCurrentMapName`):
     /// the small line, the large one, on the map's picture. A map with neither line says its name.
     pub(in crate::web::app) fn map_sign(&self) {
-        let Some(sign) = self.game.as_ref().and_then(|game| data::map_sign(&game.map)).filter(|sign| sign.shown && self.option("TT_SHOW_MAP_NAME_ON_OFF")) else { return };
+        let Some(sign) = self.game.as_ref().and_then(|game| data::map_sign(&game.map)).filter(
+            |sign| sign.shown && self.option("TT_SHOW_MAP_NAME_ON_OFF")
+        ) else { return };
         let Some(shown) = element("mapsign") else { return };
         let picture = if sign.picture.is_empty() { "noname" } else { sign.picture.as_str() };
         let title = if sign.title.is_empty() && sign.over.is_empty() { sign.name.as_str() } else { sign.title.as_str() };

@@ -104,14 +104,23 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         .map(|(number, about)| {
             let text = |name: &str| text_of(&about, name).unwrap_or_default();
             let info = row(&field(&about, "info"));
-            (number, Recommended { title: text("title"), summary: text("summary"), icon: text("icon"), picture: text("picture"), info: [0, 1, 2].map(|part| texts(&info.get(part))) })
+            (number, Recommended {
+                title: text("title"),
+                summary: text("summary"),
+                icon: text("icon"),
+                picture: text("picture"),
+                info: [0, 1, 2].map(|part| texts(&info.get(part)))
+            })
         })
         .collect();
     recommended.sort_by_key(|(number, _)| *number);
     RECOMMENDED.set(recommended);
     TOOLTIPS.set(names::<String>(&field(&quests, "tooltips")).into_iter().collect());
     let mut filters: Vec<(u32, String, Vec<String>)> =
-        entries::<u32>(&field(&quests, "filters")).into_iter().map(|(number, about)| (number, text_of(&about, "name").unwrap_or_default(), texts(&field(&about, "icons")))).collect();
+        entries::<u32>(&field(&quests, "filters"))
+            .into_iter()
+            .map(|(number, about)| (number, text_of(&about, "name").unwrap_or_default(), texts(&field(&about, "icons"))))
+            .collect();
     filters.sort_by_key(|(number, ..)| *number);
     FILTERS.set(filters);
 }

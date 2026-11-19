@@ -40,7 +40,14 @@ const TITLE_KEPT: usize = 60;
 /// ZC_ROOM_NEWENTRY and ZC_CHANGE_CHATROOM. The title has no zero after it.
 pub fn room(packet: &[u8]) -> Option<Room> {
     let title = packet.get(17..)?;
-    Some(Room { owner: long(packet, 4)?, id: long(packet, 8)?, limit: word(packet, 12)?, users: word(packet, 14)?, kind: packet[16], title: text(&title[..title.len().min(TITLE_KEPT)]) })
+    Some(Room {
+        owner: long(packet, 4)?,
+        id: long(packet, 8)?,
+        limit: word(packet, 12)?,
+        users: word(packet, 14)?,
+        kind: packet[16],
+        title: text(&title[..title.len().min(TITLE_KEPT)])
+    })
 }
 
 /// ZC_DESTROY_ROOM: which room.
@@ -166,7 +173,10 @@ mod tests {
         let mut owns = vec![0xe1, 0, 0, 0, 0, 0];
         owns.extend(name24("Guest"));
         assert_eq!(role(&owns), Some((OWNER, "Guest".to_owned())));
-        for (id, length) in [(ZC_MEMBER_NEWENTRY, came.len()), (ZC_MEMBER_EXIT, went.len()), (ZC_ROLE_CHANGE, owns.len()), (ZC_DESTROY_ROOM, 6), (ZC_ACK_CREATE_CHATROOM, 3), (ZC_REFUSE_ENTER_ROOM, 3)] {
+        for (id, length) in [
+            (ZC_MEMBER_NEWENTRY, came.len()), (ZC_MEMBER_EXIT, went.len()), (ZC_ROLE_CHANGE, owns.len()),
+            (ZC_DESTROY_ROOM, 6), (ZC_ACK_CREATE_CHATROOM, 3), (ZC_REFUSE_ENTER_ROOM, 3)
+        ] {
             assert_eq!(crate::net::packet_length(id), Some(length as i32), "{id:#06x}");
         }
         for id in [ZC_ROOM_NEWENTRY, ZC_ENTER_ROOM, ZC_CHANGE_CHATROOM] {

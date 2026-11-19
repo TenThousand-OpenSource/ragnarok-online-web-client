@@ -32,7 +32,9 @@ impl App {
             // into the line of the Shortcut List that has the keyboard, else into the chat's line.
             Press::Pick(emotion) => {
                 let Some(name) = data::emotion_name(emotion) else { return };
-                let typed_in = crate::web::document().and_then(|document| document.active_element()).map(|active| active.id()).filter(|id| self.emotions.shortcuts && id.starts_with(&wnd::SHORTCUTS.field()));
+                let typed_in = crate::web::document().and_then(|document| document.active_element()).map(|active| active.id()).filter(
+                    |id| self.emotions.shortcuts && id.starts_with(&wnd::SHORTCUTS.field())
+                );
                 let line = typed_in.unwrap_or_else(|| "chat-input".to_owned());
                 set_field(&line, &name);
                 if let Some(input) = element(&line).and_then(|input| input.dyn_into::<web_sys::HtmlElement>().ok()) {
@@ -54,7 +56,10 @@ impl App {
         if std::mem::replace(&mut self.emotions.asked, true) {
             return;
         }
-        let wanted: Vec<(u16, String, usize)> = data::emotions().into_iter().filter_map(|emotion| data::emotion(emotion).map(|(sprite, action)| (emotion, sprite, action))).collect();
+        let wanted: Vec<(u16, String, usize)> = data::emotions()
+            .into_iter()
+            .filter_map(|emotion| data::emotion(emotion).map(|(sprite, action)| (emotion, sprite, action)))
+            .collect();
         wasm_bindgen_futures::spawn_local(async move {
             let mut read = Vec::new();
             for (emotion, sprite, action) in wanted {

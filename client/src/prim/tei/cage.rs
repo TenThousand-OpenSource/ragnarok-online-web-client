@@ -61,7 +61,11 @@ impl Part {
         for (row, latitude) in [-405, -360, -315].into_iter().enumerate() {
             let half = if row == 1 { 3.0 } else { 2.0 };
             for turn in [0, 45, 90, 135, 180] {
-                let layers = [(self.tall, self.tall + 2.0, [205, 255, 205]), (self.tall + 0.2, self.tall, [155, 255, 155]), (self.tall + 0.4 + self.heights[0], self.tall, [225, 255, 225])];
+                let layers = [
+                    (self.tall, self.tall + 2.0, [205, 255, 205]),
+                    (self.tall + 0.2, self.tall, [155, 255, 155]),
+                    (self.tall + 0.4 + self.heights[0], self.tall, [225, 255, 225])
+                ];
                 for (layer, (radius, drop, green)) in layers.into_iter().enumerate() {
                     let outer = layer == 2 && self.flags[0] != 5;
                     let corners = self.cage_panel(latitude, turn, half, radius, drop);

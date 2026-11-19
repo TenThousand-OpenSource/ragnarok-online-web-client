@@ -117,7 +117,13 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
         None => sprite(&format!("data/sprite/{path}")).await?,
     };
     TIMES.with_borrow_mut(|times| {
-        times.entry(path.to_owned()).or_insert_with(|| actions.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(actions.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
+        times.entry(path.to_owned()).or_insert_with(
+            || actions.actions
+                .iter()
+                .enumerate()
+                .map(|(index, frames)| (frames.len(), f64::from(actions.delays.get(index).copied().unwrap_or(4.0)) * 25.0))
+                .collect()
+        );
     });
     // Sprites differ in how many actions they have: one too many starts over.
     let action = action % actions.actions.len().max(1);
@@ -126,7 +132,22 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
         strikes.entry(path.to_owned()).or_insert_with(|| lands_at(&actions));
     });
     VOICES.with_borrow_mut(|voices| {
-        voices.entry(path.to_owned()).or_insert_with(|| actions.actions.iter().map(|frames| frames.iter().map(|frame| frame.sound.and_then(|sound| actions.sounds.get(sound)).filter(|name| name.as_str() != "atk" && !name.is_empty()).cloned()).collect()).collect());
+        voices.entry(path.to_owned()).or_insert_with(
+            || actions.actions
+                .iter()
+                .map(
+                    |frames| frames
+                        .iter()
+                        .map(
+                            |frame| frame.sound
+                                .and_then(|sound| actions.sounds.get(sound))
+                                .filter(|name| name.as_str() != "atk" && !name.is_empty())
+                                .cloned()
+                        )
+                        .collect()
+                )
+                .collect()
+        );
     });
     // The frame's reach around its origin (the feet), from where each of its layers goes.
     let (mut low, mut high) = ((0i32, 0i32), (1i32, 1i32));
@@ -155,6 +176,11 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
 /// A frame of a sprite as a picture for the page: its data URL, its size, and where in it the sprite's origin is.
 pub async fn frame_picture(path: &str, action: usize, frame: usize) -> Result<(String, (usize, usize), (f32, f32)), String> {
     let picture = creature(path, action, frame).await?;
+    Ok((data_url(&picture)?, (picture.canvas.width, picture.canvas.height), picture.feet))
+}
+
+/// A picture as a data URL: painted on a canvas of the page of its own size, and that written out.
+fn data_url(picture: &Picture) -> Result<String, String> {
     let document = crate::web::document().ok_or("no document")?;
     let element: HtmlCanvasElement = document.create_element("canvas").map_err(|_| "no canvas")?.dyn_into().map_err(|_| "no canvas")?;
     let canvas = &picture.canvas;
@@ -163,22 +189,15 @@ pub async fn frame_picture(path: &str, action: usize, frame: usize) -> Result<(S
     let context: CanvasRenderingContext2d = element.get_context("2d").ok().flatten().ok_or("no context")?.unchecked_into();
     let data = ImageData::new_with_u8_clamped_array_and_sh(Clamped(&canvas.rgba), canvas.width as u32, canvas.height as u32).map_err(|_| "no picture")?;
     context.put_image_data(&data, 0.0, 0.0).map_err(|_| "no picture")?;
-    Ok((element.to_data_url().map_err(|_| "no picture")?, (canvas.width, canvas.height), picture.feet))
+    Ok(element.to_data_url().map_err(|_| "no picture")?)
 }
 
 /// One of the game's own mouse pointers (an action of `cursors.spr`), as CSS: the picture and where in it the
 /// pointer's tip is.
 pub async fn cursor(action: usize, frame: usize) -> Result<String, String> {
     let picture = creature("cursors", action, frame).await?;
-    let document = crate::web::document().ok_or("no document")?;
-    let element: HtmlCanvasElement = document.create_element("canvas").map_err(|_| "no canvas")?.dyn_into().map_err(|_| "no canvas")?;
     let canvas = &picture.canvas;
-    element.set_width(canvas.width as u32);
-    element.set_height(canvas.height as u32);
-    let context: CanvasRenderingContext2d = element.get_context("2d").ok().flatten().ok_or("no context")?.unchecked_into();
-    let data = ImageData::new_with_u8_clamped_array_and_sh(Clamped(&canvas.rgba), canvas.width as u32, canvas.height as u32).map_err(|_| "no picture")?;
-    context.put_image_data(&data, 0.0, 0.0).map_err(|_| "no picture")?;
-    let url = element.to_data_url().map_err(|_| "no picture")?;
+    let url = data_url(&picture)?;
     let tip = |at: f32, size: usize| (at.max(0.0) as usize).min(size.saturating_sub(1));
     Ok(format!("url({url}) {} {}, auto", tip(picture.feet.0, canvas.width), tip(picture.feet.1, canvas.height)))
 }

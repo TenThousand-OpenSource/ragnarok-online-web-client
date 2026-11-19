@@ -39,7 +39,8 @@ impl App {
                 self.redraw(&[&wnd::HOMUNCULUS_SKILLS]);
             }
             homunculus::ZC_HOSKILLINFO_UPDATE => {
-                if let Some((id, level, sp, range, raisable)) = net::inventory::skill_raised(packet) {
+                let raised = net::inventory::skill_raised(packet);
+                if let Some(net::inventory::SkillRaised { id, level, sp, range, raisable }) = raised {
                     if let Some(skill) = self.homunculus.skills.iter_mut().find(|skill| skill.id == id) {
                         (skill.level, skill.sp, skill.range, skill.raisable) = (level, sp, range, raisable);
                     }
@@ -97,7 +98,12 @@ impl App {
         self.homunculus.fed = None;
         if fed {
             let left: u32 = self.bag.items.iter().filter(|item| item.id == food).map(|item| u32::from(item.amount)).sum();
-            self.chat_line(Self::words(3281, "Homunculus has been fed. [%s] - %d remaining").replacen("%s", &name, 1).replacen("%d", &left.to_string(), 1), PALE_CYAN);
+            self.chat_line(
+                Self::words(3281, "Homunculus has been fed. [%s] - %d remaining")
+                    .replacen("%s", &name, 1)
+                    .replacen("%d", &left.to_string(), 1),
+                PALE_CYAN
+            );
         } else {
             self.chat_line(Self::words(591, "Pet food [%s] is not available.").replace("%s", &name), "#f51e1e");
         }

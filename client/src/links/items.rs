@@ -54,7 +54,11 @@ pub fn link(data: &str) -> Option<Link> {
     let rest = data.get(6..)?;
     let end = rest.find(|sign| PARTING.contains(sign)).unwrap_or(rest.len());
     let item = base62(&rest[..end]).filter(|item| *item != 0)?;
-    let refine = rest[end..].strip_prefix('%').map(|after| &after[..after.find(|sign| PARTING.contains(sign)).unwrap_or(after.len())]).and_then(base62).unwrap_or(0);
+    let refine = rest[end..]
+        .strip_prefix('%')
+        .map(|after| &after[..after.find(|sign| PARTING.contains(sign)).unwrap_or(after.len())])
+        .and_then(base62)
+        .unwrap_or(0);
     Some(Link { item, refine })
 }
 

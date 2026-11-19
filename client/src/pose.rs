@@ -268,6 +268,63 @@ pub fn looks(facing: u8, head: u8, towards: u8) -> (u8, u8) {
     }
 }
 
+/// The bits of the state someone is in (the client's `StateFlag01`, `02` and `06`) that take its sprite
+/// away: hiding, cloaking, and being invisible.
+pub const HIDES: u32 = 1 << 1;
+pub const CLOAKS: u32 = 1 << 2;
+pub const UNSEEN_BIT: u32 = 1 << 6;
+
+/// Whether the sprite of one in such a state is not drawn (`render.enabled`, `render.visible`): it hides,
+/// cloaks or is invisible.
+pub fn hidden(state: u32) -> bool {
+    state & (HIDES | CLOAKS | UNSEEN_BIT) != 0
+}
+
+/// Whether one is down, so that no shadow lies under it: it lies dead, or is a character that sits; not one
+/// that is still falling as it dies (`dying`).
+pub fn down(character: bool, dying: bool, dead: bool, sitting: bool) -> bool {
+    !dying && (dead || (character && sitting))
+}
+
+/// Whether a shadow lies under one (`CPc::Render`, `CRenderObject::DrawShadow`): not under one who is `down`
+/// or vanishes, nor under another who hides, cloaks or is invisible; under the player's own character that
+/// hides it stays (`shadowVisible` is taken from the others only), not under one cloaked or invisible, whose
+/// `visible` is off.
+pub fn shadowed(down: bool, vanishes: bool, own: bool, state: u32) -> bool {
+    !down && !vanishes && if own { state & (CLOAKS | UNSEEN_BIT) == 0 } else { !hidden(state) }
+}
+
+/// Whether one whose state changes from `was` to `now` begins to hide or comes out of hiding
+/// (`CGameActor::SetStatusStates`): either puffs smoke where it stands.
+pub fn hiding_changed(was: u32, now: u32) -> bool {
+    (was ^ now) & HIDES != 0
+}
+
+/// Whether the client's `EF_BASH` shows on one of a job in such a state: on one that hides, unless a ninja
+/// (jobs 25 and 4222).
+pub fn bashed_hiding(state: u32, job: u16) -> bool {
+    state & HIDES != 0 && !matches!(job, 25 | 4222)
+}
+
+/// How long one falls dead before it lies in the last picture of its fall, in milliseconds (`ST_DEAD`): the
+/// pictures of the fall, each for as long as the sprite says (`timing`: how many and how long each), no
+/// shorter than a quarter of a second; 700 for one whose sprite's timing is not known.
+pub fn fall_lasts(timing: Option<(usize, f64)>) -> f64 {
+    timing.map_or(700.0, |(pictures, each)| pictures as f64 * each).max(250.0)
+}
+
+/// The direction the sprites count (from the south, turning one way) for a direction as the server counts
+/// it (0 north, turning left; ZC_CHANGE_DIRECTION and the packets of those that stand).
+pub fn facing_of(direction: u8) -> u8 {
+    (12 - direction % 8) % 8
+}
+
+/// The direction the server is told for one the sprites count as `facing` (0 to 7; the other way of
+/// `facing_of`).
+pub fn direction_of(facing: u8) -> u8 {
+    (12 - facing) % 8
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -341,7 +398,10 @@ mod tests {
         assert_eq!((stance_head(4047, 1, 90, 3), stance_head(4047, 1, 91, 4), stance_head(4047, 1, 90, 5)), (Some((6, 0)), Some((7, 0)), None));
         assert_eq!((stance_head(4046, 1, 93, 4), stance_head(4046, 0, 95, 5)), (Some((1, 0)), Some((3, 0))));
         // The second frame of the casting action.
-        assert_eq!((stance_head(4046, 1, 96, 1), stance_head(4046, 1, 99, 1), stance_head(4046, 1, 101, 1), stance_head(4046, 1, 96, 2)), (Some((0, 0)), Some((6, 0)), Some((2, 0)), None));
+        assert_eq!(
+            (stance_head(4046, 1, 96, 1), stance_head(4046, 1, 99, 1), stance_head(4046, 1, 101, 1), stance_head(4046, 1, 96, 2)),
+            (Some((0, 0)), Some((6, 0)), Some((2, 0)), None)
+        );
         // No other job, no other action.
         assert_eq!((stance_head(15, 1, 96, 1), stance_head(4046, 1, 80, 4)), (None, None));
     }
@@ -356,5 +416,50 @@ mod tests {
     #[test]
     fn babies_are_smaller() {
         assert_eq!((size(4023), size(4045), size(4030), size(4044), size(7), size(4008)), (0.75, 0.75, 0.82, 0.82, 1.0, 1.0));
+    }
+
+    #[test]
+    fn one_that_hides_cloaks_or_is_invisible_is_not_drawn() {
+        assert!(hidden(2) && hidden(4) && hidden(0x40) && hidden(0x46) && hidden(0xffff_ffff));
+        assert!(!hidden(0) && !hidden(1) && !hidden(8) && !hidden(0x20) && !hidden(0x80));
+    }
+
+    #[test]
+    fn a_shadow_lies_under_those_that_stand_and_are_seen() {
+        // Down: one that lies dead, a character that sits; not a monster that "sits", nor one still falling.
+        assert!(down(false, false, true, false) && down(true, false, false, true) && down(true, false, true, true));
+        assert!(!down(false, false, false, true) && !down(true, true, true, true) && !down(true, false, false, false));
+        assert!(shadowed(false, false, false, 0) && shadowed(false, false, true, 0) && shadowed(false, false, false, 1));
+        assert!(!shadowed(true, false, false, 0) && !shadowed(false, true, true, 0));
+        // Another that hides, cloaks or is invisible has none; the player's own that hides keeps it.
+        assert!(!shadowed(false, false, false, HIDES) && !shadowed(false, false, false, CLOAKS));
+        assert!(!shadowed(false, false, false, UNSEEN_BIT));
+        assert!(shadowed(false, false, true, HIDES) && !shadowed(false, false, true, CLOAKS));
+        assert!(!shadowed(false, false, true, UNSEEN_BIT) && !shadowed(false, false, true, HIDES | CLOAKS));
+    }
+
+    #[test]
+    fn hiding_and_coming_out_puff_smoke_and_hiding_shows_the_bash() {
+        assert!(hiding_changed(0, 2) && hiding_changed(2, 0) && hiding_changed(6, 4) && hiding_changed(0x40, 0x42));
+        assert!(!hiding_changed(2, 2) && !hiding_changed(0, 4) && !hiding_changed(2, 6) && !hiding_changed(0, 0));
+        assert!(bashed_hiding(2, 12) && bashed_hiding(6, 0) && bashed_hiding(2, 4035));
+        assert!(!bashed_hiding(2, 25) && !bashed_hiding(2, 4222) && !bashed_hiding(0, 12) && !bashed_hiding(4, 12));
+    }
+
+    #[test]
+    fn a_fall_lasts_as_long_as_its_pictures() {
+        assert_eq!((fall_lasts(None), fall_lasts(Some((4, 100.0))), fall_lasts(Some((7, 62.5)))), (700.0, 400.0, 437.5));
+        // No shorter than a quarter of a second, whatever the sprite says.
+        assert_eq!((fall_lasts(Some((2, 100.0))), fall_lasts(Some((0, 100.0))), fall_lasts(Some((3, -5.0)))), (250.0, 250.0, 250.0));
+        assert_eq!(fall_lasts(Some((1, f64::NAN))), 250.0);
+    }
+
+    #[test]
+    fn the_servers_directions_and_the_sprites_turn_into_each_other() {
+        assert_eq!([0, 1, 2, 3, 4, 5, 6, 7].map(facing_of), [4, 3, 2, 1, 0, 7, 6, 5]);
+        assert_eq!([4, 3, 2, 1, 0, 7, 6, 5].map(direction_of), [0, 1, 2, 3, 4, 5, 6, 7]);
+        // A direction past the eighth is taken round; a facing is not, up to 12.
+        assert_eq!((facing_of(8), facing_of(13), facing_of(255)), (4, 7, 5));
+        assert_eq!((direction_of(8), direction_of(12)), (4, 0));
     }
 }

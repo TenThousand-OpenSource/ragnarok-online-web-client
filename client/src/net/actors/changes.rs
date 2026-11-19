@@ -37,9 +37,19 @@ pub fn risen(packet: &[u8]) -> Option<u32> {
     (packet.len() >= 6).then(|| u32_at(packet, 2))
 }
 
-/// Reads ZC_SPRITE_CHANGE: whose look, the kind of the change and its two values.
-pub fn look(packet: &[u8]) -> Option<(u32, u8, u32, u32)> {
-    (packet.len() >= 15).then(|| (u32_at(packet, 2), packet[6], u32_at(packet, 7), u32_at(packet, 11)))
+/// What ZC_SPRITE_CHANGE tells: whose look, the kind of the change and its two values.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Look {
+    pub who: u32,
+    pub kind: u8,
+    pub value: u32,
+    pub second: u32,
+}
+
+/// Reads ZC_SPRITE_CHANGE.
+pub fn look(packet: &[u8]) -> Option<Look> {
+    (packet.len() >= 15)
+        .then(|| Look { who: u32_at(packet, 2), kind: packet[6], value: u32_at(packet, 7), second: u32_at(packet, 11) })
 }
 
 /// Reads ZC_NPCSPRITE_CHANGE: who becomes another, and the class it is of from now on.

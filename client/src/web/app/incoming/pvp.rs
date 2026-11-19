@@ -71,7 +71,11 @@ impl App {
         if before != rank {
             if let Some(line) = crate::pvp::rank_message(before, rank) {
                 let name = self.game.as_ref().map(|game| game.name.clone()).unwrap_or_default();
-                let words = Self::words(line, if line == 582 { "Congratulations! %s's rank has gone up to %d." } else { "What a pity! %s's rank has gone down to %d." });
+                let words = Self::words(line, if line == 582 {
+                    "Congratulations! %s's rank has gone up to %d."
+                } else {
+                    "What a pity! %s's rank has gone down to %d."
+                });
                 self.chat_line(words.replacen("%s", &name, 1).replacen("%d", &rank.to_string(), 1), YELLOW);
             }
             sound::effect("effect/number_change.wav", 1.0);

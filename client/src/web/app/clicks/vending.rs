@@ -60,7 +60,8 @@ impl App {
             Press::Confirm => {
                 if let Some(visit) = self.vending.visit.as_mut().filter(|visit| visit.stage == Stage::Confirming) {
                     visit.stage = Stage::Sent;
-                    let wanted: Vec<(u16, u16)> = visit.basket.iter().filter_map(|(row, amount)| Some((visit.list.sold.get(*row)?.item.index, *amount))).collect();
+                    let wanted: Vec<(u16, u16)> =
+                        visit.basket.iter().filter_map(|(row, amount)| Some((visit.list.sold.get(*row)?.item.index, *amount))).collect();
                     let packet = vending::buy(visit.list.vendor, visit.list.shop, &wanted);
                     self.send_on_map(&packet);
                 }
@@ -78,7 +79,10 @@ impl App {
     /// and no oftener than once a second.
     fn vending_ask(&mut self, vendor: u32) {
         let now = js_sys::Date::now();
-        if vendor == self.own_account() || self.vending.visit.as_ref().is_some_and(|visit| visit.stage != Stage::Sent) || now - self.vending.asked_at < ASK_AGAIN_MS {
+        if vendor == self.own_account()
+            || self.vending.visit.as_ref().is_some_and(|visit| visit.stage != Stage::Sent)
+            || now - self.vending.asked_at < ASK_AGAIN_MS
+        {
             return;
         }
         self.vending.asked_at = now;
@@ -119,7 +123,13 @@ impl App {
                 self.vending_across(Crossing::Unstall(row), u32::from(amount), amount == 1);
             }
             (Drag::Vended(row), Drop::Wants) => {
-                let Some((kind, left, kept)) = self.vending.visit.as_ref().and_then(|visit| Some((visit.list.sold.get(row)?.item.kind, visit.list.sold[row].item.amount.saturating_sub(visit.kept(row)), visit.kept(row)))) else { return };
+                let Some((kind, left, kept)) = self.vending.visit.as_ref().and_then(
+                    |visit| Some((
+                        visit.list.sold.get(row)?.item.kind,
+                        visit.list.sold[row].item.amount.saturating_sub(visit.kept(row)),
+                        visit.kept(row)
+                    ))
+                ) else { return };
                 // A thing that is worn goes in singly, and only once (the client's line 119).
                 if bought_singly(kind) && kept > 0 {
                     return self.chat_line(Self::words(119, "Please avoid buying 2 of the same items at one time."), RED);
@@ -189,7 +199,8 @@ impl App {
         let before = u32::from(making.taken(index));
         let amount = amount.min(MOST_AMOUNT.saturating_sub(before));
         if before + amount >= MOST_AMOUNT {
-            let line = Self::words(1705, "It is not possible to purchase the same item more than %d pieces at a time").replacen("%d", &MOST_AMOUNT.to_string(), 1);
+            let line = Self::words(1705, "It is not possible to purchase the same item more than %d pieces at a time")
+                .replacen("%d", &MOST_AMOUNT.to_string(), 1);
             self.chat_line(line, RED);
         }
         let Some(making) = &mut self.vending.making else { return };
@@ -230,7 +241,10 @@ impl App {
         }
         if kept + amount > MOST_AMOUNT {
             amount = MOST_AMOUNT.saturating_sub(kept);
-            said.push(Self::words(1704, "It is not possible to purchase the same item more than %d pieces at a time").replacen("%d", &MOST_AMOUNT.to_string(), 1));
+            said.push(
+                Self::words(1704, "It is not possible to purchase the same item more than %d pieces at a time")
+                    .replacen("%d", &MOST_AMOUNT.to_string(), 1)
+            );
         }
         let zeny = self.hero.zeny().max(0) as u64;
         if zeny < price * u64::from(amount) + basket {
@@ -273,7 +287,9 @@ impl App {
                 return self.redraw(&[&wnd::VENDING_ASKS]);
             }
             Some(_) if making.title.trim().is_empty() => Some((225, "Please enter the stall's name")),
-            Some(prices) if zeny + prices.iter().zip(&making.rows).map(|(price, stalled)| u64::from(*price) * u64::from(stalled.amount)).sum::<u64>() > i32::MAX as u64 => {
+            Some(prices) if zeny + prices.iter().zip(&making.rows).map(
+                |(price, stalled)| u64::from(*price) * u64::from(stalled.amount)
+            ).sum::<u64>() > i32::MAX as u64 => {
                 Some((3826, "The total amount of items to sell exceeds the amount of Zeny you can have."))
             }
             Some(_) => None,
@@ -281,7 +297,8 @@ impl App {
         if let Some((line, otherwise)) = refused {
             return self.chat_line(Self::words(line, otherwise), RED);
         }
-        let things: Vec<(u16, u16, u32)> = making.rows.iter().zip(prices.unwrap_or_default()).map(|(stalled, price)| (stalled.index, stalled.amount, price)).collect();
+        let things: Vec<(u16, u16, u32)> =
+            making.rows.iter().zip(prices.unwrap_or_default()).map(|(stalled, price)| (stalled.index, stalled.amount, price)).collect();
         let packet = vending::open(making.title.trim(), true, &things);
         self.send_on_map(&packet);
     }

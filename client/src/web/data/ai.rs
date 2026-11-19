@@ -29,7 +29,10 @@ pub fn ai_scripts(user: bool) -> Option<Files> {
             match fetch_json(if user { "/tables/ai-user.json" } else { "/tables/ai.json" }).await {
                 // A text has a character for each byte of its file.
                 Ok(files) => {
-                    let files = entries::<String>(&files).into_iter().filter_map(|(path, text)| Some((path, text.as_string()?.chars().map(|byte| byte as u8).collect()))).collect();
+                    let files = entries::<String>(&files)
+                        .into_iter()
+                        .filter_map(|(path, text)| Some((path, text.as_string()?.chars().map(|byte| byte as u8).collect())))
+                        .collect();
                     SCRIPTS.with_borrow_mut(|scripts| scripts[which] = Some(files));
                 }
                 Err(error) => web_sys::console::error_1(&format!("ai scripts: {error}").into()),

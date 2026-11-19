@@ -33,7 +33,8 @@ mod choosing {
 const SHORT: &str = "Poring";
 /// A text longer than any field, its letters two bytes each and so laid that fields of even and of odd sizes
 /// both end inside a letter.
-const LONG: &str = "xЙмя-героя-длиннее-двадцати-четырёх-байт, и ещё длиннее: чтобы не поместиться ни в одно поле пакета, каким бы длинным оно ни было, и чтобы всякое поле обрезало его посреди буквы.";
+const LONG: &str = "xЙмя-героя-длиннее-двадцати-четырёх-байт, и ещё длиннее: чтобы не поместиться ни в одно поле \
+    пакета, каким бы длинным оно ни было, и чтобы всякое поле обрезало его посреди буквы.";
 
 macro_rules! built {
     ($lines:ident; $($path:ident)::+; $($argument:expr),*) => {
@@ -234,7 +235,14 @@ fn people(lines: &mut Vec<(&'static str, Vec<u8>)>) {
 
 /// The guild and the mail.
 fn guild_and_mail(lines: &mut Vec<(&'static str, Vec<u8>)>) {
-    let position = |id: u32, name: &str| guild::Position { id, name: name.to_owned(), invites: id % 2 == 0, expels: id % 3 == 0, storage: id == 0, tax: id * 7 };
+    let position = |id: u32, name: &str| guild::Position {
+        id,
+        name: name.to_owned(),
+        invites: id % 2 == 0,
+        expels: id % 3 == 0,
+        storage: id == 0,
+        tax: id * 7
+    };
     for text in [SHORT, LONG] {
         built!(lines; guild::make; 150_001, text);
         built!(lines; guild::invite_named; text);

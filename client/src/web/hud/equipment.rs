@@ -27,20 +27,24 @@ impl App {
             // A thing worn in two places (a two-handed weapon) shows in both.
             let Some(item) = items.iter().find(|item| item.worn & place != 0) else { continue };
             let (icon_x, name_x) = if column == 0 { (6, 33) } else { (251, 172) };
-            places.push_str(&format!(
-                r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" {} data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
-                   <div class="a t" style="left:{name_x}px;top:{}px;width:74px;line-height:12px;white-space:normal;overflow:hidden;max-height:24px;{}">{}</div>"#,
-                38 + row * 26,
-                // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
-                // begins the same drag); a double click takes it off.
-                if own { format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))) } else { String::new() },
-                item.id,
-                escape(&Self::item_name(item)),
-                Self::item_icon(item.id, true),
-                40 + row * 26,
-                if column == 0 { "" } else { "text-align:right" },
-                escape(&Self::item_name(item)),
-            ));
+            places.push_str(&[
+                format!(
+                    r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" {} data-info="{}" title="{}">"#,
+                    38 + row * 26,
+                    // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
+                    // begins the same drag); a double click takes it off.
+                    if own { format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))) } else { String::new() },
+                    item.id,
+                    escape(&Self::item_name(item))
+                ),
+                format!(
+                    r#"<div style="position:absolute;left:-4px;top:-4px">{}</div></div>
+                   "#,
+                    Self::item_icon(item.id, true)
+                ),
+                format!(r#"<div class="a t" style="left:{name_x}px;top:{}px;width:74px;line-height:12px;white-space:normal;"#, 40 + row * 26),
+                format!(r#"overflow:hidden;max-height:24px;{}">{}</div>"#, if column == 0 { "" } else { "text-align:right" }, escape(&Self::item_name(item)))
+            ].concat());
         }
         places
     }
@@ -126,16 +130,22 @@ impl App {
     /// as with anything worn.
     fn equipment_ammunition(&self) -> String {
         let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::inventory::WORN_AS_AMMO) else { return String::new() };
-        format!(
-            r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
-                   <div class="a t" style="left:115px;top:88px;width:40px;line-height:12px;white-space:normal;overflow:hidden;max-height:24px;pointer-events:none">{}</div>"#,
-            // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
-            // begins the same drag); a double click takes it off.
-            format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))),
-            item.id,
-            escape(&amount_tip(&Self::item_name(item), item.amount)),
-            Self::item_icon(item.id, true),
-            escape(&Self::item_name(item)),
-        )
+        [
+            format!(
+                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{}">"#,
+                // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
+                // begins the same drag); a double click takes it off.
+                format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))),
+                item.id,
+                escape(&amount_tip(&Self::item_name(item), item.amount))
+            ),
+            format!(
+                r#"<div style="position:absolute;left:-4px;top:-4px">{}</div></div>
+                   "#,
+                Self::item_icon(item.id, true)
+            ),
+            format!(r#"<div class="a t" style="left:115px;top:88px;width:40px;line-height:12px;white-space:normal;"#),
+            format!(r#"overflow:hidden;max-height:24px;pointer-events:none">{}</div>"#, escape(&Self::item_name(item)))
+        ].concat()
     }
 }

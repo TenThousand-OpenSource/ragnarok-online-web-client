@@ -83,7 +83,14 @@ fn reads_a_map_description() {
     // The sun is above the ground.
     assert!(rsw.light.direction[1] > 0.0);
     // A speed the client would not take (over 100) is 1.
-    assert_eq!(rsw.placements, [Placement { model: "town\\house.rsm".into(), position: [10.0, -5.0, 20.0], rotation: [0.0, 90.0, 0.0], scale: [1.0, 2.0, 1.0], playback: 2, speed: 1.0 }]);
+    assert_eq!(rsw.placements, [Placement {
+        model: "town\\house.rsm".into(),
+        position: [10.0, -5.0, 20.0],
+        rotation: [0.0, 90.0, 0.0],
+        scale: [1.0, 2.0, 1.0],
+        playback: 2,
+        speed: 1.0
+    }]);
     assert_eq!(rsw.effects, [MapEffect { effect: 47, position: [5.0, -60.0, 7.0], delay: 125.0, figures: [0.6, 1.0, 0.0, 0.0] }]);
     assert_eq!(rsw.sounds, [MapSound { file: "se_bell.wav".into(), position: [1.0, -2.0, 3.0], volume: 0.5, size: (20, 10), range: 100.0, cycle: 8.0 }]);
 

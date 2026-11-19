@@ -22,9 +22,23 @@ impl App {
             socket.send(&net::actors::stop_attack());
         }
         let tick = Closure::<dyn FnMut()>::new(|| dispatch(Action::TamingTick));
-        let timer = web_sys::window().and_then(|window| window.set_interval_with_callback_and_timeout_and_arguments_0(tick.as_ref().unchecked_ref(), 16).ok()).unwrap_or(0);
+        let timer = web_sys::window()
+            .and_then(|window| window.set_interval_with_callback_and_timeout_and_arguments_0(tick.as_ref().unchecked_ref(), 16).ok())
+            .unwrap_or(0);
         tick.forget();
-        self.pets.taming = Some(Taming { target, state: 0, tick: 0, delay: 1, longest: 10000, wanted: -1, started: false, rested: None, frames: [Vec::new(), Vec::new()], shown: (usize::MAX, 0), timer });
+        self.pets.taming = Some(Taming {
+            target,
+            state: 0,
+            tick: 0,
+            delay: 1,
+            longest: 10000,
+            wanted: -1,
+            started: false,
+            rested: None,
+            frames: [Vec::new(), Vec::new()],
+            shown: (usize::MAX, 0),
+            timer
+        });
         wasm_bindgen_futures::spawn_local(async {
             let mut read = [Vec::new(), Vec::new()];
             for (action, frames) in read.iter_mut().enumerate() {

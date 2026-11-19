@@ -169,7 +169,33 @@ impl Pose {
 impl Mover {
     pub(super) fn new(look: Look, cell: (i32, i32)) -> Self {
         let job = if let Look::Character(figure) = &look { figure.job } else { 0 };
-        Self { look, job, state: 0, name: String::new(), lively: false, companion: false, guild: (0, 0), cell, at: (cell.0 as f32, cell.1 as f32), facing: 0, walk: None, strode: 0.0, speed: DEFAULT_SPEED, shown: None, sitting: false, dead: false, dying: None, says: None, emotion: None, life: None, heard: None, motion: None, ail: Default::default(), casting: None, pose: Pose::default() }
+        Self {
+            look,
+            job,
+            state: 0,
+            name: String::new(),
+            lively: false,
+            companion: false,
+            guild: (0, 0),
+            cell,
+            at: (cell.0 as f32, cell.1 as f32),
+            facing: 0,
+            walk: None,
+            strode: 0.0,
+            speed: DEFAULT_SPEED,
+            shown: None,
+            sitting: false,
+            dead: false,
+            dying: None,
+            says: None,
+            emotion: None,
+            life: None,
+            heard: None,
+            motion: None,
+            ail: Default::default(),
+            casting: None,
+            pose: Pose::default()
+        }
     }
 
     /// Dresses a character as its job is drawn in the state it is in: on its mount, in its machine.

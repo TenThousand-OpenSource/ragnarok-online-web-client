@@ -96,7 +96,9 @@ pub fn chat_tabs_start() -> Vec<crate::chat_tabs::Tab> {
         shows.iter_mut().zip(lists).for_each(|(shown, listed)| *shown = *listed);
         crate::chat_tabs::Tab { name, shows, own: None }
     };
-    let read: Vec<crate::chat_tabs::Tab> = CHAT_TABS.with_borrow(|tabs| CHAT_TAB_NAMES.with_borrow(|names| tabs.iter().zip(names).map(|(lists, name)| tab(named(name), lists)).collect()));
+    let read: Vec<crate::chat_tabs::Tab> = CHAT_TABS.with_borrow(
+        |tabs| CHAT_TAB_NAMES.with_borrow(|names| tabs.iter().zip(names).map(|(lists, name)| tab(named(name), lists)).collect())
+    );
     if read.is_empty() { vec![tab(named("MSI_ST_CHAT"), &[true; 14]), tab(named("MSI_BT_CHAT"), &[])] } else { read }
 }
 

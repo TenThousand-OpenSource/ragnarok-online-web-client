@@ -28,7 +28,10 @@ fn emails_are_well_formed_and_fit_the_column() {
         assert!(valid_email(email).is_ok(), "{email}");
     }
     let too_long = format!("{}@example.org", "x".repeat(30));
-    for email in ["", "plain", "@example.org", "name@", "name@host", "two@@example.org", "a@b@c.org", "spa ce@example.org", "name@exa mple.org", "name@.org", "name@example.", "new\nline@example.org", &too_long] {
+    for email in [
+        "", "plain", "@example.org", "name@", "name@host", "two@@example.org", "a@b@c.org", "spa ce@example.org",
+        "name@exa mple.org", "name@.org", "name@example.", "new\nline@example.org", &too_long
+    ] {
         assert!(valid_email(email).is_err(), "{email:?}");
     }
 }

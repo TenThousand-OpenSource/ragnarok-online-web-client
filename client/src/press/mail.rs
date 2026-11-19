@@ -91,13 +91,7 @@ mod tests {
             Press::No,
             Press::CountOk,
         ];
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        crate::press::testing::read_back(all);
     }
 
     #[test]

@@ -64,17 +64,24 @@ fn a_translated_text_is_utf8_or_else_latin() {
 
 #[test]
 fn the_tables_of_a_table_are_listed_by_their_numbers() {
-    let lua = ran("Q = { [30] = { Title = 'c' }, [2] = { Title = 'a' }, [10.0] = { Title = 'b' }, [-1] = { Title = 'under' }, [5] = 'no table', key = { Title = 'named' } }");
+    let lua = ran("Q = { [30] = { Title = 'c' }, [2] = { Title = 'a' }, [10.0] = { Title = 'b' }, [-1] = { Title = \
+        'under' }, [5] = 'no table', key = { Title = 'named' } }");
     let entries = numbered(&lua, "Q");
     assert_eq!(entries.iter().map(|(number, entry)| (*number, entry["Title"].as_str().unwrap())).collect::<Vec<_>>(), [(2, "a"), (10, "b"), (30, "c")]);
     assert!(numbered(&lua, "Missing").is_empty());
-    assert_eq!(names(&ran("N = { [3] = 'c', [1.0] = 'a', [2] = 7, x = 'named' }"), "N").into_iter().collect::<Vec<_>>(), [(1, "a".to_owned()), (3, "c".to_owned())]);
+    assert_eq!(
+        names(&ran("N = { [3] = 'c', [1.0] = 'a', [2] = 7, x = 'named' }"), "N").into_iter().collect::<Vec<_>>(),
+        [(1, "a".to_owned()), (3, "c".to_owned())]
+    );
 }
 
 #[test]
 fn a_json_object_keyed_by_numbers_is_gone_through_in_their_order() {
     let object = serde_json::json!({ "10": "ten", "9": "nine", "-1": "under", "name": "no number", "2": "two" });
-    assert_eq!(by_number(&object).into_iter().map(|(at, entry)| (at, entry.as_str().unwrap())).collect::<Vec<_>>(), [(-1, "under"), (2, "two"), (9, "nine"), (10, "ten")]);
+    assert_eq!(
+        by_number(&object).into_iter().map(|(at, entry)| (at, entry.as_str().unwrap())).collect::<Vec<_>>(),
+        [(-1, "under"), (2, "two"), (9, "nine"), (10, "ten")]
+    );
     assert!(by_number(&serde_json::json!(["a list"])).is_empty());
 }
 
@@ -86,7 +93,8 @@ fn a_hash_table_is_its_fields_line_by_line() {
 
 #[test]
 fn a_lua_value_becomes_json_a_list_or_an_object() {
-    let lua = ran("T = { list = { 'a', 2, 2.5, true }, object = { [1] = 'one', [3] = 'three', name = '\\187\\231\\176\\250', [2.5] = 'half' }, empty = {}, whole = 7.0, call = print }");
+    let lua = ran("T = { list = { 'a', 2, 2.5, true }, object = { [1] = 'one', [3] = 'three', name = \
+        '\\187\\231\\176\\250', [2.5] = 'half' }, empty = {}, whole = 7.0, call = print }");
     let json = json_of(&lua.globals().get::<Value>("T").unwrap());
     assert_eq!(json["list"], serde_json::json!(["a", 2, 2.5, true]));
     // A table with a gap or a name among its keys is an object, its keys written as texts.

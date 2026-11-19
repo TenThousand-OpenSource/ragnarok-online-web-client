@@ -59,7 +59,8 @@ impl Slot {
         let along = |reach: f32| ((reach - self.out) * cosine(way), (reach - self.out) * sine(way));
         let (tail, head) = (along(self.heights[1]), along(self.heights[1] + self.heights[2]));
         let corner = |side: (f32, f32), end: (f32, f32), u: f32, v: f32| ([middle[0] + side.0 + end.0, middle[1] + 6.0, middle[2] + side.1 + end.1], [u, v]);
-        let (first, second, third, fourth) = (corner(near, head, 0.0, 1.0), corner(near, tail, 1.0, 1.0), corner(far, tail, 1.0, 0.0), corner(far, head, 0.0, 0.0));
+        let (first, second, third, fourth) =
+            (corner(near, head, 0.0, 1.0), corner(near, tail, 1.0, 1.0), corner(far, tail, 1.0, 0.0), corner(far, head, 0.0, 0.0));
         Lit { picture, corners: [first, second, third, fourth, third, first], alpha: self.alpha as f32 }
     }
 }

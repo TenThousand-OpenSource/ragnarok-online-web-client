@@ -47,7 +47,10 @@ fn reads_a_sign_a_sale_and_the_answers() {
     let mut sold = vec![0xe5, 0x09, 5, 0, 3, 0];
     sold.resize(18, 0);
     assert_eq!(sale(&sold), Some((5, 3)));
-    assert_eq!([opened(&[0x28, 0x0a, 0]), opened(&[0x28, 0x0a, 1]), opened(&[0x28, 0x0a, 3]), opened(&[0x28, 0x0a, 2])], [Some(Opened::Open), Some(Opened::Failed), Some(Opened::NotHere), None]);
+    assert_eq!(
+        [opened(&[0x28, 0x0a, 0]), opened(&[0x28, 0x0a, 1]), opened(&[0x28, 0x0a, 3]), opened(&[0x28, 0x0a, 2])],
+        [Some(Opened::Open), Some(Opened::Failed), Some(Opened::NotHere), None]
+    );
     assert_eq!(slots(&[0x2d, 0x01, 12, 0]), Some(12));
     assert_eq!(slots(&[0x2d, 0x01, 1, 0]), Some(3));
     assert_eq!(purchase_result(&[0x35, 0x01, 5, 0, 3, 0, 4]), Some((5, 3, 4)));
@@ -64,7 +67,11 @@ fn the_requests_are_laid_out_as_the_server_reads_them() {
     assert_eq!(open(&"я".repeat(60), true, &[(1, 1, 1)])[80..84], [0xd1, 0x8f, 0, 0]);
     assert_eq!(buy(9, 42, &[(6, 2)]), [0x01, 0x08, 16, 0, 9, 0, 0, 0, 42, 0, 0, 0, 2, 0, 6, 0]);
     assert_lengths(&[close(), ask(1)]);
-    for (id, length) in [(0x01b2, -1), (0x0801, -1), (ZC_OPENSTORE, 4), (ZC_STORE_ENTRY, 86), (ZC_DISAPPEAR_ENTRY, 6), (ZC_PC_PURCHASE_RESULT_FROMMC, 7), (ZC_DELETEITEM_FROM_MCSTORE, 18), (ZC_ACK_OPENSTORE2, 3), (ZC_PC_PURCHASE_ITEMLIST_FROMMC, -1), (ZC_PC_PURCHASE_MYITEMLIST, -1)] {
+    for (id, length) in [
+        (0x01b2, -1), (0x0801, -1), (ZC_OPENSTORE, 4), (ZC_STORE_ENTRY, 86), (ZC_DISAPPEAR_ENTRY, 6),
+        (ZC_PC_PURCHASE_RESULT_FROMMC, 7), (ZC_DELETEITEM_FROM_MCSTORE, 18), (ZC_ACK_OPENSTORE2, 3),
+        (ZC_PC_PURCHASE_ITEMLIST_FROMMC, -1), (ZC_PC_PURCHASE_MYITEMLIST, -1)
+    ] {
         assert_eq!(packet_length(id), Some(length), "{id:#06x}");
     }
 }

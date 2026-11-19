@@ -180,9 +180,13 @@ mod tests {
         assert_eq!(screen_turn(right_at(90.0)), 270);
         let first_corner = |angle: f32, picture: f32, yaw: f32| {
             let part = part(angle, picture);
-            (part.orbit_icons(&PICTURES, right_at(yaw), UP)[0].corners[0].0, Part::facing([cosine(angle) * 4.0, -5.0, sine(angle) * 4.0], 3.5, 45, right_at(yaw), UP))
+            (
+                part.orbit_icons(&PICTURES, right_at(yaw), UP)[0].corners[0].0,
+                Part::facing([cosine(angle) * 4.0, -5.0, sine(angle) * 4.0], 3.5, 45, right_at(yaw), UP)
+            )
         };
-        let same = |(corner, square): ([f32; 3], [[f32; 3]; 4]), which: usize| (0..3).all(|axis| (corner[axis] - [square[which][0], -square[which][1], square[which][2]][axis]).abs() < 1e-4);
+        let same = |(corner, square): ([f32; 3], [[f32; 3]; 4]), which: usize| (0..3)
+            .all(|axis| (corner[axis] - [square[which][0], -square[which][1], square[which][2]][axis]).abs() < 1e-4);
         // The pictures 0 and 2 keep their corners near the camera's turn and are turned over away from it.
         assert!(same(first_corner(300.0, 0.0, 0.0), 0) && same(first_corner(200.0, 2.0, 0.0), 1) && same(first_corner(20.0, 0.0, 0.0), 0));
         // The pictures 1, 3 and 4 the other way round.

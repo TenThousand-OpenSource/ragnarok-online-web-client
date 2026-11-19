@@ -30,15 +30,16 @@ const EMOTION_MESSAGES: &[(&str, usize)] = &[
 /// its basic pack: `{"<id>": {"action": <which action of the sprite>, "sprite": "emotion/basic", "names": [...]}}`.
 /// The names are what is typed after a slash to show one: first the name from the message table (`/!`), then the
 /// others the list gives (`/delight`).
-pub fn emotions(grf: &Grf) -> serde_json::Value {
+pub fn emotions(read: &Sources) -> serde_json::Value {
     let lua = state();
-    let messages = messages(grf);
+    let messages = &read.messages;
     // What the scripts call in the client, written to gather what they tell; the list's names come back from
     // the function that takes them, as in the client.
-    let prepared = lua.load(
+    let prepared = lua.load([
         r#"EMOTIONS, NAMED, MESSAGES = {}, {}, {}
         local function nothing() return true end
-        c_InsertPackInfo, c_InsertEmotionEnum, c_InsertEmotionMsgListTableForCustom, c_InsertEmotionVarientListTable, c_InsertEmotionGroup, c_InsertOrderList = nothing, nothing, nothing, nothing, nothing, nothing
+        c_InsertPackInfo, c_InsertEmotionEnum, c_InsertEmotionMsgListTableForCustom, c_InsertEmotionVarientListTable, c_InsertEmotionGroup, "#,
+        r#"c_InsertOrderList = nothing, nothing, nothing, nothing, nothing, nothing
         MsgStrID = setmetatable({}, { __index = function(_, key) return key end })
         local function named(pack, id, name)
             if pack == 0 and type(name) == "string" and name ~= "" then
@@ -53,8 +54,8 @@ pub fn emotions(grf: &Grf) -> serde_json::Value {
         function c_InsertEmotionMsgListTable(pack, id, raw, count, ...)
             for index = 1, count do named(pack, id, (select(index, ...))) end
             return true
-        end"#,
-    );
+        end"#
+    ].concat());
     if let Err(error) = prepared.exec() {
         eprintln!("tables: emotions: {error}");
     }
@@ -65,7 +66,13 @@ pub fn emotions(grf: &Grf) -> serde_json::Value {
             }
         }
     }
-    run_in(&lua, grf, &["\\common", "cashemotion\\cashemotionclientsetting", "cashemotion\\cashemotionlistdefine_f", "cashemotion\\cashemotionlistdefine", "cashemotion\\cashemotionlist_f", "cashemotion\\cashemotionlist"]);
+    read.run_in(
+        &lua,
+        &[
+            "\\common", "cashemotion\\cashemotionclientsetting", "cashemotion\\cashemotionlistdefine_f",
+            "cashemotion\\cashemotionlistdefine", "cashemotion\\cashemotionlist_f", "cashemotion\\cashemotionlist"
+        ]
+    );
     if let Err(error) = lua.load("main_emotion()").exec() {
         eprintln!("tables: emotions: {error}");
     }
@@ -84,9 +91,9 @@ pub fn emotions(grf: &Grf) -> serde_json::Value {
 /// The four tables are the hotkey bar, the interface, the macros and the second hotkey bar, each entry in its
 /// place (the client's code knows them by table and place); the keys are Windows' key numbers, the second the
 /// key held with the first (0 for none); `names` is how the client writes each key.
-pub fn hotkeys(grf: &Grf) -> serde_json::Value {
+pub fn hotkeys(read: &Sources) -> serde_json::Value {
     let lua = state();
-    run_in(&lua, grf, &["\\common", "\\msgstring_kr", "\\hotkey"]);
+    read.run_in(&lua, &["\\common", "\\msgstring_kr", "\\hotkey"]);
     let number = |table: &Table, field: &str| table.get::<Option<i64>>(field).ok().flatten().unwrap_or(0);
     let tables: Vec<serde_json::Value> = (1..=4)
         .map(|which| {
@@ -111,10 +118,9 @@ pub fn hotkeys(grf: &Grf) -> serde_json::Value {
 /// "command": …, "description": …, "on": true}, …]`, in the file's order. The tab is the page it stands on
 /// (1 effects, 2 controls, 4 the rest); `run` is a thing done at a press instead of switched on and off; `on`
 /// is how it starts; the ID is the client's name for the option.
-pub fn options(grf: &Grf) -> serde_json::Value {
-    let lua = game_settings(grf);
+pub fn options(settings: &Lua) -> serde_json::Value {
     let words = |entry: &Table, field: &str| text(entry, field).unwrap_or_default();
-    option_entries(&lua)
+    option_entries(settings)
         .iter()
         .map(|entry| {
             serde_json::json!({
@@ -130,10 +136,10 @@ pub fn options(grf: &Grf) -> serde_json::Value {
         .collect()
 }
 
-/// The client's `Lua Files\OptionInfo\GameSettings` run in a state of its own: the one reading of the file,
-/// for the options (`options`) and for what they say when a command switches one (`commands::commands`). The
-/// pages and kinds are numbered as the client numbers them; every other name the file uses (the options' own,
-/// the messages') stands for itself.
+/// The client's `Lua Files\OptionInfo\GameSettings` run in a state of its own: the one reading of the file
+/// (`Sources::read` does it), for the options (`options`) and for what they say when a command switches one
+/// (`commands::commands`). The pages and kinds are numbered as the client numbers them; every other name the
+/// file uses (the options' own, the messages') stands for itself.
 pub(super) fn game_settings(grf: &Grf) -> Lua {
     let lua = state();
     let prepared = exec(&lua, b"EFFECT, CONTROL, ETC, ONOFF, EXE = 1, 2, 4, 0, 1", None).and_then(|()| names_stand_for_themselves(&lua));
@@ -164,7 +170,10 @@ pub fn chat_tabs(grf: &Grf) -> serde_json::Value {
         .filter_map(|tab| lua.globals().get::<Table>(format!("ChatSubWnd_{tab}")).ok())
         .filter(|tab| tab.get::<String>("TabState").is_ok_and(|state| state == "On"))
         .map(|tab| {
-            let shows: Vec<bool> = (1..=30).map_while(|option| tab.get::<Option<i64>>(format!("option{option}")).ok().flatten()).map(|shown| shown != 0).collect();
+            let shows: Vec<bool> = (1..=30)
+                .map_while(|option| tab.get::<Option<i64>>(format!("option{option}")).ok().flatten())
+                .map(|shown| shown != 0)
+                .collect();
             serde_json::json!({ "name": tab.get::<String>("TabName").unwrap_or_default(), "shows": shows })
         })
         .collect()

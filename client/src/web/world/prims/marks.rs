@@ -25,7 +25,10 @@ pub(super) const FILE: File = File { known, thrown: none, stays, run, pictures: 
 const PICTURES: [&str; 5] = ["explosive_1_128.bmp", "fashasha.tga", "lockon128.tga", "foot_l2.tga", "foot_r2.tga"];
 
 /// The six pictures of the squares of `EF_STASIS`, the lowest first.
-const THUNDER: [&str; 6] = ["thunder_ball_0001.bmp", "thunder_ball_0002.bmp", "thunder_ball_0003.bmp", "thunder_ball_0004.bmp", "thunder_ball_0005.bmp", "thunder_ball_0006.bmp"];
+const THUNDER: [&str; 6] = [
+    "thunder_ball_0001.bmp", "thunder_ball_0002.bmp", "thunder_ball_0003.bmp", "thunder_ball_0004.bmp",
+    "thunder_ball_0005.bmp", "thunder_ball_0006.bmp"
+];
 
 /// How many ticks an effect of this file lives (the client's `EffectLifetime`) and the sound it starts with
 /// (none: empty); nothing for any other effect.

@@ -14,7 +14,14 @@ fn the_guild_one_is_of_is_read() {
 
 #[test]
 fn the_guild_s_numbers_are_read() {
-    let packet = [&[0x7b, 0x0b][..], &longs(&[7, 2, 3, 16, 45, 1000, 2000, 0, 0, 0, 3]), &padded("Midgard", 24), &padded("None Taken", 16), &longs(&[0, 150_001]), &padded("Thor", 24)].concat();
+    let packet = [
+        &[0x7b, 0x0b][..],
+        &longs(&[7, 2, 3, 16, 45, 1000, 2000, 0, 0, 0, 3]),
+        &padded("Midgard", 24),
+        &padded("None Taken", 16),
+        &longs(&[0, 150_001]),
+        &padded("Thor", 24)
+    ].concat();
     assert_eq!(packet.len(), 118);
     let info = info(&packet).unwrap();
     assert_eq!((info.guild, info.level, info.online, info.most, info.average_level, info.exp, info.next_exp, info.emblem), (7, 2, 3, 16, 45, 1000, 2000, 3));
@@ -29,7 +36,20 @@ fn the_members_are_read() {
     let packet = sized(ZC_MEMBERMGR_INFO, &[member(2_000_000, "Thor", 1, 0), member(2_000_001, "Loki", 0, 19)].concat());
     let members = members(&packet);
     assert_eq!(members.len(), 2);
-    assert_eq!(members[0], Member { account: 2_000_000, character: 2_000_100, hair: 5, hair_colour: 2, sex: 1, job: 7, level: 50, given: 1234, online: true, position: 0, seen: 1_700_000_000, name: "Thor".to_owned() });
+    assert_eq!(members[0], Member {
+        account: 2_000_000,
+        character: 2_000_100,
+        hair: 5,
+        hair_colour: 2,
+        sex: 1,
+        job: 7,
+        level: 50,
+        given: 1234,
+        online: true,
+        position: 0,
+        seen: 1_700_000_000,
+        name: "Thor".to_owned()
+    });
     assert_eq!((members[1].name.as_str(), members[1].online, members[1].position), ("Loki", false, 19));
     // A record cut short is not a member.
     assert_eq!(super::members(&packet[..packet.len() - 1]).len(), 1);
@@ -54,7 +74,10 @@ fn the_positions_are_read() {
     let names = sized(ZC_POSITION_ID_NAME_INFO, &[&longs(&[0])[..], &padded("GuildMaster", 24), &longs(&[1]), &padded("Newbie", 24)].concat());
     assert_eq!(position_names(&names), vec![(0, "GuildMaster".to_owned()), (1, "Newbie".to_owned())]);
     let rights = sized(ZC_POSITION_INFO, &longs(&[0, 0x11, 0, 0, 1, 0x01, 1, 50]));
-    assert_eq!(position_rights(&rights).iter().map(|position| (position.id, position.invites, position.expels, position.tax)).collect::<Vec<_>>(), vec![(0, true, true, 0), (1, true, false, 50)]);
+    assert_eq!(
+        position_rights(&rights).iter().map(|position| (position.id, position.invites, position.expels, position.tax)).collect::<Vec<_>>(),
+        vec![(0, true, true, 0), (1, true, false, 50)]
+    );
     let changed = sized(ZC_ACK_CHANGE_GUILD_POSITIONINFO, &[&longs(&[1, 0x10, 1, 25])[..], &padded("Guard", 24)].concat());
     assert_eq!(positions_changed(&changed), vec![Position { id: 1, name: "Guard".to_owned(), invites: false, expels: true, storage: false, tax: 25 }]);
     let moved = sized(ZC_ACK_REQ_CHANGE_MEMBERS, &longs(&[2_000_001, 150_002, 1]));
@@ -133,9 +156,13 @@ fn chat_and_names_are_read() {
     assert_eq!(said(&packet), Some("Thor : hello".to_owned()));
     let packet = sized(ZC_GUILD_POSITION, &[&longs(&[2_000_001])[..], &padded("Newbie", 24)].concat());
     assert_eq!(position_of(&packet), Some((2_000_001, "Newbie".to_owned())));
-    let packet = [&[0x30, 0x0a][..], &longs(&[2_000_001]), &padded("Loki", 24), &padded("", 24), &padded("Midgard", 24), &padded("Newbie", 24), &longs(&[0])].concat();
+    let packet =
+        [&[0x30, 0x0a][..], &longs(&[2_000_001]), &padded("Loki", 24), &padded("", 24), &padded("Midgard", 24), &padded("Newbie", 24), &longs(&[0])].concat();
     assert_eq!(packet.len(), 106);
-    assert_eq!(names(&packet), Some((2_000_001, Names { name: "Loki".to_owned(), party: String::new(), guild: "Midgard".to_owned(), position: "Newbie".to_owned() })));
+    assert_eq!(names(&packet), Some((
+        2_000_001,
+        Names { name: "Loki".to_owned(), party: String::new(), guild: "Midgard".to_owned(), position: "Newbie".to_owned() }
+    )));
 }
 
 #[test]
@@ -167,7 +194,10 @@ fn what_is_sent_is_laid_out_as_the_server_reads_it() {
     let made = make(150_001, "Midgard");
     assert_eq!((&made[..2], &made[2..6], &made[6..13], made[13]), (&[0x65, 0x01][..], &150_001u32.to_le_bytes()[..], &b"Midgard"[..], 0));
     let left = leave(7, 2_000_000, 150_001, "bye");
-    assert_eq!((&left[2..6], &left[6..10], &left[10..14], &left[14..17]), (&7u32.to_le_bytes()[..], &2_000_000u32.to_le_bytes()[..], &150_001u32.to_le_bytes()[..], &b"bye"[..]));
+    assert_eq!(
+        (&left[2..6], &left[6..10], &left[10..14], &left[14..17]),
+        (&7u32.to_le_bytes()[..], &2_000_000u32.to_le_bytes()[..], &150_001u32.to_le_bytes()[..], &b"bye"[..])
+    );
     assert_eq!(answer(7, false)[6..], [0, 0, 0, 0]);
     // A name too long for its field is cut, and the field still ends with a zero.
     let long = invite_named("abcdefghijklmnopqrstuvwxyz");

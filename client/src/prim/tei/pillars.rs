@@ -57,7 +57,9 @@ impl Part {
         }
         let inner = self.shaft(self.turned, self.out);
         let outer = self.shaft(self.turned + 45, self.out * 1.5);
-        let folded = inner.windows(2).map(|pair| Rect::new(picture, self.alpha / 5, [pair[0].0, pair[1].0, pair[0].1, pair[1].1], (0.0, 1.0), [255, 10, 10], false));
+        let folded = inner.windows(2).map(
+            |pair| Rect::new(picture, self.alpha / 5, [pair[0].0, pair[1].0, pair[0].1, pair[1].1], (0.0, 1.0), [255, 10, 10], false)
+        );
         let pieces = outer.windows(2).zip(0..).map(|(pair, piece)| Rect::piece(picture, piece, self.alpha, [pair[0].0, pair[1].0, pair[1].1, pair[0].1], size));
         folded.chain(pieces).collect()
     }

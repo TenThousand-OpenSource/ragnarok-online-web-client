@@ -98,7 +98,10 @@ pub fn read(text: &str) -> Option<(Vec<Tab>, bool)> {
             }
         }
     }
-    let tabs: Vec<Tab> = tabs.into_iter().take(MOST).map(|(tab, place, out)| Tab { own: out.then_some((place[0], place[1], place[2], place[3])), ..tab }).collect();
+    let tabs: Vec<Tab> = tabs.into_iter()
+        .take(MOST)
+        .map(|(tab, place, out)| Tab { own: out.then_some((place[0], place[1], place[2], place[3])), ..tab })
+        .collect();
     (!tabs.is_empty()).then_some((tabs, locked))
 }
 

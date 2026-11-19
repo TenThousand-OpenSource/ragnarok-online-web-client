@@ -93,7 +93,9 @@ impl Scene {
     /// it walks, has died or goes out of sight; portals and unseen NPCs are never on it, and one who hides
     /// (the effect state's bit 2) does not count (`IsRegisterCell`).
     pub(super) fn goal_towards(&self, from: (i32, i32), to: (i32, i32), far: bool) -> Option<(i32, i32)> {
-        let taken = |cell: (i32, i32)| self.units.values().any(|unit| unit.cell == cell && unit.walk.is_none() && !unit.dead && unit.dying.is_none() && unit.state & 2 == 0);
+        let taken = |cell: (i32, i32)| self.units.values().any(
+            |unit| unit.cell == cell && unit.walk.is_none() && !unit.dead && unit.dying.is_none() && unit.state & 2 == 0
+        );
         self.gat.goal_towards(from, to, taken, far)
     }
 }

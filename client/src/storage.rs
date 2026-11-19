@@ -10,7 +10,8 @@ pub const TABS: usize = 8;
 /// The line of the client's message table each tab is called by (what its button says when pointed at, and
 /// the title of the window that shows the tab alone: `UIItemStoreWnd::OnCreate`, `UIWindowMgr`), with the
 /// English of it.
-pub const TAB_LINES: [(usize, &str); TABS] = [(1465, "Use"), (1466, "Cash"), (1467, "Armors"), (1468, "Weapons"), (3151, "Costumes"), (1469, "Ammo"), (1470, "Card"), (1471, "Etc")];
+pub const TAB_LINES: [(usize, &str); TABS] =
+    [(1465, "Use"), (1466, "Cash"), (1467, "Armors"), (1468, "Weapons"), (3151, "Costumes"), (1469, "Ammo"), (1470, "Card"), (1471, "Etc")];
 
 /// The places a costume is worn in (the server's `EQP_COSTUME_HEAD_TOP`, `_MID`, `_LOW` and `_GARMENT`).
 pub const COSTUME_PLACES: u32 = 0x400 | 0x800 | 0x1000 | 0x2000;
@@ -66,6 +67,26 @@ impl Sorted {
     }
 }
 
+/// The things of the storage a list shows, each with its name, in the order chosen: those under a tab, or all of
+/// them, and of those the ones whose name has what was searched for in it (`UIItemStoreWnd::FilterByName`: as
+/// it is written, capitals and all).
+pub fn listed<'a>(
+    items: &'a [Item],
+    tab: Option<usize>,
+    sought: Option<&str>,
+    sorted: Sorted,
+    name: impl Fn(&Item) -> String
+) -> Vec<(String, &'a Item)> {
+    let mut things: Vec<(String, &Item)> = items
+        .iter()
+        .filter(|item| tab.is_none_or(|tab| tab_of(item) == Some(tab)))
+        .map(|item| (name(item), item))
+        .filter(|(name, _)| sought.is_none_or(|sought| name.contains(sought)))
+        .collect();
+    sorted.order(&mut things);
+    things
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -92,5 +113,29 @@ mod tests {
         assert_eq!([things[0].1, things[1].1, things[2].1], [2, 1, 3]);
         Sorted::Descending.order(&mut things);
         assert_eq!([things[0].1, things[1].1, things[2].1], [3, 1, 2]);
+    }
+
+    #[test]
+    fn a_list_has_a_tabs_things_or_those_a_search_found() {
+        let stored = |index: u16, kind: u8| Item { index, ..thing(kind, 0) };
+        // A potion, a card, another potion, and a thing of a kind that is under no tab.
+        let items = [stored(1, 0), stored(2, 6), stored(3, 0), stored(4, 20)];
+        let names = ["", "Red Potion", "Poring Card", "Apple", "red herring"];
+        let name = |item: &Item| names[usize::from(item.index)].to_owned();
+        let places = |tab: Option<usize>, sought: Option<&str>, sorted: Sorted| -> Vec<u16> {
+            listed(&items, tab, sought, sorted, name).iter().map(|(_, item)| item.index).collect()
+        };
+        assert_eq!(places(Some(0), None, Sorted::AsTold), [1, 3]);
+        assert_eq!(places(Some(0), None, Sorted::Ascending), [3, 1]);
+        assert_eq!(places(Some(6), None, Sorted::Descending), [2]);
+        assert_eq!(places(Some(4), None, Sorted::AsTold), [0u16; 0]);
+        // Without a tab all of them, the one under no tab too; a search is by the letters as they are written.
+        assert_eq!(places(None, None, Sorted::Descending), [4, 1, 2, 3]);
+        assert_eq!(places(None, Some("Red"), Sorted::AsTold), [1]);
+        assert_eq!(places(None, Some("red"), Sorted::AsTold), [4]);
+        assert_eq!(places(None, Some(""), Sorted::AsTold), [1, 2, 3, 4]);
+        assert_eq!(places(Some(0), Some("P"), Sorted::AsTold), [1]);
+        assert_eq!(listed(&items, Some(0), None, Sorted::AsTold, name)[0].0, "Red Potion");
+        assert!(listed(&[], None, None, Sorted::Ascending, name).is_empty());
     }
 }

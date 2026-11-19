@@ -221,7 +221,7 @@ pub fn turn(clockwise: bool) -> Option<u8> {
         }
         // The sprites count from the south, turning the other way.
         player.facing = (player.facing + if clockwise { 1 } else { 7 }) % 8;
-        Some((12 - player.facing) % 8)
+        Some(crate::pose::direction_of(player.facing))
     })
 }
 

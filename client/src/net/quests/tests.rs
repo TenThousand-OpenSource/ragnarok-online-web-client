@@ -87,7 +87,10 @@ fn reads_the_count_of_monsters_hunted() {
         packet.extend(10u16.to_le_bytes());
         packet.extend(killed.to_le_bytes());
     }
-    assert_eq!(hunted(&packet), [Progress { quest: 7122, hunt: 7_122_000, goal: 10, killed: 4 }, Progress { quest: 7122, hunt: 7_122_001, goal: 10, killed: 10 }]);
+    assert_eq!(
+        hunted(&packet),
+        [Progress { quest: 7122, hunt: 7_122_000, goal: 10, killed: 4 }, Progress { quest: 7122, hunt: 7_122_001, goal: 10, killed: 10 }]
+    );
     assert!(hunted(&packet[..5]).is_empty());
 }
 
@@ -98,7 +101,7 @@ fn reads_what_a_new_quest_hunts() {
     packet.extend(1031u32.to_le_bytes());
     packet.extend(10u16.to_le_bytes());
     packet.extend(0u16.to_le_bytes());
-    assert_eq!(hunting_info(&packet), [(7_122_000, 1031, 10, 0)]);
+    assert_eq!(hunting_info(&packet), [HuntInfo { quest: 7_122_000, mob: 1031, goal: 10, killed: 0 }]);
 }
 
 #[test]

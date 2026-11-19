@@ -142,7 +142,11 @@ impl App {
             }
             let (fits, limited) = crate::shops::into_basket(kept, amount);
             if limited {
-                self.chat_line(Self::words(1704, "It is not possible to purchase the same item more than %d pieces at a time").replace("%d", &MOST_BOUGHT.to_string()), RED);
+                self.chat_line(
+                    Self::words(1704, "It is not possible to purchase the same item more than %d pieces at a time")
+                        .replace("%d", &MOST_BOUGHT.to_string()),
+                    RED
+                );
             }
             amount = fits;
             if amount > 0 && self.hero.zeny() < total + i64::from(amount) * i64::from(offer.discounted) {

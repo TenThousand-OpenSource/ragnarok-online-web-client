@@ -13,7 +13,12 @@ fn gauge(x: i32, y: i32, width: i32, now: i64, most: i64) -> String {
     if most < now {
         return String::new();
     }
-    let mut gauge = format!("{}{}{}", art("basic_interface/gze_bg_left.bmp", x, y, 2, 9), art("basic_interface/gze_bg_mid.bmp", x + 2, y, width - 6, 9), art("basic_interface/gze_bg_right.bmp", x + width - 4, y, 4, 9));
+    let mut gauge = format!(
+        "{}{}{}",
+        art("basic_interface/gze_bg_left.bmp", x, y, 2, 9),
+        art("basic_interface/gze_bg_mid.bmp", x + 2, y, width - 6, 9),
+        art("basic_interface/gze_bg_right.bmp", x + width - 4, y, 4, 9)
+    );
     if most > 0 && now > 0 {
         gauge.push_str(&filling(x, y, width - 8, now, most, Red::UnderQuarter));
     }
@@ -27,7 +32,18 @@ fn gauge(x: i32, y: i32, width: i32, now: i64, most: i64) -> String {
 /// Atk, Matk, Hit, Critical, Def, Mdef, Flee, Aspd): each ends 79 across, 18 under the last, as (1, 14); the
 /// last is the speed of its blows as the client reckons it from their delay.
 pub(super) fn companion_numbers(stats: &[i32; 8]) -> String {
-    stats.iter().enumerate().map(|(row, stat)| text_ending_in(FIGURES, 79, 280, 24 + row as i32 * 18, BLACK, &if row == 7 { attack_speed(*stat) } else { *stat }.to_string())).collect()
+    stats
+        .iter()
+        .enumerate()
+        .map(|(row, stat)| text_ending_in(
+            FIGURES,
+            79,
+            280,
+            24 + row as i32 * 18,
+            BLACK,
+            &if row == 7 { attack_speed(*stat) } else { *stat }.to_string()
+        ))
+        .collect()
 }
 
 impl App {
@@ -40,7 +56,10 @@ impl App {
         let Some(info) = &self.homunculus.info else { return String::new() };
         let mut window = art("basic_interface/homuninfo_bg.bmp", 0, 0, 280, 180);
         // `DrawFilledRoundedOutline(0, height - 40, width, 40, white)`; its rim is the plain windows' grey.
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-radius:3px;box-sizing:border-box"></div>"#, at(0, 168, 280, 40)));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-radius:3px;box-sizing:border-box"></div>"#,
+            at(0, 168, 280, 40)
+        ));
         window.push_str(&text(5, 2, BLACK, &Self::words(936, "Homunculus Info")));
         window.push_str(&cross(280, Press::Window));
         for (y, line, otherwise) in [(24, 407, "Name"), (47, 408, "Level"), (105, 1019, "EXP"), (131, 585, "Hunger"), (159, 586, "Intimacy")] {
@@ -65,10 +84,16 @@ impl App {
         // The box of feeding by itself, 12 by 12 at 210, 142, and its words from 225, 136 (line 3279, whose
         // `\n` breaks the line).
         window.push_str(&check_words(210, 142, self.homunculus.autofeed, "", Press::AutoFeed));
-        window.push_str(&format!(r#"<div class="a t" style="left:225px;top:136px;color:{BLACK};white-space:pre;line-height:12px">{}</div>"#, escape(&Self::words(3279, "Auto \\nFeeding").replace("\\n", "\n"))));
+        window.push_str(&format!(
+            r#"<div class="a t" style="left:225px;top:136px;color:{BLACK};white-space:pre;line-height:12px">{}</div>"#,
+            escape(&Self::words(3279, "Auto \\nFeeding").replace("\\n", "\n"))
+        ));
         let (line, otherwise) = intimacy_word(info.intimacy);
         window.push_str(&text(150, 159, BLACK, Self::words(line, otherwise).trim()));
-        window.push_str(&format!(r#"<div class="a t" style="left:8px;top:180px;color:#f00;white-space:pre;line-height:12px">{}</div>"#, escape(&Self::words(3284, "Homunculus receives \\n10% of master's experience.").replace("\\n", "\n"))));
+        window.push_str(&format!(
+            r#"<div class="a t" style="left:8px;top:180px;color:#f00;white-space:pre;line-height:12px">{}</div>"#,
+            escape(&Self::words(3284, "Homunculus receives \\n10% of master's experience.").replace("\\n", "\n"))
+        ));
         window
     }
 
@@ -78,8 +103,12 @@ impl App {
     pub(in crate::web) fn homunculus_question(&self) -> String {
         let words = match &self.homunculus.asks {
             Some(HomunculusAsk::Feed) => coloured(&Self::words(601, "Are you sure that you want to feed your pet?")),
-            Some(HomunculusAsk::Rename(name)) => coloured(&Self::words(2977, "Are you sure you want to change your Homunculus's name to ^0000ff%s^000000?").replace("%s", name)),
-            Some(HomunculusAsk::Delete) => coloured(&Self::words(955, "You have decided to delete this Homunculus. When deleted, the homunculus and its history will be deleted and they cannot be restored in the future. Would you like to continue?")),
+            Some(HomunculusAsk::Rename(name)) => coloured(
+                &Self::words(2977, "Are you sure you want to change your Homunculus's name to ^0000ff%s^000000?").replace("%s", name)
+            ),
+            Some(HomunculusAsk::Delete) => coloured(&Self::words(955, "You have decided to delete this Homunculus. \
+                When deleted, the homunculus and its history will be deleted and they cannot be restored in the \
+                future. Would you like to continue?")),
             None => return String::new(),
         };
         message_box(Asked::Sure, &words, Press::Yes, Press::No)
@@ -88,13 +117,22 @@ impl App {
     /// The list of its skills (`UISkillListWnd`, its `skillTab` 0), with the points it has to spend.
     pub(in crate::web) fn homunculus_skills(&self) -> String {
         let points = self.homunculus.info.as_ref().map_or(0, |info| info.skill_points);
-        let does = Listed { close: Press::Skills.into(), pick: |row| Press::SkillPick(row).into(), uses: Press::SkillUse.into(), level: |step| Press::SkillLevel(step).into(), raise: Some(|skill| Press::SkillRaise(skill).into()) };
+        let does = Listed {
+            close: Press::Skills.into(),
+            pick: |row| Press::SkillPick(row).into(),
+            uses: Press::SkillUse.into(),
+            level: |step| Press::SkillLevel(step).into(),
+            raise: Some(|skill| Press::SkillRaise(skill).into())
+        };
         self.skill_list(&Self::words(937, "Homunculus Skill List"), &self.homunculus.skills, self.homunculus.skill_picked, Some(points), does)
     }
 
     /// The menu the right button opens on the player's own homunculus (the client's `OpenActorMenu`): its
     /// window, feeding, standing by (lines 1112 to 1114).
     pub(in crate::web) fn homunculus_menu(&self) -> String {
-        [(1112, "View Info", Order::Info), (1113, "Feed", Order::Feed), (1114, "Stand By", Order::StandBy)].iter().map(|(line, otherwise, order)| menu_row(&Self::words(*line, otherwise), Press::Do(*order))).collect()
+        [(1112, "View Info", Order::Info), (1113, "Feed", Order::Feed), (1114, "Stand By", Order::StandBy)]
+            .iter()
+            .map(|(line, otherwise, order)| menu_row(&Self::words(*line, otherwise), Press::Do(*order)))
+            .collect()
     }
 }

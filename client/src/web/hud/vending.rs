@@ -28,25 +28,26 @@ impl App {
     pub(in crate::web) fn shop_sign(vendor: u32, title: &str) -> String {
         // The client cuts a title at the first end of a line.
         let title = title.split('\r').next().unwrap_or_default();
-        format!(
-            r#"<div class="a" style="{};cursor:pointer" {} {} title="{}"><div class="a" style="{};background:#fff;border-radius:4px"></div><div class="a" style="{};border:1px solid #c3c3c3;border-radius:3px;box-sizing:border-box"></div><img class="a" style="left:3px;top:3px" src="{}" alt="" draggable="false" onerror="this.remove()"><div class="a t" style="{};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:{BLACK}">{}</div></div>"#,
-            at(0, 0, crate::web::world::SIGN.0, crate::web::world::SIGN.1),
-            pressed(Press::Sign(vendor)),
-            used(Use::Sign(vendor)),
-            escape(title),
-            at(0, 0, 140, 28),
-            at(2, 2, 136, 24),
-            picture("shop.bmp"),
-            at(31, 8, 106, 15),
-            escape(title),
-        )
+        [
+            format!(
+                r#"<div class="a" style="{};cursor:pointer" {} {} title="{}">"#,
+                at(0, 0, crate::web::world::SIGN.0, crate::web::world::SIGN.1),
+                pressed(Press::Sign(vendor)),
+                used(Use::Sign(vendor)),
+                escape(title)
+            ),
+            format!(r#"<div class="a" style="{};background:#fff;border-radius:4px"></div>"#, at(0, 0, 140, 28)),
+            format!(r#"<div class="a" style="{};border:1px solid #c3c3c3;border-radius:3px;box-sizing:border-box"></div>"#, at(2, 2, 136, 24)),
+            format!(r#"<img class="a" style="left:3px;top:3px" src="{}" alt="" draggable="false" onerror="this.remove()">"#, picture("shop.bmp")),
+            format!(r#"<div class="a t" style="{};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:{BLACK}">"#, at(31, 8, 106, 15)),
+            format!(r#"{}</div></div>"#, escape(title))
+        ].concat()
     }
 
     /// How high the window of a shop being made is: 260, and from four things on 42 for each and 92 more
     /// (`UIMerchantShopMakeWnd::UpdateLayout`).
     pub(in crate::web) fn stall_height(&self) -> i32 {
-        let rows = self.vending.making.as_ref().map_or(0, |making| making.rows.len() as i32);
-        if rows >= 4 { rows * 42 + 92 } else { 260 }
+        crate::vending::stall_height(self.vending.making.as_ref().map_or(0, |making| making.rows.len()))
     }
 
     /// The window a shop is made in (`UIMerchantShopMakeWnd`, 400 wide): its title (the client's line 224),
@@ -70,7 +71,12 @@ impl App {
                 let item = self.cart.items.iter().find(|item| item.index == stalled.index)?;
                 let top = 54 + 42 * row as i32;
                 let left = price_typed(&stalled.price).filter(|price| *price > 0).map_or(String::new(), |price| {
-                    format!(r#"<div class="a t" style="left:235px;top:{}px;white-space:nowrap">{}{}</div>"#, top + 18, escape(&Self::words(3222, "Total amount : ")), price_written(after_commission(price)))
+                    format!(
+                        r#"<div class="a t" style="left:235px;top:{}px;white-space:nowrap">{}{}</div>"#,
+                        top + 18,
+                        escape(&Self::words(3222, "Total amount : ")),
+                        price_written(after_commission(price))
+                    )
                 });
                 Some(format!(
                     r#"<div class="a" style="left:3px;top:{top}px;width:32px;height:32px;background:url('{}')">{}</div>
@@ -81,7 +87,13 @@ impl App {
                     top + 3,
                     escape(&Self::item_name(item)),
                     text(235, top + 3, BLACK, &Self::words(369, "Price: ")),
-                    numeric_field(&windows::stall_price_field(row), (281, top, 94, 16), &stalled.price, 14, &format!("background:{FIELD_GROUND};text-align:right")),
+                    numeric_field(
+                        &windows::stall_price_field(row),
+                        (281, top, 94, 16),
+                        &stalled.price,
+                        14,
+                        &format!("background:{FIELD_GROUND};text-align:right")
+                    ),
                 ))
             })
             .collect();
@@ -125,16 +137,33 @@ impl App {
         let cells: Vec<String> = mine
             .iter()
             .enumerate()
-            .map(|(place, sold)| grid_cell(place, 7, &sold.item, sold.item.amount, "", &format!("{} {} Zeny", Self::item_name(&sold.item), grouped(i64::from(sold.price)))))
+            .map(|(place, sold)| grid_cell(
+                place,
+                7,
+                &sold.item,
+                sold.item.amount,
+                "",
+                &format!("{} {} Zeny", Self::item_name(&sold.item), grouped(i64::from(sold.price)))
+            ))
             .collect();
-        format!("{}{}{}", list_frame(280, 120, &Self::words(3237, "My Shop")), grid_of(7, 2, &cells), picture_press(280 - 61, 120 - 24, "btn_close", Press::MineClose))
+        format!(
+            "{}{}{}",
+            list_frame(280, 120, &Self::words(3237, "My Shop")),
+            grid_of(7, 2, &cells),
+            picture_press(280 - 61, 120 - 24, "btn_close", Press::MineClose)
+        )
     }
 
     /// What the making of a shop asks, in the client's message box: whether a thing is to cost nothing (its
     /// line 604).
     pub(in crate::web) fn vending_question(&self) -> String {
         match self.vending.asks {
-            Some(VendingAsk::Free) => message_box(Asked::Sure, &escape(&Self::words(604, "At least one item has its price set to 0 Zeny exists. Do you wish to continue?")), Press::Yes, Press::No),
+            Some(VendingAsk::Free) => message_box(
+                Asked::Sure,
+                &escape(&Self::words(604, "At least one item has its price set to 0 Zeny exists. Do you wish to continue?")),
+                Press::Yes,
+                Press::No
+            ),
             None => String::new(),
         }
     }

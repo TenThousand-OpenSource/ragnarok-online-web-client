@@ -5,9 +5,10 @@
 //! Most of the client's tables are Lua 5.1 bytecode compiled for the 32-bit client. `lunify` rewrites it for
 //! the Lua this program embeds, which then simply runs it; the tables are what the files leave in the globals.
 //! Shared here: a Lua state as the files need it (`state`), running a file in it (`exec`, `run`, `run_in`,
-//! `beside`), walking what it left (`whole`, `text`, `text_only`, `lines`, `names`, `numbered`, `json_of`), the texts'
-//! encodings (`korean`, `latin`), the client's `#` tables (`hash_fields`), and a JSON object keyed by numbers
-//! in their order (`by_number`).
+//! `beside`), what more than one kind of table reads, read once (`Sources`, `Script`), walking what it left
+//! (`whole`, `text`, `text_only`, `lines`, `names`, `numbered`, `json_of`), the texts' encodings (`korean`,
+//! `latin`), the client's `#` tables (`hash_fields`), and a JSON object keyed by numbers in their order
+//! (`by_number`).
 
 use std::collections::BTreeMap;
 
@@ -46,8 +47,36 @@ use skills::{job_inherits, skill_tree, skills};
 
 /// What Lua itself puts in the globals.
 const BUILT_IN: [&str; 30] = [
-    "print", "pairs", "ipairs", "type", "next", "tostring", "tonumber", "assert", "collectgarbage", "dofile", "error", "gcinfo", "getfenv", "getmetatable", "load",
-    "loadfile", "loadstring", "module", "newproxy", "pcall", "rawequal", "rawget", "rawset", "require", "select", "setfenv", "setmetatable", "unpack", "xpcall", "_VERSION",
+    "print",
+        "pairs",
+        "ipairs",
+        "type",
+        "next",
+        "tostring",
+        "tonumber",
+        "assert",
+        "collectgarbage",
+        "dofile",
+        "error",
+        "gcinfo",
+        "getfenv",
+        "getmetatable",
+        "load",
+    "loadfile",
+        "loadstring",
+        "module",
+        "newproxy",
+        "pcall",
+        "rawequal",
+        "rawget",
+        "rawset",
+        "require",
+        "select",
+        "setfenv",
+        "setmetatable",
+        "unpack",
+        "xpcall",
+        "_VERSION",
 ];
 
 const ROOT: &str = "data\\luafiles514\\lua files\\";
@@ -91,6 +120,20 @@ fn names_stand_for_themselves(lua: &Lua) -> Result<(), String> {
 /// Runs more of the client's Lua files in a state that may hold others' tables already.
 fn run_in(lua: &Lua, grf: &Grf, files: &[&str]) {
     for file in files {
+        Script::read(grf, file).run_in(lua);
+    }
+}
+
+/// One of the client's Lua files as the archives gave it, or why they gave none: read once, to be run in every
+/// state that wants it (each state runs the same bytes a reading of its own would have given it).
+struct Script<'name> {
+    file: &'name str,
+    bytes: Result<Vec<u8>, String>,
+}
+
+impl<'name> Script<'name> {
+    /// Reads the file out of the archives, by its name as `run` takes it.
+    fn read(grf: &Grf, file: &'name str) -> Self {
         // A name may carry its own folder under `lua files`; the others are in `datainfo`.
         // …and one that starts with a backslash is right under `lua files`.
         let path = match file.strip_prefix('\\') {
@@ -98,9 +141,65 @@ fn run_in(lua: &Lua, grf: &Grf, files: &[&str]) {
             None if file.contains('\\') => format!("{ROOT}{file}.lub"),
             None => format!("{ROOT}datainfo\\{file}.lub"),
         };
-        let outcome = grf.read(&path).map_err(|error| error.to_string()).and_then(|bytes| exec(lua, &bytes, Some(*file)));
+        Self { file, bytes: grf.read(&path).map_err(|error| error.to_string()) }
+    }
+
+    /// Runs it in a state. A file that was not there or does not run is skipped with a note, in every state
+    /// it was to run in.
+    fn run_in(&self, lua: &Lua) {
+        let outcome = self.bytes.as_ref().map_err(String::clone).and_then(|bytes| exec(lua, bytes, Some(self.file)));
         if let Err(error) = outcome {
-            eprintln!("tables: {file}.lub: {error}");
+            eprintln!("tables: {}.lub: {error}", self.file);
+        }
+    }
+}
+
+/// The Lua files of the archives that more than one kind of table runs, each in a state of its own: by the
+/// names `run` takes them by.
+const SHARED_SCRIPTS: [&str; 6] =
+    ["\\common", "jobidentity", "npcidentity", "accessoryid", "skillinfoz\\jobinheritlist", "skillinfoz\\skillid"];
+
+/// What more than one kind of table is made of, read once for all of them: the archives, the message table,
+/// the Game Settings, the tip box, and the Lua files of `SHARED_SCRIPTS`. Each is read by the file of its own
+/// kind; this only keeps what was read.
+pub struct Sources<'grf> {
+    grf: &'grf Grf,
+    /// `messages`: for the browser as it is, and for the names of the emotions (`interface::emotions`).
+    messages: Vec<String>,
+    /// `interface::game_settings`: for the options (`interface::options`) and what they say
+    /// (`commands::commands`). Neither changes anything in the state.
+    settings: Lua,
+    /// `tips::read`: for the Tipbox window (`tips::tips`) and the Adventure Guide's quests (`guide::guide`).
+    tips: Vec<tips::Tip>,
+    scripts: Vec<Script<'static>>,
+}
+
+impl<'grf> Sources<'grf> {
+    /// Reads them: out of the archives, and the tip box from beside them in the client's folder.
+    pub fn read(grf: &'grf Grf, client_dir: &std::path::Path) -> Self {
+        Self {
+            grf,
+            messages: messages(grf),
+            settings: interface::game_settings(grf),
+            tips: tips::read(client_dir),
+            scripts: SHARED_SCRIPTS.iter().map(|file| Script::read(grf, file)).collect(),
+        }
+    }
+
+    /// `run` with the files that were read already taken as read.
+    fn run(&self, files: &[&str]) -> Lua {
+        let lua = state();
+        self.run_in(&lua, files);
+        lua
+    }
+
+    /// `run_in` with the files that were read already taken as read.
+    fn run_in(&self, lua: &Lua, files: &[&str]) {
+        for file in files {
+            match self.scripts.iter().find(|script| script.file == *file) {
+                Some(script) => script.run_in(lua),
+                None => Script::read(self.grf, file).run_in(lua),
+            }
         }
     }
 }
@@ -145,7 +244,12 @@ pub fn describe(lua: &Lua) -> Vec<String> {
         let Ok((name, value)) = pair else { continue };
         match value {
             Value::Table(table) if !["_G", "package", "string", "table", "math", "coroutine"].contains(&name.as_str()) => {
-                let entries: Vec<String> = table.pairs::<Value, Value>().flatten().take(4).map(|(key, value)| format!("{} = {}", show(&key), show(&value))).collect();
+                let entries: Vec<String> = table
+                    .pairs::<Value, Value>()
+                    .flatten()
+                    .take(4)
+                    .map(|(key, value)| format!("{} = {}", show(&key), show(&value)))
+                    .collect();
                 lines.push(format!("{name}: {} entries; {}", table.pairs::<Value, Value>().count(), entries.join(", ")));
             }
             Value::Function(_) if !BUILT_IN.contains(&name.as_str()) => lines.push(format!("{name}: function")),
@@ -169,7 +273,8 @@ fn show(value: &Value) -> String {
 /// The client's strings are EUC-KR. Those of converted bytecode arrive with every byte widened to a character
 /// of its own (as Latin-1 read into UTF-8), which is undone first.
 pub fn korean(bytes: &[u8]) -> String {
-    let narrowed: Option<Vec<u8>> = std::str::from_utf8(bytes).ok().and_then(|text| text.chars().map(|character| u8::try_from(u32::from(character)).ok()).collect());
+    let narrowed: Option<Vec<u8>> =
+        std::str::from_utf8(bytes).ok().and_then(|text| text.chars().map(|character| u8::try_from(u32::from(character)).ok()).collect());
     encoding_rs::EUC_KR.decode_without_bom_handling(narrowed.as_deref().unwrap_or(bytes)).0.into_owned()
 }
 
@@ -236,7 +341,10 @@ fn numbered(lua: &Lua, name: &str) -> Vec<(u64, serde_json::Value)> {
 /// The entries of a JSON object whose keys are numbers (what `json_of` makes of a Lua table that is no plain
 /// list), in the order of their numbers; a key that is no number is passed by, and what is no object has none.
 fn by_number(object: &serde_json::Value) -> Vec<(i64, &serde_json::Value)> {
-    let mut entries: Vec<(i64, &serde_json::Value)> = object.as_object().map(|entries| entries.iter().filter_map(|(at, entry)| Some((at.parse().ok()?, entry))).collect()).unwrap_or_default();
+    let mut entries: Vec<(i64, &serde_json::Value)> = object
+        .as_object()
+        .map(|entries| entries.iter().filter_map(|(at, entry)| Some((at.parse().ok()?, entry))).collect())
+        .unwrap_or_default();
     entries.sort_by_key(|(at, _)| *at);
     entries
 }
@@ -264,10 +372,25 @@ pub fn names(lua: &Lua, table: &str) -> BTreeMap<i64, String> {
 /// What the browser client needs of the client's tables, as JSON:
 /// `{"jobs": {"<id>": {"name": …}}, "headgear": {"<view id>": …}, "skills": {…}}`: what each job is called, the
 /// name each headgear's sprite files end in, and the skills (see `skills`).
-pub fn for_client(grf: &Grf) -> serde_json::Value {
-    let (lua, jobs, headgear, sprites, weapons, weapon_hits) = jobs::jobs(grf);
-    let (pets, pet_acts) = pets::pets(&lua, grf);
-    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "weapon_hits": weapon_hits, "tree": skill_tree(grf), "inherits": job_inherits(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
+pub fn for_client(read: &Sources) -> serde_json::Value {
+    let (lua, jobs, headgear, sprites, weapons, weapon_hits) = jobs::jobs(read);
+    let (pets, pet_acts) = pets::pets(&lua, read.grf);
+    serde_json::json!({
+        "jobs": jobs,
+        "headgear": headgear,
+        "skills": skills(read),
+        "sprites": sprites,
+        "weapons": weapons,
+        "weapon_hits": weapon_hits,
+        "tree": skill_tree(read),
+        "inherits": job_inherits(read),
+        "pets": pets,
+        "pet_acts": pet_acts,
+        "emotions": emotions(read),
+        "messages": read.messages,
+        "hotkeys": hotkeys(read),
+        "options": options(&read.settings)
+    })
 }
 
 /// The client's message table (`msgstringtable.txt`), line by line: what the client says, by the numbers its code
@@ -293,22 +416,24 @@ fn beside(client_dir: &std::path::Path, files: &[&str]) -> Option<Lua> {
 
 /// Everything the browser is given at once (`/tables.json`): the tables out of the archives (`for_client`), with
 /// those that come from beside the archives and from the server's database added, each under its own name: what
-/// the client calls each map, who stands where in the towns, the Adventure Guide.
-pub fn for_browser(grf: &Grf, client_dir: &std::path::Path, database: &std::path::Path) -> serde_json::Value {
-    let mut tables = for_client(grf);
+/// the client calls each map, who stands where in the towns, the Adventure Guide. What several of them are made
+/// of is read once, before them (`Sources::read`), and handed to each.
+pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std::path::Path) -> serde_json::Value {
+    let grf = read.grf;
+    let mut tables = for_client(read);
     if let Some(tables) = tables.as_object_mut() {
         tables.insert("chat_tabs".to_owned(), chat_tabs(grf));
         tables.insert("maps".to_owned(), maps::maps(client_dir));
         tables.insert("towns".to_owned(), maps::towns(client_dir));
-        tables.insert("guide".to_owned(), guide::guide(grf, database, client_dir));
+        tables.insert("guide".to_owned(), guide::guide(read, database));
         tables.insert("statuses".to_owned(), statuses::statuses(grf));
-        tables.insert("commands".to_owned(), commands::commands(grf));
+        tables.insert("commands".to_owned(), commands::commands(grf, &read.settings));
         tables.insert("quests".to_owned(), quests::quests(client_dir, database));
         tables.insert("cards".to_owned(), cards::cards(grf));
         tables.insert("sky".to_owned(), scenery::sky(grf));
-        tables.insert("figures".to_owned(), figures::figures(grf));
+        tables.insert("figures".to_owned(), figures::figures(read));
         tables.insert("worldmap".to_owned(), worldmap::worldmap(grf));
-        tables.insert("tips".to_owned(), tips::tips(client_dir));
+        tables.insert("tips".to_owned(), tips::tips(&read.tips));
         tables.insert("aura".to_owned(), aura::aura(grf));
         // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
         // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ

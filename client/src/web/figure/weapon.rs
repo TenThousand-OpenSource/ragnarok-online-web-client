@@ -34,7 +34,9 @@ pub(super) async fn part(figure: &Figure, trail: bool) -> Option<(Sprite, Frame)
         Ok(weapon) => weapon,
         Err(_) => {
             // (The kind is shown as the job shows it: `CPc::MapMotion`.)
-            let kind = data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| crate::jobs::weapon_kind(&kind))?;
+            let kind = data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(
+                |(_, kind)| crate::jobs::weapon_kind(&kind)
+            )?;
             let kind = data::weapon_sprite_of(crate::pose::weapon_shown(figure.job, kind))?;
             sprite(&format!("{base}{kind}{ending}")).await.ok()?
         }

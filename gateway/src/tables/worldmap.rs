@@ -18,7 +18,13 @@ pub fn worldmap(grf: &Grf) -> serde_json::Value {
         .filter_map(|world| {
             let text = |at: usize| world.get::<Option<mlua::String>>(at).ok().flatten().map(|text| korean(&text.as_bytes()));
             let (name, fields, groups, picture) = (text(1)?, text(2)?, text(3)?, text(4)?);
-            let rows = |table: &str| lua.globals().get::<Option<Table>>(table).ok().flatten().map(|table| json_of(&Value::Table(table))).unwrap_or_else(|| serde_json::json!([]));
+            let rows = |table: &str| lua
+                .globals()
+                .get::<Option<Table>>(table)
+                .ok()
+                .flatten()
+                .map(|table| json_of(&Value::Table(table)))
+                .unwrap_or_else(|| serde_json::json!([]));
             let fields = match rows(&fields) {
                 serde_json::Value::Array(rows) => rows.into_iter().map(without_rsw).collect(),
                 _ => Vec::new(),
@@ -66,6 +72,8 @@ mod tests {
 
     #[test]
     fn a_map_is_named_without_its_ending() {
-        assert_eq!(without_rsw(serde_json::json!([112, "malangdo.rsw", 1, 2, 3, 4, "Malangdo", ""])), serde_json::json!([112, "malangdo", 1, 2, 3, 4, "Malangdo", ""]));
+        assert_eq!(without_rsw(serde_json::json!([112, "malangdo.rsw", 1, 2, 3, 4, "Malangdo", ""])), serde_json::json!([
+            112, "malangdo", 1, 2, 3, 4, "Malangdo", ""
+        ]));
     }
 }

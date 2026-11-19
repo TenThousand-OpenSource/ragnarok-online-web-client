@@ -108,10 +108,21 @@ pub fn list(packet: &[u8]) -> Option<(String, Vec<Member>)> {
     Some((name, members))
 }
 
+/// What ZC_ADD_MEMBER_TO_GROUP tells: the member, the party's name, the member's cell, and how items are
+/// shared (anyone may pick them up; they are handed out among the members).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Joined {
+    pub member: Member,
+    pub party: String,
+    pub cell: (u16, u16),
+    pub pickup: bool,
+    pub items: bool,
+}
+
 /// ZC_ADD_MEMBER_TO_GROUP (0x0ae4, 89 bytes): `u32 account`, `u32 character`, `u32 role` (0 the leader),
 /// `u16 job`, `u16 level`, `u16 x`, `u16 y`, `u8 offline`, `char party[24]`, `char name[24]`, `char map[16]`,
-/// `u8 pickup`, `u8 items`. The member, the party's name, the member's cell, and how items are shared.
-pub fn joined(packet: &[u8]) -> Option<(Member, String, (u16, u16), (bool, bool))> {
+/// `u8 pickup`, `u8 items`.
+pub fn joined(packet: &[u8]) -> Option<Joined> {
     let packet = packet.get(..89)?;
     let member = Member {
         account: u32_at(packet, 2),
@@ -123,7 +134,13 @@ pub fn joined(packet: &[u8]) -> Option<(Member, String, (u16, u16), (bool, bool)
         job: u16_at(packet, 14),
         level: u16_at(packet, 16),
     };
-    Some((member, text(&packet[23..47]), (u16_at(packet, 18), u16_at(packet, 20)), (packet[87] != 0, packet[88] != 0)))
+    Some(Joined {
+        member,
+        party: text(&packet[23..47]),
+        cell: (u16_at(packet, 18), u16_at(packet, 20)),
+        pickup: packet[87] != 0,
+        items: packet[88] != 0,
+    })
 }
 
 /// ZC_ACK_MAKE_GROUP: how making a party went (`made`), if the packet has it.

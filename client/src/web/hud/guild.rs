@@ -52,8 +52,19 @@ fn table(widths: &[i32], headers: &[String], rows: &[String]) -> String {
         table.push_str(&text(x + 8, 49, BLACK, header));
         x += width + 1;
     }
-    let inside: String = rows.iter().enumerate().map(|(row, inside)| format!(r#"<div style="position:absolute;left:0;top:{}px;width:{}px;height:19px">{inside}</div>"#, row * 19, WIDTH - 18)).collect();
-    table.push_str(&format!(r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{inside}</div></div>"#, at(0, 65, WIDTH - 6, 11 * 19), rows.len() * 19));
+    let inside: String = rows.iter()
+        .enumerate()
+        .map(|(row, inside)| format!(
+            r#"<div style="position:absolute;left:0;top:{}px;width:{}px;height:19px">{inside}</div>"#,
+            row * 19,
+            WIDTH - 18
+        ))
+        .collect();
+    table.push_str(&format!(
+        r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{inside}</div></div>"#,
+        at(0, 65, WIDTH - 6, 11 * 19),
+        rows.len() * 19
+    ));
     table
 }
 
@@ -75,7 +86,12 @@ impl App {
             let x = tab as i32 * 66;
             let opens = self.guild_tab_opens(tab);
             let press = if opens { pressed(Press::Tab(tab)) } else { String::new() };
-            window.push_str(&format!(r#"<div class="a" style="{};background:{}" {press}>{}</div>"#, at(x + 1, 18, 64, 23), if self.guild.tab == tab { PANEL } else { LINE }, fitted(2, 4, 62, if opens { BLACK } else { GREY }, &Self::words(line, otherwise))));
+            window.push_str(&format!(
+                r#"<div class="a" style="{};background:{}" {press}>{}</div>"#,
+                at(x + 1, 18, 64, 23),
+                if self.guild.tab == tab { PANEL } else { LINE },
+                fitted(2, 4, 62, if opens { BLACK } else { GREY }, &Self::words(line, otherwise))
+            ));
         }
         window.push_str(&fill(0, 41, WIDTH, HEIGHT - 41, LINE));
         window.push_str(&fill(1, 41, WIDTH - 2, HEIGHT - 42, PANEL));
@@ -121,12 +137,17 @@ impl App {
             text(8, 49, BLACK, &line((328, "Guild Name"), name)),
             text(8, 65, BLACK, &line((329, "Guild Level"), info.level.to_string())),
             text(8, 81, BLACK, &line((330, "Guild Master"), info.master.clone())),
-            format!(
-                r#"<div class="a t" style="left:8px;top:97px;display:flex;color:{BLACK}">{}<img alt="" draggable="false" src="{}" style="width:15px;height:15px;margin:-2px 0 0 8px"><span style="white-space:pre"> {}</span></div>"#,
-                escape(&line((331, "Members"), format!("{} / {}", guild.members.len().max(online), info.most))),
-                picture("basic_interface/grp_online.bmp"),
-                online
-            ),
+            [
+                format!(
+                    r#"<div class="a t" style="left:8px;top:97px;display:flex;color:{BLACK}">{}"#,
+                    escape(&line((331, "Members"), format!("{} / {}", guild.members.len().max(online), info.most)))
+                ),
+                format!(
+                    r#"<img alt="" draggable="false" src="{}" style="width:15px;height:15px;margin:-2px 0 0 8px">"#,
+                    picture("basic_interface/grp_online.bmp")
+                ),
+                format!(r#"<span style="white-space:pre"> {}</span></div>"#, online)
+            ].concat(),
             text(8, 113, BLACK, &line((332, "Avg.lvl of Members"), info.average_level.to_string())),
             text(8, 129, BLACK, &line((333, "Castles Owned"), info.land.clone())),
             // The experience is written in red from level 50 (the client's 0xFF there).
@@ -224,20 +245,31 @@ impl App {
         let (width, height) = self.guild_ask_size();
         let boxed = |words: String| message_box(Asked::Offer, &escape(&words), Press::Yes, Press::No);
         let words = match &self.guild.asks {
-            Some(GuildAsk::Invited(_, name)) => return boxed(format!("({name}){}", Self::words(377, " Guild has sent you an invitation. Would you like to join this Guild?"))),
-            Some(GuildAsk::Ally(_, name)) => return boxed(format!("({name}){}", Self::words(393, " Guild is asking for an Alliance with them. Do you accept?"))),
-            Some(GuildAsk::Hand(_, _, name)) => return boxed(Self::words(2924, "Are sure want to assign %s as guild leader? After assigned your position will become %s").replace("%s", name)),
+            Some(GuildAsk::Invited(_, name)) => return boxed(
+                format!("({name}){}", Self::words(377, " Guild has sent you an invitation. Would you like to join this Guild?"))
+            ),
+            Some(GuildAsk::Ally(_, name)) =>
+                return boxed(format!("({name}){}", Self::words(393, " Guild is asking for an Alliance with them. Do you accept?"))),
+            Some(GuildAsk::Hand(_, _, name)) => return boxed(
+                Self::words(2924, "Are sure want to assign %s as guild leader? After assigned your position will become %s")
+                    .replace("%s", name)
+            ),
             Some(GuildAsk::Leave) => Self::words(523, "Please enter the reason of Withdrawal."),
             Some(GuildAsk::Expel(..)) => Self::words(524, "Please enter the reason of Expulsion."),
             None => return String::new(),
         };
-        format!(
-            r#"<div class="a" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:border-box"></div>{}<input id="guild-reason" class="a in" style="{};background:#e8e8e8;box-sizing:border-box" type="text" maxlength="39" autocomplete="off">{}{}"#,
-            at(0, 0, width, height),
-            fitted(15, 6, width - 30, BLACK, &words),
-            at(15, 22, width - 32, 16),
-            picture_press(width - 101, height - 32, "btn_ok", Press::Yes),
-            picture_press(width - 55, height - 32, "btn_cancel", Press::No)
-        )
+        [
+            format!(
+                r#"<div class="a" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:border-box"></div>{}"#,
+                at(0, 0, width, height),
+                fitted(15, 6, width - 30, BLACK, &words)
+            ),
+            format!(r#"<input id="guild-reason" class="a in" style="{};background:#e8e8e8;box-sizing:border-box" "#, at(15, 22, width - 32, 16)),
+            format!(
+                r#"type="text" maxlength="39" autocomplete="off">{}{}"#,
+                picture_press(width - 101, height - 32, "btn_ok", Press::Yes),
+                picture_press(width - 55, height - 32, "btn_cancel", Press::No)
+            )
+        ].concat()
     }
 }

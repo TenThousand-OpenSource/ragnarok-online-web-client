@@ -140,7 +140,8 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
     let mut asked = prims::Asked::default();
     let (Some(gpu), Some(scene)) = (&mut state.gpu, &state.scene) else { return asked };
     // The effects that a state of someone's keeps going (Sight), begun and begun again while it holds.
-    let states: Vec<(Option<u32>, u32)> = std::iter::once((None, scene.player.state)).chain(scene.units.iter().map(|(id, unit)| (Some(*id), unit.state))).collect();
+    let states: Vec<(Option<u32>, u32)> =
+        std::iter::once((None, scene.player.state)).chain(scene.units.iter().map(|(id, unit)| (Some(*id), unit.state))).collect();
     let (kept, heard) = state.kept.look(&states, time, CAST_FRAME_MS, prims::lasts);
     for (effect, on) in kept {
         prims::begin(effect, on, None, time, &mut state.bursts, &mut state.sounds_due);
@@ -170,7 +171,15 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
         // The ground around its place, for what falls on it; with the one it is on out of sight, none.
         let place = standing(burst.on).map(|at| burst.place(at));
         let mut started = Vec::new();
-        let left = burst.live(time, &|east, north| place.map_or(f32::NEG_INFINITY, |place| scene.gat.height_at((place[0] + east) / CELL, (place[2] + north) / CELL) - place[1]), &mut started, &mut asked);
+        let left = burst.live(
+            time,
+            &|east, north| place.map_or(
+                f32::NEG_INFINITY,
+                |place| scene.gat.height_at((place[0] + east) / CELL, (place[2] + north) / CELL) - place[1]
+            ),
+            &mut started,
+            &mut asked
+        );
         // Its sounds are heard from where the one it is on stands (`earshot.rs`).
         sounds.extend(started.into_iter().map(|sound| (time, sound, burst.on)));
         left
@@ -206,10 +215,7 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
                 let Some(shown) = sheet.act.actions.get(action).and_then(|frames| frames.get(frame % frames.len().max(1))) else { return };
                 for layer in crate::sprite::layer_quads(shown, |truecolor, picture| sheet.sprite.size_of(truecolor, picture), scale, roll) {
                     let Some(binds) = gpu.effect_layer(sprite, &sheet, layer.truecolor, layer.picture) else { continue };
-                    // (With the client's `pattern & 0x200` a layer is in the colour its file gives it.)
-                    let colour = if own { layer.colour.map(|part| f32::from(part) / 255.0) } else { colour };
-                    // (The kind 153: the layer's own red, green and blue at the primitive's alpha.)
-                    let colour = if lit { [f32::from(layer.colour[0]) / 255.0, f32::from(layer.colour[1]) / 255.0, f32::from(layer.colour[2]) / 255.0, colour[3]] } else { colour };
+                    let colour = layer_colour(layer.colour, colour, own, lit);
                     // (The kind 167: a colour made of the layer's own, and for its second drawing a larger quad.)
                     let Some(colour) = rim.map_or(Some(colour), |rim| rim.colour(layer.colour)) else { continue };
                     for [x, y, u, v] in rim.map_or(layer.corners, |rim| rim.widened(layer.corners)) {
@@ -223,12 +229,26 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
     asked
 }
 
+/// The colour a layer of a primitive's sprite is drawn in: the primitive's `colour`; with `own` (the client's
+/// `pattern & 0x200`) the colour the layer's file gives it; and with `lit` (the kind 153) the layer's own red,
+/// green and blue at the alpha of that.
+fn layer_colour(layer: [u8; 4], colour: [f32; 4], own: bool, lit: bool) -> [f32; 4] {
+    let colour = if own { layer.map(|part| f32::from(part) / 255.0) } else { colour };
+    if lit {
+        [f32::from(layer[0]) / 255.0, f32::from(layer[1]) / 255.0, f32::from(layer[2]) / 255.0, colour[3]]
+    } else {
+        colour
+    }
+}
+
 /// How high over the feet the name of someone stands (none named: the player's own character), by the job that
 /// one is drawn as (`crate::mounts::name_offset`, the client's `GetNameOffset`): nothing for a monster or an
 /// NPC, or for one out of sight.
 fn name_offset(scene: &Scene, on: Option<u32>) -> f32 {
     let mover = scene.mover(on);
-    mover.filter(|mover| matches!(mover.look, Look::Character(_))).map_or(0.0, |mover| crate::mounts::name_offset(crate::mounts::drawn_job(mover.job, mover.state), crate::jobs::doram(mover.job)))
+    mover
+        .filter(|mover| matches!(mover.look, Look::Character(_)))
+        .map_or(0.0, |mover| crate::mounts::name_offset(crate::mounts::drawn_job(mover.job, mover.state), crate::jobs::doram(mover.job)))
 }
 
 /// The way something goes as the screen shows it, a step of one, and the way across it.
@@ -256,7 +276,10 @@ pub(super) fn arrows(state: &mut State, view: &View, time: f64, quads: &mut Quad
         // The way it flies as the screen shows it: the picture's head is at its bottom, and is turned to lead.
         let ([sine, cosine], _) = on_screen(view, subtract(*from, to));
         let nearer = nearer(view, at, 10.0);
-        for (x, y, u, v) in [(-0.5, 0.5, 0.0, 0.0), (0.5, 0.5, 1.0, 0.0), (-0.5, -0.5, 0.0, 1.0), (-0.5, -0.5, 0.0, 1.0), (0.5, 0.5, 1.0, 0.0), (0.5, -0.5, 1.0, 1.0)] {
+        for (x, y, u, v) in [
+            (-0.5, 0.5, 0.0, 0.0), (0.5, 0.5, 1.0, 0.0), (-0.5, -0.5, 0.0, 1.0), (-0.5, -0.5, 0.0, 1.0),
+            (0.5, 0.5, 1.0, 0.0), (0.5, -0.5, 1.0, 1.0)
+        ] {
             let (x, y) = (x * wide * SPRITE_SCALE, y * tall * SPRITE_SCALE);
             quads.corner(view, nearer, along(along(at, view.right, x * cosine + y * sine), view.up, y * cosine - x * sine), [u, v], [1.0; 4]);
         }

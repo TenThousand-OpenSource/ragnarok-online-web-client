@@ -54,7 +54,10 @@ impl Body {
     pub fn weapon(&self) -> Option<(Quad, bool)> {
         let alone = self.flags & flag::WEAPON_ADDS != 0;
         let twice = self.flags & flag::WEAPON_TWICE != 0 && !self.blink_skipped;
-        (alone || twice).then(|| (Quad { colour: [self.colour[0], self.colour[1], self.colour[2], 255], adds: true, scale: self.scale(), ..Quad::PLAIN }, alone))
+        (alone || twice).then(|| (
+            Quad { colour: [self.colour[0], self.colour[1], self.colour[2], 255], adds: true, scale: self.scale(), ..Quad::PLAIN },
+            alone
+        ))
     }
 
     /// How many times its size it is drawn (`ScaleByPulse`): the flag 0x10 brings it down to half over 45 of
@@ -97,7 +100,12 @@ impl Body {
         }
         if has(flag::SHADOWS) && character && !has(flag::LANDS) {
             // (The client also draws these a little longer downwards than the body; that is left out.)
-            quads.extend([1.0, 2.0].map(|step: f32| Quad { colour: [0x37, 0x37, 0xff, self.outline_alpha], adds: true, scale: main.scale * (1.0 + step * 0.01), ..main }));
+            quads.extend([1.0, 2.0].map(|step: f32| Quad {
+                colour: [0x37, 0x37, 0xff, self.outline_alpha],
+                adds: true,
+                scale: main.scale * (1.0 + step * 0.01),
+                ..main
+            }));
         }
         if has(flag::SHADOWS) && !character {
             quads.extend((1..=10).map(|step| {

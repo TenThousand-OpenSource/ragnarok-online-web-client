@@ -73,7 +73,12 @@ pub fn layer_quads(frame: &Frame, size_of: impl Fn(bool, usize) -> Option<(usize
         let corner = |x: f32, y: f32, u: f32, v: f32| [x * cos - y * sin + middle_x, y * cos + x * sin + middle_y, u, v];
         let (high_left, high_right) = (corner(-half_wide, -half_tall, 0.0, 0.0), corner(half_wide, -half_tall, 1.0, 0.0));
         let (low_left, low_right) = (corner(-half_wide, half_tall, 0.0, 1.0), corner(half_wide, half_tall, 1.0, 1.0));
-        quads.push(LayerQuad { truecolor: layer.truecolor, picture, corners: [high_left, high_right, low_left, low_left, high_right, low_right], colour: layer.colour });
+        quads.push(LayerQuad {
+            truecolor: layer.truecolor,
+            picture,
+            corners: [high_left, high_right, low_left, low_left, high_right, low_right],
+            colour: layer.colour
+        });
     }
     quads
 }
@@ -167,7 +172,11 @@ mod tests {
 
     #[test]
     fn layers_come_in_the_frames_order_and_one_without_a_picture_is_left_out() {
-        let layers = vec![Layer { picture: 1, ..layer(0, 0) }, Layer { picture: -1, ..layer(0, 0) }, Layer { picture: 7, ..layer(0, 0) }, Layer { truecolor: true, ..layer(4, 0) }];
+        let layers =
+            vec![Layer { picture: 1, ..layer(0, 0) }, Layer { picture: -1, ..layer(0, 0) }, Layer { picture: 7, ..layer(0, 0) }, Layer {
+                truecolor: true,
+                ..layer(4, 0)
+            }];
         let quads = quads(layers, 1.0, 0.0);
         assert_eq!(quads.iter().map(|quad| (quad.truecolor, quad.picture)).collect::<Vec<_>>(), [(false, 1), (true, 0)]);
         // A layer's own colour changes nothing of its quad.
@@ -181,7 +190,11 @@ mod tests {
     fn a_picture_of_the_palette_is_given_in_the_palettes_colours() {
         let mut palette = [[0, 0, 0, 255]; 256];
         palette[3] = [30, 40, 50, 255];
-        let sprite = Sprite { indexed: vec![Picture { width: 2, height: 1, pixels: vec![0, 3] }], truecolor: vec![Picture { width: 1, height: 1, pixels: vec![1, 2, 3, 4] }], palette };
+        let sprite = Sprite {
+            indexed: vec![Picture { width: 2, height: 1, pixels: vec![0, 3] }],
+            truecolor: vec![Picture { width: 1, height: 1, pixels: vec![1, 2, 3, 4] }],
+            palette
+        };
         assert_eq!(sprite.size_of(false, 0), Some((2, 1)));
         assert_eq!(sprite.rgba_of(false, 0), Some(vec![0, 0, 0, 0, 30, 40, 50, 255]));
         assert_eq!(sprite.rgba_of(true, 0), Some(vec![1, 2, 3, 4]));

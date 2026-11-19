@@ -220,7 +220,15 @@ pub fn changed(packet: &[u8]) -> Option<(u32, u32, u32)> {
 /// char name[24], u8 raisable` each. Returns the points left to give and the skills.
 pub fn skills(packet: &[u8]) -> Option<(u16, Vec<Skill>)> {
     let skills = records(packet, 6, 37)
-        .filter_map(|record| Some(Skill { id: word(record, 0)?, kind: long(record, 2)?, level: word(record, 6)?, sp: word(record, 8)?, range: word(record, 10)?, name: text_at(record, 12, 24)?, raisable: *record.get(36)? != 0 }))
+        .filter_map(|record| Some(Skill {
+            id: word(record, 0)?,
+            kind: long(record, 2)?,
+            level: word(record, 6)?,
+            sp: word(record, 8)?,
+            range: word(record, 10)?,
+            name: text_at(record, 12, 24)?,
+            raisable: *record.get(36)? != 0
+        }))
         .collect();
     Some((word(packet, 4)?, skills))
 }
@@ -266,7 +274,12 @@ pub struct Names {
 
 /// ZC_ACK_REQNAMEALL: `u32 id, char name[24], char party[24], char guild[24], char position[24], u32 title`.
 pub fn names(packet: &[u8]) -> Option<(u32, Names)> {
-    Some((long(packet, 2)?, Names { name: text_at(packet, 6, 24)?, party: text_at(packet, 30, 24)?, guild: text_at(packet, 54, 24)?, position: text_at(packet, 78, 24)? }))
+    Some((long(packet, 2)?, Names {
+        name: text_at(packet, 6, 24)?,
+        party: text_at(packet, 30, 24)?,
+        guild: text_at(packet, 54, 24)?,
+        position: text_at(packet, 78, 24)?
+    }))
 }
 
 mod manage;

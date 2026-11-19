@@ -22,7 +22,10 @@ use crate::prim::{Part, Tei};
 pub(super) const FILE: File = File { known, thrown: none, stays: none, run, pictures: &[&PICTURES], sprites: &[] };
 
 /// The pictures the effects here are drawn with, among the client's pictures of effects.
-const PICTURES: [&str; 9] = ["ice.tga", "magic_red.tga", "alpha_down.tga", "ring_red.tga", "ring_blue.tga", "magic_green.tga", "aaa copy.bmp", "magic_violet.tga", "cloud11.tga"];
+const PICTURES: [&str; 9] = [
+    "ice.tga", "magic_red.tga", "alpha_down.tga", "ring_red.tga", "ring_blue.tga", "magic_green.tga", "aaa copy.bmp",
+    "magic_violet.tga", "cloud11.tga"
+];
 
 /// How many ticks an effect here lives (the client's `EffectLifetime`; `IceWall` makes its own 9999) and the
 /// sound it starts with.
@@ -134,7 +137,10 @@ fn venom_mote() -> Prim {
 fn glass_wall(lasts: i32) -> Prim {
     let mut walls = Prim::new(Shape::Casting3d, "alpha_down.tga");
     (walls.duration, walls.colour, walls.adds) = (lasts, [255.0, 89.0, 182.0], true);
-    walls.slots = [(3.6, 34.0, 5500), (3.3, 37.0, 3080), (3.0, 40.0, 3080)].into_iter().map(|(out, tall, holds)| Slot::wall(lot(360) as i32, out, 90, tall, holds)).collect();
+    walls.slots = [(3.6, 34.0, 5500), (3.3, 37.0, 3080), (3.0, 40.0, 3080)]
+        .into_iter()
+        .map(|(out, tall, holds)| Slot::wall(lot(360) as i32, out, 90, tall, holds))
+        .collect();
     walls
 }
 
@@ -169,7 +175,9 @@ fn halo(course: &Course) -> Prim {
 /// and go down from their 1400th tick. Blue (`RenderTeiRect` for a primitive of size 4), their light added.
 fn portal_walls(course: &Course) -> Prim {
     let mut walls = sized(Tei::Columns, "magic_violet.tga", 4.0, course);
-    walls.parts.extend([4.0, 3.0, 2.0].into_iter().map(|out| Part { round: 360, tall: 50.0, turned: lot(360) as i32, out, rise: 90, alpha_top: 1400, flags: [1; 21], ..Part::default() }));
+    walls.parts.extend([4.0, 3.0, 2.0].into_iter().map(
+        |out| Part { round: 360, tall: 50.0, turned: lot(360) as i32, out, rise: 90, alpha_top: 1400, flags: [1; 21], ..Part::default() }
+    ));
     walls
 }
 
@@ -178,6 +186,14 @@ fn portal_walls(course: &Course) -> Prim {
 /// 7.5 over the ground), each 1.5 tall and upright; blue as the walls are.
 fn portal_winds(course: &Course) -> Prim {
     let mut winds = sized(Tei::Wind, "cloud11.tga", 4.0, course);
-    winds.parts.extend((0..4).map(|index| Part { round: 30, tall: index as f32 * 2.0 + 1.5, turned: index * 90, out: 9.0 - index as f32 * 1.5, rise: 90, heights: [1.5; 21], ..Part::default() }));
+    winds.parts.extend((0..4).map(|index| Part {
+        round: 30,
+        tall: index as f32 * 2.0 + 1.5,
+        turned: index * 90,
+        out: 9.0 - index as f32 * 1.5,
+        rise: 90,
+        heights: [1.5; 21],
+        ..Part::default()
+    }));
     winds
 }

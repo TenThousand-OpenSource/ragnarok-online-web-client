@@ -28,17 +28,13 @@ presses! {
 #[cfg(test)]
 mod tests {
     use super::Press;
-    use crate::press::Named;
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
-        let all = [Press::StallOk, Press::StallCancel, Press::Yes, Press::No, Press::MineClose, Press::Sign(2_000_001), Press::Buy, Press::Leave, Press::Confirm, Press::Refuse, Press::CountOk];
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        let all = [
+            Press::StallOk, Press::StallCancel, Press::Yes, Press::No, Press::MineClose, Press::Sign(2_000_001),
+            Press::Buy, Press::Leave, Press::Confirm, Press::Refuse, Press::CountOk
+        ];
+        crate::press::testing::read_back(all);
     }
 }

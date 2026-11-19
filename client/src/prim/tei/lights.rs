@@ -69,11 +69,25 @@ impl Prim {
         let Some(light) = self.parts.first().filter(|light| light.live && light.alpha > 0) else { return Vec::new() };
         let picture = |which: usize| self.pictures.get(which).copied().unwrap_or(self.picture);
         let swell = light.out * sine(light.heights[8].trunc()) * 0.05;
-        let mut rects: Vec<Rect> = [(swell + light.out, [68, 42, 255]), (swell + light.out * 0.5, [155, 155, 255])].into_iter().map(|(reach, colour)| Rect::new(picture(0), light.alpha, Part::facing(light.at[0], reach, 0, right, up), (0.0, 1.0), colour, true)).collect();
+        let mut rects: Vec<Rect> = [(swell + light.out, [68, 42, 255]), (swell + light.out * 0.5, [155, 155, 255])]
+            .into_iter()
+            .map(|(reach, colour)| Rect::new(
+                picture(0),
+                light.alpha,
+                Part::facing(light.at[0], reach, 0, right, up),
+                (0.0, 1.0),
+                colour,
+                true
+            ))
+            .collect();
         const SHADES: [u8; 4] = [105, 35, 75, 5];
         for (square, shade) in self.parts.iter().zip(SHADES).filter(|(square, _)| square.heights[12] > 0.0) {
             let (tall, half) = (square.heights[12], square.heights[12] * 0.5);
-            let side = |turned: i32, down: f32| [light.at[0][0] + cosine(turned as f32) * half, light.at[0][1] + down, light.at[0][2] + sine(turned as f32) * half];
+            let side = |turned: i32, down: f32| [
+                light.at[0][0] + cosine(turned as f32) * half,
+                light.at[0][1] + down,
+                light.at[0][2] + sine(turned as f32) * half
+            ];
             let (near, far) = (square.turned, square.turned + if square.turned < 180 { 180 } else { -180 });
             let corners = [side(near, half), side(far, half), side(far, half - tall), side(near, half - tall)];
             rects.push(Rect::new(picture(1), square.rise, corners, (0.0, 1.0), [shade, shade, 255], true));

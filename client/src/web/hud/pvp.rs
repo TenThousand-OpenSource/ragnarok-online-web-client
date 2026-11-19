@@ -15,7 +15,11 @@ impl App {
             .into_iter()
             .filter_map(|(action, x, y)| {
                 let (picture, _, origin) = self.pvp.digits.get(action)?;
-                Some(format!(r#"<img alt="" draggable="false" src="{picture}" style="left:calc(100% + {:.0}px);top:calc(100% + {:.0}px)">"#, x as f32 - origin.0, y as f32 - origin.1))
+                Some(format!(
+                    r#"<img alt="" draggable="false" src="{picture}" style="left:calc(100% + {:.0}px);top:calc(100% + {:.0}px)">"#,
+                    x as f32 - origin.0,
+                    y as f32 - origin.1
+                ))
             })
             .collect()
     }

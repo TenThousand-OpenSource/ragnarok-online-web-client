@@ -42,7 +42,11 @@ pub mod line {
 /// "Can't be put in Storage", "…in Cart", "…attached in Mail", "…traded with player", "…put in Guild
 /// Storage", "…sold to NPC"; it does not list the auction).
 pub fn restrictions(bits: u8) -> Vec<usize> {
-    [(1, 2788), (4, 2789), (8, 2790), (32, 2791), (2, 2792), (128, 2794), (16, 2795)].into_iter().filter(|(bit, _)| bits & bit != 0).map(|(_, line)| line).collect()
+    [(1, 2788), (4, 2789), (8, 2790), (32, 2791), (2, 2792), (128, 2794), (16, 2795)]
+        .into_iter()
+        .filter(|(bit, _)| bits & bit != 0)
+        .map(|(_, line)| line)
+        .collect()
 }
 
 /// What of an item its name is made of.

@@ -12,4 +12,10 @@ pub(in crate::web) static KEYS: Window = Window::usual(
 );
 
 /// The Game Settings window, in the middle of the view, as the client puts it.
-pub(in crate::web) static SETTINGS: Window = Window::usual("settings", |app| app.settings.open, |_, view| framed(centred(view, 400, 350)), App::settings_window, switched_off!(settings.open));
+pub(in crate::web) static SETTINGS: Window = Window::usual(
+    "settings",
+    |app| app.settings.open,
+    |_, view| framed(centred(view, 400, 350)),
+    App::settings_window,
+    switched_off!(settings.open)
+);

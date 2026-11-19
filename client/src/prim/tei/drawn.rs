@@ -22,8 +22,18 @@ impl Prim {
             Tei::LineLink => live.take(1).flat_map(|part| part.tube(self.picture)).collect(),
             Tei::Ripple | Tei::Columns => live.flat_map(|part| part.casting(self.picture, self.size, 20)).collect(),
             Tei::LowRing => live.flat_map(|part| part.casting(self.picture, self.size, 10)).collect(),
-            Tei::Halo | Tei::Footprint => self.parts.iter().enumerate().filter(|(_, part)| part.live).flat_map(|(number, part)| part.sized_square(self.picture, self.size, number as i32)).collect(),
-            Tei::Gi3 => self.parts.iter().enumerate().filter(|(_, part)| part.live).flat_map(|(number, part)| part.quarter(self.picture, number, self.size)).collect(),
+            Tei::Halo | Tei::Footprint => self.parts
+                .iter()
+                .enumerate()
+                .filter(|(_, part)| part.live)
+                .flat_map(|(number, part)| part.sized_square(self.picture, self.size, number as i32))
+                .collect(),
+            Tei::Gi3 => self.parts
+                .iter()
+                .enumerate()
+                .filter(|(_, part)| part.live)
+                .flat_map(|(number, part)| part.quarter(self.picture, number, self.size))
+                .collect(),
             Tei::GrandCross2 => live.flat_map(|part| part.open_box(self.picture)).collect(),
             Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky => self.field_panels(right, up),
             Tei::DriftingSparks => self.pillar_squares(right, up),

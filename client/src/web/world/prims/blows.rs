@@ -29,7 +29,10 @@ use crate::prim::{Tei, angle_of};
 pub(super) const FILE: File = File { known, thrown, stays: none, run, pictures: &[&PICTURES], sprites: &[] };
 
 /// The pictures the effects here are drawn with, among the client's pictures of effects.
-const PICTURES: [&str; 8] = ["cloud11.tga", "alpha_center.tga", "purpleslash.tga", "white02.bmp", "ring_yellow.tga", "cross_old.bmp", "shield.bmp", "explosive_1_128.bmp"];
+const PICTURES: [&str; 8] = [
+    "cloud11.tga", "alpha_center.tga", "purpleslash.tga", "white02.bmp", "ring_yellow.tga", "cross_old.bmp",
+    "shield.bmp", "explosive_1_128.bmp"
+];
 
 /// How many ticks an effect of this file lives (the client's `EffectLifetime`) and the sound it starts with at
 /// its first tick (none: empty); nothing for any other effect.

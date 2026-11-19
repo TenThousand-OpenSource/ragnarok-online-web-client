@@ -41,6 +41,20 @@ pub fn price_typed(typed: &str) -> Option<u32> {
     crate::numbers::typed(typed).map(|price| price.min(u64::from(MOST_PRICE)) as u32)
 }
 
+/// How high the window of a shop being made is with so many things put in: 260, and from four things on 42
+/// for each and 92 more (`UIMerchantShopMakeWnd::UpdateLayout`).
+pub fn stall_height(things: usize) -> i32 {
+    let rows = things as i32;
+    if rows >= 4 { rows * 42 + 92 } else { 260 }
+}
+
+/// How many rows the list of a vendor that sells so many things shows: one to a thing, four at the least
+/// (`UM_REFRESHITEM`), and here eight at the most, past which it scrolls (the client lets the window be drawn
+/// out to 336 high).
+pub fn rows_shown(things: usize) -> i32 {
+    things.clamp(4, 8) as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -55,11 +69,20 @@ mod tests {
     }
 
     #[test]
+    fn the_windows_grow_with_what_is_sold() {
+        assert_eq!([0, 3, 4, 5, 12].map(stall_height), [260, 260, 260, 302, 596]);
+        assert_eq!([0, 1, 4, 5, 8, 9, 100].map(rows_shown), [4, 4, 4, 5, 8, 8, 8]);
+    }
+
+    #[test]
     fn prices_have_their_colours_their_share_and_their_reading() {
         assert_eq!(price_colour(5).0, "#00ffff");
         assert_eq!(price_colour(10_000_000), ("#ff0000", None));
         assert_eq!(price_colour(999), ("#00ffff", Some("#0000ff")));
         assert_eq!((after_commission(10_000_000), after_commission(20_000_000)), (10_000_000, 19_000_000));
-        assert_eq!([price_typed("1,500"), price_typed(" 0 "), price_typed("12a"), price_typed(""), price_typed("99999999999")], [Some(1500), Some(0), None, None, Some(MOST_PRICE)]);
+        assert_eq!(
+            [price_typed("1,500"), price_typed(" 0 "), price_typed("12a"), price_typed(""), price_typed("99999999999")],
+            [Some(1500), Some(0), None, None, Some(MOST_PRICE)]
+        );
     }
 }

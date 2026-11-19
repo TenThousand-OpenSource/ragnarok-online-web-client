@@ -10,7 +10,9 @@ pub(in crate::web) const PAGE: usize = 36;
 impl App {
     /// Reads what the browser keeps: the player's own keys, and what kind of keyboard this is.
     pub(super) fn load_keys(&mut self) {
-        self.keys.mac = web_sys::window().and_then(|window| window.navigator().platform().ok()).is_some_and(|platform| platform.starts_with("Mac") || platform.starts_with("iP"));
+        self.keys.mac = web_sys::window().and_then(|window| window.navigator().platform().ok()).is_some_and(
+            |platform| platform.starts_with("Mac") || platform.starts_with("iP")
+        );
         self.keys.own = crate::kept::entries(&stored(KEPT).unwrap_or_default())
             .filter_map(|entry| {
                 let numbers: Vec<u16> = crate::kept::numbers(entry, ':');
@@ -44,13 +46,22 @@ impl App {
         if chord.key == 0 {
             return None;
         }
-        [crate::hotkeys::table::INTERFACE, crate::hotkeys::table::MACROS, crate::hotkeys::table::BAR, crate::hotkeys::table::BAR_2].into_iter().find_map(|table| (0..data::hotkeys(table).len()).find(|place| self.bound(table, *place) == chord).map(|place| (table, place)))
+        [crate::hotkeys::table::INTERFACE, crate::hotkeys::table::MACROS, crate::hotkeys::table::BAR, crate::hotkeys::table::BAR_2]
+            .into_iter()
+            .find_map(|table| (0..data::hotkeys(table).len()).find(|place| self.bound(table, *place) == chord).map(|place| (table, place)))
     }
 
     /// The places of a table the window lists, in order: those with a name, and of the interface those the
     /// client does not hide.
     pub(in crate::web) fn listed_keys(&self, table: usize) -> Vec<usize> {
-        data::hotkeys(table).iter().enumerate().filter(|(place, (name, _))| !name.is_empty() && !(table == crate::hotkeys::table::INTERFACE && crate::hotkeys::HIDDEN.contains(place))).map(|(place, _)| place).collect()
+        data::hotkeys(table)
+            .iter()
+            .enumerate()
+            .filter(|(place, (name, _))| !name.is_empty() && !(
+                table == crate::hotkeys::table::INTERFACE && crate::hotkeys::HIDDEN.contains(place)
+            ))
+            .map(|(place, _)| place)
+            .collect()
     }
 
     /// A key was pressed while a row of the window is picked: the row takes it (the client's
@@ -120,7 +131,14 @@ impl App {
             }
         }
         // An entry to a key, four numbers each (`kept::entries`).
-        store(KEPT, crate::kept::numbered(self.keys.own.iter().map(|((table, place), chord)| format!("{table}:{place}:{}:{}", chord.key, chord.with)), ';').as_deref());
+        store(
+            KEPT,
+            crate::kept::numbered(
+                self.keys.own.iter().map(|((table, place), chord)| format!("{table}:{place}:{}:{}", chord.key, chord.with)),
+                ';'
+            )
+                .as_deref()
+        );
     }
 
     /// Reset in the window: every entry of every table goes back to the keys it has unset. OK keeps that.

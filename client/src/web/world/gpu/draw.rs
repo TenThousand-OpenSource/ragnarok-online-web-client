@@ -21,13 +21,24 @@ struct Standing<'a> {
 
 impl Gpu {
     /// Draws the map and, on it, each sprite standing on its feet's place.
-    pub(in crate::web::world) fn draw(&mut self, scene: &Scene, view: &View, sprites: &mut Vec<Stood>, rings: &[f32], marks: &[f32], numbers: &[Number], effects: &Quads) {
+    pub(in crate::web::world) fn draw(
+        &mut self,
+        scene: &Scene,
+        view: &View,
+        sprites: &mut Vec<Stood>,
+        rings: &[f32],
+        marks: &[f32],
+        numbers: &[Number],
+        effects: &Quads
+    ) {
         self.frame_figures(scene, view);
         self.load_effects(effects);
 
         // The farthest first, so that nearer ones cover them where their see-through edges overlap; and the
         // shadows before every body (`Quad::under`).
-        sprites.sort_by(|a, b| b.3.under.cmp(&a.3.under).then(dot(subtract(b.1, view.eye), view.forward).total_cmp(&dot(subtract(a.1, view.eye), view.forward))));
+        sprites.sort_by(|a, b| b.3.under.cmp(&a.3.under).then(
+            dot(subtract(b.1, view.eye), view.forward).total_cmp(&dot(subtract(a.1, view.eye), view.forward))
+        ));
         let rings = if self.ring.is_some() { rings } else { &[] };
         let marks = if self.mark.is_some() { marks } else { &[] };
         let numbers: Vec<_> = numbers.iter().filter(|number| self.sprite_textures.contains_key(&number.0)).collect();
@@ -55,7 +66,7 @@ impl Gpu {
     fn load_effects(&mut self, effects: &Quads) {
         if effects.pictures.len() > self.effect_room {
             self.effect_room = effects.pictures.len().next_power_of_two();
-            self.effect_vertices = effect_buffer(&self.device, self.effect_room);
+            self.effect_vertices = quad_buffer(&self.device, self.effect_room);
         }
         if !effects.pictures.is_empty() {
             self.queue.write_buffer(&self.effect_vertices, 0, bytemuck::cast_slice(&effects.corners));
@@ -68,7 +79,7 @@ impl Gpu {
         let room = sprites.len() + rings.len() / 30 + marks.len() / 30 + numbers.len() + 1;
         if room > self.sprite_room {
             self.sprite_room = room.next_power_of_two();
-            self.sprite_vertices = sprite_buffer(&self.device, self.sprite_room);
+            self.sprite_vertices = quad_buffer(&self.device, self.sprite_room);
         }
         let mut corners = Vec::with_capacity((sprites.len() * 6 + (rings.len() + marks.len()) / 5) * 9);
         // The marks and the rings come as a place and where of the picture: each corner is given white.
@@ -83,7 +94,15 @@ impl Gpu {
         }
         // The numbers: each picture at its place, as large and as faded as it is now, over everything.
         for (key, at, scale, alpha, across) in numbers.iter().copied() {
-            self.stood(&mut corners, view, &Standing { key, at: *at, left: *alpha, scale: *scale, across: *across, nearer: (25.0, 40.0), quad: crate::body::Quad::PLAIN });
+            self.stood(&mut corners, view, &Standing {
+                key,
+                at: *at,
+                left: *alpha,
+                scale: *scale,
+                across: *across,
+                nearer: (25.0, 40.0),
+                quad: crate::body::Quad::PLAIN
+            });
         }
         self.queue.write_buffer(&self.sprite_vertices, 0, bytemuck::cast_slice(&corners));
         corners
@@ -99,13 +118,22 @@ impl Gpu {
         let nearer = 1.0 - standing.nearer.0 / dot(subtract(standing.at, view.eye), view.forward).max(standing.nearer.1);
         let quad = &standing.quad;
         // Its colour, and how much of it is left to see.
-        let colour = [f32::from(quad.colour[0]) / 255.0, f32::from(quad.colour[1]) / 255.0, f32::from(quad.colour[2]) / 255.0, f32::from(quad.colour[3]) / 255.0 * standing.left.clamp(0.0, 1.0)];
+        let colour = [
+            f32::from(quad.colour[0]) / 255.0,
+            f32::from(quad.colour[1]) / 255.0,
+            f32::from(quad.colour[2]) / 255.0,
+            f32::from(quad.colour[3]) / 255.0 * standing.left.clamp(0.0, 1.0)
+        ];
         let (width, height) = texture.size;
         let size = SPRITE_SCALE * standing.scale;
         // Where a corner of the picture is from its feet, in its pixels, to the right and down.
         let placed = |x: f32, y: f32| {
             let across = (x - texture.feet.0 + standing.across) * quad.scale + if x == 0.0 { quad.edges[0] } else { quad.edges[2] };
-            let down = (y - texture.feet.1) * quad.scale + if y == 0.0 { quad.edges[1] + quad.of_height[0] * height * quad.scale } else { quad.edges[3] + quad.of_height[1] * height * quad.scale };
+            let down = (y - texture.feet.1) * quad.scale + if y == 0.0 {
+                quad.edges[1] + quad.of_height[0] * height * quad.scale
+            } else {
+                quad.edges[3] + quad.of_height[1] * height * quad.scale
+            };
             (across, down)
         };
         let (first, last) = (placed(0.0, 0.0), placed(width, height));

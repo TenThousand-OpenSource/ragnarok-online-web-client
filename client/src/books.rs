@@ -48,7 +48,8 @@ fn row(rest: &[char], width: f64, code: f64, wide: &mut dyn FnMut(&str) -> f64) 
             // A carriage return with its line feed, or either alone (and a line feed after a line feed, as
             // the client has it), ends the line.
             '\r' | '\n' => return (at + 1 + usize::from(rest.get(at + 1) == Some(&'\n')), true),
-            '^' if colour(rest, at + 1) != [0, 0, 0] || rest.get(at..at + 7).is_some_and(|black| black.iter().collect::<String>() == "^000000") => extent -= code,
+            '^' if colour(rest, at + 1) != [0, 0, 0]
+                || rest.get(at..at + 7).is_some_and(|black| black.iter().collect::<String>() == "^000000") => extent -= code,
             '[' => {
                 if let Some(close) = rest[at..].iter().position(|close| *close == ']') {
                     let bracketed = wide(&rest[at..=at + close].iter().collect::<String>());

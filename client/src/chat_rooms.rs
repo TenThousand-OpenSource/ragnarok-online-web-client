@@ -112,7 +112,10 @@ mod tests {
     #[test]
     fn says_why_a_room_was_not_made_or_not_entered() {
         assert_eq!((not_made(0), not_made(1).map(|said| said.0), not_made(2).map(|said| said.0)), (None, Some(65), Some(66)));
-        assert_eq!([0, 1, 2, 3, 4, 5, 6, 7].map(|why| refused(why).map(|said| said.0)), [Some(67), Some(7), Some(68), None, Some(55), Some(432), Some(433), Some(434)]);
+        assert_eq!(
+            [0, 1, 2, 3, 4, 5, 6, 7].map(|why| refused(why).map(|said| said.0)),
+            [Some(67), Some(7), Some(68), None, Some(55), Some(432), Some(433), Some(434)]
+        );
     }
 
     #[test]

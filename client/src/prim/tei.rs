@@ -340,7 +340,8 @@ impl Part {
             Tei::FirstAid | Tei::Footprint => {}
             Tei::LineLink => {}
             // Ticked whole (`Prim::tick_whole`).
-            Tei::ShieldBoomerang3 | Tei::Ripple | Tei::ShieldBoomerang | Tei::Drop | Tei::Gust | Tei::GustRing | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs => {}
+            Tei::ShieldBoomerang3 | Tei::Ripple | Tei::ShieldBoomerang | Tei::Drop | Tei::Gust | Tei::GustRing
+            | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs => {}
         }
     }
 }

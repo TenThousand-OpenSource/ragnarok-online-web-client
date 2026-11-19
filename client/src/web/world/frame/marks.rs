@@ -16,10 +16,16 @@ pub(super) fn ground(state: &State, view: &View, time: f64) -> (Vec<f32>, Vec<f3
     let mut marks = Vec::new();
     let (page_width, page_height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
     // Only a cell that can be walked on is marked (the client skips walls and cliffs).
-    if let Some(cell) = state.pointer.and_then(|pointer| view.pick(&scene.gat, (pointer.0 / page_width.max(1.0), pointer.1 / page_height.max(1.0)))).filter(|cell| scene.gat.walkable(cell.0, cell.1)) {
+    if let Some(cell) = state.pointer
+        .and_then(|pointer| view.pick(&scene.gat, (pointer.0 / page_width.max(1.0), pointer.1 / page_height.max(1.0))))
+        .filter(|cell| scene.gat.walkable(cell.0, cell.1))
+    {
         let corner = |x: i32, y: i32| [x as f32 * CELL, scene.gat.height_at(x as f32, y as f32) + 0.4, y as f32 * CELL];
         let (x, y) = cell;
-        for (corner_x, corner_y, u, v) in [(x, y + 1, 0.0, 0.0), (x + 1, y + 1, 1.0, 0.0), (x, y, 0.0, 1.0), (x, y, 0.0, 1.0), (x + 1, y + 1, 1.0, 0.0), (x + 1, y, 1.0, 1.0)] {
+        for (corner_x, corner_y, u, v) in [
+            (x, y + 1, 0.0, 0.0), (x + 1, y + 1, 1.0, 0.0), (x, y, 0.0, 1.0), (x, y, 0.0, 1.0),
+            (x + 1, y + 1, 1.0, 0.0), (x + 1, y, 1.0, 1.0)
+        ] {
             marks.extend(corner(corner_x, corner_y));
             marks.extend([u, v]);
         }

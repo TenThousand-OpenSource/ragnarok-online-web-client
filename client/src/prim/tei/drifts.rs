@@ -85,7 +85,17 @@ mod tests {
     fn waves() -> Prim {
         let mut prim = Prim::new(Shape::Tei(Tei::DriftRing), "son_wave_00.tga");
         prim.duration = 1678;
-        prim.parts = (0..4).map(|index| Part { process: index * -8, tall: 30.0, round: 315, turned: 195, out: 6.0 - index as f32 * 0.1, rise: (14 - index) * 5, ..Part::default() }).collect();
+        prim.parts = (0..4)
+            .map(|index| Part {
+                process: index * -8,
+                tall: 30.0,
+                round: 315,
+                turned: 195,
+                out: 6.0 - index as f32 * 0.1,
+                rise: (14 - index) * 5,
+                ..Part::default()
+            })
+            .collect();
         prim
     }
 

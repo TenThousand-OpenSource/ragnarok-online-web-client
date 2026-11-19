@@ -37,7 +37,10 @@ impl App {
                 self.chat_line(words, YELLOW);
             }
             // The reward could not be carried: said in red.
-            fight::ZC_THROW_MVPITEM => self.chat_line(Self::words(147, "You are the MVP, but you can't take the reward because you are over your weight limit."), RED),
+            fight::ZC_THROW_MVPITEM => self.chat_line(
+                Self::words(147, "You are the MVP, but you can't take the reward because you are over your weight limit."),
+                RED
+            ),
             fight::ZC_DEVOTIONLIST => self.devotion_shown(packet, own),
             // The window of a combo: the frames of the one who struck are held for as long (the client's
             // `SetSequenceDeadline`).
@@ -93,7 +96,15 @@ impl App {
             // Graffiti: a unit on the ground as any other, with its words.
             crate::net::skill_units::ZC_SKILL_ENTRY2 => {
                 if let Some(written) = crate::net::skill_units::written(packet) {
-                    world::skill_unit_shown(&crate::net::skill_units::Entry { id: written.id, creator: written.maker, cell: written.cell, unit: u32::from(written.kind), range: 0, visible: written.seen, level: 1 });
+                    world::skill_unit_shown(&crate::net::skill_units::Entry {
+                        id: written.id,
+                        creator: written.maker,
+                        cell: written.cell,
+                        unit: u32::from(written.kind),
+                        range: 0,
+                        visible: written.seen,
+                        level: 1
+                    });
                     if !written.words.is_empty() {
                         world::spot_says(written.id, &written.words, true);
                     }
@@ -134,9 +145,13 @@ impl App {
         let words = match line {
             StarLine::Place(line) => two(Self::words(line, "%s: %s"), &own_name, &told.name),
             StarLine::Monster(line) => two(Self::words(line, "%s: %s"), &own_name, &data::job_name(told.value as u16)),
-            StarLine::Mission => Self::words(927, "[Taekwon Mission] Target Monster: %s (%d%%)").replacen("%s", &told.name, 1).replacen("%d", &told.which.to_string(), 1).replace("%%", "%"),
+            StarLine::Mission => Self::words(927, "[Taekwon Mission] Target Monster: %s (%d%%)")
+                .replacen("%s", &told.name, 1)
+                .replacen("%d", &told.which.to_string(), 1)
+                .replace("%%", "%"),
             StarLine::Taming => Self::words(1190, "[Taming Mission] Target Monster: %s").replacen("%s", &told.name, 1),
-            StarLine::Collector => Self::words(1265, "[Collector Rank] Target Item: %s").replacen("%s", &data::item_as(told.value, true).map(|(name, _)| name).unwrap_or_default(), 1),
+            StarLine::Collector => Self::words(1265, "[Collector Rank] Target Item: %s")
+                .replacen("%s", &data::item_as(told.value, true).map(|(name, _)| name).unwrap_or_default(), 1),
             StarLine::Reset => Self::words(1033, "[Solar, Lunar and Stellar Angel] Designated places and monsters have been reset."),
             StarLine::Life => format!("Target HP : {}", told.value),
         };

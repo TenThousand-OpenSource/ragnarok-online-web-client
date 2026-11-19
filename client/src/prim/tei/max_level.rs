@@ -213,7 +213,15 @@ mod tests {
         let mut prim = Prim::new(Shape::Tei(Tei::Level99Swirl), "ring_blue.tga");
         (prim.duration, prim.colour) = (99_999_999, [100.0, 100.0, 255.0]);
         prim.parts.extend((0..3).map(|band| {
-            let mut part = Part { turned: band * 90, round: 315, rise: 55 - band * 5, tall: 15.0 - band as f32 * 2.0, out: band as f32 * 0.2 + 3.9, alpha: 120, ..Part::default() };
+            let mut part = Part {
+                turned: band * 90,
+                round: 315,
+                rise: 55 - band * 5,
+                tall: 15.0 - band as f32 * 2.0,
+                out: band as f32 * 0.2 + 3.9,
+                alpha: 120,
+                ..Part::default()
+            };
             (part.flags[0], part.heights[0]) = (band as i8, (band * 90) as f32);
             part
         }));

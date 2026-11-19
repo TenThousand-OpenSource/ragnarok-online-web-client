@@ -48,7 +48,14 @@ pub struct Casting {
 }
 
 pub fn casting(packet: &[u8]) -> Option<Casting> {
-    Some(Casting { source: long(packet, 2)?, target: long(packet, 6)?, cell: (word(packet, 10)?, word(packet, 12)?), skill: word(packet, 14)?, element: long(packet, 16)?, milliseconds: long(packet, 20)? })
+    Some(Casting {
+        source: long(packet, 2)?,
+        target: long(packet, 6)?,
+        cell: (word(packet, 10)?, word(packet, 12)?),
+        skill: word(packet, 14)?,
+        element: long(packet, 16)?,
+        milliseconds: long(packet, 20)?
+    })
 }
 
 /// A skill lands.
@@ -80,14 +87,46 @@ pub fn landing(packet: &[u8]) -> Option<Landing> {
     })
 }
 
-/// A harmless skill used: `(skill, level, on whom, who, whether it worked)`.
-pub fn used(packet: &[u8]) -> Option<(u16, i32, u32, u32, bool)> {
-    Some((word(packet, 2)?, int(packet, 4)?, long(packet, 8)?, long(packet, 12)?, *packet.get(16)? != 0))
+/// A harmless skill used.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Used {
+    pub skill: u16,
+    pub level: i32,
+    /// On whom.
+    pub target: u32,
+    pub who: u32,
+    /// Whether it worked.
+    pub worked: bool,
 }
 
-/// A skill used on a place: `(skill, who, level, cell)`.
-pub fn on_ground(packet: &[u8]) -> Option<(u16, u32, i16, (u16, u16))> {
-    Some((word(packet, 2)?, long(packet, 4)?, short(packet, 8)?, (word(packet, 10)?, word(packet, 12)?)))
+/// A harmless skill used: `u16 skill, i32 level, u32 target, u32 who, u8 worked`.
+pub fn used(packet: &[u8]) -> Option<Used> {
+    Some(Used {
+        skill: word(packet, 2)?,
+        level: int(packet, 4)?,
+        target: long(packet, 8)?,
+        who: long(packet, 12)?,
+        worked: *packet.get(16)? != 0,
+    })
+}
+
+/// A skill used on a place.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct OnGround {
+    pub skill: u16,
+    pub who: u32,
+    pub level: i16,
+    pub cell: (u16, u16),
+}
+
+/// A skill used on a place: `u16 skill, u32 who, i16 level, u16 x, u16 y`.
+pub fn on_ground(packet: &[u8]) -> Option<OnGround> {
+    Some(OnGround {
+        skill: word(packet, 2)?,
+        who: long(packet, 4)?,
+        level: short(packet, 8)?,
+        cell: (word(packet, 10)?, word(packet, 12)?),
+    })
 }
 
 /// CZ_USE_SKILL_TOGROUND (0x0366): `u16 level, u16 skill, u16 x, u16 y`.
@@ -95,11 +134,22 @@ pub fn use_on_ground(level: u16, skill: u16, cell: (u16, u16)) -> Vec<u8> {
     Writer::new(0x0366).u16(level).u16(skill).u16(cell.0).u16(cell.1).done()
 }
 
+/// What ZC_ACK_TOUSESKILL tells of a skill that was not used.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Failed {
+    pub skill: u16,
+    /// A value that goes with the cause.
+    pub value: i32,
+    /// It did work after all: then nothing is said.
+    pub worked: bool,
+    pub cause: u8,
+}
+
 /// ZC_ACK_TOUSESKILL (0x0110, 14 bytes): the skill, a value that goes with the cause, an item, whether it did
 /// work after all (then nothing is said), and the cause.
-pub fn failed(packet: &[u8]) -> Option<(u16, i32, bool, u8)> {
+pub fn failed(packet: &[u8]) -> Option<Failed> {
     let packet = packet.get(..14)?;
-    Some((u16_at(packet, 2), i32_at(packet, 4), packet[12] != 0, packet[13]))
+    Some(Failed { skill: u16_at(packet, 2), value: i32_at(packet, 4), worked: packet[12] != 0, cause: packet[13] })
 }
 
 /// An effect shown on someone (either form): `(who, effect)`. The value of the second form is not read.
@@ -188,15 +238,33 @@ mod tests {
         hit[30..32].copy_from_slice(&5i16.to_le_bytes());
         hit[32] = 8;
         let landed = landing(&hit).unwrap();
-        assert_eq!((landed.skill, landed.source, landed.target, landed.damage, landed.level, landed.hits, landed.action), (19, 2_000_000, 110_000, 450, 5, 5, 8));
+        assert_eq!(
+            (landed.skill, landed.source, landed.target, landed.damage, landed.level, landed.hits, landed.action),
+            (19, 2_000_000, 110_000, 450, 5, 5, 8)
+        );
         assert_eq!((landed.attack_motion, landed.attacked_motion), (500, 300));
         assert_eq!(use_on_ground(3, 47, (150, 160)).len(), 10);
     }
 
     #[test]
+    fn a_skill_used_is_read() {
+        let mut packet = vec![0u8, 0, 28, 0];
+        packet.extend(300i32.to_le_bytes());
+        packet.extend(9u32.to_le_bytes());
+        packet.extend(7u32.to_le_bytes());
+        packet.push(1);
+        assert_eq!(used(&packet), Some(Used { skill: 28, level: 300, target: 9, who: 7, worked: true }));
+        assert_eq!(used(&packet[..16]), None);
+        let mut packet = vec![0u8, 0, 12, 0, 7, 0, 0, 0, 3, 0];
+        packet.extend([150, 0, 160, 0]);
+        assert_eq!(on_ground(&packet), Some(OnGround { skill: 12, who: 7, level: 3, cell: (150, 160) }));
+        assert_eq!(on_ground(&packet[..13]), None);
+    }
+
+    #[test]
     fn says_why_a_skill_failed() {
         let packet = [0x10, 0x01, 46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
-        assert_eq!(failed(&packet), Some((46, 0, false, 1)));
+        assert_eq!(failed(&packet), Some(Failed { skill: 46, value: 0, worked: false, cause: 1 }));
         // Not enough SP; an emotion without the Basic Skill for it; a skill still cooling down.
         assert_eq!((failure(46, 0, 1), failure(1, 1, 0), failure(46, 0, 4), failure(46, 0, 200)), (Some(202), Some(160), Some(1460), None));
     }

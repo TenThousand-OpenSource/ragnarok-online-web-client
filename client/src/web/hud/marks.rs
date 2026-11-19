@@ -17,7 +17,12 @@ impl App {
     pub(in crate::web) fn minimap_server_marks(&self) -> String {
         let Some(game) = self.game.as_ref().filter(|_| self.marks.visit == crate::web::world::visit()) else { return String::new() };
         let spot = |cell: (u16, u16)| crate::web::view::minimap_spot(game, self.minimap_zoom, (f32::from(cell.0), f32::from(cell.1)));
-        let triangle = |size: f32, colour: &str| format!(r#"<polygon points="0,{:.2} {:.2},{size} {:.2},{size}" fill="{colour}"/>"#, -2.0 * size, -(3.0f32.sqrt()) * size, 3.0f32.sqrt() * size);
+        let triangle = |size: f32, colour: &str| format!(
+            r#"<polygon points="0,{:.2} {:.2},{size} {:.2},{size}" fill="{colour}"/>"#,
+            -2.0 * size,
+            -(3.0f32.sqrt()) * size,
+            3.0f32.sqrt() * size
+        );
         let mut marks: String = self
             .marks
             .guild
@@ -25,19 +30,21 @@ impl App {
             .filter(|(account, _)| !self.party.places.contains_key(account))
             .filter_map(|(_, cell)| {
                 let (x, y) = spot(*cell)?;
-                Some(format!(
-                    r#"<svg viewBox="-6 -6 12 12" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:12px;height:12px;margin:-6px 0 0 -6px;overflow:visible">{}{}</svg>"#,
-                    triangle(3.0, "rgba(255,255,255,.67)"),
-                    triangle(2.0, GUILD)
-                ))
+                Some([
+                    format!(r#"<svg viewBox="-6 -6 12 12" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:12px;height:12px;"#),
+                    format!(r#"margin:-6px 0 0 -6px;overflow:visible">{}{}</svg>"#, triangle(3.0, "rgba(255,255,255,.67)"), triangle(2.0, GUILD))
+                ].concat())
             })
             .collect();
         let alarmed = self.statuses.on.iter().any(|active| active.state == crate::net::marks::BOSS_ALARM);
         if let Some((x, y)) = self.marks.boss.filter(|_| alarmed).and_then(spot) {
-            marks.push_str(&format!(
-                r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:12px;height:12px;margin:-6px 0 0 -6px" onerror="this.remove()">"#,
-                picture("map/bossmonster.bmp")
-            ));
+            marks.push_str(&[
+                format!(
+                    r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:12px;"#,
+                    picture("map/bossmonster.bmp")
+                ),
+                format!(r#"height:12px;margin:-6px 0 0 -6px" onerror="this.remove()">"#)
+            ].concat());
         }
         marks
     }

@@ -35,12 +35,23 @@ pub(in crate::web) fn stall_price_field(row: usize) -> String {
 }
 
 /// What the cart has for the shop being made (`WID_MERCHANTMIRRORITEMWND`): 280 by 120 at 0, 120.
-pub(in crate::web) static VENDING_STOCK: Window = Window::usual("vending-stock", making, |_, _| framed(at(0, 120, 280, 120)), App::stall_stock_window, |app| app.pressed(Press::StallCancel));
+pub(in crate::web) static VENDING_STOCK: Window =
+    Window::usual("vending-stock", making, |_, _| framed(at(0, 120, 280, 120)), App::stall_stock_window, |app| app.pressed(
+        Press::StallCancel
+    ));
 
 /// One's own shop while it is open (`WID_MERCHANTITEMMYSHOPWND`): 280 by 120 where the client has it at
 /// first (200, 120: `MerchantItemMyShopWndInfo`). Escape does not close it: closing the shop is its button.
 pub(in crate::web) static VENDING_MINE: Window =
-    Window { id: "vending-mine", open: |app| app.vending.mine.is_some(), frame: |_, _| framed(at(200, 120, 280, 120)), draw: App::vending_mine_window, order: None, layer: Layer::Usual, drawn: None };
+    Window {
+        id: "vending-mine",
+        open: |app| app.vending.mine.is_some(),
+        frame: |_, _| framed(at(200, 120, 280, 120)),
+        draw: App::vending_mine_window,
+        order: None,
+        layer: Layer::Usual,
+        drawn: None
+    };
 
 /// A vendor's list (`WID_MERCHANTITEMSHOPWND`): 280 wide at 0, 200. Escape leaves the vendor, as the
 /// basket's Cancel does.
@@ -53,11 +64,23 @@ pub(in crate::web) static VENDOR: Window = Window::usual(
 );
 
 /// The basket (`WID_MERCHANTITEMPURCHASEWND`): 280 by 120 at 300, 200.
-pub(in crate::web) static VENDOR_BASKET: Window = Window::usual("vendor-basket", choosing, |_, _| framed(at(300, 200, 280, 120)), App::vendor_basket_window, |app| app.pressed(Press::Leave));
+pub(in crate::web) static VENDOR_BASKET: Window = Window::usual(
+    "vendor-basket",
+    choosing,
+    |_, _| framed(at(300, 200, 280, 120)),
+    App::vendor_basket_window,
+    |app| app.pressed(Press::Leave)
+);
 
 /// The window that asks whether to buy for the sum (`UIMerchantItemPurchaseMSGWnd`): 300 by 150 in the very
 /// middle of the screen.
-pub(in crate::web) static VENDOR_CONFIRM: Window = Window::usual("vendor-confirm", confirming, |_, view| framed(centred(view, 300, 150)), App::vendor_confirm_window, |app| app.pressed(Press::Refuse));
+pub(in crate::web) static VENDOR_CONFIRM: Window = Window::usual(
+    "vendor-confirm",
+    confirming,
+    |_, view| framed(centred(view, 300, 150)),
+    App::vendor_confirm_window,
+    |app| app.pressed(Press::Refuse)
+);
 
 /// What the making of a shop asks, in the client's message box.
 pub(in crate::web) static VENDING_ASKS: Window = Window::question("vending-asks", |app| app.vending.asks.is_some(), App::vending_question);

@@ -61,7 +61,15 @@ pub fn sight(own: u32, targets: &HashMap<u32, u32>) -> Option<(Seen, Vec<Seen>)>
     STATE.with_borrow(|state| {
         let scene = state.scene.as_ref()?;
         let time = now();
-        let seen = |id: u32, unit: &Mover, enemy: bool| Seen { id, cell: unit.cell, motion: doing(unit, time), target: targets.get(&id).copied().unwrap_or(0), job: unit.job, hidden: crate::ai::hidden(unit.state), enemy };
+        let seen = |id: u32, unit: &Mover, enemy: bool| Seen {
+            id,
+            cell: unit.cell,
+            motion: doing(unit, time),
+            target: targets.get(&id).copied().unwrap_or(0),
+            job: unit.job,
+            hidden: crate::ai::hidden(unit.state),
+            enemy
+        };
         let others = scene.units.iter().map(|(id, unit)| seen(*id, unit, (unit.lively && !unit.companion) || state.pvp.foe(*id, unit))).collect();
         Some((seen(own, &scene.player, false), others))
     })
@@ -99,9 +107,9 @@ pub(super) fn gauges(state: &State, scene: &Scene, view: &View, (width, height):
     for (unit, (left, most)) in state.ai.units.iter().zip(state.ai.life) {
         let Some(mover) = scene.units.get(unit).filter(|_| *unit != 0 && most > 0) else { continue };
         let Some(under) = view.project(on_ground(&scene.gat, mover.at)) else { continue };
-        let below = height * 12.0 / 480.0 * DISTANCE / scene.camera.distance;
+        let below = crate::bars::below(crate::bars::LIFE_BELOW, height, scene.camera.distance);
         let small = |number: i64| number.clamp(0, i64::from(i32::MAX)) as i32;
-        bars.push_str(&gauge(under.0 * width - 30.0, under.1 * height + below, small(left), small(most)));
+        bars.push_str(&gauge(crate::bars::left(under.0, width), under.1 * height + below, small(left), small(most)));
     }
     bars
 }

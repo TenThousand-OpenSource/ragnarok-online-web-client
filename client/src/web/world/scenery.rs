@@ -93,7 +93,8 @@ impl Surroundings {
         }
         // A sound is first played as soon as it is in earshot (`CSoundMaker`: its last playing is set a cycle back).
         let sounds = rsw.iter().flat_map(|rsw| &rsw.sounds).map(|sound| (sound.clone(), in_world(sound.position), f64::NEG_INFINITY)).collect();
-        let (fogs, views, weathers) = futures_util::future::join3(table("data/fogparametertable.txt"), table("data/viewpointtable.txt"), table("data/etcinfo.txt")).await;
+        let (fogs, views, weathers) =
+            futures_util::future::join3(table("data/fogparametertable.txt"), table("data/viewpointtable.txt"), table("data/etcinfo.txt")).await;
         let sky = data::sky(map);
         let surroundings = Self {
             effects,

@@ -85,6 +85,11 @@ pub mod parameter {
     /// The delay between attacks, in units of 10 milliseconds... as the server keeps it: 2000 less ten times ASPD.
     pub const ATTACK_DELAY: u16 = 53;
     pub const JOB_LEVEL: u16 = 55;
+    /// A mercenary's own, which a character does not have (`SP_MERCFLEE`, `SP_MERCKILLS`, `SP_MERCFAITH`): its
+    /// flee, how many it killed, and its faith (`net/mercenary.rs`).
+    pub const MERCENARY_FLEE: u16 = 165;
+    pub const MERCENARY_KILLS: u16 = 189;
+    pub const MERCENARY_FAITH: u16 = 190;
 }
 /// The parameter of ZC_PAR_CHANGE that is the walking speed, in milliseconds per cell.
 pub const PARAMETER_SPEED: u16 = parameter::SPEED;

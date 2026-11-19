@@ -25,19 +25,7 @@ impl Order {
     }
 }
 
-impl std::fmt::Display for Order {
-    fn fmt(&self, to: &mut std::fmt::Formatter) -> std::fmt::Result {
-        to.write_str(self.text())
-    }
-}
-
-impl std::str::FromStr for Order {
-    type Err = ();
-
-    fn from_str(text: &str) -> Result<Self, ()> {
-        Order::ALL.into_iter().find(|order| order.text() == text).ok_or(())
-    }
-}
+worded!(Order);
 
 presses! {
     /// What can be pressed here.
@@ -94,13 +82,7 @@ mod tests {
             Press::SkillLevel(LevelStep { skill: 8001, step: Step::Less }),
         ];
         all.extend(Order::ALL.map(Press::Do));
-        for name in Press::NAMES {
-            assert!(all.iter().any(|press| press.name().0 == *name), "{name} is not tried");
-        }
-        for press in all {
-            let (what, arg) = press.name();
-            assert_eq!(Press::parse(what, &arg), Some(press));
-        }
+        crate::press::testing::read_back(all);
         assert_eq!(Press::parse("homunculus-do", "sit"), None);
     }
 }

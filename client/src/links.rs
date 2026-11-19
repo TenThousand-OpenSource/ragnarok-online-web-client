@@ -85,7 +85,11 @@ pub fn parted(text: &str) -> (String, Vec<Link>) {
         rest = after;
         let link = match kind {
             Some(Kind::Message) => Some(Link { kind: Kind::Message, words: String::new(), info: vec![inside.trim().to_owned()] }),
-            Some(kind) => inside.split_once("<INFO>").map(|(words, info)| Link { kind, words: words.to_owned(), info: info.split("</INFO>").next().unwrap_or_default().split(',').map(str::to_owned).collect() }),
+            Some(kind) => inside.split_once("<INFO>").map(|(words, info)| Link {
+                kind,
+                words: words.to_owned(),
+                info: info.split("</INFO>").next().unwrap_or_default().split(',').map(str::to_owned).collect()
+            }),
             None => None,
         };
         if let Some(link) = link {

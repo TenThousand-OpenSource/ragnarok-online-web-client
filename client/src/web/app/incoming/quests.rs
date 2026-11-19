@@ -27,7 +27,7 @@ impl App {
             // What a new quest hunts, as the client reads it (`questUpdateType2`): the quest of that number has
             // the count and the goal of its monster of that number set.
             quests::ZC_HUNTING_QUEST_INFO => {
-                for (quest, mob, goal, killed) in quests::hunting_info(packet) {
+                for quests::HuntInfo { quest, mob, goal, killed } in quests::hunting_info(packet) {
                     if let Some(hunt) = self.quests.log.get_mut(&quest).and_then(|quest| quest.hunts.iter_mut().find(|hunt| hunt.mob == mob)) {
                         (hunt.killed, hunt.goal) = (killed, goal);
                     }
@@ -127,7 +127,9 @@ impl App {
         let line = data::message(1610).unwrap_or_else(|| "[%s] quest - defeating [%s] progress (%d/%d).".to_owned());
         let mut said = Vec::new();
         for progress in quests::hunted(packet) {
-            let Some(hunt) = self.quests.log.get_mut(&progress.quest).and_then(|quest| quest.hunts.iter_mut().find(|hunt| hunt.id == progress.hunt)) else { continue };
+            let Some(hunt) = self.quests.log.get_mut(&progress.quest).and_then(
+                |quest| quest.hunts.iter_mut().find(|hunt| hunt.id == progress.hunt)
+            ) else { continue };
             (hunt.killed, hunt.goal) = (progress.killed, progress.goal);
             let monster = hunt.name.clone();
             // A quest the client's table has no title for is not told of (the client's `m_title.empty()`).

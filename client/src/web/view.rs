@@ -35,8 +35,14 @@ pub fn hair_styles(doram: bool) -> u16 {
 pub const HAIR_COLOURS: u16 = 9;
 
 /// The speaker of the sound switch, with waves when sound is on and crossed out when it is off.
-const SPEAKER_ON: &str = r#"<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8"/></svg>"#;
-const SPEAKER_OFF: &str = r#"<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M11.2 6l3.6 4M14.8 6l-3.6 4"/></svg>"#;
+fn speaker(sound: bool) -> String {
+    [
+        r#"<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/>"#,
+        r#"<path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d=""#,
+        if sound { "M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8" } else { "M11.2 6l3.6 4M14.8 6l-3.6 4" },
+        r#""/></svg>"#
+    ].concat()
+}
 
 /// One of the eight pictures of the frame around a chosen character.
 pub(super) fn chosen_frame(frame: u8) -> String {
@@ -106,7 +112,12 @@ impl App {
         };
         let languages: String = Lang::ALL
             .into_iter()
-            .map(|lang| format!(r#"<button type="button" class="{}" {}>{}</button>"#, if lang == self.lang { "on" } else { "" }, pressed(crate::press::general::Press::Language(lang)), lang.code().to_uppercase()))
+            .map(|lang| format!(
+                r#"<button type="button" class="{}" {}>{}</button>"#,
+                if lang == self.lang { "on" } else { "" },
+                pressed(crate::press::general::Press::Language(lang)),
+                lang.code().to_uppercase()
+            ))
             .collect();
         // The server's name stands over the login picture; the larger windows cover that place.
         let titled = matches!(self.screen, Screen::Login | Screen::ServerSelect | Screen::Register | Screen::Recover | Screen::Reset(_));
@@ -117,7 +128,7 @@ impl App {
             self.text(Key::Sound),
             self.text(Key::Sound),
             pressed(crate::press::general::Press::Sound),
-            if self.sound { SPEAKER_ON } else { SPEAKER_OFF }
+            speaker(self.sound)
         );
         let hint = if self.music_held { format!(r#"<span class="hint">{}</span>"#, self.text(Key::SoundHint)) } else { String::new() };
         // In the game the corner is the minimap's, as in the client: leaving is in the window of game options
@@ -139,18 +150,29 @@ impl App {
                 button(&at(235, 96, 42, 20), &states_ab("btn_ok"), &format!("{} autofocus", pressed(crate::press::general::Press::Ok)), "")
             )
         } else if let Some(ask) = self.ask {
-            let name = |char_id: u32| self.characters.iter().find(|character| character.char_id == char_id).map(|character| escape(&character.name)).unwrap_or_default();
+            let name = |char_id: u32| self.characters
+                .iter()
+                .find(|character| character.char_id == char_id)
+                .map(|character| escape(&character.name))
+                .unwrap_or_default();
             let (text, field) = match ask {
                 Ask::Reserve(char_id) => (crate::i18n::fill(self.text(Key::AskDelete), &[&name(char_id)]), String::new()),
                 Ask::Delete(char_id) => (crate::i18n::fill(self.text(Key::AskDeleteNow), &[&name(char_id)]), String::new()),
                 // The client's message 1489, with what the entry that has the key is called.
                 Ask::Rebind(_, (table, place), _) => (
-                    escape(&data::message(1489).unwrap_or_else(|| "This key is already registered to [[%s]]. Bind it to this function instead?".to_owned()).replace("%s", &data::hotkeys(table).get(place).map(|(name, _)| name.clone()).unwrap_or_default())),
+                    escape(
+                        &data::message(1489)
+                            .unwrap_or_else(|| "This key is already registered to [[%s]]. Bind it to this function instead?".to_owned())
+                            .replace("%s", &data::hotkeys(table).get(place).map(|(name, _)| name.clone()).unwrap_or_default())
+                    ),
                     String::new(),
                 ),
                 Ask::Birthdate(_) => (
                     self.text(Key::AskBirthdate).to_owned(),
-                    format!(r#"<input class="a in boxed" id="birthdate" inputmode="numeric" maxlength="6" autocomplete="off" autofocus style="{}">"#, at(20, 70, 240, 18)),
+                    format!(
+                        r#"<input class="a in boxed" id="birthdate" inputmode="numeric" maxlength="6" autocomplete="off" autofocus style="{}">"#,
+                        at(20, 70, 240, 18)
+                    ),
                 ),
             };
             let focus = if field.is_empty() { "autofocus" } else { "" };

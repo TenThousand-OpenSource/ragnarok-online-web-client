@@ -30,7 +30,7 @@ impl App {
                 self.redraw(&[&wnd::MERCENARY_SKILLS]);
             }
             mercenary::ZC_MER_SKILLINFO_UPDATE => {
-                if let Some((id, level, sp, range, _)) = net::inventory::skill_raised(packet) {
+                if let Some(net::inventory::SkillRaised { id, level, sp, range, .. }) = net::inventory::skill_raised(packet) {
                     if let Some(skill) = self.mercenary.skills.iter_mut().find(|skill| skill.id == id) {
                         (skill.level, skill.sp, skill.range) = (level, sp, range);
                     }

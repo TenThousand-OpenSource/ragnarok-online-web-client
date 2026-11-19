@@ -73,7 +73,7 @@ pub(super) fn shown(state: &mut State, view: &View, (width, height): (f32, f32))
         page.set_inner_html(&signs.boards.values().map(|(html, _)| format!(r#"<div class="a" style="display:none">{html}</div>"#)).collect::<String>());
     }
     let scale = crate::web::stage_scale() as f32;
-    let over = 81.0 * DISTANCE / scene.camera.distance * height / 480.0;
+    let over = crate::bars::over(crate::bars::CAST_OVER, height, scene.camera.distance);
     let mut next = page.first_element_child();
     for ((owner, board), _) in &signs.boards {
         let Some(shown) = next else { break };

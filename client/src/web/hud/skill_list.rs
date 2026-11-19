@@ -35,9 +35,21 @@ impl App {
         let mut window = title_bar(width, title);
         window.push_str(&cross(width, does.close.clone()));
         window.push_str(&fill(0, 17, width, height - 38, WHITE));
-        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#, at(0, 17, 20, height - 38), picture("basic_interface/itemwin_left.bmp")));
-        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#, at(width - 20, 17, 20, height - 38), picture("basic_interface/itemwin_right.bmp")));
-        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#, at(40, 17, 32, height - 38), picture("basic_interface/itemwin_mid.bmp")));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#,
+            at(0, 17, 20, height - 38),
+            picture("basic_interface/itemwin_left.bmp")
+        ));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#,
+            at(width - 20, 17, 20, height - 38),
+            picture("basic_interface/itemwin_right.bmp")
+        ));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#,
+            at(40, 17, 32, height - 38),
+            picture("basic_interface/itemwin_mid.bmp")
+        ));
         window.push_str(&button_bar(width, height));
         for (row, skill) in skills.iter().take(7).enumerate() {
             window.push_str(&self.skill_row(row, skill, picked == Some(row), points.unwrap_or(0) > 0, &does));
@@ -63,16 +75,39 @@ impl App {
         if picked {
             line.push_str(&format!(r#"<div class="a" style="{};background:#c6d6f7;pointer-events:none"></div>"#, at(104, top + 19, 164, 28)));
         }
-        let handles = if usable { format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(skill.id), level: used })), super::used(Use::Skill(skill.id))) } else { String::new() };
+        let handles = if usable {
+            format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(skill.id), level: used })), super::used(Use::Skill(skill.id)))
+        } else {
+            String::new()
+        };
         let icon = Self::skill_icon(skill.id);
-        line.push_str(&format!(r#"<div class="a" style="{}" {handles} {} data-skill="{}" title="{}">{icon}</div>"#, at(44, top + 21, 24, 24), pressed((does.pick)(row)), skill.id, escape(&name)));
+        line.push_str(&format!(
+            r#"<div class="a" style="{}" {handles} {} data-skill="{}" title="{}">{icon}</div>"#,
+            at(44, top + 21, 24, 24),
+            pressed((does.pick)(row)),
+            skill.id,
+            escape(&name)
+        ));
         // A skill not learned yet is named in grey (120) and says nothing more.
-        line.push_str(&format!(r#"<div class="a t" style="{};color:{};white-space:nowrap;overflow:hidden;pointer-events:none">{}</div>"#, at(112, top + 22, 148, 14), if skill.level == 0 { "#787878" } else { BLACK }, escape(&name)));
+        line.push_str(&format!(
+            r#"<div class="a t" style="{};color:{};white-space:nowrap;overflow:hidden;pointer-events:none">{}</div>"#,
+            at(112, top + 22, 148, 14),
+            if skill.level == 0 { "#787878" } else { BLACK },
+            escape(&name)
+        ));
         if skill.level > 0 {
             if usable {
                 line.push_str(&text(124, top + 34, BLACK, "Lv :"));
-                line.push_str(&format!(r#"<div class="a t" style="left:149px;top:{}px;color:{};white-space:pre;pointer-events:none">{used:2}</div>"#, top + 34, if used == skill.level { BLACK } else { RED }));
-                line.push_str(&format!(r#"<div class="a t" style="left:168px;top:{}px;white-space:pre;pointer-events:none">/ {:2}</div>"#, top + 34, skill.level));
+                line.push_str(&format!(
+                    r#"<div class="a t" style="left:149px;top:{}px;color:{};white-space:pre;pointer-events:none">{used:2}</div>"#,
+                    top + 34,
+                    if used == skill.level { BLACK } else { RED }
+                ));
+                line.push_str(&format!(
+                    r#"<div class="a t" style="left:168px;top:{}px;white-space:pre;pointer-events:none">/ {:2}</div>"#,
+                    top + 34,
+                    skill.level
+                ));
                 for (arrow, step, x) in [("arw_left", Step::Less, 112), ("arw_right", Step::More, 192)] {
                     let file = format!("basic_interface/{arrow}.bmp");
                     line.push_str(&pictured(x, top + 34, (11, 11), [&file, &file, &file], (does.level)(LevelStep { skill: skill.id, step }), ""));

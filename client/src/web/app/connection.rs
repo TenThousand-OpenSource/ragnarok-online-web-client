@@ -118,7 +118,9 @@ impl App {
                     socket.send(&packets::map_enter(account, zone.char_id, now()));
                     // The levels this character's skills were last set to be used at.
                     let kept = stored(&format!("roweb.skill-levels.{}", zone.char_id)).unwrap_or_default();
-                    self.skills.use_level = crate::kept::pairs(&kept, ':').filter_map(|(skill, level)| Some((skill.parse().ok()?, level.parse().ok()?))).collect();
+                    self.skills.use_level = crate::kept::pairs(&kept, ':')
+                        .filter_map(|(skill, level)| Some((skill.parse().ok()?, level.parse().ok()?)))
+                        .collect();
                 }
             }
             Server::None => {}

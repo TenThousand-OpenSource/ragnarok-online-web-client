@@ -22,7 +22,9 @@ pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<
     let gat = Gat::parse(&fetch_asset(&format!("data/{map}.gat")).await?)?;
     let indoor = indoor(map).await;
     let korean = web_sys::TextDecoder::new_with_label("euc-kr").map_err(js_error)?;
-    let gnd = Gnd::parse(&fetch_asset(&format!("data/{map}.gnd")).await?, |name| korean.decode_with_u8_array(name).unwrap_or_else(|_| String::from_utf8_lossy(name).into_owned()))?;
+    let gnd = Gnd::parse(&fetch_asset(&format!("data/{map}.gnd")).await?, |name| korean.decode_with_u8_array(name).unwrap_or_else(
+        |_| String::from_utf8_lossy(name).into_owned()
+    ))?;
 
     let pictures = ground_pictures(&gnd).await;
     let ground = gpu.ground(&gnd.mesh(), &pictures);
@@ -53,8 +55,26 @@ pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<
     pointers();
     progress(100);
     let player = own_mover(figure, cell);
-    Ok((gpu, Scene { indoor, gat, ground, models, water, player, units: HashMap::new(), drops: HashMap::new(), falls: HashMap::new(), aim: None, portals: HashMap::new(), spots: places, // A new map is looked at from the south, as the original does: only how near the camera is stays.
-        camera, wanted: (camera, now()), scenery: surroundings, told: (-1, -1) }))
+    // A new map is looked at from the south, as the original does: only how near the camera is stays.
+    let scene = Scene {
+        indoor,
+        gat,
+        ground,
+        models,
+        water,
+        player,
+        units: HashMap::new(),
+        drops: HashMap::new(),
+        falls: HashMap::new(),
+        aim: None,
+        portals: HashMap::new(),
+        spots: places,
+        camera,
+        wanted: (camera, now()),
+        scenery: surroundings,
+        told: (-1, -1)
+    };
+    Ok((gpu, scene))
 }
 
 /// Whether a map is inside a building: whether the client's own list of those has it, a line `name.rsw#` each.

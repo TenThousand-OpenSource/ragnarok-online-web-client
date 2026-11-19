@@ -38,7 +38,12 @@ impl App {
             at(6, 20, SIZE.0 - 12, SIZE.1 - 44),
             tally.rows().len() as i32 * ROW
         ));
-        window.push_str(&format!(r#"<div class="a t" style="left:8px;top:{}px;color:#00f;cursor:pointer" {}>{}</div>"#, SIZE.1 - 18, pressed(Press::Clear), escape(tr("Clear"))));
+        window.push_str(&format!(
+            r#"<div class="a t" style="left:8px;top:{}px;color:#00f;cursor:pointer" {}>{}</div>"#,
+            SIZE.1 - 18,
+            pressed(Press::Clear),
+            escape(tr("Clear"))
+        ));
         window
     }
 }

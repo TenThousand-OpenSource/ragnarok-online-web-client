@@ -15,7 +15,8 @@ pub(in crate::web) static MERCENARY: Window = Window::usual(
 );
 
 /// Whether to dismiss the mercenary.
-pub(in crate::web) static MERCENARY_ASKS: Window = Window::question("mercenary-asks", |app| app.mercenary.asks && app.mercenary.shown(), App::mercenary_question);
+pub(in crate::web) static MERCENARY_ASKS: Window =
+    Window::question("mercenary-asks", |app| app.mercenary.asks && app.mercenary.shown(), App::mercenary_question);
 
 /// The list of the mercenary's skills, where the client opens it (`WID_SKILLLISTWND_SKILLTAB_1`: 200 across
 /// its 640-wide stage and 200 of 480 down, 280 wide).
@@ -28,4 +29,9 @@ pub(in crate::web) static MERCENARY_SKILLS: Window = Window::usual(
 );
 
 /// The menu of the mercenary, opened with the right button on it, where the pointer was.
-pub(in crate::web) static MERCENARY_MENU: Window = Window::menu("mercenary-menu", |app| app.mercenary.menu_at.is_some() && app.mercenary.shown(), |app, _| menu_frame(app.mercenary.menu_at), App::mercenary_menu);
+pub(in crate::web) static MERCENARY_MENU: Window = Window::menu(
+    "mercenary-menu",
+    |app| app.mercenary.menu_at.is_some() && app.mercenary.shown(),
+    |app, _| menu_frame(app.mercenary.menu_at),
+    App::mercenary_menu
+);

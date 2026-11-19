@@ -73,7 +73,15 @@ impl App {
     /// of its letters; an empty line brings the tip back.
     pub(in crate::web::app) fn tip_searched(&mut self) {
         let sought = field(&wnd::TIPS.field()).trim().to_lowercase();
-        self.tips.found = (!sought.is_empty()).then(|| data::tips().iter().filter(|tip| tip.title.to_lowercase().contains(&sought) || tip.pages.iter().any(|page| page.to_lowercase().contains(&sought))).map(|tip| tip.id).collect());
+        self.tips.found = (!sought.is_empty()).then(
+            || data::tips()
+                .iter()
+                .filter(
+                    |tip| tip.title.to_lowercase().contains(&sought) || tip.pages.iter().any(|page| page.to_lowercase().contains(&sought))
+                )
+                .map(|tip| tip.id)
+                .collect()
+        );
         self.redraw(&[&wnd::TIPS]);
     }
 }

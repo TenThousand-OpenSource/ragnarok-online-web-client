@@ -21,7 +21,7 @@ impl App {
     /// How many rows the vendor's list shows: one to a thing, four at the least (`UM_REFRESHITEM`), and here
     /// eight at the most, past which it scrolls (the client lets the window be drawn out to 336 high).
     pub(in crate::web) fn vendor_rows(&self) -> i32 {
-        self.vending.visit.as_ref().map_or(4, |visit| visit.list.sold.len().clamp(4, 8) as i32)
+        self.vending.visit.as_ref().map_or(4, |visit| crate::vending::rows_shown(visit.list.sold.len()))
     }
 
     /// The vendor's list (`UIMerchantItemShopWnd`, 280 wide, 32 a row and 56 more): its title the client's

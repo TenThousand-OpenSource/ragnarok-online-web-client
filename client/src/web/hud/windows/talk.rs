@@ -23,7 +23,11 @@ pub(in crate::web) static DIALOG: Window = Window {
 pub(in crate::web) static CHAT: Window = Window {
     id: "chat",
     open: |app| !app.chat.hidden,
-    frame: |app, view| format!(r#"class="a hud" data-locked="{}" style="{}""#, u8::from(app.chat.locked), at(0, view.1 as i32 - app.chat_height(), 600, app.chat_height())),
+    frame: |app, view| format!(
+        r#"class="a hud" data-locked="{}" style="{}""#,
+        u8::from(app.chat.locked),
+        at(0, view.1 as i32 - app.chat_height(), 600, app.chat_height())
+    ),
     draw: |app| app.chat_window(app.chat.rows, app.chat_height()),
     order: None,
     layer: Layer::Under,

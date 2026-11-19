@@ -17,12 +17,10 @@ impl App {
             .enumerate()
             .map(|(index, server)| {
                 let picked = if index == self.server_picked { "background:#c6d6f7;" } else { "" };
-                format!(
-                    r#"<div style="{picked}height:16px;line-height:16px;padding:0 4px;cursor:default;white-space:nowrap" {} data-open-server="{index}">{} ({})</div>"#,
-                    pressed(Press::Server(index)),
-                    escape(&server.name),
-                    server.users
-                )
+                [
+                    format!(r#"<div style="{picked}height:16px;line-height:16px;padding:0 4px;cursor:default;white-space:nowrap" "#),
+                    format!(r#"{} data-open-server="{index}">{} ({})</div>"#, pressed(Press::Server(index)), escape(&server.name), server.users)
+                ].concat()
             })
             .collect();
         let inner = format!(
@@ -71,7 +69,11 @@ impl App {
                 let frames: String = (0..8).map(|frame| format!(r#"<i style="background-image:url('{}')"></i>"#, chosen_frame(frame))).collect();
                 inner.push_str(&format!(r#"<div class="a chosen" style="{}">{frames}</div>"#, at(x - 2, y - 1, 161, 197)));
             }
-            (None, true) => inner.push_str(&format!(r#"<div class="a pass" style="{};{}"></div>"#, at(x, y, 157, 195), background("select_character_ver3/img_slot2_select.bmp"))),
+            (None, true) => inner.push_str(&format!(
+                r#"<div class="a pass" style="{};{}"></div>"#,
+                at(x, y, 157, 195),
+                background("select_character_ver3/img_slot2_select.bmp")
+            )),
             _ => {}
         }
         if let Some(character) = character {
@@ -96,10 +98,13 @@ impl App {
                     ("#00f", [self.text(Key::DeletionReady).to_owned(), String::new()])
                 } else {
                     let date = js_sys::Date::new(&(when * 1000.0).into());
-                    ("#f00", [format!("{}/{}", date.get_month() + 1, date.get_date()), format!("{:02}:{:02}", date.get_hours(), date.get_minutes())])
+                    ("#f00", crate::account::deletion_due((date.get_month() + 1, date.get_date()), (date.get_hours(), date.get_minutes())))
                 };
                 for (line, text) in lines.iter().enumerate() {
-                    inner.push_str(&format!(r#"<div class="a pass small centre" style="{};color:{colour}">{text}</div>"#, at(x + 20, y + 19 + 12 * line as i32, 96, 12)));
+                    inner.push_str(&format!(
+                        r#"<div class="a pass small centre" style="{};color:{colour}">{text}</div>"#,
+                        at(x + 20, y + 19 + 12 * line as i32, 96, 12)
+                    ));
                 }
             }
         }
@@ -112,7 +117,12 @@ impl App {
         let chosen = self.character_in(self.selected);
         inner.push_str(&format!(r#"<div class="a" style="{};{}"></div>"#, at(809, 26, 173, 575), background("select_character_ver3/img_info.bmp")));
         if let Some(character) = chosen {
-            let mut lines = vec![(116, character.map.clone()), (133, data::job_name(character.job)), (150, character.base_level.to_string()), (167, character.base_exp.to_string())];
+            let mut lines = vec![
+                (116, character.map.clone()),
+                (133, data::job_name(character.job)),
+                (150, character.base_level.to_string()),
+                (167, character.base_exp.to_string())
+            ];
             lines.push((184, character.hp.to_string()));
             lines.push((201, character.sp.to_string()));
             for (index, stat) in character.stats.iter().enumerate() {
@@ -155,7 +165,9 @@ impl App {
         ));
         // One page: both arrows are off.
         for (x, side) in [(830, "left"), (939, "right")] {
-            inner.push_str(&format!(r#"<div class="a" style="{};{}"></div>"#, at(x, 558, 21, 28), background(&format!("select_character_ver3/bt_{side}_off.bmp"))));
+            inner.push_str(&format!(r#"<div class="a" style="{};{}"></div>"#, at(x, 558, 21, 28), background(&format!(
+                "select_character_ver3/bt_{side}_off.bmp"
+            ))));
         }
         inner.push_str(&format!(r#"<div class="a list-title" style="{}">{}</div>"#, at(830, 538, 131, 14), self.text(Key::CharacterList)));
         inner.push_str(&format!(r#"<div class="a page" style="{};{large}">1 / 1</div>"#, at(851, 560, 88, 22)));

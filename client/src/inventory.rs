@@ -79,20 +79,92 @@ pub fn sort_rank(kind: u8) -> u8 {
     }
 }
 
+/// What the Inventory window shows of what is carried under a tab, in its order (`UIItemWnd::SendMsg`,
+/// `UM_REFRESHITEM`): what is worn is not there (`Item::in_bag`); what is kept under "Fav" (`favourites`: the
+/// places of those things) is on that tab alone, in the order of its kinds and names while "Align items" is on
+/// (`UIItemWnd::RefreshItems`), and as it is carried otherwise, as the other tabs are.
+pub fn shown<'a>(
+    items: &'a [Item],
+    tab: Tab,
+    favourites: &[u16],
+    aligned: bool,
+    name: impl Fn(&Item) -> String
+) -> Vec<&'a Item> {
+    let favourite = |item: &&Item| favourites.contains(&item.index);
+    let mut shown: Vec<&Item> = items
+        .iter()
+        .filter(
+            |item| item.in_bag() && if tab == Tab::Favourite { favourite(item) } else { item.tab() == tab && !favourite(item) }
+        )
+        .collect();
+    if tab == Tab::Favourite && aligned {
+        shown.sort_by_cached_key(|item| (sort_rank(item.kind), name(item)));
+    }
+    shown
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
+    fn a_tab_shows_its_things_and_fav_those_kept_under_it() {
+        let item = |index: u16, kind: u8, worn: u32| Item {
+            index,
+            id: u32::from(index),
+            kind,
+            amount: 1,
+            wearable: worn,
+            worn,
+            refine: 0,
+            identified: true,
+            cards: [0; 4]
+        };
+        // A potion, loot, a sword worn, a card, a potion and loot kept under "Fav".
+        let items = [item(2, 0, 0), item(3, 3, 0), item(4, 5, 2), item(5, 6, 0), item(6, 0, 0), item(7, 3, 0)];
+        let name = |item: &Item| format!("thing {}", 9 - item.index);
+        let places = |tab: Tab, favourites: &[u16], aligned: bool| -> Vec<u16> {
+            shown(&items, tab, favourites, aligned, name).iter().map(|item| item.index).collect()
+        };
+        assert_eq!(places(Tab::Usable, &[], false), [2, 6]);
+        assert_eq!(places(Tab::Usable, &[6, 7], false), [2]);
+        assert_eq!(places(Tab::Usable, &[6, 7], true), [2]);
+        // What is worn is on no tab, kept under "Fav" or not.
+        assert_eq!(places(Tab::Equipment, &[], false), [0u16; 0]);
+        assert_eq!(places(Tab::Favourite, &[4], false), [0u16; 0]);
+        // "Fav": as carried, or by kind and then by name; a place that carries nothing shows nothing.
+        assert_eq!(places(Tab::Favourite, &[7, 6, 5, 99], false), [5, 6, 7]);
+        assert_eq!(places(Tab::Favourite, &[7, 6, 5, 3, 99], true), [6, 5, 7, 3]);
+        assert_eq!(places(Tab::Favourite, &[], true), [0u16; 0]);
+        assert_eq!(shown(&[], Tab::Usable, &[1], true, name).len(), 0);
+    }
+
+    #[test]
     fn a_count_typed_is_a_number_of_what_there_is() {
         assert_eq!((count_typed("1", 30), count_typed(" 30 ", 30)), (Some(1), Some(30)));
         // Nothing, no number, none at all, more than there is, more than a count can be: nothing is done.
-        assert_eq!([count_typed("", 30), count_typed("ten", 30), count_typed("0", 30), count_typed("31", 30), count_typed("70000", u16::MAX), count_typed("-1", 30)], [None; 6]);
+        assert_eq!(
+            [
+                count_typed("", 30), count_typed("ten", 30), count_typed("0", 30), count_typed("31", 30),
+                count_typed("70000", u16::MAX), count_typed("-1", 30)
+            ],
+            [None; 6]
+        );
     }
 
     #[test]
     fn only_what_is_used_shot_or_worn_goes_on_the_hotkey_bar() {
-        let item = |kind: u8, wearable: u32, identified: bool| Item { index: 2, id: 501, kind, amount: 1, wearable, worn: 0, refine: 0, identified, cards: [0; 4] };
+        let item = |kind: u8, wearable: u32, identified: bool| Item {
+            index: 2,
+            id: 501,
+            kind,
+            amount: 1,
+            wearable,
+            worn: 0,
+            refine: 0,
+            identified,
+            cards: [0; 4]
+        };
         // A potion and an arrow do; loot does not.
         assert!(item(0, 0, true).fits_hotkeys());
         assert!(item(10, 0, true).fits_hotkeys());

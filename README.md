@@ -58,8 +58,9 @@ The project has two chat commands of its own, which the Windows client does not 
 
 - `/packets` opens the developer's list of the packets of the map server that this client did not read, by
   name and count (`client/src/net/unread.rs`).
-- `/farwalk` switches "far walk" on or off (off at first): with it a press on a place farther than the server
-  walks in one go is walked to in stretches; without it such a press does nothing, as in the Windows client.
+- `/farwalk` switches "far walk" off or on (on at first): with it a press on a place farther than the server
+  walks in one go is walked to in stretches of 14 cells; without it such a press does nothing, as in the
+  Windows client.
 
 **New to the code? Start with [ARCHITECTURE.md](ARCHITECTURE.md)**; then `docs/DONE.md` and `docs/DEBTS.md`
 for what is finished and what is owed.

@@ -25,13 +25,14 @@ impl App {
         // words from 41 in and 10 down; it stays five seconds.
         let words = format!("{} - {amount} {}", escape(&name), tr("obtained."));
         let width = 41 + words.chars().count() as i32 * 6 + 12;
-        format!(
-            r#"<div class="note" style="position:relative;display:block;left:{left}px;width:{width}px;height:32px;text-align:left;animation-delay:-{shown:.2}s">{}<div class="a cell" style="left:9px;top:1px">{}</div><div class="a t" style="left:41px;top:10px;white-space:nowrap">{words}</div></div>"#,
-            system_box(0, width, 32),
-            Self::icon(Some(&resource)),
-            // In the middle of its place (260 wide), on a whole pixel.
-            left = (260 - width) / 2,
-        )
+        // In the middle of its place (260 wide), on a whole pixel.
+        let left = (260 - width) / 2;
+        [
+            format!(r#"<div class="note" style="position:relative;display:block;left:{left}px;width:{width}px;height:32px;"#),
+            format!(r#"text-align:left;animation-delay:-{shown:.2}s">{}"#, system_box(0, width, 32)),
+            format!(r#"<div class="a cell" style="left:9px;top:1px">{}</div>"#, Self::icon(Some(&resource))),
+            format!(r#"<div class="a t" style="left:41px;top:10px;white-space:nowrap">{words}</div></div>"#)
+        ].concat()
     }
 
     /// What an item is, as the client shows it (`UIItemCollectionWnd`): its box of 280 by 120 with the
@@ -50,7 +51,10 @@ impl App {
         // Until it is identified an item has the description the client's table gives for it unidentified.
         let description = if identified { data::about(id).unwrap_or_default().0 } else { data::unidentified_about(id) };
         let description: String = description.iter().map(|line| format!("<div>{}</div>", coloured(line))).collect();
-        let large = if resource.is_empty() { String::new() } else { format!(r#"<img src="{}" alt="" onerror="this.remove()">"#, picture(&format!("collection/{resource}.bmp"))) };
+        let large = if resource.is_empty() { String::new() } else { format!(
+            r#"<img src="{}" alt="" onerror="this.remove()">"#,
+            picture(&format!("collection/{resource}.bmp"))
+        ) };
         let kept = data::item_moves(id).map(Self::kept_from).unwrap_or_default();
         let height = if kept.is_empty() { 120 } else { 135 };
         let slots = if identified && named.is_equipment() && !named.made_or_egg() { Self::slots_row(&named, height) } else { String::new() };
@@ -154,15 +158,34 @@ impl App {
     fn inventory_ground(&self, width: i32, body: i32) -> String {
         // The body (`UIItemWnd::Paint`): the piece at its left, white from 20 in to the cells and under their
         // last whole row, a grey line down at 20, and the piece at its right.
-        let mut ground = format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(0, 17, 20, body), picture("basic_interface/itemwin_left.bmp"));
-        ground.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c0c0c0;box-sizing:border-box"></div>"#, at(20, 17, width - 24, body)));
-        ground.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(width - 20, 17, 20, body), picture("basic_interface/itemwin_right.bmp")));
+        let mut ground = format!(
+            r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#,
+            at(0, 17, 20, body),
+            picture("basic_interface/itemwin_left.bmp")
+        );
+        ground.push_str(&format!(
+            r#"<div class="a" style="{};background:#fff;border-left:1px solid #c0c0c0;box-sizing:border-box"></div>"#,
+            at(20, 17, width - 24, body)
+        ));
+        ground.push_str(&format!(
+            r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#,
+            at(width - 20, 17, 20, body),
+            picture("basic_interface/itemwin_right.bmp")
+        ));
         // The four tabs (`UIItemWnd::OnCreate`: a `UITabControl` at 3, 18, with 10 round each tab's letters
         // and every tab as tall as the tallest; `hud/tabs.rs`), the last on the ground the client gives it
         // (`colorchip.bmp`, the cell 5, 2). A thing dragged onto one is kept under "Fav" from then, or no
         // more (`UIItemWnd::DragAndDrop`).
         let open = [Tab::Usable, Tab::Equipment, Tab::Other, Tab::Favourite].iter().position(|tab| *tab == self.bag.tab).unwrap_or(0);
-        let tabs: Vec<(String, Option<&str>, String)> = Self::inventory_tabs().into_iter().enumerate().map(|(index, words)| (words, (index == 3).then_some("#cedeff"), format!("{} {}", pressed(Press::Tab(index)), dropped(Drop::InventoryTab(index))))).collect();
+        let tabs: Vec<(String, Option<&str>, String)> = Self::inventory_tabs()
+            .into_iter()
+            .enumerate()
+            .map(|(index, words)| (
+                words,
+                (index == 3).then_some("#cedeff"),
+                format!("{} {}", pressed(Press::Tab(index)), dropped(Drop::InventoryTab(index)))
+            ))
+            .collect();
         ground.push_str(&tabs::side_tabs(3, 18, 10, true, open, &tabs));
         ground
     }
@@ -173,18 +196,17 @@ impl App {
         // What is worn is in the Equipment window, as in the original; the arrows readied stay here too
         // (`Item::in_bag`). What is kept under "Fav" is on that tab
         // alone (`UIItemWnd::SendMsg`, `UM_REFRESHITEM`), in the order of its kinds and names while "Align
-        // items" is on (`UIItemWnd::RefreshItems`).
-        let favourite = |item: &&Item| self.bag.favourites.contains(&item.index);
-        let mut shown: Vec<&Item> = self.bag.items.iter().filter(|item| item.in_bag() && if self.bag.tab == Tab::Favourite { favourite(item) } else { item.tab() == self.bag.tab && !favourite(item) }).collect();
-        if self.bag.tab == Tab::Favourite && self.bag.aligned {
-            shown.sort_by_cached_key(|item| (crate::inventory::sort_rank(item.kind), Self::item_name(item)));
-        }
-        shown
+        // items" is on (`UIItemWnd::RefreshItems`): `inventory::shown`.
+        crate::inventory::shown(&self.bag.items, self.bag.tab, &self.bag.favourites, self.bag.aligned, Self::item_name)
             .iter()
             .enumerate()
             .map(|(place, item)| {
                 // With the storage open a double click puts the thing into it.
-                let marks = format!("{} {}", dragged(Drag::Item(item.id)), used(if self.storage.open.is_some() { Use::Put(item.index) } else { Use::Item(item.index) }));
+                let marks = format!(
+                    "{} {}",
+                    dragged(Drag::Item(item.id)),
+                    used(if self.storage.open.is_some() { Use::Put(item.index) } else { Use::Item(item.index) })
+                );
                 grid_cell(place, ITEM_COLUMNS, item, item.amount, &marks, &amount_tip(&Self::item_name(item), item.amount))
             })
             .collect()
@@ -209,7 +231,12 @@ impl App {
     /// picked one is identified with OK (or with a double click); none is picked at first.
     pub(in crate::web) fn identify_window(&self) -> String {
         let Some(items) = &self.bag.identify else { return String::new() };
-        let does = Picking { pick: |row| Press::IdentifyPick(row).into(), used: Use::Identify, ok: Press::IdentifyOk.into(), cancel: Press::IdentifyCancel.into() };
+        let does = Picking {
+            pick: |row| Press::IdentifyPick(row).into(),
+            used: Use::Identify,
+            ok: Press::IdentifyOk.into(),
+            cancel: Press::IdentifyCancel.into()
+        };
         pick_list("Identify Item", &self.carried_rows(items), self.bag.identify_picked, does)
     }
 }

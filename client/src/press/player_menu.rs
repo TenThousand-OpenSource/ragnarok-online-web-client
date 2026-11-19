@@ -26,7 +26,10 @@ pub enum Entry {
 }
 
 impl Entry {
-    pub const ALL: [Entry; 10] = [Entry::Equipment, Entry::Deal, Entry::Invite, Entry::Guild, Entry::Ally, Entry::Oppose, Entry::Chat, Entry::Friend, Entry::Mail, Entry::Block];
+    pub const ALL: [Entry; 10] = [
+        Entry::Equipment, Entry::Deal, Entry::Invite, Entry::Guild, Entry::Ally, Entry::Oppose, Entry::Chat,
+        Entry::Friend, Entry::Mail, Entry::Block
+    ];
 
     fn text(self) -> &'static str {
         match self {
@@ -44,19 +47,7 @@ impl Entry {
     }
 }
 
-impl std::fmt::Display for Entry {
-    fn fmt(&self, to: &mut std::fmt::Formatter) -> std::fmt::Result {
-        to.write_str(self.text())
-    }
-}
-
-impl std::str::FromStr for Entry {
-    type Err = ();
-
-    fn from_str(text: &str) -> Result<Self, ()> {
-        Entry::ALL.into_iter().find(|entry| entry.text() == text).ok_or(())
-    }
-}
+worded!(Entry);
 
 presses! {
     /// What can be pressed here.

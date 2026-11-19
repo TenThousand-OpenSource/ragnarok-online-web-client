@@ -14,7 +14,8 @@ pub(in crate::web) static HOMUNCULUS: Window = Window::usual(
 );
 
 /// What the homunculus window asks before it acts.
-pub(in crate::web) static HOMUNCULUS_ASKS: Window = Window::question("homunculus-asks", |app| app.homunculus.asks.is_some() && app.homunculus.shown(), App::homunculus_question);
+pub(in crate::web) static HOMUNCULUS_ASKS: Window =
+    Window::question("homunculus-asks", |app| app.homunculus.asks.is_some() && app.homunculus.shown(), App::homunculus_question);
 
 /// The list of the homunculus's skills, where the client opens it (`WID_SKILLLISTWND_SKILLTAB_0`: 200 across
 /// its 640-wide stage and 200 of 480 down, 280 wide).
@@ -27,4 +28,9 @@ pub(in crate::web) static HOMUNCULUS_SKILLS: Window = Window::usual(
 );
 
 /// The menu of the homunculus, opened with the right button on it, where the pointer was.
-pub(in crate::web) static HOMUNCULUS_MENU: Window = Window::menu("homunculus-menu", |app| app.homunculus.menu_at.is_some() && app.homunculus.shown(), |app, _| menu_frame(app.homunculus.menu_at), App::homunculus_menu);
+pub(in crate::web) static HOMUNCULUS_MENU: Window = Window::menu(
+    "homunculus-menu",
+    |app| app.homunculus.menu_at.is_some() && app.homunculus.shown(),
+    |app, _| menu_frame(app.homunculus.menu_at),
+    App::homunculus_menu
+);

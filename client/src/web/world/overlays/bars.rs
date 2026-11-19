@@ -2,6 +2,7 @@
 //! spirit, the casts under way, what was said over heads.
 
 use super::*;
+use crate::bars as figures;
 
 pub(super) fn shown(state: &mut State, view: &View, time: f64, feet: Vector, casts: &[((f32, f32), f64, f64, u32, Option<u32>)], (width, height): (f32, f32)) {
     let Some(scene) = &state.scene else { return };
@@ -14,16 +15,16 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, feet: Vector, cas
         .filter(|unit| !unit.hidden())
         .filter_map(|unit| {
             let member = matches!(unit.look, Look::Character(_)) && !unit.companion;
-            let (left, most) = unit.life.filter(|(left, most)| *most > 0 && (member || state.options.monster_life && left < most))?;
+            let (left, most) = unit.life.filter(|life| figures::shown(*life, member, state.options.monster_life))?;
             let under = view.project(on_ground(&scene.gat, unit.at))?;
             // 12 pixels of a screen 480 high under the feet, nearer when the camera is (the client's place for
             // a monster's gauge and a player's; the name stands at 20).
-            let below = height * 12.0 / 480.0 * DISTANCE / scene.camera.distance;
-            let (x, y) = (under.0 * width - 30.0, under.1 * height + below);
+            let below = figures::below(figures::LIFE_BELOW, height, scene.camera.distance);
+            let (x, y) = (figures::left(under.0, width), under.1 * height + below);
             if member {
                 return Some(member_gauge(x, y, left, most));
             }
-            let full = (left.max(0) as f32 / most as f32 * 58.0).round();
+            let full = figures::monster(left, most);
             Some(format!(r#"<div class="life" style="left:{x:.0}px;top:{y:.0}px"><i style="width:{full}px"></i></div>"#))
         })
         .collect();
@@ -32,14 +33,13 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, feet: Vector, cas
     // The life of the player's own homunculus and mercenary, under each (`ai.rs`).
     bars.push_str(&ai::gauges(state, scene, view, (width, height), member_gauge));
     if let Some(under) = view.project(feet).filter(|_| state.own[1] > 0) {
-        let part = |left: i64, most: i64| if most > 0 { (left.clamp(0, most) as f32 / most as f32 * 58.0).round() } else { 0.0 };
-        let low = if state.own[0] * 4 < state.own[1] { " low" } else { "" };
+        let low = if figures::own_low(state.own[0], state.own[1]) { " low" } else { "" };
         bars.push_str(&format!(
             r#"<div class="life own" style="left:{:.0}px;top:{:.0}px"><i class="hp{low}" style="width:{}px"></i><i class="sp" style="width:{}px"></i></div>"#,
-            under.0 * width - 30.0,
-            under.1 * height + height * 12.0 / 480.0 * DISTANCE / scene.camera.distance,
-            part(state.own[0], state.own[1]),
-            part(state.own[2], state.own[3]),
+            figures::left(under.0, width),
+            under.1 * height + figures::below(figures::LIFE_BELOW, height, scene.camera.distance),
+            figures::own(state.own[0], state.own[1]),
+            figures::own(state.own[2], state.own[3]),
         ));
     }
     // The bar of a cast, over the caster (the client's `UIRechargeGage`): 60 by 6, 81 pixels over the feet,
@@ -48,9 +48,13 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, feet: Vector, cas
     let scripted = scripted::gauges(&state.scripted, scene, state.entered, time);
     for (at, began, lasts) in casts.iter().map(|(at, began, lasts, ..)| (*at, *began, *lasts)).chain(scripted) {
         if let Some(under) = view.project(on_ground(&scene.gat, at)) {
-            let full = ((60.0 * ((time - began) / lasts.max(1.0)).clamp(0.0, 1.0) as f32) - 2.0).max(0.0).floor();
-            let over = 81.0 * DISTANCE / scene.camera.distance * height / 480.0;
-            bars.push_str(&format!(r#"<div class="cast" style="left:{:.0}px;top:{:.0}px"><i style="width:{full}px"></i></div>"#, under.0 * width - 30.0, under.1 * height - over));
+            let full = figures::cast(time - began, lasts);
+            let over = figures::over(figures::CAST_OVER, height, scene.camera.distance);
+            bars.push_str(&format!(
+                r#"<div class="cast" style="left:{:.0}px;top:{:.0}px"><i style="width:{full}px"></i></div>"#,
+                figures::left(under.0, width),
+                under.1 * height - over
+            ));
         }
     }
     // The words of units on the ground stand over them as what is said does (`written.rs`).
@@ -78,9 +82,8 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, feet: Vector, cas
 /// ZC_NOTIFY_HP_TO_GROUPM: `AM_UPDATEGAGE`): 60 by 5 with a rim, shown whether the life is whole or not; what
 /// is left is green, or red under a quarter, as wide as the whole hundredths of it of 60, less the rim.
 fn member_gauge(x: f32, y: f32, left: i32, most: i32) -> String {
-    let percent = i64::from(left.max(0)) * 100 / i64::from(most);
-    let full = (60 * percent / 100 - 2).clamp(0, 58);
-    let low = if percent < 25 { r#" class="low""# } else { "" };
+    let (full, low) = figures::member(left, most);
+    let low = if low { r#" class="low""# } else { "" };
     format!(r#"<div class="life pc" style="left:{x:.0}px;top:{y:.0}px"><i{low} style="width:{full}px"></i></div>"#)
 }
 

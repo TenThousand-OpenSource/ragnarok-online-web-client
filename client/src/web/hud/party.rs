@@ -100,32 +100,41 @@ impl App {
             (false, true) => ("#373a49", "#6f3007"),
             (false, false) => ("#373a49", "#493a37"),
         };
-        let name = if !member.offline && !member.map.is_empty() { format!("{}({})", member.name, data::map_name(map_name(&member.map))) } else { member.name.clone() };
-        inside.push_str(&format!(
-            r#"<div class="a t" style="left:{}px;top:{}px;white-space:nowrap;{}"><span style="color:{level_colour}">Lv.{}</span><span style="display:inline-block;vertical-align:top;margin-left:5px;max-width:{}px;overflow:hidden;color:{name_colour}">{}</span></div>"#,
-            x + 28,
-            y + 3,
-            BOLD.style(),
-            member.level,
-            layout.width * 8 / 10 - 80,
-            escape(&name)
-        ));
+        let name = if !member.offline && !member.map.is_empty() {
+            format!("{}({})", member.name, data::map_name(map_name(&member.map)))
+        } else {
+            member.name.clone()
+        };
+        inside.push_str(&[
+            format!(r#"<div class="a t" style="left:{}px;top:{}px;white-space:nowrap;{}">"#, x + 28, y + 3, BOLD.style()),
+            format!(r#"<span style="color:{level_colour}">Lv.{}</span>"#, member.level),
+            format!(r#"<span style="display:inline-block;vertical-align:top;margin-left:5px;max-width:{}px;overflow:hidden;"#, layout.width * 8 / 10 - 80),
+            format!(r#"color:{name_colour}">{}</span></div>"#, escape(&name))
+        ].concat());
         // The life of a member is known once the server has told it (it does for those in sight); the
         // player's own is the character's.
-        let life = if own { Some((self.value(parameter::HP) as i32, self.value(parameter::MAX_HP) as i32)) } else { self.party.life.get(&member.account).copied() };
+        let life = if own {
+            Some((self.value(parameter::HP) as i32, self.value(parameter::MAX_HP) as i32))
+        } else {
+            self.party.life.get(&member.account).copied()
+        };
         if let Some((left, most)) = life.filter(|(_, most)| !member.offline && *most > 0) {
             let top = layout.row * 76 / 100;
             let full = (i64::from(left.clamp(0, most)) * 58 / i64::from(most)) as i32;
-            inside.push_str(&format!(
-                r#"<div class="a" style="{};background:#424242;border:1px solid #10189c;box-sizing:border-box"><div style="width:{full}px;height:3px;background:{}"></div></div>"#,
-                at(47, top, 60, 5),
-                if left * 4 < most { "#ff0000" } else { "#10ef21" }
-            ));
+            inside.push_str(&[
+                format!(r#"<div class="a" style="{};background:#424242;border:1px solid #10189c;box-sizing:border-box">"#, at(47, top, 60, 5)),
+                format!(r#"<div style="width:{full}px;height:3px;background:{}"></div></div>"#, if left * 4 < most { "#ff0000" } else { "#10ef21" })
+            ].concat());
             inside.push_str(&text_in(Font(0, 10, false), 47 + 66, top - 2, BLACK, &format!("{left}/{most}")));
         }
         let status = if member.offline { "off" } else if own { "me" } else { "on" };
         inside.push_str(&art(&format!("renewalparty/icon_party_{status}.bmp"), layout.width * 8 / 10, layout.row * 65 / 100, 26, 11));
-        format!(r#"<div style="position:relative;height:{}px;cursor:default" {} {}>{inside}</div>"#, layout.row, pressed(Press::Row(row)), menued(Menu::Member(row)))
+        format!(
+            r#"<div style="position:relative;height:{}px;cursor:default" {} {}>{inside}</div>"#,
+            layout.row,
+            pressed(Press::Row(row)),
+            menued(Menu::Member(row))
+        )
     }
 
     /// The bar of buttons under the list (`OnCreate` and `LayoutButtons`): the Adventurer's Agency, the setup,
@@ -199,10 +208,10 @@ impl App {
             .filter_map(|member| {
                 let (x, y) = self.party.places.get(&member.account)?;
                 let (x, y) = crate::web::view::minimap_spot(game, self.minimap_zoom, (f32::from(*x), f32::from(*y)))?;
-                Some(format!(
-                    r#"<span title="{}" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:4px;height:4px;margin:-3px 0 0 -3px;background:#493a37;border:1px solid rgba(255,255,255,.6)"></span>"#,
-                    escape(&member.name)
-                ))
+                Some([
+                    format!(r#"<span title="{}" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:4px;height:4px;margin:-3px "#, escape(&member.name)),
+                    format!(r#"0 0 -3px;background:#493a37;border:1px solid rgba(255,255,255,.6)"></span>"#)
+                ].concat())
             })
             .collect();
         members + &self.minimap_server_marks()

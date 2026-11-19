@@ -34,7 +34,11 @@ pub(super) fn message_box(asked: Asked, words: &str, yes: impl Into<Press>, no: 
 
 /// A row of a menu opened with the right button, 16 high (`UM_MAKEMENU`).
 pub(super) fn menu_row(words: &str, press: impl Into<Press>) -> String {
-    format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default;white-space:nowrap" {}>{}</div>"#, pressed(press), escape(words))
+    format!(
+        r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default;white-space:nowrap" {}>{}</div>"#,
+        pressed(press),
+        escape(words)
+    )
 }
 
 /// The line the client draws between the groups of rows of a menu (`UM_ADDBOUNDARY`).
@@ -60,13 +64,16 @@ pub(super) fn pick_list(title: &str, rows: &[(String, String)], picked: Option<u
         .iter()
         .enumerate()
         .map(|(row, (icon, name))| {
-            let band = if picked == Some(row) { r#"<div style="position:absolute;left:5px;top:0;width:176px;height:30px;background:#c6d6f7"></div>"# } else { "" };
-            format!(
-                r#"<div style="position:relative;height:32px;cursor:default" {} {}>{band}<div style="position:absolute;left:8px;top:3px;width:24px;height:24px">{icon}</div><div class="t" style="position:absolute;left:40px;top:3px;white-space:nowrap">{}</div></div>"#,
-                pressed((does.pick)(row)),
-                used((does.used)(row)),
-                escape(name)
-            )
+            let band = if picked == Some(row) {
+                r#"<div style="position:absolute;left:5px;top:0;width:176px;height:30px;background:#c6d6f7"></div>"#
+            } else {
+                ""
+            };
+            [
+                format!(r#"<div style="position:relative;height:32px;cursor:default" {} {}>{band}"#, pressed((does.pick)(row)), used((does.used)(row))),
+                format!(r#"<div style="position:absolute;left:8px;top:3px;width:24px;height:24px">{icon}</div>"#),
+                format!(r#"<div class="t" style="position:absolute;left:40px;top:3px;white-space:nowrap">{}</div></div>"#, escape(name))
+            ].concat()
         })
         .collect();
     window.push_str(&format!(r#"<div class="a scroll" style="{}">{rows}</div>"#, at(1, 31, 198, 128)));

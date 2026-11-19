@@ -63,7 +63,17 @@ pub fn parse_act(bytes: &[u8]) -> Result<Act, String> {
             let mut layers = Vec::with_capacity(layer_count);
             for _ in 0..layer_count {
                 let (x, y, picture) = (reader.i32()?, reader.i32()?, reader.i32()?);
-                let mut layer = Layer { x, y, picture, mirrored: reader.i32()? != 0, colour: [255; 4], scale: (1.0, 1.0), rotation: 0, truecolor: false, size: None };
+                let mut layer = Layer {
+                    x,
+                    y,
+                    picture,
+                    mirrored: reader.i32()? != 0,
+                    colour: [255; 4],
+                    scale: (1.0, 1.0),
+                    rotation: 0,
+                    truecolor: false,
+                    size: None
+                };
                 if version >= 0x200 {
                     layer.colour = reader.take(4)?.try_into().unwrap();
                     let scale_x = reader.f32()?;

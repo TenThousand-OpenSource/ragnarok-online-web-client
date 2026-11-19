@@ -154,7 +154,11 @@ impl App {
         store(KEPT, Some(&(number + 1).to_string()));
         let name = crate::screenshot::file_name(caption, &game.name, number);
         let now = js_sys::Date::new_0();
-        let stamp = crate::screenshot::stamp((now.get_full_year(), now.get_month() + 1, now.get_date()), now.get_day(), (now.get_hours(), now.get_minutes(), now.get_seconds()));
+        let stamp = crate::screenshot::stamp(
+            (now.get_full_year(), now.get_month() + 1, now.get_date()),
+            now.get_day(),
+            (now.get_hours(), now.get_minutes(), now.get_seconds())
+        );
         wasm_bindgen_futures::spawn_local(async move {
             let made = picture_of_screen(&name, &stamp).await;
             dispatch(Action::Pictured(match made {

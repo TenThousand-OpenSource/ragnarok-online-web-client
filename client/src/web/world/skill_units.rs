@@ -65,9 +65,22 @@ pub(super) struct Grounds {
 pub fn skill_unit_shown(entry: &Entry) {
     STATE.with_borrow_mut(|state| {
         let (visit, cell) = (state.entered, (f32::from(entry.cell.0), f32::from(entry.cell.1)));
-        let standing = state.grounds.units.entry(entry.id).and_modify(|standing| standing.cell = cell).or_insert(Standing { cell, unit: entry.unit, visit, count: crate::skill_units::COUNT_AT_FIRST, ticked: now(), launched: false, pulse: None, seen: entry.visible, model: None, sprung: None });
+        // The unit as it first stands.
+        let fresh = || Standing {
+            cell,
+            unit: entry.unit,
+            visit,
+            count: crate::skill_units::COUNT_AT_FIRST,
+            ticked: now(),
+            launched: false,
+            pulse: None,
+            seen: entry.visible,
+            model: None,
+            sprung: None
+        };
+        let standing = state.grounds.units.entry(entry.id).and_modify(|standing| standing.cell = cell).or_insert(fresh());
         if standing.visit != visit {
-            *standing = Standing { cell, unit: entry.unit, visit, count: crate::skill_units::COUNT_AT_FIRST, ticked: now(), launched: false, pulse: None, seen: entry.visible, model: None, sprung: None };
+            *standing = fresh();
         }
         if let (true, Some(scene)) = (standing.shows_as(entry.unit, entry.visible), &mut state.scene) {
             scene.models.lower(entry.id);
@@ -179,7 +192,12 @@ fn ended(state: &mut State, id: u32) {
 /// effect when it is due. (After a long pause the ticks missed are not lived through one by one.)
 pub(super) fn step(state: &mut State, time: f64) {
     let visit = state.entered;
-    let stale: Vec<u32> = state.grounds.units.iter().filter(|(_, standing)| standing.visit != visit).map(|(id, _)| *id).chain(state.grounds.spots.iter().filter(|(_, spot)| spot.1 != visit || spot.2 <= time).map(|(id, _)| *id)).collect();
+    let stale: Vec<u32> = state.grounds.units
+        .iter()
+        .filter(|(_, standing)| standing.visit != visit)
+        .map(|(id, _)| *id)
+        .chain(state.grounds.spots.iter().filter(|(_, spot)| spot.1 != visit || spot.2 <= time).map(|(id, _)| *id))
+        .collect();
     for id in stale {
         state.grounds.units.remove(&id);
         state.grounds.spots.remove(&id);

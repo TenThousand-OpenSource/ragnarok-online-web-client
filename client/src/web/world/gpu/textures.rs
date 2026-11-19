@@ -29,7 +29,10 @@ impl Gpu {
         self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(picture) }, wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(sampler) }],
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(picture) },
+                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(sampler) }
+            ],
         })
     }
 
@@ -54,8 +57,14 @@ impl Gpu {
             floats.extend(vertex.light_uv);
             floats.extend(vertex.colour);
         }
-        let vertices = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(&floats), usage: wgpu::BufferUsages::VERTEX });
-        let light = self.texture(mesh.light_atlas_size.0.max(1), mesh.light_atlas_size.1.max(1), if mesh.light_atlas.is_empty() { &[0, 0, 0, 255] } else { &mesh.light_atlas });
+        let vertices = self.device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(&floats), usage: wgpu::BufferUsages::VERTEX }
+        );
+        let light = self.texture(
+            mesh.light_atlas_size.0.max(1),
+            mesh.light_atlas_size.1.max(1),
+            if mesh.light_atlas.is_empty() { &[0, 0, 0, 255] } else { &mesh.light_atlas }
+        );
         let layout = self.ground_pipeline.get_bind_group_layout(1);
         let mut batches = Vec::new();
         for (index, triangles) in mesh.by_texture.iter().enumerate() {
@@ -75,7 +84,11 @@ impl Gpu {
                     wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::TextureView(&light) },
                 ],
             });
-            let indices = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(triangles), usage: wgpu::BufferUsages::INDEX });
+            let indices = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::cast_slice(triangles),
+                usage: wgpu::BufferUsages::INDEX
+            });
             batches.push((indices, triangles.len() as u32, bind));
         }
         Ground { vertices, batches }
@@ -104,7 +117,10 @@ impl Gpu {
         }
         let picture = figure::picture(key)?;
         let canvas = &picture.canvas;
-        let made = EffectSprite { binds: self.effect_binds(canvas.width as u32, canvas.height as u32, &canvas.rgba, &self.pixel_sampler), size: (canvas.width as f32, canvas.height as f32) };
+        let made = EffectSprite {
+            binds: self.effect_binds(canvas.width as u32, canvas.height as u32, &canvas.rgba, &self.pixel_sampler),
+            size: (canvas.width as f32, canvas.height as f32)
+        };
         self.effect_sprites.insert(key.clone(), made.clone());
         Some(made)
     }

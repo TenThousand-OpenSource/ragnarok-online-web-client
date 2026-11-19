@@ -32,8 +32,14 @@ impl App {
         }
         self.companion_runs(Kind::Homunculus);
         self.companion_runs(Kind::Mercenary);
-        let homunculus = self.homunculus.info.as_ref().filter(|_| self.homunculus.out).map_or((0, (0, 0)), |info| (self.homunculus.unit, (info.hp, info.max_hp)));
-        let mercenary = self.mercenary.info.as_ref().filter(|_| self.mercenary.out).map_or((0, (0, 0)), |info| (info.unit, (i64::from(info.hp), i64::from(info.max_hp))));
+        let homunculus = self.homunculus.info.as_ref().filter(|_| self.homunculus.out).map_or(
+            (0, (0, 0)),
+            |info| (self.homunculus.unit, (info.hp, info.max_hp))
+        );
+        let mercenary = self.mercenary.info.as_ref().filter(|_| self.mercenary.out).map_or(
+            (0, (0, 0)),
+            |info| (info.unit, (i64::from(info.hp), i64::from(info.max_hp)))
+        );
         world::companions([homunculus.0, mercenary.0], [homunculus.1, mercenary.1]);
         self.ai_wakes();
     }
@@ -62,8 +68,12 @@ impl App {
         if changed {
             self.ai.of[kind as usize] = Default::default();
             match (kind, job.is_some()) {
-                (Kind::Homunculus, false) => (self.homunculus.open, self.homunculus.skills_open, self.homunculus.asks, self.homunculus.marked) = (false, false, None, None),
-                (Kind::Mercenary, false) => (self.mercenary.open, self.mercenary.skills_open, self.mercenary.asks, self.mercenary.marked) = (false, false, false, None),
+                (Kind::Homunculus, false) =>
+                    (self.homunculus.open, self.homunculus.skills_open, self.homunculus.asks, self.homunculus.marked) =
+                        (false, false, None, None),
+                (Kind::Mercenary, false) =>
+                    (self.mercenary.open, self.mercenary.skills_open, self.mercenary.asks, self.mercenary.marked) =
+                        (false, false, false, None),
                 _ => {}
             }
             self.render();
@@ -121,7 +131,12 @@ impl App {
             return None;
         }
         let hero = |name: u16| self.hero.params.get(&name).copied().unwrap_or(0);
-        let owner_life = Life { hp: hero(packets::parameter::HP), max_hp: hero(packets::parameter::MAX_HP), sp: hero(packets::parameter::SP), max_sp: hero(packets::parameter::MAX_SP) };
+        let owner_life = Life {
+            hp: hero(packets::parameter::HP),
+            max_hp: hero(packets::parameter::MAX_HP),
+            sp: hero(packets::parameter::SP),
+            max_sp: hero(packets::parameter::MAX_SP)
+        };
         let (life, range, attack_delay, skills) = match kind {
             Kind::Homunculus => {
                 let info = self.homunculus.info.as_ref()?;
@@ -129,7 +144,12 @@ impl App {
             }
             Kind::Mercenary => {
                 let info = self.mercenary.info.as_ref()?;
-                (Life { hp: i64::from(info.hp), max_hp: i64::from(info.max_hp), sp: i64::from(info.sp), max_sp: i64::from(info.max_sp) }, i32::from(info.range), info.stats[7], &self.mercenary.skills)
+                (
+                    Life { hp: i64::from(info.hp), max_hp: i64::from(info.max_hp), sp: i64::from(info.sp), max_sp: i64::from(info.max_sp) },
+                    i32::from(info.range),
+                    info.stats[7],
+                    &self.mercenary.skills
+                )
             }
         };
         Some(Sight {

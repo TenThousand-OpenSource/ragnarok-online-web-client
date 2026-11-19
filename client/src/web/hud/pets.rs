@@ -53,11 +53,23 @@ impl App {
         }
         window.push_str(&text(100, 139, BLACK, tr(if pet.accessory == 0 { "Unequipped" } else { "Equipped" })));
         if self.pets.menu {
-            let rows: String = [("Feed Pet", Order::Feed), ("Performance", Order::Perform), ("Unequip Accessory", Order::Unequip), ("Return to Egg", Order::Egg)]
+            let rows: String = [
+                ("Feed Pet", Order::Feed),
+                ("Performance", Order::Perform),
+                ("Unequip Accessory", Order::Unequip),
+                ("Return to Egg", Order::Egg)
+            ]
                 .iter()
-                .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding-left:3px;cursor:default" {}>{}</div>"#, pressed(Press::Do(*order)), escape(tr(words))))
+                .map(|(words, order)| format!(
+                    r#"<div class="t opt" style="height:16px;line-height:16px;padding-left:3px;cursor:default" {}>{}</div>"#,
+                    pressed(Press::Do(*order)),
+                    escape(tr(words))
+                ))
                 .collect();
-            window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:content-box;z-index:2">{rows}</div>"#, at(160, 44, 110, 64)));
+            window.push_str(&format!(
+                r#"<div class="a" style="{};background:#fff;border:1px solid #9a9a9a;box-sizing:content-box;z-index:2">{rows}</div>"#,
+                at(160, 44, 110, 64)
+            ));
         }
         window
     }
@@ -73,7 +85,10 @@ impl App {
     /// The menu the right button opens on the player's own pet (the client's `OpenActorMenu`): its status,
     /// feeding, a trick, the accessory off, back into the egg; each a row 16 high, as the pet window's own.
     pub(in crate::web) fn pet_menu(&self) -> String {
-        [("Check Pet Status", Order::Info), ("Feed Pet", Order::Feed), ("Performance", Order::Perform), ("Unequip Accessory", Order::Unequip), ("Return to Egg", Order::Egg)]
+        [
+            ("Check Pet Status", Order::Info), ("Feed Pet", Order::Feed), ("Performance", Order::Perform),
+            ("Unequip Accessory", Order::Unequip), ("Return to Egg", Order::Egg)
+        ]
             .iter()
             .map(|(words, order)| menu_row(tr(words), Press::Do(*order)))
             .collect()

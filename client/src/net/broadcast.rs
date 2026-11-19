@@ -3,6 +3,7 @@
 //! how they are cut into the lines shown across the top of the screen (`UIBroadcastBalloon`).
 
 use super::bytes::{name_at, word};
+use crate::broadcast::wrapped;
 
 /// ZC_BROADCAST (0x009a): `u16 length, char words[]`.
 pub const ZC_BROADCAST: u16 = 0x009a;
@@ -99,31 +100,6 @@ pub fn coloured(packet: &[u8]) -> Option<Announcement> {
     Some(Announcement { lines: vec![words.clone()], words, colour: [packet[6], packet[5], packet[4]], kind: crate::said::ANNOUNCED, from: None, letters })
 }
 
-/// Words cut into lines of so many letters (`WrapPlainText`): a line ends where the last blank before its
-/// end was, or at its end when it has none; a new line in the words ends one too.
-pub fn wrapped(words: &str, width: usize) -> Vec<String> {
-    let letters: Vec<char> = words.chars().collect();
-    let (mut lines, mut begin, mut last_blank, mut at) = (Vec::new(), 0, 0, 0);
-    while at < letters.len() {
-        at += 1;
-        while letters.get(at) == Some(&' ') {
-            at += 1;
-            last_blank = at;
-        }
-        let new_line = letters.get(at) == Some(&'\n');
-        if at - begin >= width || new_line {
-            let end = if new_line || last_blank <= begin { at } else { last_blank };
-            lines.push(letters[begin..end].iter().collect::<String>());
-            begin = if new_line { at + 1 } else { end };
-            at = at.max(begin);
-        }
-    }
-    if begin < letters.len() {
-        lines.push(letters[begin..].iter().collect());
-    }
-    lines.into_iter().map(|line: String| line.trim_end().to_owned()).filter(|line| !line.is_empty()).collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -151,7 +127,10 @@ mod tests {
         // The six letters are read as the client's `sscanf("%lx")` reads them: up to the first that is no
         // digit, after a sign if one stands; what is no number is black.
         let colour = |letters: &[u8]| plain(&broadcast(&[b"tool", letters, b"Hello"].concat())).unwrap().colour;
-        assert_eq!((colour(b"FF80zz"), colour(b"+0FF00"), colour(b"zzzzzz"), colour(b"0x12zz"), colour(b" ff   ")), ([0, 255, 128], [0, 255, 0], [0, 0, 0], [0, 0, 18], [0, 0, 255]));
+        assert_eq!(
+            (colour(b"FF80zz"), colour(b"+0FF00"), colour(b"zzzzzz"), colour(b"0x12zz"), colour(b" ff   ")),
+            ([0, 255, 128], [0, 255, 0], [0, 0, 0], [0, 0, 18], [0, 0, 255])
+        );
         assert_eq!((colour(b"-00001"), colour(b"+zzzzz")), ([255, 255, 255], [0, 0, 0]));
         let system = plain(&broadcast(b"ssssHello")).unwrap();
         assert_eq!((system.words.as_str(), system.kind), ("Hello", crate::said::SYSTEM));
@@ -180,13 +159,5 @@ mod tests {
         assert_eq!((said.words.as_str(), said.colour, said.letters), ("Hello", [0x11, 0x22, 0x33], 20));
         packet[10] = 0;
         assert_eq!(coloured(&packet).unwrap().letters, LETTERS);
-    }
-
-    #[test]
-    fn long_words_are_cut_at_blanks() {
-        assert_eq!(wrapped("one two three four", 9), vec!["one two", "three", "four"]);
-        assert_eq!(wrapped("abcdefghij", 4), vec!["abcd", "efgh", "ij"]);
-        assert_eq!(wrapped("one\ntwo", 72), vec!["one", "two"]);
-        assert_eq!(wrapped("", 72), Vec::<String>::new());
     }
 }

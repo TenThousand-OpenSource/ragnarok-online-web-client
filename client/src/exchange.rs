@@ -22,7 +22,10 @@ mod tests {
 
     #[test]
     fn zeny_is_coloured_by_how_much_it_is() {
-        assert_eq!((zeny_colour(0), zeny_colour(99), zeny_colour(5_000), zeny_colour(10_000_000), zeny_colour(999_999)), ("#00ffff", "#c800c8", "#ffff00", "#ff0000", "#0000ff"));
+        assert_eq!(
+            (zeny_colour(0), zeny_colour(99), zeny_colour(5_000), zeny_colour(10_000_000), zeny_colour(999_999)),
+            ("#00ffff", "#c800c8", "#ffff00", "#ff0000", "#0000ff")
+        );
     }
 
     #[test]

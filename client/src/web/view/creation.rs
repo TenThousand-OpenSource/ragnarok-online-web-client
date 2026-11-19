@@ -44,7 +44,10 @@ impl App {
     /// this project's.
     fn creation_races(&self) -> String {
         let mut inner = String::new();
-        for (y, picture, race, name, about) in [(36, "human", Race::Human, Key::Human, Key::HumanAbout), (202, "doram", Race::Doram, Key::Doram, Key::DoramAbout)] {
+        for (y, picture, race, name, about) in [
+            (36, "human", Race::Human, Key::Human, Key::HumanAbout),
+            (202, "doram", Race::Doram, Key::Doram, Key::DoramAbout)
+        ] {
             let lit = if (race == Race::Doram) == self.make.doram { "on" } else { "off" };
             let offered = race == Race::Human || data::renewal();
             inner.push_str(&format!(
@@ -69,7 +72,11 @@ impl App {
         }
         inner.push_str(&button(&at(426, 179, 22, 23), &states_of(&format!("{FOLDER}/bt_leftturn")), &pressed(Press::Turn(Turn::Left)), ""));
         inner.push_str(&button(&at(551, 179, 22, 23), &states_of(&format!("{FOLDER}/bt_rightturn")), &pressed(Press::Turn(Turn::Right)), ""));
-        inner.push_str(&format!(r#"<canvas class="a pass" id="pc-make" width="{}" height="{}" style="left:420px;top:91px"></canvas>"#, figure::WIDTH, figure::HEIGHT));
+        inner.push_str(&format!(
+            r#"<canvas class="a pass" id="pc-make" width="{}" height="{}" style="left:420px;top:91px"></canvas>"#,
+            figure::WIDTH,
+            figure::HEIGHT
+        ));
         inner.push_str(&format!(r#"<input class="a in" id="char-name" maxlength="23" autocomplete="off" autofocus style="{}">"#, at(440, 268, 120, 20)));
         inner
     }
@@ -78,7 +85,12 @@ impl App {
     /// its picture.
     fn creation_hair_styles(&self) -> String {
         let make = &self.make;
-        let mut inner = format!(r#"<div class="a" style="{};{};color:#404040">{}</div>"#, at(609, 44, 150, 14), Font(0, 11, true).style(), self.text(Key::HairStyle));
+        let mut inner = format!(
+            r#"<div class="a" style="{};{};color:#404040">{}</div>"#,
+            at(609, 44, 150, 14),
+            Font(0, 11, true).style(),
+            self.text(Key::HairStyle)
+        );
         let thumbnails = match (make.doram, make.sex == 1) {
             (false, true) => "",
             (false, false) => "_girl",
@@ -106,10 +118,20 @@ impl App {
 
     /// The hair colours under their title, five to a row.
     fn creation_hair_colours(&self) -> String {
-        let mut inner = format!(r#"<div class="a" style="{};{};color:#404040">{}</div>"#, at(609, 285, 150, 14), Font(0, 11, true).style(), self.text(Key::HairColor));
+        let mut inner = format!(
+            r#"<div class="a" style="{};{};color:#404040">{}</div>"#,
+            at(609, 285, 150, 14),
+            Font(0, 11, true).style(),
+            self.text(Key::HairColor)
+        );
         for colour in 0..HAIR_COLOURS {
             let pictures = chosen_states(&format!("{FOLDER}/color{:02}", colour + 1), colour == self.make.hair_colour);
-            inner.push_str(&button(&at(i32::from(colour % 5) * 27 + 619, i32::from(colour / 5) * 24 + 306, 22, 22), &pictures, &pressed(Press::Colour(colour)), ""));
+            inner.push_str(&button(
+                &at(i32::from(colour % 5) * 27 + 619, i32::from(colour / 5) * 24 + 306, 22, 22),
+                &pictures,
+                &pressed(Press::Colour(colour)),
+                ""
+            ));
         }
         inner
     }
@@ -118,8 +140,17 @@ impl App {
     fn creation_buttons(&self) -> String {
         let large = Font(0, 14, true).style();
         let make_pictures = states_of(&format!("{FOLDER}/bt_make"));
-        let mut inner = button(&format!("{};{large}", at(25, 379, 152, 27)), &make_pictures, &format!(r#"{} data-big"#, pressed(Press::Back)), self.text(Key::Return));
-        inner.push_str(&format!(r#"<button class="a b" data-big style="{};{large};{make_pictures}">{}</button>"#, at(616, 379, 152, 27), self.text(Key::Create)));
+        let mut inner = button(
+            &format!("{};{large}", at(25, 379, 152, 27)),
+            &make_pictures,
+            &format!(r#"{} data-big"#, pressed(Press::Back)),
+            self.text(Key::Return)
+        );
+        inner.push_str(&format!(
+            r#"<button class="a b" data-big style="{};{large};{make_pictures}">{}</button>"#,
+            at(616, 379, 152, 27),
+            self.text(Key::Create)
+        ));
         inner.push_str(&button(&at(768, 9, 17, 16), &states_of(&format!("{FOLDER}/bt_close")), &pressed(Press::Back), ""));
         inner
     }

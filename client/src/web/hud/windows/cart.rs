@@ -6,7 +6,13 @@ use crate::press::cart::Press;
 
 /// The cart's window, 280 by 120, 200 across the client's stage and 120 of 480 down (`UIWindowMgr::
 /// EnsureWindow`, `WID_MERCHANTITEMWND`).
-pub(in crate::web) static CART: Window = Window::usual("cart", |app| app.cart.open, |_, view| staged(view, 200, 120, 280, 120), App::cart_window, |app| app.pressed(Press::Window));
+pub(in crate::web) static CART: Window = Window::usual(
+    "cart",
+    |app| app.cart.open,
+    |_, view| staged(view, 200, 120, 280, 120),
+    App::cart_window,
+    |app| app.pressed(Press::Window)
+);
 
 /// How many of a thing go into the cart or out of it.
 pub(in crate::web) static CART_COUNT: Window = Window::count("cart-count", |app| app.cart.counting.is_some(), App::cart_count_window);

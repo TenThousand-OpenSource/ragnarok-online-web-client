@@ -23,7 +23,12 @@ impl App {
             window.push_str(&press_button(356, 25, 11, "basic_interface/arw_left.bmp", "basic_interface/arw_left.bmp", Press::Page(Step::Less)));
             window.push_str(&press_button(416, 25, 11, "basic_interface/arw_right.bmp", "basic_interface/arw_right.bmp", Press::Page(Step::More)));
             // Which page of how many, in the smaller text in bold (`UIHotKeyWnd::Paint`: (0, 11), bold).
-            window.push_str(&format!(r#"<div class="a t" style="{};{};text-align:center">{} / {pages}</div>"#, at(367, 23, 49, 14), SMALL_BOLD.style(), page + 1));
+            window.push_str(&format!(
+                r#"<div class="a t" style="{};{};text-align:center">{} / {pages}</div>"#,
+                at(367, 23, 49, 14),
+                SMALL_BOLD.style(),
+                page + 1
+            ));
         }
         window.push_str(&self.key_notice());
         window.push_str(&picture_press(5, 407, "btn_reset", Press::Reset));
@@ -48,15 +53,23 @@ impl App {
             let wide = if tab == 1 { 84 } else { 72 };
             let open = tab == self.keys.tab;
             let press = pressed(Press::Tab(tab));
-            window.push_str(&format!(
-                r#"<div class="a t" style="{};text-align:center;line-height:17px;cursor:default;border:1px solid #c0c0c0;border-bottom:0;box-sizing:border-box;background:{}" {press}>{}</div>"#,
-                at(x, 20, wide, if open { 20 } else { 17 }),
-                if open { "#fff" } else { "#e8e8e8" },
-                escape(tr(name))
-            ));
+            window.push_str(&[
+                format!(
+                    r#"<div class="a t" style="{};text-align:center;line-height:17px;cursor:default;border:1px solid "#,
+                    at(x, 20, wide, if open { 20 } else { 17 })
+                ),
+                format!(
+                    r#"#c0c0c0;border-bottom:0;box-sizing:border-box;background:{}" {press}>{}</div>"#,
+                    if open { "#fff" } else { "#e8e8e8" },
+                    escape(tr(name))
+                )
+            ].concat());
             x += wide;
         }
-        window.push_str(&format!(r#"<div class="a" style="{};border:1px solid #c0c0c0;box-sizing:border-box;pointer-events:none"></div>"#, at(3, 40, 430, 360)));
+        window.push_str(&format!(
+            r#"<div class="a" style="{};border:1px solid #c0c0c0;box-sizing:border-box;pointer-events:none"></div>"#,
+            at(3, 40, 430, 360)
+        ));
         window.push_str(&fill(218, 40, 1, 360, "#c0c0c0"));
         window
     }
@@ -80,27 +93,34 @@ impl App {
             let (left, y) = (if row < 18 { 3 } else { 218 }, 40 + (row % 18) as i32 * 20);
             let picked = self.keys.row == Some(row);
             let press = pressed(Press::Row(row));
-            rows.push_str(&format!(
-                r#"<div class="a t" style="{};line-height:19px;text-align:center;overflow:hidden;white-space:nowrap;cursor:default;border-bottom:1px solid #c0c0c0;box-sizing:border-box;background:{}" {press}>{}</div><div class="a t" style="{};line-height:19px;text-align:center;overflow:hidden;white-space:nowrap;cursor:default;border-left:1px solid #c0c0c0;border-bottom:1px solid #c0c0c0;box-sizing:border-box;background:{tint}" {press}>{}</div>"#,
-                at(left, y, 135, 20),
-                if picked { "#ffe1e1" } else { "transparent" },
-                escape(tr(&name)),
-                at(left + 135, y, 80, 20),
-                escape(&keys)
-            ));
+            rows.push_str(&[
+                format!(r#"<div class="a t" style="{};line-height:19px;text-align:center;overflow:hidden;white-space:nowrap;"#, at(left, y, 135, 20)),
+                format!(
+                    r#"cursor:default;border-bottom:1px solid #c0c0c0;box-sizing:border-box;background:{}" {press}>{}</div>"#,
+                    if picked { "#ffe1e1" } else { "transparent" },
+                    escape(tr(&name))
+                ),
+                format!(r#"<div class="a t" style="{};line-height:19px;text-align:center;overflow:hidden;white-space:nowrap;"#, at(left + 135, y, 80, 20)),
+                format!(r#"cursor:default;border-left:1px solid #c0c0c0;border-bottom:1px solid #c0c0c0;box-sizing:border-box;"#),
+                format!(r#"background:{tint}" {press}>{}</div>"#, escape(&keys))
+            ].concat());
         }
         rows
     }
 
     /// What the window says: how a key is set while a row is picked, or why the last key was not taken.
     fn key_notice(&self) -> String {
-        let says = self.keys.notice.clone().or_else(|| self.keys.row.map(|_| tr("Press a key to assign. Pressing 'ESC' will remove the assigned key.").to_owned()));
+        let says = self.keys.notice.clone().or_else(
+            || self.keys.row.map(|_| tr("Press a key to assign. Pressing 'ESC' will remove the assigned key.").to_owned())
+        );
         let (Some(says), Some(row)) = (says, self.keys.row) else { return String::new() };
         let y = 40 + ((row % 18) as i32 - 1).max(0) * 20 + if row % 18 == 0 { 20 } else { 0 };
-        format!(
-            r#"<div class="a t" style="left:18px;top:{y}px;width:400px;text-align:center;color:{};background:rgba(0,0,0,.75);line-height:20px;pointer-events:none;z-index:2">{}</div>"#,
-            if self.keys.notice.is_some() { "#ffff00" } else { "#fff" },
-            escape(&says)
-        )
+        [
+            format!(
+                r#"<div class="a t" style="left:18px;top:{y}px;width:400px;text-align:center;color:{};"#,
+                if self.keys.notice.is_some() { "#ffff00" } else { "#fff" }
+            ),
+            format!(r#"background:rgba(0,0,0,.75);line-height:20px;pointer-events:none;z-index:2">{}</div>"#, escape(&says))
+        ].concat()
     }
 }

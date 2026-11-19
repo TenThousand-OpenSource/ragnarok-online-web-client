@@ -68,7 +68,10 @@ async fn database() -> MySqlPool {
 
 async fn remove_account(userid: &str) {
     let db = database().await;
-    sqlx::query("DELETE FROM `roweb_password_reset` WHERE `account_id` IN (SELECT `account_id` FROM `login` WHERE `userid` = ?)").bind(userid).execute(&db).await.ok();
+    sqlx::query("DELETE FROM `roweb_password_reset` WHERE `account_id` IN (SELECT `account_id` FROM `login` WHERE `userid` = ?)")
+        .bind(userid)
+        .execute(&db).await
+        .ok();
     sqlx::query("DELETE FROM `login` WHERE `userid` = ?").bind(userid).execute(&db).await.unwrap();
 }
 
@@ -76,7 +79,13 @@ async fn remove_account(userid: &str) {
 async fn can_log_in(userid: &str, password: &str) -> bool {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
-    let router = bridge::router(Bridge { host: "127.0.0.1".into(), ports: vec![LOGIN_PORT], login_guard: None, connections_per_minute: 10_000, lag: Default::default() });
+    let router = bridge::router(Bridge {
+        host: "127.0.0.1".into(),
+        ports: vec![LOGIN_PORT],
+        login_guard: None,
+        connections_per_minute: 10_000,
+        lag: Default::default()
+    });
     tokio::spawn(async move { axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap() });
     let (mut socket, _) = tokio_tungstenite::connect_async(format!("ws://{address}/ws/{LOGIN_PORT}")).await.unwrap();
 
@@ -109,7 +118,10 @@ async fn letters_to(email: &str, expected: usize) -> Vec<String> {
     let mut ids = Vec::new();
     for _ in 0..30 {
         let found = mailbox(&format!("/api/v1/search?query=to:{email}")).await;
-        ids = found["messages"].as_array().map(|messages| messages.iter().filter_map(|message| message["ID"].as_str().map(str::to_owned)).collect()).unwrap_or_default();
+        ids = found["messages"]
+            .as_array()
+            .map(|messages| messages.iter().filter_map(|message| message["ID"].as_str().map(str::to_owned)).collect())
+            .unwrap_or_default();
         if ids.len() >= expected {
             break;
         }
@@ -226,7 +238,8 @@ async fn live_a_newer_link_replaces_the_older_and_links_expire() {
     assert_eq!(post(&api, "/api/reset", &[("token", &first), ("password", "new-Pass22")]).await.0, StatusCode::BAD_REQUEST);
 
     // The second link, once its time has passed.
-    sqlx::query("UPDATE `roweb_password_reset` SET `expires_at` = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE `account_id` = (SELECT `account_id` FROM `login` WHERE `userid` = ?)")
+    sqlx::query("UPDATE `roweb_password_reset` SET `expires_at` = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE \
+        `account_id` = (SELECT `account_id` FROM `login` WHERE `userid` = ?)")
         .bind(&id)
         .execute(&database().await)
         .await

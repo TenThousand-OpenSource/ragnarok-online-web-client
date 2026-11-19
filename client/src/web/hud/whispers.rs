@@ -23,21 +23,38 @@ impl App {
         let Some(talk) = self.whispers.talks.get(place).and_then(Option::as_ref) else { return String::new() };
         let (width, height) = SIZE;
         let lines: String = talk.lines.iter().map(|(words, colour)| log_line(colour, &escape(words))).collect();
-        format!(
-            r#"<div class="a" style="{};background:rgba(0,0,0,.4);border:1px solid #c0c0c0;border-radius:3px;box-sizing:border-box"></div>
+        [
+            format!(
+                r#"<div class="a" style="{};background:rgba(0,0,0,.4);border:1px solid #c0c0c0;border-radius:3px;box-sizing:border-box"></div>
                <div class="a" style="{};background:rgba(158,182,228,.27)"></div>
                {}{}
-               <div class="a t" style="{};padding:0 3px;box-sizing:border-box;display:flex;flex-direction:column-reverse;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;white-space:normal;line-height:14px;user-select:text"><div>{lines}</div></div>
-               <div class="a" style="{};background:#c0c0c0"></div>
+               "#,
+                at(0, 0, width, height),
+                at(1, 1, width - 2, 17),
+                text(10, 3, "#fff", &talk.title),
+                cross(width, Press::Close(place))
+            ),
+            format!(
+                r#"<div class="a t" style="{};padding:0 3px;box-sizing:border-box;display:flex;flex-direction:column-reverse;"#,
+                at(1, 17, width - 2, height - 38)
+            ),
+            format!(
+                r#"overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;white-space:normal;line-height:14px;user-select:text"><div>{lines}</div></div>
+               "#
+            ),
+            format!(
+                r#"<div class="a" style="{};background:#c0c0c0"></div>
                {}"#,
-            at(0, 0, width, height),
-            at(1, 1, width - 2, 17),
-            text(10, 3, "#fff", &talk.title),
-            cross(width, Press::Close(place)),
-            at(1, 17, width - 2, height - 38),
-            at(1, height - 20, width - 2, 1),
-            typed_line(&sent(Form::Whisper(place)), &at(0, height - 19, width, 19), &format!("whisper-input-{place}"), &at(3, 1, width - 30, 16), "color:#fff"),
-        )
+                at(1, height - 20, width - 2, 1),
+                typed_line(
+                    &sent(Form::Whisper(place)),
+                    &at(0, height - 19, width, 19),
+                    &format!("whisper-input-{place}"),
+                    &at(3, 1, width - 30, 16),
+                    "color:#fff"
+                )
+            )
+        ].concat()
     }
 
     /// The menu the right button opens on the window (`UIWhisperWnd::SendMsg`, `UM_MAKEMENU`): asking the

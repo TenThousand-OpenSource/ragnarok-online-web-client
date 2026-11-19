@@ -8,7 +8,11 @@ impl App {
     pub(super) fn banned(&mut self, packet: &[u8]) {
         // The account is in use elsewhere. The servers are throwing that session out and refuse this login
         // meanwhile: it is tried again in a moment, so the newer login is the one that gets in.
-        if matches!(self.server, Server::Login | Server::Char) && packets::ban_reason(packet) == Some(STILL_LOGGED_IN) && self.relogin.is_some() && self.login_tries < LOGIN_RETRIES {
+        if matches!(self.server, Server::Login | Server::Char)
+            && packets::ban_reason(packet) == Some(STILL_LOGGED_IN)
+            && self.relogin.is_some()
+            && self.login_tries < LOGIN_RETRIES
+        {
             self.socket = None;
             self.generation += 1;
             self.server = Server::None;

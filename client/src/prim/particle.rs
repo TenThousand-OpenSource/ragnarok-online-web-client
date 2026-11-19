@@ -5,7 +5,8 @@
 //!
 //! Of `Prim3DParticle` the plain flight is here; its end on reaching the place the effect aims at
 //! (`pattern & 0x100`) is in `master.rs`, and its turn against the camera's (`0x20`) is `Prim::rolled`
-//! (`facing.rs`). How the layers of its sprite's frame are drawn is `crate::sprite::layer_quads`. Not ported, as none of the effects ported uses them: its wandering (`pattern & 2`, `4`,
+//! (`facing.rs`). How the layers of its sprite's frame are drawn is `crate::sprite::layer_quads`. Not ported, as none
+//! of the effects ported uses them: its wandering (`pattern & 2`, `4`,
 //! `8`), its speeds given along the three directions (`0x400`), the change of its speeds at a tick
 //! (`changePoint`), the wait before it moves (`fadeInCnt`), and a size that changes faster and faster
 //! (`sizeAccel`). Of `AnimMotion`, staying on the last frame (`pattern & 0x800`) is not ported either.
@@ -24,7 +25,11 @@ pub struct Seen {
 impl Prim {
     /// Whether it is of a kind that shows a sprite.
     pub fn shows_sprite(&self) -> bool {
-        matches!(self.kind, Shape::Particle3d | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer | Shape::Petal { .. })
+        matches!(
+            self.kind,
+            Shape::Particle3d | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d
+            | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer | Shape::Petal { .. }
+        )
     }
 
     /// Where a point so far along its own forward is, turned as it is, in the world's directions (east, up,
@@ -124,6 +129,14 @@ impl Prim {
     pub fn seen(&self) -> Vec<Seen> {
         let count = self.trail.len() as f32;
         let older = |index: usize| index as f32;
-        self.trail.iter().enumerate().map(|(index, at)| Seen { at: *at, scale: self.size - self.size / count * older(index) * 0.5, alpha: self.alpha - self.alpha / count * older(index) }).collect()
+        self.trail
+            .iter()
+            .enumerate()
+            .map(|(index, at)| Seen {
+                at: *at,
+                scale: self.size - self.size / count * older(index) * 0.5,
+                alpha: self.alpha - self.alpha / count * older(index)
+            })
+            .collect()
     }
 }

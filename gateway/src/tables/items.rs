@@ -23,13 +23,19 @@ pub fn translated(folder: &std::path::Path, prefix: &str) -> Translated {
         if !name.starts_with(prefix) || !name.ends_with(".json") {
             continue;
         }
-        let parsed = std::fs::read_to_string(file.path()).map_err(|error| error.to_string()).and_then(|text| serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&text).map_err(|error| error.to_string()));
+        let parsed = std::fs::read_to_string(file.path()).map_err(|error| error.to_string()).and_then(
+            |text| serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&text).map_err(|error| error.to_string())
+        );
         match parsed {
             Ok(entries) => {
                 for (id, entry) in entries {
                     let Ok(id) = id.parse::<u32>() else { continue };
                     let name = entry.get("name").and_then(|name| name.as_str()).unwrap_or_default().to_owned();
-                    let description = entry.get("description").and_then(|lines| lines.as_array()).map(|lines| lines.iter().filter_map(|line| line.as_str().map(str::to_owned)).collect()).unwrap_or_default();
+                    let description = entry
+                        .get("description")
+                        .and_then(|lines| lines.as_array())
+                        .map(|lines| lines.iter().filter_map(|line| line.as_str().map(str::to_owned)).collect())
+                        .unwrap_or_default();
                     all.insert(id, (name, description));
                 }
             }
@@ -107,12 +113,20 @@ impl Items {
                 let line = line.trim_start();
                 // What the database says of the item last named, as far as a player wants to know.
                 if let (Some(item), Some((key, value))) = (last, line.split_once(':')) {
-                    if matches!(key, "Type" | "SubType" | "Buy" | "Sell" | "Weight" | "Attack" | "MagicAttack" | "Defense" | "Range" | "Slots" | "WeaponLevel" | "ArmorLevel" | "EquipLevelMin" | "View")
+                    if matches!(
+                        key,
+                        "Type" | "SubType" | "Buy" | "Sell" | "Weight" | "Attack" | "MagicAttack" | "Defense" | "Range"
+                        | "Slots" | "WeaponLevel" | "ArmorLevel" | "EquipLevelMin" | "View"
+                    )
                         && !value.trim().is_empty()
                     {
                         let value = value.trim();
                         // Weight is kept in tenths.
-                        let value = if key == "Weight" { value.parse::<f64>().map_or(value.to_owned(), |weight| format!("{}", weight / 10.0)) } else { value.to_owned() };
+                        let value = if key == "Weight" {
+                            value.parse::<f64>().map_or(value.to_owned(), |weight| format!("{}", weight / 10.0))
+                        } else {
+                            value.to_owned()
+                        };
                         self.1.entry(item).or_default().facts.push((key.to_owned(), value));
                     }
                 }
@@ -238,7 +252,10 @@ impl Items {
     pub fn russian_json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
         let labelled = |lines: &[String]| lines.iter().map(|line| russian_line(line, &self.5)).collect::<Vec<String>>();
         let shown = |id: u32, name: &str, description: &[String]| match self.3.get(&id) {
-            Some((russian, lines)) => (if russian.is_empty() { name.to_owned() } else { russian.clone() }, if lines.is_empty() { labelled(description) } else { lines.clone() }),
+            Some((russian, lines)) => (
+                if russian.is_empty() { name.to_owned() } else { russian.clone() },
+                if lines.is_empty() { labelled(description) } else { lines.clone() }
+            ),
             None => (name.to_owned(), labelled(description)),
         };
         ids.filter_map(|id| self.given(id, &shown, &labelled)).collect::<serde_json::Map<String, serde_json::Value>>().into()
@@ -248,19 +265,34 @@ impl Items {
     /// "description", "facts", "unidentified": {"name", "resource", "description"} or null, "slots"}`. `shown`
     /// gives the name and the description it is shown by (from its ID and those of the table), `unknown` the
     /// description of it unidentified. None for an ID the table lacks.
-    fn given(&self, id: u32, shown: &dyn Fn(u32, &str, &[String]) -> (String, Vec<String>), unknown: &dyn Fn(&[String]) -> Vec<String>) -> Option<(String, serde_json::Value)> {
+    fn given(&self, id: u32, shown: &dyn Fn(u32, &str, &[String]) -> (String, Vec<String>), unknown: &dyn Fn(&[String]) -> Vec<String>) -> Option<(
+        String,
+        serde_json::Value
+    )> {
         let (name, resource) = self.0.get(&id)?;
         let (description, facts, slots) = self.1.get(&id).map_or((&[][..], &[][..], 0), |about| (&about.description[..], &about.facts[..], about.slots));
         let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
         let (name, description) = shown(id, name, description);
-        let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": unknown(lines) }));
-        Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified, "slots": slots })))
+        let unidentified = self.4.get(&id).map(
+            |(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": unknown(lines) })
+        );
+        Some((id.to_string(), serde_json::json!({
+            "name": name,
+            "resource": resource,
+            "description": description,
+            "facts": facts,
+            "unidentified": unidentified,
+            "slots": slots
+        })))
     }
 
     /// The Korean names and descriptions of the items with these IDs, as JSON: `{"<id>": {"name": …,
     /// "description": […]}}`.
     pub fn korean_json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
-        let found: serde_json::Map<String, serde_json::Value> = ids.filter_map(|id| self.2.get(&id).map(|(name, description)| (id.to_string(), serde_json::json!({ "name": name, "description": description })))).collect();
+        let found: serde_json::Map<String, serde_json::Value> = ids.filter_map(|id| self.2.get(&id).map(
+            |(name, description)| (id.to_string(), serde_json::json!({ "name": name, "description": description }))
+        ))
+            .collect();
         found.into()
     }
 

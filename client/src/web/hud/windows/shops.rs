@@ -20,7 +20,10 @@ pub(in crate::web) static TRADE: Window = Window {
 
 /// The shop's list, where the client first puts it (`ItemShopWndInfo::Reset`: 0, 120, 280 by 312). Escape
 /// leaves the shop, as the basket's Cancel does.
-pub(in crate::web) static SHOP: Window = Window::usual("shop", dealing, |_, _| framed(at(0, 120, 280, 312)), App::shop_window, |app| app.pressed(crate::press::shops::Press::Cancel));
+pub(in crate::web) static SHOP: Window =
+    Window::usual("shop", dealing, |_, _| framed(at(0, 120, 280, 312)), App::shop_window, |app| app.pressed(
+        crate::press::shops::Press::Cancel
+    ));
 
 /// The basket (`ItemPurchaseWndInfo::Reset`, `ItemSellWndInfo::Reset`: 280, 280, 280 by 152).
 pub(in crate::web) static SHOP_BASKET: Window = Window::usual(

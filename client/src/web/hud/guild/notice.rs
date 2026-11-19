@@ -19,13 +19,17 @@ impl App {
         let subject = crate::web::app::written("guild-subject").filter(|_| self.guild.master).unwrap_or_else(|| self.guild.subject.clone());
         let mut tab = [
             text(5, 67, BLACK, &format!("{}:", Self::words(515, "Title"))),
-            format!(r#"<input id="guild-subject" class="a in" style="{};background:{FIELD}" type="text" maxlength="59" autocomplete="off" value="{}"{locked}>"#, at(50, 66, WIDTH - 60, 16), escape(&subject)),
+            [
+                format!(r#"<input id="guild-subject" class="a in" style="{};background:{FIELD}" type="text" maxlength="59" "#, at(50, 66, WIDTH - 60, 16)),
+                format!(r#"autocomplete="off" value="{}"{locked}>"#, escape(&subject))
+            ].concat(),
             text(5, 86, BLACK, &Self::words(516, "Contents")),
-            format!(
-                r#"<textarea id="guild-notice" class="a in viewer" style="{};resize:none;background:{FIELD};line-height:15px;white-space:pre-wrap;word-break:break-all" maxlength="119" oninput="document.getElementById('guild-letters').textContent=new TextEncoder().encode(this.value).length"{locked}>{}</textarea>"#,
-                at(5, 104, WIDTH - 10, 156),
-                escape(&notice)
-            ),
+            [
+                format!(r#"<textarea id="guild-notice" class="a in viewer" style="{};resize:none;background:{FIELD};"#, at(5, 104, WIDTH - 10, 156)),
+                format!(r#"line-height:15px;white-space:pre-wrap;word-break:break-all" maxlength="119" "#),
+                format!(r#"oninput="document.getElementById('guild-letters').textContent=new "#),
+                format!(r#"TextEncoder().encode(this.value).length"{locked}>{}</textarea>"#, escape(&notice))
+            ].concat(),
             format!(r#"<div class="a t" style="right:7px;top:266px;color:{BLACK}">[<span id="guild-letters">{}</span>/119]</div>"#, notice.len()),
         ]
         .concat();

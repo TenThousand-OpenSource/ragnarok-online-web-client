@@ -55,7 +55,10 @@ pub fn figure(field: &str) -> f64 {
     if let Some(hex) = field.strip_prefix("0x").or_else(|| field.strip_prefix("0X")) {
         return u32::from_str_radix(hex, 16).map_or(0.0, f64::from);
     }
-    let end = field.char_indices().find(|&(at, character)| !(character.is_ascii_digit() || character == '.' || (at == 0 && (character == '-' || character == '+')))).map_or(field.len(), |(at, _)| at);
+    let end = field
+        .char_indices()
+        .find(|&(at, character)| !(character.is_ascii_digit() || character == '.' || (at == 0 && (character == '-' || character == '+'))))
+        .map_or(field.len(), |(at, _)| at);
     field[..end].parse().unwrap_or(0.0)
 }
 

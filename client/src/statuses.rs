@@ -94,10 +94,32 @@ pub fn time_left(seconds: u32, words: [&str; 3]) -> String {
     text
 }
 
+/// The picture of a state listed under a kind, as the client finds it (`CSession::GetEFSTImgFileName`): what
+/// its Lua files have for the state (`lua`: the kind it is listed under there, and the file) is asked first,
+/// then what it has compiled into it (`compiled_icon`). A file under `data\texture`, written with forward
+/// strokes.
+pub fn icon(lua: Option<(u8, &str)>, state: u32, kind: u8, taekwon: bool) -> Option<String> {
+    lua.filter(|(of, _)| *of == kind)
+        .map(|(_, file)| file.replace('\\', "/"))
+        .or_else(|| compiled_icon(state, kind, taekwon).map(|file| format!("effect/{file}")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::jobs::taekwon;
+
+    #[test]
+    fn a_picture_is_the_lua_files_or_else_the_compiled_one() {
+        assert_eq!(icon(Some((4, "effect\\bless.tga")), 10, 4, false).as_deref(), Some("effect/bless.tga"));
+        assert_eq!(icon(Some((4, "")), 10, 4, false).as_deref(), Some(""));
+        // Listed under another kind in the Lua files: the compiled one, if there is one under this kind.
+        assert_eq!(icon(Some((1, "effect\\bless.tga")), 10, 4, false).as_deref(), Some("effect/블레싱.tga"));
+        assert_eq!(icon(Some((4, "effect\\bless.tga")), 10, 1, false), None);
+        assert_eq!(icon(None, 10, 4, false).as_deref(), Some("effect/블레싱.tga"));
+        assert_eq!(icon(None, 90, 1, true).as_deref(), Some("effect/i_p_FIRE.tga"));
+        assert_eq!(icon(None, 10, 1, false), None);
+    }
 
     #[test]
     fn the_client_has_pictures_for_the_classic_states() {

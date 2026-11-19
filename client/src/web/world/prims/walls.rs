@@ -244,7 +244,11 @@ fn pillar(picture: &'static str, lasts: i32) -> Prim {
 fn turning_walls(picture: &'static str, lasts: i32) -> Prim {
     let mut walls = Prim::new(Shape::Cast(Cast::Turning), picture);
     walls.duration = lasts;
-    walls.slots = [180, 270, 0, 90].into_iter().enumerate().map(|(index, turned)| Slot::wall(turned, 8.0 - index as f32 * 0.1, 90, 40.0 - index as f32, 0)).collect();
+    walls.slots = [180, 270, 0, 90]
+        .into_iter()
+        .enumerate()
+        .map(|(index, turned)| Slot::wall(turned, 8.0 - index as f32 * 0.1, 90, 40.0 - index as f32, 0))
+        .collect();
     walls
 }
 
@@ -270,7 +274,16 @@ fn spinning_walls(picture: &'static str, level: i32, lasts: i32) -> Prim {
 fn entry_walls(course: &Course) -> Prim {
     let mut walls = launched::of_parts(Tei::Columns, "ring_blue.tga", true, course);
     walls.size = 4.0;
-    walls.parts.extend([(30.0, 3.7, 90), (30.0, 3.4, 90), (4.0, 3.6, 10), (4.0, 3.7, 5)].map(|(tall, out, rise)| Part { round: 360, tall, turned: lot(360) as i32, out, rise, alpha_top: 1400, flags: [2; 21], ..Part::default() }));
+    walls.parts.extend([(30.0, 3.7, 90), (30.0, 3.4, 90), (4.0, 3.6, 10), (4.0, 3.7, 5)].map(|(tall, out, rise)| Part {
+        round: 360,
+        tall,
+        turned: lot(360) as i32,
+        out,
+        rise,
+        alpha_top: 1400,
+        flags: [2; 21],
+        ..Part::default()
+    }));
     walls
 }
 
@@ -313,7 +326,10 @@ fn swirl(number: i32, lasts: i32) -> [Prim; 2] {
 /// tall; those of the phase 1 are 5.5 to 6.5 out and lean by 25 to 40 degrees.
 fn petals(phase: usize, course: &Course) -> Prim {
     // How far out, how steep, how tall and from where round, wall by wall.
-    const WALLS: [[(f32, i32, f32, i32); 4]; 2] = [[(4.5, 85, 27.0, 0), (5.0, 80, 28.0, 90), (5.5, 70, 29.0, 180), (5.0, 75, 30.0, 270)], [(5.5, 50, 30.0, 90), (6.0, 55, 29.0, 180), (6.5, 65, 28.0, 270), (6.0, 60, 27.0, 0)]];
+    const WALLS: [[(f32, i32, f32, i32); 4]; 2] = [
+        [(4.5, 85, 27.0, 0), (5.0, 80, 28.0, 90), (5.5, 70, 29.0, 180), (5.0, 75, 30.0, 270)],
+        [(5.5, 50, 30.0, 90), (6.0, 55, 29.0, 180), (6.5, 65, 28.0, 270), (6.0, 60, 27.0, 0)]
+    ];
     let mut prim = launched::of_parts(Tei::FlowerCast, "ring_blue.tga", true, course);
     prim.size = 4.0;
     prim.parts.extend(WALLS[phase].map(|(out, rise, tall, turned)| {

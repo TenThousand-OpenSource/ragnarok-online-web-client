@@ -187,7 +187,10 @@ mod tests {
         told.extend([100, 100, 150, 100, 100, 100, 100, 100, 100]);
         assert_eq!(told.len(), 29);
         let sensed = sensed(&told).unwrap();
-        assert_eq!((sensed.job, sensed.level, sensed.size, sensed.life, sensed.defence, sensed.race, sensed.magic_defence, sensed.element), (1002, 1, 1, 50, -3, 3, 5, 21));
+        assert_eq!(
+            (sensed.job, sensed.level, sensed.size, sensed.life, sensed.defence, sensed.race, sensed.magic_defence, sensed.element),
+            (1002, 1, 1, 50, -3, 3, 5, 21)
+        );
         assert_eq!(sensed.taken[2], 150);
         assert!(sense_shown(1002) && !sense_shown(1285));
     }

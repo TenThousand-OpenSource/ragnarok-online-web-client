@@ -75,7 +75,13 @@ pub fn spheres(effect: u32, told: f32) -> Vec<Sphere> {
         let (angle, under) = ((index * 72) as f32, told - index as f32);
         Some(match effect {
             SMALL_SPHERES => Sphere { round: angle, high: -14.0, out: 1.3, near: true, flag: 0 },
-            COINS => Sphere { round: if told > 5.0 { angle } else { (index * 360) as f32 / told }, high: -15.0, out: if told > 5.0 && under >= 6.0 { 2.0 } else { 1.0 }, near: false, flag: 1 },
+            COINS => Sphere {
+                round: if told > 5.0 { angle } else { (index * 360) as f32 / told },
+                high: -15.0,
+                out: if told > 5.0 && under >= 6.0 { 2.0 } else { 1.0 },
+                near: false,
+                flag: 1
+            },
             SPHERES => {
                 let flag = match () {
                     () if told > 10.0 => if under >= 11.0 { 21 } else { 20 },
@@ -125,7 +131,13 @@ mod tests {
     #[test]
     fn a_baby_monk_has_them_smaller_lower_and_nearer() {
         let two = spheres(SMALL_SPHERES, 2.0);
-        assert_eq!(two, [Sphere { round: 0.0, high: -14.0, out: 1.3, near: true, flag: 0 }, Sphere { round: 72.0, high: -14.0, out: 1.3, near: true, flag: 0 }]);
+        assert_eq!(
+            two,
+            [
+                Sphere { round: 0.0, high: -14.0, out: 1.3, near: true, flag: 0 },
+                Sphere { round: 72.0, high: -14.0, out: 1.3, near: true, flag: 0 }
+            ]
+        );
     }
 
     #[test]

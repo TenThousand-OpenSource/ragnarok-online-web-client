@@ -21,7 +21,15 @@ pub(in crate::web) fn pictured(x: i32, y: i32, size: (i32, i32), pictures: [&str
 
 /// The same button, of either kind: `Kind::Submit` for the one that sends its form (the OK of a box that
 /// asks), which is pressed like any other besides.
-pub(in crate::web) fn pictured_as(kind: Kind, x: i32, y: i32, (width, height): (i32, i32), [off, over, down]: [&str; 3], press: impl Into<crate::press::Press>, more: &str) -> String {
+pub(in crate::web) fn pictured_as(
+    kind: Kind,
+    x: i32,
+    y: i32,
+    (width, height): (i32, i32),
+    [off, over, down]: [&str; 3],
+    press: impl Into<crate::press::Press>,
+    more: &str
+) -> String {
     format!(
         r#"<button type="{}" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {}{more}></button>"#,
         if kind == Kind::Submit { "submit" } else { "button" },
@@ -80,7 +88,15 @@ pub(in crate::web) fn picture_press_sized(x: i32, y: i32, size: (i32, i32), name
 
 /// A button of three pictures by its name (with its folder, without `.bmp`) and the way its files are named
 /// after it; `more` as `pictured` takes it.
-pub(in crate::web) fn pictured_by(convention: Convention, x: i32, y: i32, size: (i32, i32), name: &str, press: impl Into<crate::press::Press>, more: &str) -> String {
+pub(in crate::web) fn pictured_by(
+    convention: Convention,
+    x: i32,
+    y: i32,
+    size: (i32, i32),
+    name: &str,
+    press: impl Into<crate::press::Press>,
+    more: &str
+) -> String {
     let [off, over, down] = states(name, convention);
     pictured(x, y, size, [&off, &over, &down], press, more)
 }
@@ -106,13 +122,10 @@ pub(in crate::web) fn basic_button(x: i32, y: i32, width: i32, words: &str, pres
         Some(press) => ([skin("out"), skin("over"), skin("press")], "color:#000;text-shadow:1px 1px 0 #d7d7d7", pressed(press)),
         None => ([skin("disable"), skin("disable"), skin("disable")], "color:#6f6f6f;text-shadow:-1px -1px 0 #e2e2e2", "disabled".to_owned()),
     };
-    format!(
-        r#"<button type="button" class="a b" style="{};--n:{};--o:{};--p:{};padding:0 6px;background-position:0 0,100% 0,0 0;background-repeat:no-repeat,no-repeat,repeat-x;background-clip:border-box,border-box,content-box;background-origin:border-box,border-box,content-box;white-space:nowrap;{colours};{}" {press}>{}</button>"#,
-        at(x, y, width, 20),
-        states[0],
-        states[1],
-        states[2],
-        USUAL.style(),
-        escape(words)
-    )
+    [
+        format!(r#"<button type="button" class="a b" style="{};--n:{};--o:{};--p:{};padding:0 6px;"#, at(x, y, width, 20), states[0], states[1], states[2]),
+        format!(r#"background-position:0 0,100% 0,0 0;background-repeat:no-repeat,no-repeat,repeat-x;"#),
+        format!(r#"background-clip:border-box,border-box,content-box;"#),
+        format!(r#"background-origin:border-box,border-box,content-box;white-space:nowrap;{colours};{}" {press}>{}</button>"#, USUAL.style(), escape(words))
+    ].concat()
 }

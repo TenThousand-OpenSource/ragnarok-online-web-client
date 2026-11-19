@@ -15,11 +15,15 @@ impl App {
             .iter()
             .map(|announced| {
                 let font = Font(0, announced.letters.min(64) as u8, false).style();
-                let lines: String = announced.lines.iter().map(|line| format!(r#"<div class="t" style="margin-top:4px;{font}">{}</div>"#, escape(line))).collect();
-                format!(
-                    r#"<div style="display:table;margin:0 auto 10px;padding:0 6px 4px;box-sizing:border-box;background:rgba(0,0,0,0.25);border:1px solid #5c5c5c;border-radius:4px;color:{};text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000">{lines}</div>"#,
-                    announced.colour
-                )
+                let lines: String = announced.lines
+                    .iter()
+                    .map(|line| format!(r#"<div class="t" style="margin-top:4px;{font}">{}</div>"#, escape(line)))
+                    .collect();
+                [
+                    format!(r#"<div style="display:table;margin:0 auto 10px;padding:0 6px 4px;box-sizing:border-box;"#),
+                    format!(r#"background:rgba(0,0,0,0.25);border:1px solid #5c5c5c;border-radius:4px;color:{};text-shadow:1px 0 0 "#, announced.colour),
+                    format!(r#"#000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000">{lines}</div>"#)
+                ].concat()
             })
             .collect()
     }

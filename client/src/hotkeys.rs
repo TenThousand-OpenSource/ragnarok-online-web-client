@@ -202,7 +202,10 @@ mod tests {
 
     #[test]
     fn knows_the_keys() {
-        assert_eq!((key_of("KeyJ"), key_of("Digit1"), key_of("F1"), key_of("F12"), key_of("Insert"), key_of("Backquote")), (Some(74), Some(49), Some(112), Some(123), Some(45), Some(192)));
+        assert_eq!(
+            (key_of("KeyJ"), key_of("Digit1"), key_of("F1"), key_of("F12"), key_of("Insert"), key_of("Backquote")),
+            (Some(74), Some(49), Some(112), Some(123), Some(45), Some(192))
+        );
         assert_eq!((key_of("F13"), key_of("MetaLeft")), (None, None));
         assert_eq!((held(true, true, false), held(false, true, true), held(false, false, false)), (ALT, CTRL, 0));
     }

@@ -51,7 +51,11 @@ impl App {
                         Piece::Item(link) => {
                             let name = data::item_as(link.item, true).map_or_else(|| format!("#{}", link.item), |(name, _)| name);
                             let refined = if link.refine > 0 { format!("+{} ", link.refine) } else { String::new() };
-                            format!(r#"<span style="color:{LINK};cursor:pointer" {}>&lt;{refined}{}&gt;</span>"#, pressed(Press::Link(link.item)), escape(&name))
+                            format!(
+                                r#"<span style="color:{LINK};cursor:pointer" {}>&lt;{refined}{}&gt;</span>"#,
+                                pressed(Press::Link(link.item)),
+                                escape(&name)
+                            )
                         }
                     })
                     .collect();
@@ -84,8 +88,24 @@ impl App {
             ));
         }
         let lock = if self.chat.locked { ("lock_dragwnd", 9) } else { ("unlock_dragwnd", 15) };
-        header.push_str(&pictured(600 - 20, 4, (lock.1, 9), [&format!("basic_interface/{}.bmp", lock.0), &format!("basic_interface/{}.bmp", lock.0), &format!("basic_interface/{}.bmp", lock.0)], Press::Lock, r#" title="Lock the window in place""#));
-        let buttons = [("wnd_mini", (8, 8), Press::Remove, "Remove the tab"), ("battle_option", (8, 8), Press::Add, "Add a tab"), ("stickoff", (14, 9), Press::Detach, "Detach"), ("battle_option2", (9, 9), Press::Options, "Options")];
+        header.push_str(&pictured(
+            600 - 20,
+            4,
+            (lock.1, 9),
+            [
+                &format!("basic_interface/{}.bmp", lock.0),
+                &format!("basic_interface/{}.bmp", lock.0),
+                &format!("basic_interface/{}.bmp", lock.0)
+            ],
+            Press::Lock,
+            r#" title="Lock the window in place""#
+        ));
+        let buttons = [
+            ("wnd_mini", (8, 8), Press::Remove, "Remove the tab"),
+            ("battle_option", (8, 8), Press::Add, "Add a tab"),
+            ("stickoff", (14, 9), Press::Detach, "Detach"),
+            ("battle_option2", (9, 9), Press::Options, "Options")
+        ];
         let mut right = 600 - 20;
         for (name, size, press, title) in buttons.into_iter().filter(|(_, _, press, _)| !self.chat.locked || *press == Press::Options) {
             right -= size.0 + 2;
@@ -97,7 +117,7 @@ impl App {
     /// The chat's height: the client's own sum (`UINewChatWnd::ResizeRows`), the input line, the rows and three
     /// more, the tabs.
     pub(in crate::web) fn chat_height(&self) -> i32 {
-        if self.chat.rows == 0 { 24 } else { 24 + (self.chat.rows as i32 + 3) * 14 + 16 }
+        crate::chat::height(self.chat.rows)
     }
 
     /// The chat, as the client's `UINewChatWnd` lays it out, 600 wide: the tabs' line at the top; the
@@ -170,12 +190,16 @@ impl App {
     /// client's window is made larger and smaller by its corner; this one keeps the size it opens with.)
     pub(in crate::web) fn chat_own_window(&self, index: usize) -> String {
         let (Some(tab), Some((_, _, width, height))) = (self.chat.tabs.get(index), self.chat_own(index)) else { return String::new() };
-        let mut window = format!(
-            r#"<div class="a" style="{};background:rgba(0,0,0,.4)"></div><div class="a chat-tab" style="left:0;top:0;height:16px;padding:0 5px;background:rgba(0,0,0,.4);border:1px solid #fff;border-bottom:0;box-sizing:border-box">{}</div>"#,
-            at(0, 16, width, height - 16),
-            escape(tr(&tab.name))
-        );
-        let buttons = [("wnd_mini", (8, 8), Press::OwnRemove(index), "Remove the tab"), ("stickon", (14, 9), Press::Attach(index), "Attach"), ("battle_option2", (9, 9), Press::OwnOptions(index), "Options")];
+        let mut window = [
+            format!(r#"<div class="a" style="{};background:rgba(0,0,0,.4)"></div>"#, at(0, 16, width, height - 16)),
+            format!(r#"<div class="a chat-tab" style="left:0;top:0;height:16px;padding:0 5px;background:rgba(0,0,0,.4);"#),
+            format!(r#"border:1px solid #fff;border-bottom:0;box-sizing:border-box">{}</div>"#, escape(tr(&tab.name)))
+        ].concat();
+        let buttons = [
+            ("wnd_mini", (8, 8), Press::OwnRemove(index), "Remove the tab"),
+            ("stickon", (14, 9), Press::Attach(index), "Attach"),
+            ("battle_option2", (9, 9), Press::OwnOptions(index), "Options")
+        ];
         let mut right = width - 2;
         for (name, size, press, title) in buttons.into_iter().filter(|(name, ..)| !self.chat.locked || *name == "battle_option2") {
             right -= size.0 + 2;
@@ -201,13 +225,15 @@ impl App {
             .iter()
             .filter_map(|(kind, line)| Some((kind, data::message(*line).filter(|name| !name.is_empty())?)))
             .map(|(kind, name)| {
-                format!(
-                    r#"<div style="position:relative;height:20px;cursor:default" {}><div class="a" style="{};background:url('{}') no-repeat"></div><div class="a t" style="left:50px;top:3px">{}</div></div>"#,
-                    pressed(Press::Lists(*kind)),
-                    at(27, 3, 14, 14),
-                    picture(if tab.shows[*kind] { "basic_interface/grp_online.bmp" } else { "basic_interface/grp_offline.bmp" }),
-                    escape(tr(&name))
-                )
+                [
+                    format!(r#"<div style="position:relative;height:20px;cursor:default" {}>"#, pressed(Press::Lists(*kind))),
+                    format!(
+                        r#"<div class="a" style="{};background:url('{}') no-repeat"></div>"#,
+                        at(27, 3, 14, 14),
+                        picture(if tab.shows[*kind] { "basic_interface/grp_online.bmp" } else { "basic_interface/grp_offline.bmp" })
+                    ),
+                    format!(r#"<div class="a t" style="left:50px;top:3px">{}</div></div>"#, escape(tr(&name)))
+                ].concat()
             })
             .collect();
         window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-y:auto">{rows}</div>"#, at(0, 19, 279, 160)));

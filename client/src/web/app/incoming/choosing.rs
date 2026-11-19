@@ -62,7 +62,10 @@ impl App {
             // The card is the one that was double-clicked (`cardItemIndex`); things no longer carried are
             // left out, as the client leaves them.
             choosing::ZC_ITEMCOMPOSITION_LIST => {
-                let places: Vec<u16> = choosing::compoundable(packet).into_iter().filter(|place| self.bag.items.iter().any(|item| item.index == *place)).collect();
+                let places: Vec<u16> = choosing::compoundable(packet)
+                    .into_iter()
+                    .filter(|place| self.bag.items.iter().any(|item| item.index == *place))
+                    .collect();
                 self.choose(Choice::Compound(self.choosing.card, places), None);
             }
             choosing::ZC_ACK_ITEMCOMPOSITION => self.card_set(packet),

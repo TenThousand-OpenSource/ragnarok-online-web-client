@@ -12,7 +12,7 @@ pub(super) struct Tip {
 
 /// The client's tip box (`System\tipbox.lub`, the English one beside it where there is one; the client's
 /// `UITipboxWnd` reads it through `AddTip` and `AddPage`), in the order of the tips' numbers: the one reading
-/// of the file, for the Tipbox window (`tips`) and for the Adventure Guide, whose quests are tips
+/// of the file (`Sources::read` does it), for the Tipbox window (`tips`) and for the Adventure Guide, whose quests are tips
 /// (`guide::guide`).
 pub(super) fn read(client_dir: &std::path::Path) -> Vec<Tip> {
     let Some(lua) = beside(client_dir, &["SystemEN/tipbox.lub", "System/tipbox.lub"]) else { return Vec::new() };
@@ -25,7 +25,8 @@ pub(super) fn read(client_dir: &std::path::Path) -> Vec<Tip> {
         .map(|(id, tip)| {
             let title = tip.get::<Option<mlua::String>>("Title").ok().flatten().map(|title| words(&title)).unwrap_or_default();
             let pages = tip.get::<Option<Table>>("Page").ok().flatten();
-            let pages: Vec<String> = pages.map(|pages| pages.sequence_values::<mlua::String>().flatten().map(|page| words(&page)).collect()).unwrap_or_default();
+            let pages: Vec<String> =
+                pages.map(|pages| pages.sequence_values::<mlua::String>().flatten().map(|page| words(&page)).collect()).unwrap_or_default();
             Tip { id, title, pages }
         })
         .collect();
@@ -35,6 +36,6 @@ pub(super) fn read(client_dir: &std::path::Path) -> Vec<Tip> {
 
 /// The tips of the client's Tipbox window: `[{"id": 1, "title": …, "pages": [text, …]}, …]` in the order of the
 /// tips' numbers.
-pub fn tips(client_dir: &std::path::Path) -> serde_json::Value {
-    read(client_dir).iter().map(|tip| serde_json::json!({ "id": tip.id, "title": tip.title, "pages": tip.pages })).collect()
+pub fn tips(tips: &[Tip]) -> serde_json::Value {
+    tips.iter().map(|tip| serde_json::json!({ "id": tip.id, "title": tip.title, "pages": tip.pages })).collect()
 }

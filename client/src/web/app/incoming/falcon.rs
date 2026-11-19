@@ -21,13 +21,14 @@ impl App {
                 }
             }
             skills::ZC_NOTIFY_GROUNDSKILL => {
-                if let Some((_, who, _, cell)) = skills::on_ground(packet).filter(|used| used.0 == falcon::DETECT) {
+                if let Some(skills::OnGround { who, cell, .. }) = skills::on_ground(packet).filter(|used| used.skill == falcon::DETECT) {
                     world::falcon_sent(other(who), Prey::Cell(cell));
                 }
             }
             // The one a Spring Trap is used on is the trap, a unit on the ground.
             skills::ZC_USE_SKILL => {
-                if let Some((_, _, trap, who, _)) = skills::used(packet).filter(|used| used.0 == falcon::SPRING_TRAP) {
+                let sprung = skills::used(packet).filter(|used| used.skill == falcon::SPRING_TRAP);
+                if let Some(skills::Used { target: trap, who, .. }) = sprung {
                     world::falcon_sent(other(who), Prey::Someone(Some(trap)));
                 }
             }

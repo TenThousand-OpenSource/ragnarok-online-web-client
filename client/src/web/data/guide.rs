@@ -177,7 +177,11 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         items: [page(&guide, "weapon", guide_item), page(&guide, "armor", guide_item)],
         intro: words(&guide, "intro"),
         menu: words(&guide, "menu"),
-        tabs: list(&field(&guide, "tabs")).iter().map(row).map(|tab| (tab.get(0).as_string().unwrap_or_default(), tab.get(1).as_string().unwrap_or_default())).collect(),
+        tabs: list(&field(&guide, "tabs"))
+            .iter()
+            .map(row)
+            .map(|tab| (tab.get(0).as_string().unwrap_or_default(), tab.get(1).as_string().unwrap_or_default()))
+            .collect(),
         monsters: list(&field(&guide, "monsters")).iter().map(guide_monster).collect(),
     };
     GUIDE_READ.set(Some(std::rc::Rc::new(read)));

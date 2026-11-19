@@ -156,5 +156,27 @@ pub fn minimap_picture(effect: u16, colour: u16) -> Option<String> {
     (colour != 0 && effect != crate::net::quests::NO_MARK).then(|| format!("minimap/quest_{effect}_{colour}.bmp"))
 }
 
+/// What the two boxes of a row of a quest of the server's show (`CUIQuestList::BindItem`): whether it is in the
+/// list on the screen, and its lock, open for a quest switched on. A quest that only waits has neither box.
+pub fn boxes(waits: bool, unlisted: bool, active: bool) -> (Option<bool>, Option<bool>) {
+    ((!waits).then_some(!unlisted), (!waits).then_some(active))
+}
+
+/// Puts the recommended quests into the journal's order (`CUIRenewQuestUI::UpdateQuestLists`): first those not
+/// put away, then those that were, each group as it was.
+pub fn put_away_last<Row>(rows: &mut [Row], put_away: impl Fn(&Row) -> bool) {
+    rows.sort_by_key(put_away);
+}
+
+/// When a quest runs out, as the journal's pane writes it (`RenewQuestOngoingInfo::GetDateString`): the
+/// client's `word` for it and the day and the time; nothing for a quest that does not run out (the client
+/// writes it for a year after 1970).
+pub fn deadline(word: &str, (year, month, day): (u32, u32, u32), (hours, minutes): (u32, u32)) -> String {
+    if year <= 1970 {
+        return String::new();
+    }
+    format!("{word} [{year:04}/{month:02}/{day:02} {hours:02}:{minutes:02}]")
+}
+
 #[cfg(test)]
 mod tests;

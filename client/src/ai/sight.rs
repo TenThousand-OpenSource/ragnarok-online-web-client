@@ -49,7 +49,10 @@ impl Sight {
         let along_x = dx.abs() >= dy.abs();
         let (steps, step) = if along_x { (dx.abs(), dx.signum()) } else { (dy.abs(), dy.signum()) };
         (0..steps).find_map(|walked| {
-            let on = if along_x { (from.0 + walked * step, walked * step * dy / dx + from.1) } else { (walked * step * dx / dy + from.0, from.1 + walked * step) };
+            let on = if along_x { (from.0 + walked * step, walked * step * dy / dx + from.1) } else { (
+                walked * step * dx / dy + from.0,
+                from.1 + walked * step
+            ) };
             AROUND.iter().map(|(x, y)| (on.0 + x, on.1 + y)).find(|cell| self.walkable(*cell))
         })
     }

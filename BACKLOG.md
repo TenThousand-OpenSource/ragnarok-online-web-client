@@ -24,6 +24,11 @@ Workers add to it what they meet and leave for later; nothing here is to be buil
 - GND 1.8/1.9, RSW 2.6+, RSM2 models; the sun's lens flare; signboards (`SignBoardList`); camera commands.
 - Robes and wings (`RobeNameTable`), alternative outfits (`body2`), hat effects and footprints, damage skins.
 - Wargs; auras above level 99; pillars of light on a rare drop; rental mounts.
+- The copies of a character of the later jobs' states (`EF_MAKEHALLU` 792 of `EFST_HALLUCINATIONWALK`,
+  `EFST_STRIKING`, `EFST_WUGDASH`, `EF_BUNSINJYUTSU`) and `EF_HALLUTIME` (793, `TexturedRisingOrbs` kind 3) that
+  a `CHalluPC` launches at its 110th pass; the frames of the later jobs' skills in
+  `CGameActor::ProcessSkillMessage` (Sura, Rebellion, the fourth jobs); `CPc::MapMotion` and
+  `SelectStanceFrame` for the third jobs and the Star Emperors.
 - Granny models (`.gr2`: guardians and the Emperium of sieges) — needed for War of Emperium.
 - The newer clouds of a sky (`Cloud_Effect` of MapSkyData.lub: `CCloud`, effect 0x47A) and the fog of its
   background (`BG_Fog`); the kinds of `CRagEffect::SkyCloud` only later maps use (7, 8, 10 and on).

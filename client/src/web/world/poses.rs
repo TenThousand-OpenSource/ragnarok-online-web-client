@@ -1,9 +1,8 @@
 //! How those in sight are posed and shown, as the server tells of each: turning on the spot and turning the
 //! head, lying dead and rising, hiding and coming out of it. (What `mover.rs` keeps of it: `Pose`.)
 //!
-//! Not here yet: the spirit spheres about one (ZC_SPIRITS, read by `net::units::spirits`), which the client
-//! shows through its other effects' manager (`CEnergyOrbEffect`, launched as `EF_CHOOKGI`); the falcon over a
-//! hunter's shoulder (`AM_MAKE_BIRD`); the aura of the highest level (`UpdateMaxLevelAura`).
+//! Beside these: the spirit spheres about one are `spirits.rs`, the falcon over a hunter's shoulder
+//! `falcon.rs`, the aura of the highest level `aura.rs`; a blade caught and the frames of a combo `combat.rs`.
 
 use super::*;
 

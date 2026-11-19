@@ -39,12 +39,29 @@ client/src/
   lib.rs            the crate's modules
   i18n.rs           every text the client itself says, in English and Russian
   bmp.rs            BMP pictures (magenta is see-through)
+  bytes.rs          reading the game's files: the one `Reader` of little-endian numbers for every format
+                    (`take`, `u8`, `u16`, `u32`, `i32`, `f32`, `floats`, `count`, `name`); packets: net/bytes.rs
+  vector.rs         vectors of three (`add`, `subtract`, `scale`, `cross`, `dot`, `length`, `normalize`, `along`)
+  tables.rs         the shapes the client's text tables come in, each read once: `tabbed` (number, tab,
+                    value), `sorted` (lines of one sort), `hexed` (`0xNNNN value`), `hashed` (fields that end
+                    with `#`, with `figure` for one of their numbers)
+  markup.rs         the marks in the client's texts told from the text: `^RRGGBB` and the tags of links
+                    (`pieces`, `Piece`, `uncoloured`)
+  kept.rs           what is kept in the browser between visits, as text: lists of pairs and of numbers,
+                    parsed and written (`pairs`, `paired`, `numbers`, `numbered`, `entries`)
+  minimap.rs        the minimap as rules: where a cell lies on it, the part shown when it is nearer than
+                    whole, the steps of its zoom (`on_picture`, `corner`, `spot`, `placed`, `zoomed`)
+  shops.rs  inventory.rs  storage.rs  vending.rs  exchange.rs  mail.rs  choosing.rs  skills.rs  pets.rs
+  homunculus.rs  mercenary.rs  party.rs  guild.rs  friends.rs  pvp.rs  chat_rooms.rs  family.rs  guide.rs
+                    a system's rules that are no packet and need no page, each with its tests (empty until
+                    the rules are moved out of net/ and web/ into them)
   sprite.rs         .spr / .act: sprites and their animations (sprite/canvas.rs: a frame drawn into a picture,
                     each layer scaled, mirrored, turned and tinted; sprite/layers.rs: a frame as the client's
                     effects draw it, a quad to a layer; sprite/imf.rs: .imf, which of a body and its head lies
                     over the other in a frame, and the order a character's parts are drawn in)
   pose.rs           how a character is posed, as the client's actors decide it: the action and the frames of
-                    a state (a skill used, a dance, a song, a shot readied), when it stands ready, when its
+                    a state (a skill used, a dance, a song, a shot readied) or of a monk's combo, the head
+                    of a Taekwon in its kicks, the kind a weapon is shown as, when it stands ready, when its
                     weapon and shield show, how small a baby job is, where its head turns when it looks at a
                     place (the world's side: web/world/mover.rs, poses.rs)
   map.rs            .gat / .gnd: walkable cells, ground mesh, path finding
@@ -63,13 +80,16 @@ client/src/
                     from files and how — the one file of the client's table, one of several picked by lot,
                     files that are carried — the one answer to "is this effect a file", with its sounds)
   font.rs           the size the client writes a text in, from the family and height its windows ask for
-  figures.rs        how the client writes a number in its windows: commas between its thousands
+  figures.rs        how the client writes a number in its windows (commas between its thousands, the colour
+                    of a price: `grouped`, `price_colour`), reads one typed into them (`typed`), and writes
+                    what a line of its message table asks for into the line (`filled`)
   blow.rs           when a blow lands: the frame of the swing and the time to it (the client's timings); in
                     blow/: landing.rs (the hits a blow or a skill is made of, when each lands and as what),
                     signs.rs (what a hit shows over whom, in which colour, and what it sounds like: by the
                     weapon, by what a struck job wears), flight.rs (how the numbers and words of a fight fly:
                     place, size and fading of each of the client's kinds)
-  earshot.rs        how loud a sound of the world is by its distance (nothing from 250 units, whole within 40),
+  earshot.rs        how loud a sound of the world is by its distance (nothing from 250 units, whole within 40;
+                    `loudness_within` for a sound with distances of its own),
                     and how fast the music fades (played by web/sound.rs, placed by web/world/earshot.rs)
   names.rs          the name under someone the pointer is on: its colour (an NPC's, a monster's by its level), a
                     title before it, the mark of a boss or a group beside it (web/world/names.rs)
@@ -95,8 +115,9 @@ client/src/
                     kept, the one its states gave it among that; the footprints it leaves, the picture it is
                     held in (kept for everyone by web/world/ailments.rs). body/drawn.rs: the drawings of its
                     picture that follow (lit, outlined, shrunk, pressed, spun, shaken, blurred), its weapon
-                    drawn by itself (drawn by web/world/gpu/draw.rs); body/copies.rs: how a copy of a
-                    character that an effect leaves standing fades; tests in body/tests.rs
+                    drawn by itself, a shadow that lies under every body (drawn by web/world/gpu/draw.rs);
+                    body/copies.rs: the copies of a character that an effect leaves standing and the
+                    afterimages of one who moves (`EF_MAKEBLUR`): how each fades; tests in body/tests.rs
   quake.rs          the shake of the screen some effects ask for (`MM_QUAKE`; web/world/camera.rs)
   state_effects.rs  the effects a state going on or off begins and ends on the one in it, those the third
                     option of one coming into sight begins, those begun anew on the player's own character
@@ -119,9 +140,11 @@ client/src/
   falcon.rs         the hunter's falcon by its owner: which sprite it is, how it hovers and follows, how it
                     flies at what a skill sends it to and comes back, which picture shows (drawn by
                     web/world/falcon.rs)
-  jobs.rs           what the client knows of a job by its number alone (whether it has Activity Points)
+  jobs.rs           what the client knows of a job by its number alone: whether it has Activity Points, is a
+                    baby's, a Super Novice's, of the Taekwon line, a monster, a hireling
   said.rs           the lines of the chat window: the kinds the client gives them (which tabs list them) and
-                    the colours it writes them in, each named once
+                    the colours it writes them in, each named once (`colour::{parts, css, hex}` for a
+                    colour the server names)
   chat_tabs.rs      the chat's tabs as the player has them: what each lists, those taken out into windows of
                     their own, the text they are kept as (the client's `ChatWndInfo_U.lua`); the links to
                     items in a line of chat (`<ITEML>`), read and written
@@ -221,8 +244,14 @@ client/src/
                     stands, how a line is written, what a command typed into it does
   net/
     mod.rs          framing a byte stream into packets (lengths from packet_lengths*.txt)
-    bytes.rs        reading the numbers and texts of a packet, writing a name into one: the one set of
-                    readers every file here uses (`u16_at`, `u32_at`, `word`, `long`, `text`, `name24`…)
+    bytes.rs        reading the numbers and texts of a packet and writing one: the one set of readers every
+                    file here uses (`u16_at`, `u32_at`, `word`, `long`, the signed `i16_at`, `i32_at`, `short`,
+                    `int`, `quad`, `text`, `records`, `body`, `id`…), the `Writer` of a packet with the two
+                    ways a text goes into a field (`field`, `name24`; `field_whole_chars`), and what the
+                    tests share (`testing`: `field`, `packet`, `sized`, `longs`, `assert_lengths`)
+    golden.rs       a test: every packet this client writes, built with fixed arguments and compared byte
+                    for byte with golden.txt (written by the builders as they were), so that rewriting a
+                    builder cannot change its packet; fails for a builder that has no line in it
     packets.rs      the way in: what the packets share, and the login server   ── children in packets/ ──
       chars.rs        the character server            zone.rs   the basics of the map server
     units.rs        everyone on the map: appearing (with what they hold, how the head is turned, sitting or
@@ -293,7 +322,7 @@ client/src/
     link.rs         the connection itself: the watch on a silent one (CZ_PING_LIVE), why a server ends one
     marks.rs        marks on the minimap the server tells of: the guild's members, the boss monster
   web/
-    mod.rs          entry point, fetching files from the gateway
+    mod.rs          entry point, fetching files from the gateway, the client's Korean read (`korean`)
     socket.rs       the WebSocket
     data.rs         the client's tables fetched from the gateway: what is shared, and `load`  ── children in data/ ──
       jobs.rs  items.rs  skills.rs  pets.rs  interface.rs  maps.rs  guide.rs  statuses.rs  commands.rs
@@ -398,8 +427,23 @@ client/src/
                       and boxes share on the app's side: a place of the page in the stage's measure
                       (`on_stage`), opening a window there (`open_at`), putting every menu away
                       (`close_menus`), the number typed into a box that asks how many (`counted`)
-      page.rs         DOM helpers, storage, fade and loading screen, dragging windows
-    hud.rs          the in-game windows: shared pieces         ── children in hud/ ──
+      page.rs         DOM helpers (`written`: what stands in a field now), storage, fade and loading screen,
+                      dragging windows
+    hud.rs          the in-game windows: the list of their files  ── children in hud/ ──
+      frames.rs       what windows are framed with: `art`, `fill`, `title_bar`, `panel`, `panel_ground`,
+                      `panel_ground_round`, `side_rimmed`, `button_bar`, `system_box`, `cross`, `base_button`,
+                      `figure_canvas`
+      buttons.rs      a button of three pictures (`pictured`, `pictured_as` with `Kind::Submit`, `states`
+                      with the `Convention` its files are named by, `picture_press`, `picture_press_sized`,
+                      `press_button`) and the client's button with words (`basic_button`)
+      texts.rs        `Font` and its usual sizes, a text at a place (`text`, `text_in`, `text_ending`,
+                      `text_ending_in`, `text_centred`, `fitted`), `titled`, `outlined`, `coloured`, `count`
+      checks.rs       check boxes and radio buttons (`check_words`, `check`, `radio`, `radio_marked`)
+      gauges.rs       the pieces of a gauge (`filling` with `Red`, `numbers_over`, `plain_bar`)
+      items.rs        an item's and a skill's picture by its number (`App::item_icon`, `icon_of`,
+                      `skill_icon`), the grid of cells (`grid_of`, `grid_cell`)
+      fields.rs       a field that is typed into (`field`, `numeric_field`)
+      colours.rs      the colours the windows share
       basic.rs  inventory.rs  equipment.rs  skills.rs  status.rs  chat.rs  dialogs.rs  trade.rs  pets.rs
       hotkeys_set.rs  settings.rs  guide.rs
       boxes.rs        what every system asks with, each written once: the client's message box with a
@@ -469,9 +513,11 @@ client/src/
       skill_units.rs  the units of skills on the ground, their effects          (called by the app)
                       skill_units/traps.rs: the traps' models, read, stood on their cells and played
                       (the models themselves are land.rs's: `Models::raise`)
-      combat.rs       blows and casts: who strikes, casts, aims, bends down     (called by the app);
-                      combat/landing.rs: the hits that land: each sounds from where it lands and shows its
-                      numbers and words (`crate::blow::signs`); a number over someone in a colour
+      combat.rs       blows and casts: who strikes, casts, aims, bends down, the window of a combo, a
+                      blade caught                                              (called by the app);
+                      combat/landing.rs: the hits that land, out of the one queue of them (`State::blows`):
+                      each sounds from where it lands and shows its numbers and words (`crate::blow::signs`),
+                      and tells `frame/sprites.rs` who stops, flinches and flashes; a number over someone
       earshot.rs      the sounds of the world, each heard from where the one it starts on stands (`heard`,
                       `heard_at`, and those due at a moment yet to come)
       names.rs        what the server told of those in sight beside their names (level, boss, title, group)
@@ -482,7 +528,8 @@ client/src/
       state_effects.rs  the effects the states of someone begin and end (`crate::state_effects`): as a state
                       changes, as one comes into sight, on the player's own as it arrives  (called by the app)
       frame.rs        one frame: its steps in order                ── children in frame/ ──
-        sprites.rs      who and what stands in the world; the blows that land
+        sprites.rs      who and what stands in the world, the shadows under them, the sounds of their
+                        frames; the one struck stopping, flinching and flashing
         marks.rs        the cell under the pointer, the portals' rings, the numbers in the air
         effects.rs      each kind of effect turned into quads
       quads.rs        the effects' quads of a frame, as the renderer takes them
@@ -611,7 +658,10 @@ client/src/
 gateway/src/
   main.rs           routes and start-up
   grf.rs            reading files out of GRF archives
-  tables.rs         the client's Lua tables: running them, and everything the browser is given at once
+  tables.rs         the client's Lua tables: running them, and everything the browser is given at once; what
+                    the files of tables/ share (`state`, `exec`, `run`, `run_in`, `beside`,
+                    `names_stand_for_themselves`, `whole`, `text`, `lines`, `names`, `numbered`, `by_number`,
+                    `json_of`, `korean`, `latin`, `hash_fields`), tested in tables/tests.rs
     tables/           one file per kind: items  skills  interface  maps  guide  quests  (+ job_codes.json)
                       statuses (the states' pictures and descriptions)  commands (the help, what options say)
                       worldmap (the worlds of the World Map, where each map lies on them)  tips (the Tipbox)
@@ -643,14 +693,15 @@ tools/
   packet-names.py   writes out what rAthena's headers call each packet (client/src/net/packet_names.txt)
   limits.py         the sizes of rules 4 and 10: no file past about 500 lines, no function past about 100; and
                     of rule 12: no name of the page written by hand, no window laid over the others by its
-                    name in the style sheet
+                    name in the style sheet; lines longer than 200 characters are counted in a note
   client-tables     writes out tables compiled into the original client (skill_effects.py: skills and their
                     effects; statuses.py: the states' pictures and what the body's and health's states stand for,
                     statuses.txt; commands.py: the chat commands and the options' messages, commands.txt; job_bases.py: the plain job of each mounted job, data/job_bases.txt; job_mounts.py: the
                     mounted job of each job and state, job_mounts.txt), the classic server's scripts put right for the client's maps (classic_overlay.py
                     writes server/npc/roweb_classic*), and a check that everyone the scripts place stands where the
                     client's map lets one stand (placement_check.py)
-  split_module.py   moves functions of a file that grew too large into child modules
+  split_module.py   moves functions of a file that grew too large into child modules (also a whole
+                    `impl Trait for Type`)
 ```
 
 ## How things flow
@@ -733,7 +784,14 @@ These hold for everyone who writes here, people and agents alike. A change that 
     `hud::{message_box, menu_row}` and `App::count_box` for a question, a menu's row and the box that asks how
     many; `App::words` for a line of the client's message table; `crate::said` for the kind and the colour of a
     line of the chat; `parts::picture` and `web::image_url` for the address of a picture; `net::bytes` for
-    reading a number, a text or a name out of a packet. Before writing a helper, look for one.
+    reading a number, a text or a name out of a packet and `net::bytes::Writer` for writing one;
+    `crate::bytes::Reader` for reading a file of the game; `crate::vector` for vectors of three;
+    `crate::tables` for a table of text and `crate::markup` for `^RRGGBB` and the tags in a text;
+    `crate::kept` for what the browser keeps; `crate::figures::{grouped, typed, filled, price_colour}` for
+    numbers written, typed and filled into a line; `crate::jobs` for what a job is by its number;
+    `web::korean` for a text of the client's files; `hud/{frames, buttons, texts, checks, gauges, items,
+    fields, colours}.rs` for what windows are made of; the gateway's `tables::{state, exec, whole, text,
+    lines, numbered, by_number, latin, hash_fields}`. Before writing a helper, look for one.
 12. **Nothing on the page is named by hand.** What can be pressed is a value of `crate::press`, drawn through
     `web/parts.rs` (`pressed`, `used`, `dragged`, `sent`) and matched as a value where it is handled, with no
     arm for "anything else": a press nobody handles, or a name nobody draws, does not compile. A window is an

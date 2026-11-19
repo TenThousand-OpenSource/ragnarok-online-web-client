@@ -1,7 +1,13 @@
-//! The client's own tables (which sprite a job or a headgear is), read out of its Lua files.
+//! The client's own tables, read out of its files for the browser: which sprite a job or a headgear is, what
+//! a skill, a map, a quest is called, and the rest `for_browser` puts together. Each kind of table has its
+//! file in `tables/`; this one has what they share.
 //!
-//! The files are Lua 5.1 bytecode compiled for the 32-bit client. `lunify` rewrites it for the Lua this program
-//! embeds, which then simply runs it; the tables are what the files leave in the globals.
+//! Most of the client's tables are Lua 5.1 bytecode compiled for the 32-bit client. `lunify` rewrites it for
+//! the Lua this program embeds, which then simply runs it; the tables are what the files leave in the globals.
+//! Shared here: a Lua state as the files need it (`state`), running a file in it (`exec`, `run`, `run_in`,
+//! `beside`), walking what it left (`whole`, `text`, `lines`, `names`, `numbered`, `json_of`), the texts'
+//! encodings (`korean`, `latin`), the client's `#` tables (`hash_fields`), and a JSON object keyed by numbers
+//! in their order (`by_number`).
 
 use std::collections::BTreeMap;
 
@@ -27,6 +33,9 @@ mod statuses;
 mod tips;
 mod worldmap;
 
+#[cfg(test)]
+mod tests;
+
 pub use ai::scripts as ai_scripts;
 pub use interface::{chat_tabs, emotions, hotkeys, options};
 pub use items::{translated, About, Items, Translated, Unidentified};
@@ -44,12 +53,41 @@ const ROOT: &str = "data\\luafiles514\\lua files\\";
 /// Runs the client's Lua files, in order, in one Lua state. A file that is missing or does not run is skipped
 /// with a note: the tables it would have filled stay empty.
 pub fn run(grf: &Grf, files: &[&str]) -> Lua {
-    // The files only build tables: they get the string, table and math libraries, and neither files nor the system.
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let lua = state();
     run_in(&lua, grf, files);
     lua
 }
 
+/// A Lua state for the client's files. They only build tables: they get the string, table and math libraries,
+/// and neither files nor the system.
+fn state() -> Lua {
+    Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state")
+}
+
+/// Runs one of the client's Lua files in a state: bytecode, as most are (rewritten for this Lua first), or
+/// plain text, as the translated ones are. `name` is what an error calls the file, if it is given one.
+fn exec(lua: &Lua, bytes: &[u8], name: Option<&str>) -> Result<(), String> {
+    let chunk = if bytes.starts_with(b"\x1bLua") {
+        let bytecode = lunify::unify(bytes, &lunify::Format::default(), &lunify::Settings::default()).map_err(|error| format!("{error:?}"))?;
+        lua.load(bytecode).set_mode(mlua::ChunkMode::Binary)
+    } else {
+        lua.load(bytes).set_mode(mlua::ChunkMode::Text)
+    };
+    match name {
+        Some(name) => chunk.set_name(name).exec(),
+        None => chunk.exec(),
+    }
+    .map_err(|error| error.to_string())
+}
+
+/// Makes every name a file uses and nothing has defined stand for itself, as a text: for a file that names
+/// things by the client's own constants (`optioninfo\gamesettings`), which this program does not have.
+#[allow(dead_code)]
+fn names_stand_for_themselves(lua: &Lua) -> Result<(), String> {
+    lua.load("setmetatable(_G, { __index = function(_, name) return name end })").exec().map_err(|error| error.to_string())
+}
+
+/// Runs more of the client's Lua files in a state that may hold others' tables already.
 fn run_in(lua: &Lua, grf: &Grf, files: &[&str]) {
     for file in files {
         // A name may carry its own folder under `lua files`; the others are in `datainfo`.
@@ -59,23 +97,13 @@ fn run_in(lua: &Lua, grf: &Grf, files: &[&str]) {
             None if file.contains('\\') => format!("{ROOT}{file}.lub"),
             None => format!("{ROOT}datainfo\\{file}.lub"),
         };
-        let outcome = grf.read(&path).map_err(|error| error.to_string()).and_then(|bytes| {
-            // Most files are bytecode; the translated ones are Lua source.
-            let chunk = if bytes.starts_with(b"\x1bLua") {
-                let bytecode = lunify::unify(&bytes, &lunify::Format::default(), &lunify::Settings::default()).map_err(|error| format!("{error:?}"))?;
-                lua.load(bytecode).set_mode(mlua::ChunkMode::Binary)
-            } else {
-                lua.load(bytes).set_mode(mlua::ChunkMode::Text)
-            };
-            chunk.set_name(*file).exec().map_err(|error| error.to_string())
-        });
+        let outcome = grf.read(&path).map_err(|error| error.to_string()).and_then(|bytes| exec(lua, &bytes, Some(*file)));
         if let Err(error) = outcome {
             eprintln!("tables: {file}.lub: {error}");
         }
     }
 }
 
-/// The names of the global tables a state holds and how many entries each has, for looking around.
 /// A Lua value as JSON: a table with only 1, 2, 3… for keys as a list, any other as an object; text read as
 /// the client's Korean; functions and the like as nothing.
 pub fn json_of(value: &Value) -> serde_json::Value {
@@ -109,6 +137,7 @@ pub fn json_of(value: &Value) -> serde_json::Value {
     }
 }
 
+/// The names of the global tables a state holds and how many entries each has, for looking around.
 pub fn describe(lua: &Lua) -> Vec<String> {
     let mut lines = Vec::new();
     for pair in lua.globals().pairs::<String, Value>() {
@@ -141,6 +170,77 @@ fn show(value: &Value) -> String {
 pub fn korean(bytes: &[u8]) -> String {
     let narrowed: Option<Vec<u8>> = std::str::from_utf8(bytes).ok().and_then(|text| text.chars().map(|character| u8::try_from(u32::from(character)).ok()).collect());
     encoding_rs::EUC_KR.decode_without_bom_handling(narrowed.as_deref().unwrap_or(bytes)).0.into_owned()
+}
+
+/// A text that is UTF-8, or else Windows-1252: the translated files beside the archives are plain text, and
+/// the few bytes beyond ASCII in them are Latin letters and signs.
+#[allow(dead_code)]
+fn latin(bytes: &[u8]) -> String {
+    match std::str::from_utf8(bytes) {
+        Ok(text) => text.to_owned(),
+        Err(_) => encoding_rs::WINDOWS_1252.decode_without_bom_handling(bytes).0.into_owned(),
+    }
+}
+
+/// A whole number of a Lua table, which keeps some of its whole numbers as numbers with a fraction of nought;
+/// none for anything that is no number.
+#[allow(dead_code)]
+fn whole(value: &Value) -> Option<i64> {
+    match value {
+        Value::Integer(number) => Some(*number),
+        Value::Number(number) => Some(*number as i64),
+        _ => None,
+    }
+}
+
+/// The text in a field of a Lua table, read as the client's Korean; none when the field is no text.
+#[allow(dead_code)]
+fn text(table: &Table, field: &str) -> Option<String> {
+    table.get::<Option<mlua::String>>(field).ok().flatten().map(|text| korean(&text.as_bytes()))
+}
+
+/// The texts a Lua table lists (1, 2, 3…), each read as the client's Korean, up to the first that is no text.
+#[allow(dead_code)]
+fn lines(table: &Table) -> Vec<String> {
+    table.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect()
+}
+
+/// The entries of one of the globals' tables that are tables themselves, each by its number and as JSON, in
+/// the order of their numbers. The table is gone through an entry at a time: the quests' has some eleven
+/// thousand, more than can be held at once the way `json_of` holds a table.
+#[allow(dead_code)]
+fn numbered(lua: &Lua, name: &str) -> Vec<(u64, serde_json::Value)> {
+    let Ok(table) = lua.globals().get::<Table>(name) else { return Vec::new() };
+    let mut entries: Vec<(u64, serde_json::Value)> = table
+        .pairs::<Value, Value>()
+        .flatten()
+        .filter_map(|(number, entry)| {
+            let number = match number {
+                Value::Integer(number) => u64::try_from(number).ok()?,
+                Value::Number(number) if number >= 0.0 => number as u64,
+                _ => return None,
+            };
+            matches!(entry, Value::Table(_)).then(|| (number, json_of(&entry)))
+        })
+        .collect();
+    entries.sort_by_key(|(number, _)| *number);
+    entries
+}
+
+/// The entries of a JSON object whose keys are numbers (what `json_of` makes of a Lua table that is no plain
+/// list), in the order of their numbers; a key that is no number is passed by, and what is no object has none.
+#[allow(dead_code)]
+fn by_number(object: &serde_json::Value) -> Vec<(i64, &serde_json::Value)> {
+    let mut entries: Vec<(i64, &serde_json::Value)> = object.as_object().map(|entries| entries.iter().filter_map(|(at, entry)| Some((at.parse().ok()?, entry))).collect()).unwrap_or_default();
+    entries.sort_by_key(|(at, _)| *at);
+    entries
+}
+
+/// The fields of one of the client's `#` tables, line by line and in order: `4001#Lucky#` gives `4001`,
+/// `Lucky`. An empty line and one that begins a comment (`//`) give nothing.
+#[allow(dead_code)]
+fn hash_fields(text: &str) -> Vec<Vec<&str>> {
+    text.lines().map(str::trim).filter(|line| !line.is_empty() && !line.starts_with("//")).map(|line| line.trim_end_matches('#').split('#').collect()).collect()
 }
 
 /// A table of the globals as numbers to strings; entries of other types are left out.
@@ -177,8 +277,8 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
     if let Err(error) = prepared {
         eprintln!("tables: {error}");
     }
-    let named = run_more(&lua, grf, &["pcjobname"]);
-    let job_names = names(named, "PCJobNameTable");
+    run_in(&lua, grf, &["pcjobname"]);
+    let job_names = names(&lua, "PCJobNameTable");
 
     let mut jobs = serde_json::Map::new();
     for (id, name) in job_names.into_iter().filter(|(id, _)| *id >= 0) {
@@ -196,8 +296,9 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
     let weapon_hits: serde_json::Map<String, serde_json::Value> = names(&weapon_table, "WeaponHitWaveNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // The picture of each pet in its window (a file of `유저인터페이스\illust`), by the monster's number: from
     // `petinfo.lub`, whose function `GetPetIllustName_V3` the client asks.
+    run_in(&lua, grf, &["petinfo"]);
     let pets: serde_json::Map<String, serde_json::Value> =
-        names(run_more(&lua, grf, &["petinfo"]), "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+        names(&lua, "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // Its `PetAccActNameTable`: by the accessory a pet wears (an item), the actions it is then drawn with.
     let pet_acts: serde_json::Map<String, serde_json::Value> = names(&lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "weapon_hits": weapon_hits, "tree": skill_tree(grf), "inherits": job_inherits(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
@@ -209,24 +310,13 @@ pub fn messages(grf: &Grf) -> Vec<String> {
     grf.read("data\\msgstringtable.txt").map(|bytes| korean(&bytes).lines().map(|line| line.trim_end_matches('#').to_owned()).collect()).unwrap_or_default()
 }
 
-/// Runs more files in a state that already holds others' tables.
-fn run_more<'lua>(lua: &'lua Lua, grf: &Grf, files: &[&str]) -> &'lua Lua {
-    run_in(lua, grf, files);
-    lua
-}
-
 /// Runs one of the client's Lua files that lie beside the archives, not in them (`System\\mapInfo_true.lub` and
 /// the like): the first of `files` (paths under the client's folder) that is there. Such a file is either
 /// bytecode, as the archives' are, or plain text, as the translations are.
 fn beside(client_dir: &std::path::Path, files: &[&str]) -> Option<Lua> {
     let (file, bytes) = files.iter().find_map(|file| Some((file, std::fs::read(client_dir.join(file)).ok()?)))?;
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
-    let ran = if bytes.starts_with(b"\x1bLua") {
-        lunify::unify(&bytes, &lunify::Format::default(), &lunify::Settings::default()).map_err(|error| format!("{error:?}")).and_then(|code| lua.load(code).set_mode(mlua::ChunkMode::Binary).exec().map_err(|error| error.to_string()))
-    } else {
-        lua.load(bytes).set_mode(mlua::ChunkMode::Text).exec().map_err(|error| error.to_string())
-    };
-    if let Err(error) = ran {
+    let lua = state();
+    if let Err(error) = exec(&lua, &bytes, None) {
         eprintln!("tables: {file}: {error}");
     }
     Some(lua)

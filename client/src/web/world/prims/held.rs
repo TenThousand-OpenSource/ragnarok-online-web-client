@@ -14,9 +14,8 @@
 //! The signs stand as high as the name of the one they are on (`CGameActor::GetNameOffset`), which the world
 //! tells the effect every frame (`Course::lift`).
 //!
-//! Beside `EF_GUMGANG` the client leaves fading copies of the character behind it for as long as Fury holds
-//! (`EF_MAKEBLUR`, `CRagEffect::SpawnBlurAfterimage`, which makes a `CBlurPC` of the actor every fifth tick):
-//! that is another kind of thing in the world, not an effect of primitives, and is not ported.
+//! Beside `EF_GUMGANG` Fury launches `EF_MAKEBLUR`, which flickers the body pale red (`prims/bodies.rs`,
+//! `crate::body::copies::blur`).
 
 use super::launched::{of_parts, part};
 use super::*;

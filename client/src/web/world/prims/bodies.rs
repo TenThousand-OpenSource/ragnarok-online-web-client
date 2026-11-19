@@ -28,6 +28,9 @@
 //! - `EF_JUMPKICK` (457): the one who kicks is held in the sixth picture of its casting action from its
 //!   fifth tick to its 35th. (The client puts its parent into a state of its own for that time, 27, and
 //!   holds the picture with `SetFrameSequence`; here the picture alone is held.)
+//! - `EF_MAKEBLUR` (166): for as long as a quickening, Overthrust, Energy Coat or Fury holds, the one in it is
+//!   in the colour the state tells the effect, and leaves afterimages as it moves
+//!   (`CRagEffect::SpawnBlurAfterimage`, `crate::body::copies::blur`);
 //! - `EF_ESCAPE` (1081): the one who slides away is yellow, and leaves four yellow copies of itself standing
 //!   on the way (`escape`).
 
@@ -42,8 +45,8 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
         368 | 375 | 420 => (99999, ""),
         382 | 396 | 419 | 424 | 427 | 474 | 544 => (99_999_999, ""),
-        // `EF_RUN` lives until its state ends.
-        442 => (9999, ""),
+        // `EF_RUN` and `EF_MAKEBLUR` live until their states end.
+        166 | 442 => (9999, ""),
         426 => (14, ""),
         443 => (30, ""),
         457 => (100, ""),
@@ -88,6 +91,15 @@ fn run(effect: u32, course: &mut Course, _prims: &mut Vec<Prim>) {
     }
     if effect == 1081 {
         return escape(course);
+    }
+    // `EF_MAKEBLUR`: the colour it was told (`Course::shared.aim`), and an afterimage where the body is.
+    if effect == 166 {
+        let (colour, leaves) = crate::body::copies::blur(course.shared.aim, tick, &mut |under| lot(under) as u32);
+        course.touch.colour = Some(colour);
+        if leaves {
+            course.copies.push(([0.0; 3], colour, crate::body::copies::Kind::Blur));
+        }
+        return;
     }
     let touch = &mut course.touch;
     match effect {
@@ -270,7 +282,7 @@ fn escape(course: &mut Course) {
         return;
     }
     let way: [f32; 3] = std::array::from_fn(|axis| course.walked[axis] - course.reach[axis]);
-    course.copies.push((way.map(|part| -part), [200, 200, 0]));
+    course.copies.push((way.map(|part| -part), [200, 200, 0], crate::body::copies::Kind::Stays));
     if way == [0.0; 3] {
         course.step[0] = 1.0;
     }

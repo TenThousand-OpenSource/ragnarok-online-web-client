@@ -42,6 +42,9 @@ pub mod scripted;
 pub mod chat_rooms;
 pub mod family;
 
+#[cfg(test)]
+mod golden;
+
 use std::collections::HashMap;
 use std::sync::OnceLock;
 

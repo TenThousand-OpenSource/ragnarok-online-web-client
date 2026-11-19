@@ -215,6 +215,13 @@ pub(super) fn field(id: &str) -> String {
     }
 }
 
+/// What stands in a field of the page now (of one line or of many), if the field is there: for a window that
+/// is drawn anew while something is typed into it, and takes what was typed from the page it replaces.
+#[allow(dead_code)]
+pub(in crate::web) fn written(id: &str) -> Option<String> {
+    js_sys::Reflect::get(element(id)?.as_ref(), &"value".into()).ok()?.as_string()
+}
+
 pub(super) fn set_field(id: &str, value: &str) {
     match element(id).map(|element| element.dyn_into::<HtmlInputElement>()) {
         Some(Ok(input)) => input.set_value(value),

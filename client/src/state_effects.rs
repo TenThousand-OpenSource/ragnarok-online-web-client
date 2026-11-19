@@ -12,9 +12,9 @@
 //! Only the states are here whose effects are drawn (`web/world/prims/`, or a file of the client's that is
 //! played). Every state of that arm that launches or ends an effect, with those left out and why:
 //!
-//! - the blur of the quickenings, Overthrust, Energy Coat and Fury (`EF_MAKEBLUR`, 166: copies of the actor
-//!   left behind it), and the copies of `EFST_NJ_BUNSINJYUTSU`, `EFST_WUGDASH`, `EFST_STRIKING` and
-//!   `EFST_HALLUCINATIONWALK` (617, 752, 925, 792): not drawn;
+//! - the copies of `EFST_NJ_BUNSINJYUTSU`, `EFST_WUGDASH`, `EFST_STRIKING` and `EFST_HALLUCINATIONWALK`
+//!   (617, 752, 925, 792): not drawn (the blur of the quickenings, Overthrust, Energy Coat and Fury is:
+//!   `EF_MAKEBLUR`, told its colour by `blur`);
 //! - `EFST_DEVIL1` and `EFST_HANDICAPSTATE_DEEPBLIND`, which darken the screen of the player's own character
 //!   (`EF_BLACKDEVIL` and the `EF_DEVIL`s, `EF_BLIND` with `EF_STATUS_STATE`): not drawn here; the veil of
 //!   blindness comes by the health state (`crate::ailments`);
@@ -89,6 +89,25 @@ const EF_AB_OFFERTORIUM_RING: u32 = 1057;
 const EF_ESCAPE: u32 = 1081;
 const EF_SU_STOOP: u32 = 1132;
 
+const EF_MAKEBLUR: u32 = 166;
+
+/// What `EF_MAKEBLUR` is told as a state launches it (`AM_SETCOUNT` with 0xFFFF and the state's own number,
+/// which `CRagEffect::SendMsg` turns into the colour of the body and of its afterimages; with 0xFFFE, Fury's,
+/// into -1: a flicker and no afterimage: `crate::body::copies::blur`). None for a state that launches none.
+pub fn blur(state: u32) -> Option<[f32; 3]> {
+    Some(match state {
+        // `EFST_TWOHANDQUICKEN`, `EFST_ONEHANDQUICKEN` (told 130), `EFST_SPEARQUICKEN` (250).
+        2 | 68 | 161 => [200.0, 200.0, 0.0],
+        // `EFST_OVERTHRUST`, `EFST_OVERTHRUSTMAX` (128).
+        25 | 188 => [250.0, 150.0, 150.0],
+        // `EFST_ENERGYCOAT` (169).
+        31 => [180.0, 180.0, 250.0],
+        // `EFST_EXPLOSIONSPIRITS` (0xFFFE, 128).
+        86 => [-1.0; 3],
+        _ => return None,
+    })
+}
+
 /// What a state going on or off does to the effects on the one in it.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Change {
@@ -112,8 +131,11 @@ pub fn changed(state: u32, on: bool) -> Change {
         75 => kept(&[EF_DECAGILITY]),
         // `EFST_ETERNALCHAOS`, `EFST_ROKISWEIL`, `EFST_SATURDAY_NIGHT_FEVER`.
         79 | 82 | 448 => kept(&[EF_ENERVATION7]),
-        // `EFST_EXPLOSIONSPIRITS`.
-        86 => kept(&[EF_GUMGANG]),
+        // `EFST_TWOHANDQUICKEN`, `EFST_OVERTHRUST`, `EFST_ENERGYCOAT`, `EFST_SPEARQUICKEN`,
+        // `EFST_ONEHANDQUICKEN`, `EFST_OVERTHRUSTMAX`: the blur, told its colour (`blur`).
+        2 | 25 | 31 | 68 | 161 | 188 => kept(&[EF_MAKEBLUR]),
+        // `EFST_EXPLOSIONSPIRITS`: the sign of Fury, and the blur that flickers the body.
+        86 => kept(&[EF_GUMGANG, EF_MAKEBLUR]),
         // `EFST_STEELBODY`, `EFST_DBARRIER`.
         87 | 235 => kept(&[EF_STEELBODY, EF_SU_STOOP]),
         // `EFST_STOP`: the effect is begun by the skill (`NPC_STOP`), and only ended here.
@@ -186,6 +208,8 @@ pub fn changed(state: u32, on: bool) -> Change {
 /// which is not told here.
 pub fn reapplied(state: u32) -> &'static [u32] {
     match state {
+        // The quickenings, Overthrust and Energy Coat: the blur (`blur`).
+        2 | 25 | 31 | 68 | 161 | 188 => &[EF_MAKEBLUR],
         // `EFST_EXPLOSIONSPIRITS`, `EFST_STEELBODY`.
         86 => &[EF_GUMGANG],
         87 => &[EF_STEELBODY, EF_SU_STOOP],
@@ -291,6 +315,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn the_blur_is_told_its_colour_by_the_state() {
+        assert_eq!((changed(2, true).begins, changed(2, false)), (&[EF_MAKEBLUR][..], Change { ends: &[EF_MAKEBLUR], ..Change::default() }));
+        assert_eq!(changed(86, true).begins, &[EF_GUMGANG, EF_MAKEBLUR][..]);
+        assert_eq!((blur(2), blur(68), blur(161)), (Some([200.0, 200.0, 0.0]), Some([200.0, 200.0, 0.0]), Some([200.0, 200.0, 0.0])));
+        assert_eq!((blur(25), blur(31), blur(86), blur(87)), (Some([250.0, 150.0, 150.0]), Some([180.0, 180.0, 250.0]), Some([-1.0; 3]), None));
+    }
+
+    #[test]
     fn a_state_going_on_ends_its_effect_and_begins_it_anew() {
         assert_eq!(changed(107, true), Change { ends: &[EF_REDBODY], begins: &[EF_REDBODY], ..Change::default() });
         assert_eq!(changed(107, false), Change { ends: &[EF_REDBODY], ..Change::default() });
@@ -350,6 +382,7 @@ mod tests {
     #[test]
     fn the_players_own_states_launch_their_effects_anew_on_arrival() {
         assert_eq!(reapplied(86), &[EF_GUMGANG][..]);
+        assert_eq!((reapplied(2), reapplied(188)), (&[EF_MAKEBLUR][..], &[EF_MAKEBLUR][..]));
         assert_eq!(reapplied(87), &[EF_STEELBODY, EF_SU_STOOP][..]);
         // Aura Blade: the light of the weapon alone, not the walls the state began with.
         assert_eq!((reapplied(103), changed(103, true).begins), (&[EF_AURABLADE2][..], &[EF_AURABLADE, EF_AURABLADE2][..]));

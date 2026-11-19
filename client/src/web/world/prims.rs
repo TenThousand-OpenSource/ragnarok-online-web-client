@@ -145,8 +145,9 @@ pub(super) struct Course {
     /// what an effect that follows a second actor looks at every tick (the client's `state.target`).
     pub(super) other: Option<[f32; 3]>,
     /// The copies of the one it is on that it leaves standing at this tick (the client's `CHalluPC`): where
-    /// each stands from where that one is now (east, up, north), and the colour it is in.
-    pub(super) copies: Vec<([f32; 3], [u8; 3])>,
+    /// each stands from where that one is now (east, up, north), the colour it is in, and of which kind it is
+    /// (`crate::body::copies::Kind`).
+    pub(super) copies: Vec<([f32; 3], [u8; 3], crate::body::copies::Kind)>,
     /// How high over the feet of the one it is on that one's name stands (`CGameActor::GetNameOffset`), which
     /// the signs of Fury and its like are lifted by (`Prim::lifted`).
     pub(super) lift: f32,
@@ -180,8 +181,8 @@ pub(super) struct Asked {
     pub(super) quakes: Vec<u32>,
     pub(super) ends: Vec<(Option<u32>, u32)>,
     pub(super) launches: Vec<(Option<u32>, u32, Vector)>,
-    /// The copies to leave standing: of whom, where from that one's place, and in which colour.
-    pub(super) copies: Vec<(Option<u32>, [f32; 3], [u8; 3])>,
+    /// The copies to leave standing: of whom, where from that one's place, in which colour, of which kind.
+    pub(super) copies: Vec<(Option<u32>, [f32; 3], [u8; 3], crate::body::copies::Kind)>,
 }
 
 /// An effect of the client's under way on someone.
@@ -261,7 +262,7 @@ impl Burst {
             self.touch.turn += turned;
             asked.quakes.extend(self.course.quake.take());
             asked.ends.extend(self.course.ends.drain(..).map(|effect| (self.on, effect)));
-            asked.copies.extend(self.course.copies.drain(..).map(|(at, colour)| (self.on, at, colour)));
+            asked.copies.extend(self.course.copies.drain(..).map(|(at, colour, kind)| (self.on, at, colour, kind)));
             // A sprite's frames are counted once the sprite has been read; until then it stays on its first.
             let (shared, other, lift) = (&mut self.course.shared, self.course.other, self.course.lift);
             self.prims.retain_mut(|prim| {

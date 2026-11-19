@@ -1,5 +1,5 @@
 //! The states someone is in (buffs and debuffs) going on and off: the character's own are listed at the side
-//! of the screen; two of them say what anyone rides.
+//! of the screen; three of them say what anyone rides or keeps.
 
 use super::*;
 use crate::net::statuses::{self, Change};
@@ -30,12 +30,19 @@ impl App {
         true
     }
 
-    /// Two of the states say what someone rides, which is how the server tells a player of its own mount as it
-    /// comes into a map: riding (27: a bird or a dragon, by the job) and riding a wolf (357).
+    /// Three of the states say what someone rides or keeps, which is how the server tells a player of its own
+    /// mount or falcon as it logs in: riding (27: a bird or a dragon, by the job), riding a wolf (357) and
+    /// the falcon (EFST_FALCON, 28). rAthena's `clif_parse_LoadEndAck` sends the player nothing else of its own
+    /// effect state then (its ZC_STATE_CHANGE goes out only with a health state), so without this the
+    /// character's own falcon was there only after a change of its options, never after logging in. (Where
+    /// the Windows client takes its own `StateFlag04` from at that moment was not found in the decompiled
+    /// code: this is decided here, as the mounts were.)
     fn rides(&mut self, change: &Change) {
-        // The bits of the state the client's table of mounts goes by: 5 a bird, 19 a dragon, 21 a wolf.
+        // The bits of the state the client's table of mounts goes by: 5 a bird, 19 a dragon, 21 a wolf; and
+        // the falcon's (`crate::falcon::BIT`).
         let mask = match change.state {
             27 => 1 << 5 | 1 << 19,
+            28 => crate::falcon::BIT,
             357 => 1 << 21,
             _ => return,
         };
@@ -45,7 +52,7 @@ impl App {
             // The character's own state keeps the one bit its job rides by: a dragon if the client's table has
             // one for the job, else a bird.
             let job = self.own_figure().job;
-            let rides = if mask == 1 << 21 || crate::mounts::drawn_job(job, 1 << 19) == job { mask & !(1 << 19) } else { 1 << 19 };
+            let rides = if change.state != 27 || crate::mounts::drawn_job(job, 1 << 19) == job { mask & !(1 << 19) } else { 1 << 19 };
             self.hero.state = self.hero.state & !mask | if change.on { rides } else { 0 };
             self.render();
         }

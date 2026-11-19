@@ -46,6 +46,17 @@ async fn fetch_asset(path: &str) -> Result<Vec<u8>, String> {
     Ok(js_sys::Uint8Array::new(&buffer).to_vec())
 }
 
+/// A text of the client's files, which are written in Korean (EUC-KR, as the browser decodes it: its "euc-kr"
+/// is Windows' code page 949): the names of textures and sprites in a map, a model or an effect, the lines of
+/// a table. Where the browser cannot decode it, the bytes are read as UTF-8 and what is none is lost.
+#[allow(dead_code)]
+pub(crate) fn korean(bytes: &[u8]) -> String {
+    thread_local! {
+        static KOREAN: Option<web_sys::TextDecoder> = web_sys::TextDecoder::new_with_label("euc-kr").ok();
+    }
+    KOREAN.with(|korean| korean.as_ref().and_then(|korean| korean.decode_with_u8_array(bytes).ok())).unwrap_or_else(|| String::from_utf8_lossy(bytes).into_owned())
+}
+
 /// The page.
 pub(crate) fn document() -> Option<web_sys::Document> {
     web_sys::window().and_then(|window| window.document())

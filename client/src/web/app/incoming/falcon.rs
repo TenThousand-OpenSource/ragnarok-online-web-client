@@ -1,5 +1,6 @@
 //! The hunter's falcon: the skills that send it at something. The falcon itself needs no packet of its own
-//! (the world draws one for everyone whose effect state has its bit); this overhears the three packets by
+//! (the world draws one for everyone whose effect state has its bit, which the player's own character gets
+//! at logging in from its state EFST_FALCON: `incoming/statuses.rs`); this overhears the three packets by
 //! which the client sends it flying: a hit of Blitz Beat or Falcon Assault (`CGameActor::ProcessSkillMessage`),
 //! Detect used on a place (`CGameActor::PlayGroundSkillEffect`) and Spring Trap used on a trap
 //! (`CGameMode::ReceiveSkillUse`).

@@ -6,7 +6,7 @@
 The plan maps a child module to its doc line and to the items it takes:
     {"camera": {"doc": "...", "items": ["Camera::view", "subtract", "GROUND_SHADER"]}}
 
-An item is a free function, a constant, or `Type::method`. Types stay in the parent, so their private fields
+An item is a free function, a constant, `Type::method`, or a whole `impl Trait for Type` (named so). Types stay in the parent, so their private fields
 remain visible to every child; what moves is made `pub(super)` so the parent and the siblings can still call it.
 The parent gains `mod child; pub use child::*;` lines (`use` when `"private": true`, or what `"use"` says).
 """
@@ -14,11 +14,15 @@ import json
 import re
 import sys
 
-KEYWORD = re.compile(r'^(pub(\([a-z]+\))? )?(async )?(fn|struct|enum|const|static|type|impl|trait|thread_local!|macro_rules!|use|mod)\b')
-NAME = re.compile(r'^(?:pub(?:\([a-z]+\))? )?(?:async )?(fn|const|static) (\w+)')
-SHADER = re.compile(r'^(pub(\([a-z]+\))? )?const \w+: &str = "$')
-METHOD = re.compile(r'^    (pub(\([a-z]+\))? )?(async )?fn (\w+)')
+# A visibility is `pub`, `pub(crate)`, `pub(super)` or `pub(in some::path)`.
+KEYWORD = re.compile(r'^(pub(\([^)]*\))? )?(async )?(fn|struct|enum|const|static|type|impl|trait|thread_local!|macro_rules!|use|mod)\b')
+NAME = re.compile(r'^(?:pub(?:\([^)]*\))? )?(?:async )?(fn|const|static) (\w+)')
+SHADER = re.compile(r'^(pub(\([^)]*\))? )?const \w+: &str = "$')
+METHOD = re.compile(r'^    (pub(\([^)]*\))? )?(async )?fn (\w+)')
 IMPL = re.compile(r'^impl(?:<[^>]*>)? (\w+) \{$')
+# `impl Trait for Type {`: such a block cannot be divided, so it moves whole, named in the plan as it is written
+# up to its brace (`"impl Default for Camera"`).
+IMPL_FOR = re.compile(r'^(impl(?:<[^>]*>)? [\w:]+(?:<[^>]*>)? for [\w:]+(?:<[^>]*>)?) \{$')
 
 
 def lead(lines, at, indent):
@@ -45,7 +49,8 @@ def chunks(lines):
         end = lead(lines, end, '') if index + 1 < len(starts) else end
         named = NAME.match(lines[start])
         implemented = IMPL.match(lines[start])
-        kind, name = (named.group(1), named.group(2)) if named else (('impl', implemented.group(1)) if implemented else ('other', ''))
+        whole = IMPL_FOR.match(lines[start])
+        kind, name = (named.group(1), named.group(2)) if named else (('impl', implemented.group(1)) if implemented else (('whole', whole.group(1)) if whole else ('other', '')))
         found.append((lead(lines, start, ''), end, kind, name, start))
     return found
 
@@ -96,7 +101,8 @@ def main():
         elif name in wanted:
             seen.add(name)
             body = deeper(lines[start:end])
-            body[at - start] = widen(body[at - start], '')
+            if kind != 'whole':
+                body[at - start] = widen(body[at - start], '')
             while body and body[-1] == '':
                 body.pop()
             taken[wanted[name]]['free'].append(body)

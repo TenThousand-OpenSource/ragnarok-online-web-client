@@ -61,6 +61,8 @@ pub fn leave() {
         state.entered += 1;
         state.turning = None;
         state.own = [0; 4];
+        // The next character to come in has none of this one's effect state (its mount, its falcon).
+        state.own_state = 0;
         state.bars = false;
         state.named = None;
         state.pointer = None;

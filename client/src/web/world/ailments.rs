@@ -169,35 +169,41 @@ fn footprints(state: &mut State, prints: &[((f32, f32), crate::body::Print)], ti
     }
 }
 
-/// A copy of someone that an effect left standing (`crate::body::copies`, the client's `CHalluPC`): the
-/// picture that one showed then, where it stands, its colour, and since when.
+/// A copy of someone that an effect left standing (`crate::body::copies`, the client's `CHalluPC` and
+/// `CBlurPC`): the picture that one showed then, where it stands, its colour, its kind, and since when.
 pub(super) struct Ghost {
     key: SpriteKey,
     at: Vector,
     colour: [u8; 3],
+    kind: crate::body::copies::Kind,
     since: f64,
 }
 
 /// The copies that effects leave standing at this frame (`prims::Asked::copies`: of whom, where from that
-/// one's place, in which colour). Only a character is copied.
-pub(super) fn copies_left(state: &mut State, copies: &[(Option<u32>, Vector, [u8; 3])], time: f64) {
+/// one's place, in which colour, of which kind). Only a character is copied; an afterimage is left only of
+/// one who walks or is in a motion.
+pub(super) fn copies_left(state: &mut State, copies: &[(Option<u32>, Vector, [u8; 3], crate::body::copies::Kind)], time: f64) {
     let Some(scene) = &state.scene else { return };
-    for (of, from, colour) in copies {
+    for (of, from, colour, kind) in copies {
         let Some(mover) = (match of {
             Some(id) => scene.units.get(id),
             None => Some(&scene.player),
         }) else {
             continue;
         };
+        let moves = mover.walk.is_some() || mover.motion.is_some_and(|(_, began, _)| began <= time);
+        if *kind == crate::body::copies::Kind::Blur && (!moves || mover.hidden()) {
+            continue;
+        }
         if let (Look::Character(_), Some(key)) = (&mover.look, &mover.shown) {
-            state.copies.push(Ghost { key: key.clone(), at: along(on_ground(&scene.gat, mover.at), *from, 1.0), colour: *colour, since: time });
+            state.copies.push(Ghost { key: key.clone(), at: along(on_ground(&scene.gat, mover.at), *from, 1.0), colour: *colour, kind: *kind, since: time });
         }
     }
 }
 
 /// The copies standing now, added to the pictures of this frame; those that have faded out are forgotten.
 pub(super) fn copies(copies: &mut Vec<Ghost>, gpu: &mut Gpu, time: f64, pictures: &mut Vec<Stood>) {
-    let left = |copy: &Ghost| crate::body::copies::alpha(((time - copy.since) / CAST_FRAME_MS) as i32);
+    let left = |copy: &Ghost| copy.kind.alpha(((time - copy.since) / CAST_FRAME_MS) as i32);
     copies.retain(|copy| left(copy).is_some());
     for copy in copies.iter().filter(|copy| gpu.has_sprite(&copy.key)) {
         let [red, green, blue] = copy.colour;

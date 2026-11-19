@@ -19,9 +19,22 @@ pub fn state_effects(on: Option<u32>, state: u32, holds: bool) {
     for effect in change.begins.iter().copied().chain(after) {
         burst(effect, on, None, 0.0);
     }
+    blur_told(on, state);
     if !change.sound.is_empty() {
         sound::effect(change.sound, 1.0);
     }
+}
+
+/// The blur a state has just begun on someone is told its colour (`crate::state_effects::blur`: the
+/// client's `AM_SETCOUNT` to the `EF_MAKEBLUR` it launched).
+fn blur_told(on: Option<u32>, state: u32) {
+    const EF_MAKEBLUR: u32 = 166;
+    let Some(colour) = crate::state_effects::blur(state) else { return };
+    STATE.with_borrow_mut(|state| {
+        if let Some(blur) = state.bursts.iter_mut().rev().find(|burst| burst.is(EF_MAKEBLUR, on)) {
+            blur.tell(colour);
+        }
+    });
 }
 
 /// The player's own character has arrived on a map, or elsewhere on this one, in those states: the effects of
@@ -36,6 +49,7 @@ pub fn own_states_again(states: impl Iterator<Item = u32>) {
             for effect in effects {
                 burst(*effect, None, None, 0.0);
             }
+            blur_told(None, state);
         }
     }
 }

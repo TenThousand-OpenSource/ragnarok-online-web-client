@@ -44,4 +44,35 @@ pub mod colour {
     pub const PALE_YELLOW: &str = "#ffff64";
     /// A softer cyan: what a command answers, what a pet was fed.
     pub const PALE_CYAN: &str = "#64ffff";
+
+    /// The red, green and blue of a colour kept as one number, `0xRRGGBB` (what an announcement and a script
+    /// name a colour by).
+    pub fn parts(colour: u32) -> [u8; 3] {
+        [(colour >> 16) as u8, (colour >> 8) as u8, colour as u8]
+    }
+
+    /// A colour of three bytes as the page takes it, written out: `rgb(255,0,0)`.
+    pub fn css([red, green, blue]: [u8; 3]) -> String {
+        format!("rgb({red},{green},{blue})")
+    }
+
+    /// A colour of three bytes as the page takes it, in sixteens: `#ff0000`, the way the colours above are
+    /// written.
+    pub fn hex([red, green, blue]: [u8; 3]) -> String {
+        format!("#{red:02x}{green:02x}{blue:02x}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::colour::*;
+
+    #[test]
+    fn a_colour_is_taken_apart_and_written_for_the_page() {
+        assert_eq!(parts(0xff8000), [255, 128, 0]);
+        assert_eq!(parts(0x12ff8000), [255, 128, 0]);
+        assert_eq!(css([255, 128, 0]), "rgb(255,128,0)");
+        assert_eq!((hex([255, 128, 0]), hex([0, 10, 255])), ("#ff8000".to_owned(), "#000aff".to_owned()));
+        assert_eq!(hex(parts(0xff0000)), RED);
+    }
 }

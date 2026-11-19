@@ -24,20 +24,50 @@ pub(super) struct Pursuit {
 /// camera and the page's size, for the place the pointer is held on. A later step's walk replaces an earlier one's.
 pub(super) fn pursue(state: &mut State, view: &View, size: (f32, f32), time: f64) -> Pursuit {
     let mut pursuit = Pursuit::default();
-    journey(state, &mut pursuit);
+    journey(state, time, &mut pursuit);
     walk_on(state, view, size, time, &mut pursuit);
     fetch(state, time, &mut pursuit);
     chase(state, time, &mut pursuit);
     reach(state, time, &mut pursuit);
+    // Whatever asks for the walk, it goes only if none went a moment ago.
+    if pursuit.follow.is_some_and(|(_, goal)| !state.asks_walk(goal, time)) {
+        pursuit.follow = None;
+    }
     pursuit
+}
+
+impl State {
+    /// Whether a walk to `goal` may be asked of the server now; if so it is noted as asked for. The client
+    /// drops a request that comes within 350 milliseconds of the last (`crate::route::may_ask`), a press on
+    /// the ground as any other.
+    pub(super) fn asks_walk(&mut self, goal: (i32, i32), time: f64) -> bool {
+        let may = crate::route::may_ask(time, self.walk_asked);
+        if may {
+            (self.walk_asked, self.asked) = (time, goal);
+        }
+        may
+    }
+}
+
+impl super::Scene {
+    /// Where a press on `to` sends the player's character (`Gat::goal_towards`), the cells where somebody
+    /// stands being taken. The client keeps those in a list (`CGameMode::actorPosList`): an actor is put on it
+    /// when it stands, sits, strikes or casts (`RegisterPos` in `CRenderObject::SetState`) and taken off when
+    /// it walks, has died or goes out of sight; portals and unseen NPCs are never on it, and one who hides
+    /// (the effect state's bit 2) does not count (`IsRegisterCell`).
+    pub(super) fn goal_towards(&self, from: (i32, i32), to: (i32, i32), far: bool) -> Option<(i32, i32)> {
+        let taken = |cell: (i32, i32)| self.units.values().any(|unit| unit.cell == cell && unit.walk.is_none() && !unit.dead && unit.dying.is_none() && unit.state & 2 == 0);
+        self.gat.goal_towards(from, to, taken, far)
+    }
 }
 
 /// A place pressed that is farther than the server walks in one go (its `max_walk_path`) is walked to in
 /// stretches: arrived at the end of one, the character is sent on towards the place, until it is there or
-/// the way is shut. The client asks once and stops where the server's stretch ends; going on is this
-/// project's, for a camera that shows farther than the client's does.
-fn journey(state: &mut State, pursuit: &mut Pursuit) {
+/// the way is shut. The client asks once and does not go on; this is the project's own, and happens only with
+/// its far walk switched on (`Options::far_walk`, the command `/farwalk`).
+fn journey(state: &mut State, time: f64, pursuit: &mut Pursuit) {
     let (Some(scene), Some((to, asked))) = (&state.scene, state.journey) else { return };
+
     // Anything else the character is after ends it.
     if state.chase.is_some() || state.fetch.is_some() || state.reach.is_some() || state.aiming.is_some() {
         return state.journey = None;
@@ -50,7 +80,11 @@ fn journey(state: &mut State, pursuit: &mut Pursuit) {
         }
         return;
     }
-    match scene.gat.goal_towards(cell, to).filter(|next| *next != cell) {
+    // The next stretch waits until a walk may be asked for again.
+    if !crate::route::may_ask(time, state.walk_asked) {
+        return;
+    }
+    match scene.goal_towards(cell, to, state.options.far_walk).filter(|next| *next != cell) {
         Some(next) => {
             state.journey = (next != to).then_some((to, next));
             pursuit.follow = state.hooks.as_ref().map(|hooks| (hooks.walk_to, next));
@@ -59,13 +93,14 @@ fn journey(state: &mut State, pursuit: &mut Pursuit) {
     }
 }
 
-/// While the left button is held on the ground, the character keeps walking to where the pointer is.
+/// While the left button is held on the ground, the character keeps walking to where the pointer is: asked for
+/// anew 600 milliseconds after the last time (the client's `CGameMode::ProcessGroundClick`).
 fn walk_on(state: &mut State, view: &View, (width, height): (f32, f32), time: f64, pursuit: &mut Pursuit) {
     let Some(scene) = &mut state.scene else { return };
-    let follow = state.held.filter(|_| time - state.held_asked > 250.0).and_then(|held| {
+    let follow = state.held.filter(|_| time - state.held_asked > crate::route::HELD_APART).and_then(|held| {
         let picked = view.pick(&scene.gat, (held.0 / width.max(1.0), held.1 / height.max(1.0)))?;
         let cell = scene.player.cell;
-        let goal = scene.gat.goal_towards(cell, picked)?;
+        let goal = scene.goal_towards(cell, picked, state.options.far_walk)?;
         (goal != cell).then_some(goal)
     });
     if follow.is_some() {
@@ -87,7 +122,7 @@ fn fetch(state: &mut State, time: f64, pursuit: &mut Pursuit) {
             if (cell.0 - own.0).abs().max((cell.1 - own.1).abs()) <= 1 {
                 pursuit.take = state.hooks.as_ref().map(|hooks| (hooks.take, id));
             } else if scene.player.walk.is_none() {
-                let goal = scene.gat.goal_towards(own, *cell);
+                let goal = scene.goal_towards(own, *cell, state.options.far_walk);
                 pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
             }
             state.fetch = Some((id, time));
@@ -96,13 +131,18 @@ fn fetch(state: &mut State, time: f64, pursuit: &mut Pursuit) {
     }
 }
 
-/// The monster being fought is run after when it is out of reach, and struck again once it is near.
+/// The monster being fought is run after when it is out of reach, and struck again once it is near. The
+/// client (`CPlayer::UpdatePendingAction`) sends its player on no sooner than 450 milliseconds after it last
+/// did, and only to another cell than the one it is bound for. Here it is also sent on to the same cell when
+/// it stands (a blow stopped it, or the server did not walk it): whether the client does was not found.
 fn chase(state: &mut State, time: f64, pursuit: &mut Pursuit) {
+    /// The wait between two walks of the client's second way of chasing.
+    const CHASE_APART_SECOND: f64 = 1200.0;
     let Some(scene) = &mut state.scene else { return };
     let Some((id, looked, told)) = state.chase else { return };
     match scene.units.get(&id) {
         None => state.chase = None,
-        Some(unit) if time - looked > 400.0 => {
+        Some(unit) if time - looked > crate::route::CHASE_APART => {
             let cell = scene.player.cell;
             // Near enough is what the server said the weapon reaches (it says on entering the map, when
             // that changes, and when a blow is asked for from too far). Until it has said, the
@@ -111,11 +151,17 @@ fn chase(state: &mut State, time: f64, pursuit: &mut Pursuit) {
             // by cells, as the server does, so that the server never finds the blow asked from too far.
             let range = state.strike_range.unwrap_or(30).max(1);
             let far = (unit.cell.0 - cell.0).abs().max((unit.cell.1 - cell.1).abs()) > range;
-            if far {
+            // The client's second way of chasing (`PT_ATTACK_2`, chosen in its `AM_PROCEEDATTACK` when four
+            // thirds of the player's own time for a cell is still less than the target's): it is then sent
+            // on only every 1200 milliseconds, not every 450.
+            let second = scene.player.speed * 4.0 / 3.0 < unit.speed;
+            if far && second && time - state.walk_asked <= CHASE_APART_SECOND {
+                // (It waits for its time.)
+            } else if far {
                 // The way to the monster, as far as the cell from which the weapon reaches it.
                 let way = scene.gat.path(cell, unit.cell);
                 let near = way.get(way.len().saturating_sub(1 + range as usize).min(way.len().saturating_sub(1))).copied().filter(|goal| *goal != cell).unwrap_or(unit.cell);
-                let goal = scene.gat.goal_towards(cell, near);
+                let goal = scene.goal_towards(cell, near, state.options.far_walk).filter(|goal| *goal != state.asked || scene.player.walk.is_none());
                 pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
             } else if !told || (scene.player.walk.is_none() && time - state.own_struck > 1500.0 && time - state.strike_asked > 1500.0) {
                 // Near enough: the server is told to strike. It is told again when nothing came of it
@@ -158,7 +204,7 @@ fn reach(state: &mut State, time: f64, pursuit: &mut Pursuit) {
             } else if time - looked > 350.0 {
                 if scene.player.walk.is_none() {
                     let own = scene.player.cell;
-                    let goal = scene.gat.goal_towards(own, cell);
+                    let goal = scene.goal_towards(own, cell, state.options.far_walk);
                     pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
                 }
                 state.reach = Some((whom, cell, range, time));

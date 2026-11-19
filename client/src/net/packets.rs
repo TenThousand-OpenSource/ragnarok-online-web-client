@@ -1,5 +1,7 @@
 //! The packets of the way in. Requests are built as bytes; replies are read out of a whole packet (ID included).
 
+use super::bytes::{name_at, u16_at, u32_at, u64_at};
+
 mod chars;
 mod zone;
 
@@ -37,8 +39,6 @@ pub const ZC_STATUS_CHANGE: u16 = 0x00be;
 pub const ZC_COUPLESTATUS: u16 = 0x0141;
 pub const ZC_NOTIFY_CHAT: u16 = 0x008d;
 pub const ZC_NOTIFY_PLAYERCHAT: u16 = 0x008e;
-pub const ZC_BROADCAST: u16 = 0x009a;
-pub const ZC_BROADCAST2: u16 = 0x01c3;
 
 /// The character's parameters, as the servers number them (rAthena's `_sp`).
 pub mod parameter {
@@ -119,28 +119,6 @@ impl Writer {
     }
 }
 
-fn u16_at(bytes: &[u8], at: usize) -> u16 {
-    u16::from_le_bytes([bytes[at], bytes[at + 1]])
-}
-
-fn u32_at(bytes: &[u8], at: usize) -> u32 {
-    u32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]])
-}
-
-fn u64_at(bytes: &[u8], at: usize) -> u64 {
-    u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap())
-}
-
-/// A zero-terminated text field. Names on this server are ASCII; other bytes are read as Latin-1 so nothing is lost.
-fn text_at(bytes: &[u8], at: usize, size: usize) -> String {
-    let field = &bytes[at..at + size];
-    let end = field.iter().position(|&byte| byte == 0).unwrap_or(size);
-    match std::str::from_utf8(&field[..end]) {
-        Ok(text) => text.to_owned(),
-        Err(_) => field[..end].iter().map(|&byte| char::from(byte)).collect(),
-    }
-}
-
 // ---------------------------------------------------------------------------------------------------------------
 // Login server
 
@@ -180,7 +158,7 @@ pub fn login_accepted(packet: &[u8]) -> Option<LoginAccepted> {
         .map(|server| CharServer {
             ip: server[..4].try_into().unwrap(),
             port: u16_at(server, 4),
-            name: text_at(server, 6, 20),
+            name: name_at(server, 6, 20),
             users: u16_at(server, 26),
         })
         .collect();
@@ -190,7 +168,7 @@ pub fn login_accepted(packet: &[u8]) -> Option<LoginAccepted> {
 /// AC_REFUSE_LOGIN (0x083e): `u32 error, char[20] unblock_time`. Error 0 is an unknown ID, 1 a wrong password,
 /// 6 a block until the time given.
 pub fn login_refused(packet: &[u8]) -> Option<(u32, String)> {
-    (packet.len() >= 26).then(|| (u32_at(packet, 2), text_at(packet, 6, 20)))
+    (packet.len() >= 26).then(|| (u32_at(packet, 2), name_at(packet, 6, 20)))
 }
 
 /// SC_NOTIFY_BAN (0x0081): `u8 reason`. 1 is a closed server, 2 another login on the account, 8 a login the

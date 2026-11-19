@@ -78,9 +78,6 @@ texts! {
     BlockedUntil: "You are prohibited to log in until {}.", "Вход запрещён до {}.";
     Overpopulated: "Server is jammed due to overpopulation. Please try again after few minutes.", "Сервер переполнен. Попробуйте через несколько минут.";
     RejectedCode: "Rejected from server ({}).", "Сервер отклонил подключение ({}).";
-    ServerClosed: "Server closed.", "Сервер закрыт.";
-    AlreadyLoggedIn: "Someone has already logged in with this ID.", "С этим ID уже вошли в игру.";
-    StillRecognized: "Server still recognizes your last login. Please try again in a moment.", "Сервер ещё помнит ваш прошлый вход. Попробуйте чуть позже.";
     Disconnected: "Disconnected from server.", "Соединение с сервером разорвано.";
     DisconnectedCode: "Disconnected from server ({}).", "Соединение с сервером разорвано ({}).";
     ConnectFailed: "Failed to connect to server.", "Не удалось подключиться к серверу.";
@@ -241,6 +238,10 @@ pub fn tr(english: &str) -> &str {
 /// The phrases of the game's windows, in English and in Russian.
 const PHRASES: &[(&str, &str)] = &[
     ("online", "в сети"),
+    ("Remove the tab", "Убрать вкладку"),
+    ("Attach", "Прикрепить"),
+    ("without the windows", "без окон"),
+    ("The picture of the screen could not be made", "Не удалось сделать снимок экрана"),
     ("Players online", "Игроков в сети"),
     ("Language", "Язык"),
     ("Game Settings", "Настройки игры"),
@@ -309,6 +310,7 @@ const PHRASES: &[(&str, &str)] = &[
     ("Skill Point", "Очки умений"),
     ("obtained.", "получено."),
     ("Raise", "Повысить"),
+    ("Too much of the emblem is see-through.", "Слишком большая часть эмблемы прозрачна."),
     ("Log out", "Выход"),
     ("You cannot leave the game right now.", "Сейчас нельзя выйти из игры."),
     ("There is no such character name or the user is offline.", "Такого персонажа нет, или игрок не в сети."),
@@ -348,6 +350,16 @@ const PHRASES: &[(&str, &str)] = &[
     ("Your pet name must be 23 characters or less.", "Имя питомца — не длиннее 23 символов."),
     ("Your pet has been fed. {} ({}) remaining", "Питомец накормлен. {}: осталось {}"),
     ("Pet food [{}] is not available.", "Нет корма для питомца: {}."),
+    ("this command does nothing in this client yet.", "эта команда в этом клиенте пока ничего не делает."),
+    ("Packets not read", "Непрочитанные пакеты"),
+    // Why a server ended the session: lines 3, 4, 5, 241, 264 and 440 of the client's message table.
+    ("Disconnected from Server!", "Соединение с сервером разорвано!"),
+    ("Server Closed.", "Сервер закрыт."),
+    ("Someone has Logged in with this ID.", "С этим ID уже вошли в игру."),
+    ("You've been disconnected due to a time gap between you and the server.", "Соединение разорвано из-за расхождения времени с сервером."),
+    ("Server is jammed due to over population. Please try again shortly.", "Сервер переполнен. Попробуйте чуть позже."),
+    ("The game server still recognizes your last log-in. Please try again after about 30 seconds.", "Сервер ещё помнит ваш прошлый вход. Попробуйте примерно через 30 секунд."),
+    ("Clear", "Очистить"),
     ("You can't put this item on.", "Этот предмет нельзя надеть."),
     ("From", "От"),
     ("Status (Alt+A)", "Характеристики (Alt+A)"),

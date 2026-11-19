@@ -76,7 +76,7 @@ async fn remove_account(userid: &str) {
 async fn can_log_in(userid: &str, password: &str) -> bool {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
-    let router = bridge::router(Bridge { host: "127.0.0.1".into(), ports: vec![LOGIN_PORT], login_guard: None, connections_per_minute: 10_000 });
+    let router = bridge::router(Bridge { host: "127.0.0.1".into(), ports: vec![LOGIN_PORT], login_guard: None, connections_per_minute: 10_000, lag: Default::default() });
     tokio::spawn(async move { axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap() });
     let (mut socket, _) = tokio_tungstenite::connect_async(format!("ws://{address}/ws/{LOGIN_PORT}")).await.unwrap();
 

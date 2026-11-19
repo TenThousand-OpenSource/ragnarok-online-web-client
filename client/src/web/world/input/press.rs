@@ -20,6 +20,10 @@ pub(super) fn pressed(event: &MouseEvent, canvas: &HtmlCanvasElement) {
             STATE.with_borrow_mut(|state| state.aiming = None);
             aim_shown();
         }
+        // With Alt held the right button commands the homunculus and the left one the mercenary, when the
+        // player has one out (`ai.rs`).
+        2 if event.alt_key() && ai::commanded(event, at, 0) => {}
+        0 if event.alt_key() && ai::commanded(event, at, 1) => {}
         0 => left(event, at),
         // The right button uses the ninth slot of the hotkey bar, when the player has it so (the client's
         // Quick Skill 1); the camera is not set back by two quick presses then, as in the client.
@@ -37,11 +41,22 @@ pub(super) fn pressed(event: &MouseEvent, canvas: &HtmlCanvasElement) {
             let zoom_out = state.options.zoom_out;
             let pressed = now();
             if pressed - state.right_pressed < 350.0 {
-                if let Some(scene) = &mut state.scene {
-                    scene.camera = Camera { distance: scene.camera.distance, ..Camera::starting(scene.indoor, zoom_out) };
-                    if !scene.indoor {
-                scene.camera.remember();
-            }
+                // Twice in a moment puts the camera back (`ProcessRightButtonDrag`, its double click): with Ctrl
+                // its distance, with Shift its tilt (to 50 degrees), with neither its turn; not on a map the
+                // client's table gives a view of its own.
+                if let Some(scene) = state.scene.as_mut().filter(|scene| scene.scenery.view.is_none()) {
+                    let (ctrl, shift, turns) = (event.ctrl_key(), event.shift_key(), !scene.indoor);
+                    scene.ask_camera(zoom_out, |camera| {
+                        if ctrl {
+                            camera.distance = DISTANCE;
+                        }
+                        if shift {
+                            camera.pitch = 50.0;
+                        }
+                        if turns && !ctrl && !shift {
+                            camera.yaw = 0.0;
+                        }
+                    });
                 }
             }
             state.right_pressed = pressed;
@@ -90,6 +105,25 @@ fn aimed(event: &MouseEvent) {
         aim_shown();
 }
 
+/// With Shift held, or sitting, a press on the ground has the character look towards the place and not walk
+/// (`poses::looks_at`): whether it was such a press.
+fn looks(event: &MouseEvent, at: (f32, f32)) -> bool {
+    let looks = STATE.with_borrow_mut(|state| {
+        let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
+        if !event.shift_key() && !scene.turns_only() {
+            return None;
+        }
+        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+        let turned = view.pick(&scene.gat, at).and_then(|picked| poses::looks_at(state, picked));
+        state.held = None;
+        Some((state.hooks.as_ref().map(|hooks| hooks.face), turned))
+    });
+    if let Some((Some(face), Some((head, direction)))) = looks {
+        face(head, direction);
+    }
+    looks.is_some()
+}
+
 /// The left button on the world.
 fn left(event: &MouseEvent, at: (f32, f32)) {
         // A press on someone talks to them or fights them; a press on the ground walks there.
@@ -100,13 +134,16 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             // shows it, and the press must not see it otherwise (a picture a moment further in its
             // motion, the camera a step further along), or a press on a monster becomes a walk.
             let id = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).map(|(id, _)| id).or(state.over.map(|(id, _)| id))?;
-            // A pet is neither fought nor talked to: a press on it is a press on the ground.
-            let unit = scene.units.get(&id).filter(|unit| matches!(unit.look, Look::Creature(_)) && !unit.companion)?;
+            // A pet is neither fought nor talked to: a press on it is a press on the ground. So is a press on
+            // another player, except on a map where players are fought: there one who is no friend is fought
+            // as a monster is (the client's `CGameMode::HandleActorPick`; see `pvp.rs`).
+            let foe = scene.units.get(&id).is_some_and(|unit| state.pvp.foe(id, unit));
+            let unit = scene.units.get(&id).filter(|unit| foe || (matches!(unit.look, Look::Creature(_)) && !unit.companion))?;
             // A thing lying at an NPC's feet is picked up, not the NPC talked to.
             if !unit.lively && lying_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).is_some() {
                 return None;
             }
-            state.hooks.as_ref().map(|hooks| (hooks.press, id, unit.lively))
+            state.hooks.as_ref().map(|hooks| (hooks.press, id, unit.lively || foe))
         });
         if let Some((press, id, monster)) = pressed {
             // A monster is run after until it is down or the player presses somewhere else.
@@ -148,6 +185,9 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             state.held_since = now();
             state.held_asked = now();
         });
+        if looks(event, at) {
+            return;
+        }
         let request = STATE.with_borrow(|state| {
             let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
             let player = &scene.player;
@@ -155,12 +195,21 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
             let picked = view.pick(&scene.gat, at)?;
             // A press on a wall, or too far away, walks as far towards it as the way is open.
-            let goal = scene.gat.goal_towards(player.cell, picked)?;
+            let goal = scene.goal_towards(player.cell, picked, state.options.far_walk)?;
             state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal, picked))
         });
         if let Some((walk_to, goal, picked)) = request {
-            // A place farther than the server walks in one go is walked to in stretches (`pursuit::journey`).
-            STATE.with_borrow_mut(|state| state.journey = (goal != picked).then_some((picked, goal)));
-            walk_to(goal.0 as u16, goal.1 as u16);
+            // A press that comes too soon after the last walk asked for asks for none, as in the client
+            // (`State::asks_walk`); the button held asks again by itself.
+            let asks = STATE.with_borrow_mut(|state| {
+                let asks = state.asks_walk(goal, now());
+                // With the project's far walk switched on, a place farther than the server walks in one go
+                // is walked to in stretches (`pursuit::journey`).
+                state.journey = (asks && goal != picked && state.options.far_walk).then_some((picked, goal));
+                asks
+            });
+            if asks {
+                walk_to(goal.0 as u16, goal.1 as u16);
+            }
         }
 }

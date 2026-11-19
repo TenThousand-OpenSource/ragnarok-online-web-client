@@ -5,13 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ragnarok 2026</title>
 <style>
+  /* The text of the game, as the client writes it (`TextContext::SetFont`, `FontEntry::CreateSystemFont`): for
+     the English and the Russian service its usual text is Arial, a cell three taller than the window asks for
+     (12 asked is a cell 15 tall, which is Arial at 13 pixels; 11 asked is 12 pixels), and drawn without
+     smoothing (`NONANTIALIASED_QUALITY`). */
+  :root { --face: Arial, "Liberation Sans", sans-serif; }
+  #ui, #aim, #tip, #unit-name { -webkit-font-smoothing: none; font-smooth: never; }
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   /* The name of whoever the pointer is on, over their head. */
   /* The sign of the map come into (the client's `MapNameDisplay`): across the view, a fifth of it high and 12
      hundredths down; its picture as high as it, in the middle; the small line and the large one in white, at the
      picture's own measure (190 high: 16 at 72, and 44 at 95). It stays five seconds and fades over a quarter. */
   #mapsign { position: fixed; left: 0; top: 12vh; width: 100%; height: 20vh; display: none; pointer-events: none; z-index: 5; text-align: center;
-             color: #fff; font-family: Gulim, Tahoma, Arial, sans-serif; font-weight: bold; }
+             color: #fff; font-family: var(--face); font-weight: bold; }
   #mapsign.shown { display: block; animation: mapsign 5.255s linear forwards; }
   #mapsign img { height: 100%; }
   #mapsign .over { position: absolute; left: 0; width: 100%; top: 7.58vh; font-size: 1.68vh; line-height: 1; }
@@ -19,12 +25,12 @@
   @keyframes mapsign { 0%, 95.15% { opacity: 1; } 100% { opacity: 0; } }
   /* The skill being aimed and its level, by the pointer. */
   #aim { position: fixed; display: none; padding: 1px 4px; white-space: nowrap; pointer-events: none; z-index: 35;
-         font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
+         font: 13px var(--face); color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
   /* What is dragged out of a window, under the pointer (the client draws it a touch see-through: 0xFA of 0xFF). */
   #drag { position: fixed; display: none; z-index: 40; width: 0; height: 0; pointer-events: none; opacity: .98; }
   #tip { position: fixed; display: none; z-index: 30; padding: 2px 4px; background: rgba(0, 0, 0, .53); color: #fff; white-space: nowrap; pointer-events: none; font-family: Arial, sans-serif; }
   #unit-name { position: fixed; display: none; transform: translateX(-50%); padding: 4px; white-space: nowrap; pointer-events: none;
-               font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; z-index: 5;
+               font: 13px var(--face); color: #fff; z-index: 5;
                text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000, -1px -1px #000, 1px 1px #000, -1px 1px #000, 1px -1px #000; }
   .dim { opacity: .4; }
   /* The dark that covers the screen while the character is moved elsewhere. */
@@ -35,26 +41,33 @@
   #loading-bar { position: absolute; left: 50%; top: 50%; width: 240px; height: 15px; box-sizing: border-box; border: 1px solid #00ffff;
                  background: #8e8e8e; transform-origin: 0 0; transform: scale(var(--s, 1)) translate(-100px, 160px); }
   #loading-fill { display: block; width: 0; height: 13px; background: #2a4b8f; }
-  #loading-figure { position: absolute; left: 100px; top: -1px; font: bold 13px Gulim, Tahoma, Arial, sans-serif; line-height: 15px; color: #ffff00; white-space: pre; }
+  #loading-figure { position: absolute; left: 100px; top: -1px; font: bold 13px var(--face); line-height: 15px; color: #ffff00; white-space: pre; }
   /* The key that uses a slot of the bar, in its corner. */
-  .key { position: absolute; left: 1px; top: -1px; font: 9px Tahoma, Arial, sans-serif; color: #5a6aa8; pointer-events: none; }
+  .key { position: absolute; left: 1px; top: -1px; font: 9px var(--face); color: #5a6aa8; pointer-events: none; }
   /* The life of a monster being fought, under it: green on dark, in a blue frame, as the original's. */
   #bars { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 4; }
+  /* The standing on a PVP map (the client's DrawMiniMapCoordinates): its digits are placed from the right and the bottom. */
+  #pvp-rank { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+  #pvp-rank img { position: absolute; image-rendering: pixelated; }
   .life { position: fixed; width: 58px; height: 3px; background: #424242; border: 1px solid #10189c; }
   .life i { display: block; height: 3px; background: #10ef21; }
   /* The bar of a cast (UIRechargeGage): its colours are the client's. */
   .cast { position: fixed; width: 60px; height: 6px; box-sizing: border-box; background: #444444; border: 1px solid #14199b; pointer-events: none; }
   .cast i { display: block; height: 4px; background: #16ea25; }
   .life.own { height: 7px; }
+  /* Under a member of the party (the client's UIPcGage: 60 by 5; its colours 0x9B1914, 0x444444, 0x25EA16 and 0x1616EA, written blue first). */
+  .life.pc { width: 60px; height: 5px; box-sizing: border-box; background: #444444; border-color: #14199b; }
+  .life.pc i { background: #16ea25; }
+  .life.pc i.low { background: #ea1616; }
   .life.own i.low { background: #ff0000; }
   .life.own i.sp { margin-top: 1px; background: #205cc3; }
   /* What someone says, over their head: white on a dark plate, as the original's. */
   .say { position: fixed; transform: translate(-50%, -100%); max-width: 220px; padding: 2px 6px; pointer-events: none; text-align: center;
-         font: 12px Gulim, Tahoma, Arial, sans-serif; color: #fff; background: rgba(0, 0, 0, .55); border-radius: 2px; overflow-wrap: break-word; }
+         font: 13px var(--face); color: #fff; background: rgba(0, 0, 0, .55); border-radius: 2px; overflow-wrap: break-word; }
   /* The storage's tabs: names written up the side. */
   .side { padding: 0; border: 1px solid #b9bfdc; border-right: 0; border-radius: 4px 0 0 4px; background: #e9ecf7; cursor: pointer; }
   .side.open { background: #fff; font-weight: bold; }
-  .side i { display: block; font: 10px Tahoma, Arial, sans-serif; font-style: normal; color: #313131; transform: rotate(-90deg); white-space: nowrap; }
+  .side i { display: block; font: 10px var(--face); font-style: normal; color: #313131; transform: rotate(-90deg); white-space: nowrap; }
   .row { outline: 0; color: #000; }
   .row:focus { background: #5b9bf0; color: #fff; }
   .opt:hover { background: #c6d6f7; }
@@ -68,11 +81,16 @@
   /* What was picked up, told for a moment. */
   .note { animation: note 5s linear forwards; }
   #obtained { text-align: center; }
+  /* A mark that shows for half of every second (a script's mark on the minimap). */
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 0% { visibility: visible; } 50%, 100% { visibility: hidden; } }
   @keyframes note { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
   /* The game's own pointers over the page, once they are read: the plain one, and the pressing one on what can be pressed. */
   html, body, #ui { cursor: var(--point, auto); }
   /* Over what is pressed the client's pointer is its finger, which goes down as the button does. Over the things in
      a window (items, skills) it stays the plain one: the client's item windows ask for no other. */
+  /* Over a field to type into the client's pointer stays what it is: it has no other for text. */
+  #ui input, #ui select, #ui textarea { cursor: var(--point, auto); }
   #ui button, #ui .b, #ui [data-click] { cursor: var(--press, pointer); }
   #ui button:active, #ui .b:active, #ui [data-click]:active { cursor: var(--pressed, var(--press, pointer)); }
   /* While a skill is aimed the pointer is the skill's everywhere, over the windows too: the client's pointer is one
@@ -80,7 +98,7 @@
   html[data-aiming] #ui, html[data-aiming] #ui * { cursor: var(--aim, crosshair) !important; }
   canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: none; }
   #ui { position: fixed; inset: 0; overflow: hidden; background: #000 center / cover no-repeat;
-        font: 12px/1.25 Tahoma, Arial, sans-serif; color: #000; user-select: none; }
+        font: 13px/15px var(--face); color: #000; user-select: none; }
   #ui * { box-sizing: border-box; }
   /* In the game the world shows through, and takes the mouse wherever no window is. */
   /* The windows lie over what is drawn in the world: the bars (4), names and numbers (5); the fade (8) and the
@@ -97,7 +115,7 @@
            color: #fff; letter-spacing: 1px; pointer-events: none;
            text-shadow: 0 0 6px #2b3f8f, 0 0 14px #2b3f8f, 2px 2px 0 #1c2a66, -1px -1px 0 #1c2a66, 1px -1px 0 #1c2a66, -1px 1px 0 #1c2a66; }
   .lang { position: absolute; top: 8px; right: 8px; display: flex; gap: 2px; z-index: 30; }
-  .lang button { padding: 2px 7px; font: bold 11px Tahoma, Arial, sans-serif; color: #33406e; background: rgba(255, 255, 255, .8);
+  .lang button { padding: 2px 7px; font: bold 12px var(--face); color: #33406e; background: rgba(255, 255, 255, .8);
                  border: 1px solid #7f93b8; border-radius: 3px; cursor: pointer; }
   .lang button.on { color: #fff; background: #5a6b9c; }
   .lang button svg { display: block; }
@@ -112,7 +130,7 @@
   .a { position: absolute; margin: 0; }
   .pass { pointer-events: none; }
   .veil { position: absolute; inset: 0; z-index: 20; }
-  .b { padding: 0; border: 0; background: var(--n) no-repeat 0 0; font: 12px Tahoma, Arial, sans-serif; color: #313131;
+  .b { padding: 0; border: 0; background: var(--n) no-repeat 0 0; font: 13px var(--face); color: #313131;
        cursor: pointer; white-space: nowrap; overflow: hidden; }
   .b:hover { background-image: var(--o); }
   .b:active { background-image: var(--p); }
@@ -120,22 +138,22 @@
   .b img { display: block; pointer-events: none; }
   .b[data-big] { font-size: 14px; font-weight: bold; }
   .check { padding: 0; border: 0; background: no-repeat 0 0; cursor: pointer; }
-  .in { padding: 0 3px; border: 0; outline: 0; background: transparent; font: 12px Tahoma, Arial, sans-serif; color: #000; user-select: text; }
+  .in { padding: 0 3px; border: 0; outline: 0; background: transparent; font: 13px var(--face); color: #000; user-select: text; }
   .in.centre { text-align: center; }
   .in::placeholder { color: #9c9c9c; }
   .combo { padding: 0 5px; line-height: 22px; }
-  .small { font-size: 11px; }
+  .small { font-size: 12px; }
   .centre { text-align: center; }
   .w p.a.tight { line-height: 14px; }
   .in.boxed { background: #fff; border: 1px solid #9c9c9c; }
   .w p.a { line-height: 16px; }
 
   /* Character select. */
-  .name { font-size: 11px; font-weight: bold; color: #374177; text-align: center; white-space: nowrap; overflow: hidden; }
+  .name { font-size: 12px; font-weight: bold; color: #374177; text-align: center; white-space: nowrap; overflow: hidden; }
   .value { line-height: 15px; white-space: nowrap; overflow: hidden; }
   .list-title { color: #576691; text-align: center; }
-  .page { font: bold 18px Tahoma, Arial, sans-serif; color: #fff; text-align: center; }
-  .start { font: bold 18px Tahoma, Arial, sans-serif; color: #fff; padding-top: 34px; }
+  .page { font: bold 18px var(--face); color: #fff; text-align: center; }
+  .start { font: bold 18px var(--face); color: #fff; padding-top: 34px; }
   .start:disabled { color: #dc747f; }
   .chosen { pointer-events: none; }
   .chosen i { position: absolute; inset: 0; opacity: 0; background-repeat: no-repeat; animation: chosen .664s steps(1) infinite; }
@@ -154,11 +172,11 @@
   /* The forms the original client does not have, in the look of its newer windows. */
   .panel { background: linear-gradient(135deg, #dfe4fb, #fff 30%, #fff 70%, #fbe1ea); border: 1px solid #8d93b5; border-radius: 9px;
            box-shadow: 0 1px 4px rgba(40, 50, 110, .45); }
-  .panel h1 { margin: 9px 14px 6px; font: bold 12px Tahoma, Arial, sans-serif; color: #576691; }
+  .panel h1 { margin: 9px 14px 6px; font: bold 13px var(--face); color: #576691; }
   .panel .rows { margin: 0 14px; }
   .panel .rows p { margin: 0 0 6px; font-size: 11px; line-height: 14px; color: #555; }
   .panel label { display: grid; grid-template-columns: 76px 1fr; align-items: center; margin-bottom: 5px; color: #333; }
-  .panel input, .panel select { min-width: 0; height: 20px; padding: 0 5px; font: 12px Tahoma, Arial, sans-serif; color: #000;
+  .panel input, .panel select { min-width: 0; height: 20px; padding: 0 5px; font: 13px var(--face); color: #000;
                                 background: #fff; border: 1px solid #b9bfdc; border-radius: 9px; outline: 0; user-select: text; }
   .panel input:focus, .panel select:focus { border-color: #7f8fd0; }
 
@@ -166,36 +184,68 @@
   .hud { z-index: 10; }
   /* A window that is closed is on the page all the same, empty and out of sight (hud/windows.rs). */
   #ui [hidden] { display: none !important; }
-  /* The windows that lie in an order take 11 and up from it (app/windows.rs); those that ask something are over them. */
-  #dialog, #trade, #throw, #eggs, #identify, #pet-asks { z-index: 24; }
-  .t { white-space: nowrap; line-height: 13px; }
+  /* The windows that lie in an order take 11 and up from it (app/windows.rs). How the others lie is said by
+     each one's entry in the list of windows (`Layer` in hud/windows.rs), never by its name here: under the
+     windows (the chat), over them (one that asks something), over those (a menu), over everything. */
+  #ui [data-layer=under] { z-index: 9; }
+  #ui [data-layer=asks] { z-index: 24; }
+  #ui [data-layer=menu] { z-index: 26; }
+  #ui [data-layer=top] { z-index: 30; }
+  .t { white-space: nowrap; line-height: 15px; }
   .t.titled { color: #000; text-shadow: 1px 1px 0 #fff; }
-  #chat { z-index: 9; }
   /* Items, skills, and the slots they are dragged to. */
   .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
   /* A text field that scrolls with its bar in sight (the client's UITextViewer). */
-  .viewer { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #b9bfdc #f4f5fb; }
+  /* A text or a list of the quest windows that scrolls, with the bar the client draws for them (`CUIVScrollBar`
+     of Renew_QuestUI): 7 wide, its handle the colour of bt_scrollBar_mid.bmp with rounded ends, an arrow of 3 at
+     each end. Where the browser draws no such bar (Firefox) its own thin one is shown in the same colours. */
+  .viewer { overflow-y: auto; overflow-x: hidden; }
+  .viewer::-webkit-scrollbar { width: 7px; }
+  .viewer::-webkit-scrollbar-thumb { background: #c5cee7; border-radius: 3px; }
+  .viewer::-webkit-scrollbar-button:single-button { height: 3px; background: no-repeat 0 0 / 7px 3px; }
+  .viewer::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/Renew_QuestUI/bt_scrollbar_arrow_upper.bmp'); }
+  .viewer::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/Renew_QuestUI/bt_scrollbar_arrow_down.bmp'); }
+  @supports not selector(::-webkit-scrollbar) { .viewer { scrollbar-width: thin; scrollbar-color: #c5cee7 transparent; } }
   .scroll::-webkit-scrollbar { display: none; }
   .cell, .slot { width: 32px; height: 32px; }
   .slot { width: 24px; height: 24px; cursor: pointer; }
   .slot:hover { background: rgba(130, 170, 230, .63); }
   .cell img { position: absolute; left: 4px; top: 4px; pointer-events: none; }
   .slot img { position: absolute; left: 0; top: 0; pointer-events: none; }
+  /* The shade of a time that runs over a picture (hud/cooldowns.rs): a cone of the colour --c that goes round
+     once, clockwise from the top; over a skill it covers what is still to wait, over a state (r) what has gone. */
+  @property --cd { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  @keyframes cd { from { --cd: 0deg; } to { --cd: 360deg; } }
+  @keyframes cdgone { from { opacity: 1; } to { opacity: 0; } }
+  .cd { pointer-events: none; background: conic-gradient(transparent var(--cd), var(--c) 0); }
+  .cd.r { background: conic-gradient(var(--c) var(--cd), transparent 0); }
+  /* A state at the side of the screen (hud/statuses.rs), and what is said of it while it is pointed at. */
+  #ui.ingame .sti { pointer-events: auto; }
+  .sti > .tip { display: none; color: #fff; pointer-events: none; }
+  .sti:hover > .tip { display: block; }
   .cell[draggable=true], .cell[data-use] { cursor: pointer; }
   .cell.worn { outline: 1px solid #e0a000; outline-offset: -2px; background: rgba(255, 220, 120, .35); }
   .n { position: absolute; right: 1px; bottom: 0; font-size: 11px; line-height: 11px; color: #000; pointer-events: none;
        text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff; }
-  .tab { padding: 4px 0 0; border: 1px solid #c3c3c3; background: #e8e8e8; font: 12px Tahoma, Arial, sans-serif; color: #000; cursor: pointer; }
+  .tab { padding: 4px 0 0; border: 1px solid #c3c3c3; background: #e8e8e8; font: 13px var(--face); color: #000; cursor: pointer; }
   .tab.open { background: #fff; border-right-color: #fff; width: 18px !important; }
   .tab span { display: block; line-height: 13px; text-align: center; }
-  #chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: thin; scrollbar-color: #9aa3c8 transparent;
-              color: #fff; font: 12px Gulim, Tahoma, Arial, sans-serif; user-select: text; }
-  #chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
-  .chat-tab { padding: 0; border: 0; color: #fff; font: 12px Gulim, Tahoma, Arial, sans-serif; line-height: 15px; text-align: center; white-space: nowrap; overflow: hidden; cursor: var(--press, pointer); }
+  .chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: thin; scrollbar-color: #9aa3c8 transparent;
+              color: #fff; font: 13px var(--face); user-select: text; }
+  .chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
+  /* The World Map: a map's rectangle lights up under the pointer and shows its small map beside it. */
+  .wv-field { position: absolute; box-sizing: border-box; }
+  .wv-field:hover { background-color: rgba(149, 15, 15, .27); outline: 1px solid #000; z-index: 2; }
+  .wv-view { display: none; position: absolute; left: calc(100% + 10px); top: 10px; width: 130px; height: 130px; pointer-events: none;
+             font: bold 12px var(--face); white-space: nowrap; text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000; }
+  .wv-view.wv-left { left: auto; right: calc(100% + 10px); }
+  .wv-view.wv-low { top: auto; bottom: 0; }
+  .wv-field:hover .wv-view { display: block; background: rgba(0, 0, 0, .53) var(--v) 0 0 / 100% 100% no-repeat; }
+  .chat-tab { padding: 0; border: 0; color: #fff; font: 13px var(--face); line-height: 15px; text-align: center; white-space: nowrap; overflow: hidden; cursor: var(--press, pointer); }
   #chat-input { background: #f0f0f0; }
   /* How many play, by the chat's tabs: a green light that breathes, the number, and the word. */
   .online { display: flex; align-items: center; gap: 5px; padding: 0 8px 0 6px; border-radius: 8px; background: rgba(0, 0, 0, .45);
-            font: 12px Gulim, Tahoma, Arial, sans-serif; color: #dfe; white-space: nowrap; pointer-events: auto; }
+            font: 13px var(--face); color: #dfe; white-space: nowrap; pointer-events: auto; }
   .online i { width: 7px; height: 7px; border-radius: 50%; background: #5dff7a; box-shadow: 0 0 5px 1px #37e05a; animation: online 2.4s ease-in-out infinite; }
   .online b { font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000; }
   .online span { color: #b9f5c6; text-shadow: 1px 1px 0 #000; }
@@ -223,6 +273,7 @@
 <div id="aim"></div>
 <div id="mapsign"></div>
 <div id="bars"></div>
+<div id="pvp-rank"></div>
 <div id="fade"></div>
 <div id="loading"><div id="loading-bar"><i id="loading-fill"></i><span id="loading-figure"></span></div></div>
 <div id="ui"></div>
@@ -230,6 +281,15 @@
   // The build's number goes into both addresses, so that a browser never runs an older build it kept.
   import init from "./roweb_client.js?v=__BUILD__";
   init({ module_or_path: "./roweb_client_bg.wasm?v=__BUILD__" }).catch((error) => { document.getElementById("ui").textContent = String(error); });
+  // For working on the client (`dev.sh`): with `dev` in the address, the page looks every two seconds for a
+  // newer build than its own and loads itself anew when there is one. Players never have it in the address.
+  if (new URLSearchParams(location.search).has("dev")) {
+    setInterval(async () => {
+      const page = await fetch("./", { cache: "no-store" }).then((answer) => answer.text()).catch(() => "");
+      const build = page.match(/roweb_client\.js\?v=(\d+)/);
+      if (build && build[1] !== "__BUILD__") location.reload();
+    }, 2000);
+  }
 </script>
 </body>
 </html>

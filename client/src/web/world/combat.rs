@@ -1,12 +1,34 @@
-//! Blows, skills and their effects: what the app tells the world when someone strikes, casts or is hit.
+//! Blows and casts: what the app tells the world when someone strikes, casts, aims or is hit. (An effect by
+//! its number or its file is `launch.rs`; the effects of states `state_effects.rs`.)
 
 use super::*;
 
-/// Someone strikes someone: the one turns to the other and swings, the other flinches, and the damage shows as
-/// a number over it. `own` is the player's own ID, who is not among the others. `lasts` is the speed of the swing
-/// and `flinch` the time the one struck flinches, as the server sends them. Gives back how long from now the blow
-/// lands (milliseconds). A critical blow lands with a flare and a mark of its own (see `frame/sprites.rs`).
-pub fn struck(source: u32, target: u32, own: u32, (lasts, flinch): (f64, f64), (damage, critical): (i32, bool), sound: Option<String>) -> f64 {
+mod landing;
+
+pub use landing::number_over;
+pub(super) use landing::{Landing, landings};
+
+/// A blow or a skill that strikes, as the app tells it: who strikes whom (`own` is the player's own ID, who
+/// is not among the others), the speed of the swing and the time the one struck flinches as the server sent
+/// them, the hits it is made of (`crate::blow::landing`), whether each lands with the ring of a plain blow
+/// (`EF_HIT1`: a skill's does not, it shows what the client has for that skill), and whether the player's own
+/// character is under a state that wards blows off.
+pub struct Strike {
+    pub source: u32,
+    pub target: u32,
+    pub own: u32,
+    pub lasts: f64,
+    pub flinch: f64,
+    pub hits: Vec<crate::blow::landing::Hit>,
+    pub ring: bool,
+    pub guarded: bool,
+}
+
+/// Someone strikes someone: the one turns to the other and swings, and each hit of the blow lands in its
+/// time: the other flinches, the hit sounds, and its numbers rise (`landing.rs`). Gives back how long from now
+/// the first hit lands (milliseconds).
+pub fn struck(strike: Strike) -> f64 {
+    let Strike { source, target, own, lasts, flinch, hits, ring, guarded } = strike;
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return 0.0 };
         let time = now();
@@ -34,9 +56,25 @@ pub fn struck(source: u32, target: u32, own: u32, (lasts, flinch): (f64, f64), (
                 }
             }
         }
-        // The blow lands a moment into the swing: then the one struck flinches and stops, and the number rises.
-        state.landing.push((time + lands, target, own, damage, sound, critical));
+        // Each hit lands a moment into the swing, the later ones their time after the first.
+        for hit in hits {
+            let when = time + lands + hit.after.clamp(0.0, 8000.0);
+            // The one struck stops and flinches as a hit that hurts lands, unless it endures it (the client's
+            // two messages "no motion").
+            let hurts = if hit.how.flinches() { hit.damage.max(0) } else { 0 };
+            state.landing.push((when, target, own, hurts, None, false, false));
+            state.blows.push((when, target, Landing { own, striker: source, hit, ring, guarded }));
+        }
         lands
+    })
+}
+
+/// Whether the client shows the other hand's damage of a blow that someone strikes (`crate::blow::signs`).
+pub fn two_handed(who: u32, own: u32) -> bool {
+    STATE.with_borrow(|state| {
+        let Some(scene) = &state.scene else { return false };
+        let striker = if who == own { Some(&scene.player) } else { scene.units.get(&who) };
+        striker.is_some_and(|striker| crate::blow::signs::two_handed(striker.job, matches!(striker.look, Look::Character(_))))
     })
 }
 
@@ -72,7 +110,7 @@ pub fn picks_up(id: u32, own: u32, thing: u32) {
         // walks its last step (after a monster killed from afar, as with a spell): it bends down when it gets
         // there, not while walking, when the bending would not be seen at all.
         let time = now();
-        let begins = mover.walk.as_ref().map_or(time, |(walk, started)| (started + walk.duration()).max(time));
+        let begins = mover.arrives(&state.clock, time);
         mover.motion = Some((PICKING_UP, begins, lasts.max(250.0)));
     });
 }
@@ -105,8 +143,9 @@ pub fn cast(source: u32, own: u32, target: u32, cell: (u16, u16), milliseconds: 
         if matches!(caster.look, Look::Character(_)) {
             caster.motion = Some((96, time, milliseconds.max(250.0)));
         }
+        // The sound of a spell begun, from where the caster stands.
+        earshot::heard(scene, "effect/ef_beginspell.wav", (source != own).then_some(source));
     });
-    sound::effect("effect/ef_beginspell.wav", 1.0);
 }
 
 /// A cast is over or broken off (the server's ZC_DISPEL, or the skill landing): the bar, the rings and the mark
@@ -119,52 +158,6 @@ pub fn cast_over(source: u32, own: u32, broken: bool) {
             caster.motion = None;
         }
     });
-}
-
-/// Another hit of a blow already struck (a skill that hits several times): it lands after `delay` milliseconds.
-pub fn lands(target: u32, own: u32, delay: f64, damage: i32, sound: Option<String>) {
-    STATE.with_borrow_mut(|state| state.landing.push((now() + delay.clamp(0.0, 5000.0), target, own, damage, sound, false)));
-}
-
-/// Bolts of fire or of ice fall on someone, one for each hit (the client's `FireArrow` and `IceArrow`): the
-/// first 12 frames after the skill lands and one every 10 frames after it, each from 60 above and some 25 and 15
-/// to the side, at 2.75 a frame. The sound is one of the client's three, with the first bolt.
-pub fn bolts(target: u32, count: u32, fire: bool) {
-    let random = |most: f64| (js_sys::Math::random() * most).floor() as f32;
-    STATE.with_borrow_mut(|state| {
-        let time = now();
-        for bolt in 0..count.min(50) {
-            let from = [25.0 + random(10.0), 60.0, 15.0 + random(10.0)];
-            state.bolts.push(Bolt { leaves: time + f64::from(12 + bolt * 10) * CAST_FRAME_MS, target, from, fire });
-        }
-        let sound = format!("effect/{}{}.wav", if fire { "ef_firearrow" } else { "ef_icearrow" }, 1 + random(3.0) as u32);
-        state.sounds_due.push((time + 12.0 * CAST_FRAME_MS, sound));
-    });
-}
-
-/// One of the client's effect files plays on someone after a while, with a sound if it has one.
-pub fn effect_later(name: &str, on: Option<u32>, delay: f64, sound: Option<&str>) {
-    STATE.with_borrow_mut(|state| {
-        let time = now() + delay.max(0.0);
-        state.effects_due.push((time, name.to_owned(), on));
-        if let Some(sound) = sound {
-            state.sounds_due.push((time, sound.to_owned()));
-        }
-    });
-}
-
-/// One of the client's effects that it draws by code begins on someone (none named: the player's own character)
-/// after `delay` milliseconds, with the sound it starts with. Gives back whether it is one drawn here yet.
-pub fn burst(effect: u32, on: Option<u32>, delay: f64) -> bool {
-    let begins = now() + delay.max(0.0);
-    let Some((burst, sound)) = prims::burst(effect, on, begins) else { return false };
-    STATE.with_borrow_mut(|state| {
-        state.bursts.push(burst);
-        if !sound.is_empty() {
-            state.sounds_due.push((begins, sound.to_owned()));
-        }
-    });
-    true
 }
 
 /// An arrow is shot at someone, to arrive after `delay` milliseconds (the client's `CArrowEffect`): it leaves
@@ -238,44 +231,41 @@ pub fn aim_words(words: &str) {
     aim_shown();
 }
 
-/// Whether a skill is being aimed.
-/// A character uses a skill that strikes nobody (the server's ZC_USE_SKILL): it goes through the motion of using
-/// a skill once and stands again (the client's `CPlayer::SetState(ST_SKILL)`: action 96, the one it casts in; for
-/// the bards, dancers and crusaders and what they grow into, action 32, their stance). One who sits stays
-/// seated, and a monster has motions of its own, which are not shown here.
+/// Someone uses a skill that strikes nobody (the server's ZC_USE_SKILL): a character does what the client's
+/// table gives the skill as a state (`crate::pose::skilled`, the client's `SetState`): a motion played once, or
+/// frames of an action it runs through by itself (a dance, a song, a shot readied); one who sits stays seated.
+/// A monster goes through its attack once (`CGameActor::ActionBase` gives 16 for every state but standing,
+/// walking, being struck and dying).
 pub fn uses_skill(who: u32, own: u32, body: u8) {
-    // Bard, Dancer, Crusader; their reborn and baby selves; Minstrel, Wanderer and Royal Guard with their reborn
-    // selves; and the two the client's code lists after them.
-    const STANCE: [u16; 17] = [19, 20, 14, 4020, 4021, 4015, 4042, 4043, 4037, 4068, 4075, 4069, 4076, 4073, 4066, 4263, 4264];
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
         let Some(mover) = (if who == own { Some(&mut scene.player) } else { scene.units.get_mut(&who) }) else { return };
-        let Look::Character(figure) = &mover.look else { return };
-        if mover.sitting {
+        let time = now();
+        let figure = match &mover.look {
+            Look::Character(figure) => figure,
+            Look::Creature(path) => {
+                if mover.lively && mover.dying.is_none() {
+                    let lasts = figure::timing(path, 16).map_or(600.0, |(pictures, each)| pictures as f64 * each);
+                    mover.motion = Some((16, time, lasts.max(250.0)));
+                }
+                return;
+            }
+        };
+        if mover.sitting || mover.dead {
             return;
         }
-        // By the state the client's table gives the skill: the blow of an attack (2, 9), the stance of one (11),
-        // or else the motion of using a skill.
-        let action = match body {
-            2 | 9 => attack_action(figure),
-            11 => 32,
-            _ if STANCE.contains(&figure.job) => 32,
-            _ => 96,
-        };
-        figure::prepare(figure, action);
-        let lasts = figure::body_timing(figure.job, figure.sex, action).map_or(600.0, |(pictures, each)| pictures as f64 * each);
-        mover.motion = Some((action, now(), lasts.max(250.0)));
+        match crate::pose::skilled(body, mover.job, attack_action(figure)) {
+            crate::pose::Posed::Plays(action) => {
+                figure::prepare(figure, action);
+                let lasts = figure::body_timing(figure.job, figure.sex, action).map_or(600.0, |(pictures, each)| pictures as f64 * each);
+                (mover.motion, mover.pose.sequence) = (Some((action, time, lasts.max(250.0))), None);
+            }
+            crate::pose::Posed::Runs(sequence) => {
+                figure::prepare(figure, sequence.action);
+                (mover.motion, mover.pose.sequence) = (None, Some((sequence, time)));
+            }
+        }
     });
-}
-
-/// Someone used First Aid: its glitter shows over them (`effects::aid_glitter`). `on` is none for the player's own
-/// character.
-pub fn first_aid(on: Option<u32>) {
-    if !STATE.with_borrow(|state| state.options.effects) {
-        return;
-    }
-    let lot = |most: f64| (js_sys::Math::random() * most).floor() as f32;
-    STATE.with_borrow_mut(|state| state.aids.push((on, now(), lot(360.0), lot(360.0))));
 }
 
 /// Whether the player's own character is in the motion of a blow it deals. The original client asks for no walk
@@ -290,53 +280,7 @@ pub fn walking() -> bool {
     STATE.with_borrow(|state| state.scene.as_ref().is_some_and(|scene| scene.player.walk.is_some()))
 }
 
+/// Whether a skill is being aimed.
 pub fn aiming() -> bool {
     STATE.with_borrow(|state| state.aiming.is_some())
-}
-
-/// The player's own character recovers life (or spirit): the amount rises over it, green (or blue).
-pub fn recovered(amount: i32, spirit: bool) {
-    STATE.with_borrow_mut(|state| {
-        let Some(scene) = &state.scene else { return };
-        let sprite = if spirit { "이팩트/숫자#0000ff" } else { "이팩트/숫자#00ff00" };
-        let pictures = amount.to_string().bytes().map(|digit| SpriteKey::Creature(sprite.to_owned(), 0, usize::from(digit - b'0'))).collect();
-        state.flying.push(Flying { began: now(), base: on_ground(&scene.gat, scene.player.at), drift: (0.0, 0.0), pictures, flight: Flight::Miss });
-    });
-}
-
-/// Plays one of the client's effects (a `.str` file of `data/texture/effect`) on someone: `None` is the player's
-/// own character. The file and its pictures are read the first time it is wanted.
-pub fn effect(name: &str, on: Option<u32>) {
-    // Effects are not shown when the player has them off (the client's `/effect`).
-    if !STATE.with_borrow(|state| state.options.effects) {
-        return;
-    }
-    if let Some(shown) = STATE.with_borrow(|state| state.effect_files.get(name).cloned()) {
-        STATE.with_borrow_mut(|state| state.effects.push(Playing { shown, on, began: now() }));
-        return;
-    }
-    let name = name.to_owned();
-    wasm_bindgen_futures::spawn_local(async move {
-        let Ok(bytes) = fetch_asset(&format!("data/texture/effect/{name}")).await else { return };
-        let Ok(korean) = web_sys::TextDecoder::new_with_label("euc-kr") else { return };
-        let Ok(effect) = crate::effect::parse(&bytes, |raw| korean.decode_with_u8_array(raw).unwrap_or_else(|_| String::from_utf8_lossy(raw).into_owned())) else { return };
-        // Each picture once, however many layers show it.
-        let names: BTreeSet<&str> = effect.layers.iter().flat_map(|layer| layer.textures.iter().map(String::as_str)).collect();
-        let read: HashMap<&str, Option<bmp::Image>> = futures_util::future::join_all(names.iter().map(|name| async move { (*name, picture(&format!("effect\\{name}")).await.ok()) })).await.into_iter().collect();
-        STATE.with_borrow_mut(|state| {
-            let Some(gpu) = &state.gpu else { return };
-            let on_gpu: HashMap<&str, Rc<[wgpu::BindGroup; 2]>> = read
-                .iter()
-                .filter_map(|(name, image)| {
-                    let image = image.as_ref()?;
-                    let view = gpu.texture(image.width, image.height, &image.rgba);
-                    Some((*name, Rc::new([0, 1].map(|which| gpu.textured(&gpu.effect_pipelines[which].get_bind_group_layout(1), &view, &gpu.sampler)))))
-                })
-                .collect();
-            let pictures = effect.layers.iter().map(|layer| layer.textures.iter().map(|name| on_gpu.get(name.as_str()).cloned()).collect()).collect();
-            let shown = Rc::new(Shown { effect: effect.clone(), pictures });
-            state.effect_files.insert(name.clone(), shown.clone());
-            state.effects.push(Playing { shown, on, began: now() });
-        });
-    });
 }

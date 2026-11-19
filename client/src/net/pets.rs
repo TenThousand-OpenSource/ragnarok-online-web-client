@@ -48,11 +48,9 @@ pub struct Pet {
 /// `u16 intimacy`, `u16 accessory`, `u16 job`.
 pub fn property(packet: &[u8]) -> Option<Pet> {
     let packet = packet.get(..37)?;
-    let word = |at: usize| u16::from_le_bytes([packet[at], packet[at + 1]]);
-    let name = &packet[2..26];
-    let end = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
+    let word = |at: usize| super::bytes::u16_at(packet, at);
     Some(Pet {
-        name: String::from_utf8_lossy(&name[..end]).into_owned(),
+        name: super::bytes::text(&packet[2..26]),
         renamed: packet[26] != 0,
         level: word(27),
         hunger: i32::from(word(29)),
@@ -79,12 +77,26 @@ pub fn command(order: u8) -> Vec<u8> {
     vec![0xa1, 0x01, order]
 }
 
+/// ZC_PETEGG_LIST (0x01a6): `u16 length`, then the place in the inventory of each egg that can be hatched.
+pub fn eggs(packet: &[u8]) -> Vec<u16> {
+    super::bytes::words_from(packet, 4)
+}
+
+/// CZ_SELECT_PETEGG (0x01a7): `u16 index`. The egg at that place of the inventory is hatched.
+pub fn hatch(index: u16) -> Vec<u8> {
+    [0x01a7u16.to_le_bytes(), index.to_le_bytes()].concat()
+}
+
+/// CZ_TRYCAPTURE_MONSTER (0x019f): `u32 target`. The bait is thrown to that monster.
+pub fn capture(target: u32) -> Vec<u8> {
+    [&0x019fu16.to_le_bytes()[..], &target.to_le_bytes()].concat()
+}
+
 /// CZ_RENAME_PET (0x01a5): `char name[24]`.
 pub fn rename(name: &str) -> Vec<u8> {
     let mut packet = vec![0u8; 26];
     packet[..2].copy_from_slice(&0x01a5u16.to_le_bytes());
-    let bytes = &name.as_bytes()[..name.len().min(23)];
-    packet[2..2 + bytes.len()].copy_from_slice(bytes);
+    packet[2..26].copy_from_slice(&super::bytes::name24(name));
     packet
 }
 
@@ -239,6 +251,17 @@ pub fn moment_tag(moment: i32) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::net::packet_length;
+
+    #[test]
+    fn the_eggs_and_the_bait_go_as_the_server_expects() {
+        assert_eq!(eggs(&[0xa6, 0x01, 8, 0, 3, 0, 9, 0]), vec![3, 9]);
+        assert_eq!(hatch(9), vec![0xa7, 0x01, 9, 0]);
+        assert_eq!(capture(0x0102_0304), vec![0x9f, 0x01, 4, 3, 2, 1]);
+        for request in [hatch(9), capture(1)] {
+            assert_eq!(packet_length(u16::from_le_bytes([request[0], request[1]])), Some(request.len() as i32));
+        }
+    }
 
     #[test]
     fn reads_a_pet() {

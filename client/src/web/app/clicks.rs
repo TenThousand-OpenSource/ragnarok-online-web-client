@@ -5,16 +5,39 @@
 use super::*;
 
 mod account;
+mod choosing;
 mod talk;
 mod status;
 mod inventory;
 mod skills;
 mod chat;
 mod shops;
+mod storage;
 mod pets;
+mod homunculus;
+mod mercenary;
+mod quests;
 mod hotkeys;
 mod settings;
 mod guide;
+mod party;
+mod guild;
+mod player_menu;
+mod exchange;
+mod mail;
+mod cart;
+mod vending;
+mod fight;
+mod friends;
+mod whispers;
+mod viewequip;
+mod unread;
+mod scripted;
+mod chat_rooms;
+mod family;
+mod emotions;
+mod tips;
+mod worldmap;
 
 impl App {
     /// Something on the page was pressed: the press its name and what went with it stand for (`crate::press`).
@@ -37,10 +60,33 @@ impl App {
             Press::Skills(press) => self.skill_pressed(press),
             Press::Chat(press) => self.chat_pressed(press),
             Press::Shops(press) => self.trade_pressed(press),
+            Press::Storage(press) => self.storage_pressed(press),
             Press::Pets(press) => self.pet_pressed(press),
+            Press::Homunculus(press) => self.homunculus_pressed(press),
+            Press::Mercenary(press) => self.mercenary_pressed(press),
+            Press::Quests(press) => self.quest_pressed(press),
             Press::Hotkeys(press) => self.key_pressed(press),
             Press::Settings(press) => self.settings_pressed(press),
             Press::Guide(press) => self.guide_pressed(press),
+            Press::Party(press) => self.party_pressed(press),
+            Press::Guild(press) => self.guild_pressed(press),
+            Press::PlayerMenu(press) => self.player_menu_pressed(press),
+            Press::Exchange(press) => self.exchange_pressed(press),
+            Press::Mail(press) => self.mail_pressed(press),
+            Press::Cart(press) => self.cart_pressed(press),
+            Press::Vending(press) => self.vending_pressed(press),
+            Press::Friends(press) => self.friend_pressed(press),
+            Press::Whispers(press) => self.whisper_pressed(press),
+            Press::ViewEquip(press) => self.viewequip_pressed(press),
+            Press::Unread(press) => self.unread_pressed(press),
+            Press::Scripted(press) => self.scripted_pressed(press),
+            Press::ChatRooms(press) => self.chat_room_pressed(press),
+            Press::Family(press) => self.family_pressed(press),
+            Press::Emotions(press) => self.emotion_pressed(press),
+            Press::WorldMap(press) => self.worldmap_pressed(press),
+            Press::Tips(press) => self.tip_pressed(press),
+            Press::Choosing(press) => self.choosing_pressed(press),
+            Press::Fight(press) => self.fight_pressed(press),
         }
     }
 
@@ -82,6 +128,12 @@ impl App {
             Press::Menu => {
                 self.menu_closed = !self.menu_closed;
                 self.render();
+            }
+            // The menu's icon (`UIMenuIconWnd`, `ID_OPTION`): the game's menu opens, or closes if it was open
+            // (`ToggleWindow(WID_ESCOPTIONWND)`), as Escape with no window open does.
+            Press::Options => {
+                self.esc = u8::from(self.esc == 0);
+                self.redraw(&[&wnd::DIALOG]);
             }
             Press::EscClose | Press::EscSave | Press::EscNo | Press::EscYes => {
                 self.esc = match press {

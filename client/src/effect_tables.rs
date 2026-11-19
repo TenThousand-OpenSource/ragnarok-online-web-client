@@ -10,6 +10,12 @@ fn found(table: &'static str, wanted: u32) -> Option<&'static str> {
     table.lines().filter_map(|line| line.split_once('\t')).find(|(number, _)| number.parse() == Ok(wanted)).map(|(_, value)| value)
 }
 
+/// The scope of a skill cast on a place, which the circle on the ground is sized by (the client's
+/// `CGroundScope::SkillScopeType`); none for a skill that table does not name.
+pub fn ground_scope(skill: u16) -> Option<i32> {
+    found(include_str!("effect_tables/ground_scopes.txt"), u32::from(skill))?.parse().ok()
+}
+
 /// The `.str` file an effect plays (the client's `SelectRagEffectResource` and `CEZ2STRScreenEffect::
 /// InitParticle`), in the client's folder of effects.
 pub fn effect_file(effect: u32) -> Option<&'static str> {
@@ -45,6 +51,13 @@ pub fn skill_follow(skill: u16) -> Option<u32> {
     found(include_str!("effect_tables/skill_follow.txt"), u32::from(skill))?.parse().ok()
 }
 
+/// The effect shown on the one struck at each hit of a skill that hurts (the `hitEffect` the client's
+/// `CGameActor::ProcessSkillMessage` picks by the skill): the ring of a plain blow, `EF_HIT1` (0), for most of
+/// the older skills, the hit of an element for some, none for the rest.
+pub fn skill_struck(skill: u16) -> Option<u32> {
+    found(include_str!("effect_tables/skill_struck.txt"), u32::from(skill))?.parse().ok()
+}
+
 /// The lines `skill<TAB>s or t<TAB>effect` of a table that are of that skill.
 fn of_skill(table: &'static str, skill: u16) -> Vec<(bool, u32)> {
     table
@@ -64,17 +77,11 @@ pub fn skill_state(skill: u16) -> u8 {
     found(include_str!("effect_tables/skill_motions.txt"), u32::from(skill)).and_then(|state| state.parse().ok()).unwrap_or(7)
 }
 
-/// The effect an item shows on the one who uses it, and its sound: the client's own tables
-/// (`CGameMode::PlayItemUseEffect` for the effect of each item, `effect_file` for its file).
-pub fn item_effect(item: u32) -> Option<(&'static str, Option<&'static str>)> {
-    let effect: u32 = found(include_str!("effect_tables/item_effects.txt"), item)?.parse().ok()?;
-    let file = effect_file(effect)?;
-    let sound = match effect {
-        204..=207 | 210 => Some("_heal_effect.wav"),
-        208 | 209 | 211 => Some("effect/흡기.wav"),
-        _ => None,
-    };
-    Some((file, sound))
+/// The effect an item shows on the one who uses it, by its number among the client's effects (the client's
+/// table of `CGameMode::PlayItemUseEffect`). It is launched as any effect is (`world::burst`), which plays its
+/// file or draws it and starts its sounds: an item's use has no sound but its effect's.
+pub fn item_effect(item: u32) -> Option<u32> {
+    found(include_str!("effect_tables/item_effects.txt"), item)?.parse().ok()
 }
 
 #[cfg(test)]
@@ -99,10 +106,15 @@ mod tests {
         // by its own burst.
         assert_eq!((skill_launch(5), skill_follow(5)), (None, Some(1)));
         assert_eq!((skill_launch(7), skill_follow(7)), (Some(16), Some(17)));
+        // Each hit of Bash shows the ring of a plain blow, of Fire Bolt the hit of fire, of Cold Bolt that of
+        // cold, of Lightning Bolt that of lightning; Pierce shows none, nor does a skill of the later jobs.
+        assert_eq!([5, 19, 14, 20, 56, 2001].map(skill_struck), [Some(0), Some(49), Some(51), Some(52), None, None]);
     }
 
     #[test]
     fn potions_keep_their_effects() {
-        assert_eq!(item_effect(501).map(|(file, sound)| (file.ends_with(".str"), sound)), Some((true, Some("_heal_effect.wav"))));
+        // A Red Potion: `EF_POTION1`, a file of the client's with the sound of healing.
+        assert_eq!(item_effect(501), Some(204));
+        assert!(effect_file(204).is_some_and(|file| file.ends_with(".str")));
     }
 }

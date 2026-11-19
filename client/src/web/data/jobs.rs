@@ -36,12 +36,27 @@ thread_local! {
     static INHERITS: RefCell<HashMap<u16, u16>> = RefCell::new(HashMap::new());
     /// The ending of a weapon's sprite files, by the client's number for the kind of weapon.
     static WEAPONS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
+    /// The sound of a weapon's blow, by the client's number for the kind of weapon.
+    static WEAPON_HITS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
 }
 
 /// The ending of the sprite files of a weapon (`_단검` for a dagger), by what the server's database calls its
 /// kind (the item's `SubType`). The numbers are the client's `Weapon_IDs`.
 pub fn weapon_sprite(kind: &str) -> Option<String> {
-    let number = match kind {
+    let number = weapon_kind(kind)?;
+    WEAPONS.with_borrow(|weapons| weapons.get(&number).cloned())
+}
+
+/// The sound a weapon of that kind makes as its blow lands, by the client's number for the kind (its
+/// `WeaponHitWaveNameTable`, asked through `ReqWeaponHitWaveName`).
+pub fn weapon_hit(kind: u16) -> Option<String> {
+    WEAPON_HITS.with_borrow(|hits| hits.get(&kind).cloned())
+}
+
+/// The client's number for a kind of weapon (its `Weapon_IDs`), by what the server's database calls the kind
+/// (the item's `SubType`).
+pub fn weapon_kind(kind: &str) -> Option<u16> {
+    Some(match kind {
         "Dagger" => 1,
         "1hSword" => 2,
         "2hSword" => 3,
@@ -66,8 +81,7 @@ pub fn weapon_sprite(kind: &str) -> Option<String> {
         "Huuma" => 22,
         "2hStaff" => 23,
         _ => return None,
-    };
-    WEAPONS.with_borrow(|weapons| weapons.get(&number).cloned())
+    })
 }
 
 /// The name of the sprite files of an NPC or a monster.
@@ -107,6 +121,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     SPRITES.set(entries::<u16>(&field(tables, "sprites")).into_iter().filter_map(|(job, name)| Some((job, name.as_string()?))).collect());
     INHERITS.set(entries::<u16>(&field(tables, "inherits")).into_iter().filter_map(|(job, from)| Some((job, from.as_f64()? as u16))).collect());
     WEAPONS.set(entries::<u16>(&field(tables, "weapons")).into_iter().filter_map(|(kind, name)| Some((kind, name.as_string()?))).collect());
+    WEAPON_HITS.set(entries::<u16>(&field(tables, "weapon_hits")).into_iter().filter_map(|(kind, name)| Some((kind, name.as_string()?))).collect());
 }
 
 /// The first job a job grew out of, among the classic ones (0 novice, 1 swordman, 2 magician, 3 archer,

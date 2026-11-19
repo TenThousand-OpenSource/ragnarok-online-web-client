@@ -7,10 +7,14 @@
 //! Only the configured host and ports are reachable, and only pages served from the gateway's own origin may
 //! connect, so this is neither an open proxy nor reachable from other websites open in the player's browser.
 //!
+//! For looking at the game as a player far away sees it, the bridge can hold back what goes each way for a
+//! while (`Lag`): a debug option, off unless asked for, and never for a gateway others play through.
+//!
 //! On the login server's port the bridge also counts failed logins (`LoginGuard`): the game server sees every
 //! player coming from the gateway's address, so only the gateway can tell who is guessing passwords.
 
 use std::net::{IpAddr, SocketAddr};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -63,6 +67,40 @@ impl LoginGuard {
     }
 }
 
+/// A debug delay on everything the bridge passes, each way: a fixed time and a random part up to `jitter` more,
+/// drawn anew for every piece that comes. What comes later is never passed on sooner than what came before
+/// it, as on a TCP connection. None by default: it is for looking at walking and fighting as a player far away
+/// has them, on one's own machine, and makes the game worse for everyone who plays through the gateway.
+#[derive(Clone, Copy, Default)]
+pub struct Lag {
+    pub fixed: Duration,
+    pub jitter: Duration,
+}
+
+impl Lag {
+    /// When a piece that comes at `now` is passed on, the one before it being due at `last`. `chance` is any
+    /// number: it picks the random part.
+    fn due(&self, now: Instant, last: Option<Instant>, chance: u64) -> Instant {
+        let random = Duration::from_millis(chance % (self.jitter.as_millis() as u64 + 1));
+        let due = now + self.fixed + random;
+        last.map_or(due, |last| due.max(last))
+    }
+
+    /// The same with a number drawn here; at once when there is no delay.
+    fn due_now(&self, last: Option<Instant>) -> Instant {
+        let now = Instant::now();
+        if self.fixed.is_zero() && self.jitter.is_zero() {
+            return now;
+        }
+        let mut chance = [0u8; 8];
+        let _ = getrandom::fill(&mut chance);
+        self.due(now, last, u64::from_le_bytes(chance))
+    }
+}
+
+/// How many pieces may wait to be passed on, each way, before the side they come from is made to wait.
+const WAITING: usize = 1024;
+
 #[derive(Clone)]
 pub struct Bridge {
     /// The game server's host, as the gateway reaches it.
@@ -74,6 +112,8 @@ pub struct Bridge {
     /// see every player coming from the gateway's address. Playing takes three (login, char, map) and one more
     /// for each change of map server.
     pub connections_per_minute: usize,
+    /// The debug delay (`--lag`, `--jitter`); none unless asked for.
+    pub lag: Lag,
 }
 
 struct Shared {
@@ -118,6 +158,7 @@ async fn connect(
     eprintln!("bridge: {} connects to port {port}", peer.ip());
     let watch = bridge.login_guard.clone().filter(|guard| guard.port == port).map(|guard| Watch { guard, address: address_key(peer.ip()), account: Mutex::new(None) });
     let target = format!("{}:{port}", bridge.host);
+    let lag = bridge.lag;
     upgrade.max_message_size(MAX_MESSAGE).on_upgrade(move |mut socket| async move {
         if let Some(wait) = watch.as_ref().and_then(|watch| watch.guard.by_address.blocked_for(&watch.address, Instant::now())) {
             return turn_away(&mut socket, wait).await;
@@ -126,7 +167,7 @@ async fn connect(
             Ok(Ok(tcp)) => {
                 // Game packets are small and time-critical: never wait to batch them.
                 let _ = tcp.set_nodelay(true);
-                let (from_player, to_player) = pump(socket, tcp, watch).await;
+                let (from_player, to_player) = pump(socket, tcp, watch, lag).await;
                 eprintln!("bridge: {} leaves port {port}: {from_player} bytes from the player, {to_player} to the player", peer.ip());
             }
             failed => {
@@ -171,80 +212,135 @@ fn login_name(request: &[u8]) -> String {
     String::from_utf8_lossy(&name[..end]).to_ascii_lowercase()
 }
 
-/// Copies bytes both ways until either side closes, then closes the other. With a `watch`, a login request for an
-/// account that is out of attempts is not passed on, and the server's answer is counted. Gives back how many
-/// bytes went each way, from the player and to the player.
-async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>) -> (usize, usize) {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    let (from_player, to_player) = (AtomicUsize::new(0), AtomicUsize::new(0));
-    let (mut ws_tx, mut ws_rx) = socket.split();
-    let (mut tcp_rx, mut tcp_tx) = tcp.into_split();
-    let watch = watch.as_ref();
+/// What waits to be passed on one way: each piece and when it is due.
+type Waiting = tokio::sync::mpsc::Sender<(Instant, Vec<u8>)>;
 
-    // Ends with how long the account stays blocked, if that is why it ended.
-    let to_server = async {
-        // The start of the stream, held back until it is known whether it may pass.
-        let mut held = watch.map(|_| Vec::new());
-        while let Some(Ok(message)) = ws_rx.next().await {
-            match message {
-                Message::Binary(bytes) => {
-                    let passed = match (&mut held, watch) {
-                        (Some(start), Some(watch)) => {
-                            start.extend_from_slice(&bytes);
-                            let is_login = start.len() < 2 || start[..2] == CA_LOGIN;
-                            if is_login && start.len() < 30 {
-                                continue;
-                            }
-                            if is_login {
-                                let name = login_name(start);
-                                if let Some(wait) = watch.guard.by_account.blocked_for(&name, Instant::now()) {
-                                    return Some(wait);
-                                }
-                                *watch.account.lock().unwrap() = Some(name);
-                            }
-                            held.take().unwrap()
+/// Reads what the browser sends and leaves it to be written to the server when it is due. With a `watch`, a
+/// login request for an account that is out of attempts is not passed on: it ends with how long the account
+/// stays blocked. Ends with nothing when the browser closes or the writing has ended.
+async fn from_browser(mut browser: futures_util::stream::SplitStream<WebSocket>, for_server: Waiting, watch: Option<&Watch>, lag: Lag, count: &AtomicUsize) -> Option<Duration> {
+    let mut last = None;
+    // The start of the stream, held back until it is known whether it may pass.
+    let mut held = watch.map(|_| Vec::new());
+    while let Some(Ok(message)) = browser.next().await {
+        match message {
+            Message::Binary(bytes) => {
+                let passed = match (&mut held, watch) {
+                    (Some(start), Some(watch)) => {
+                        start.extend_from_slice(&bytes);
+                        let is_login = start.len() < 2 || start[..2] == CA_LOGIN;
+                        if is_login && start.len() < 30 {
+                            continue;
                         }
-                        _ => bytes.to_vec(),
-                    };
-                    from_player.fetch_add(passed.len(), Ordering::Relaxed);
-                    if tcp_tx.write_all(&passed).await.is_err() {
-                        break;
+                        if is_login {
+                            let name = login_name(start);
+                            if let Some(wait) = watch.guard.by_account.blocked_for(&name, Instant::now()) {
+                                return Some(wait);
+                            }
+                            *watch.account.lock().unwrap() = Some(name);
+                        }
+                        held.take().unwrap()
+                    }
+                    _ => bytes.to_vec(),
+                };
+                count.fetch_add(passed.len(), Ordering::Relaxed);
+                let due = lag.due_now(last);
+                last = Some(due);
+                if for_server.send((due, passed)).await.is_err() {
+                    break;
+                }
+            }
+            Message::Close(_) => break,
+            // The protocol is binary; text is ignored, and pings are answered by the WebSocket layer.
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Reads what the server sends and leaves it to be sent to the browser when it is due. With a `watch`, the
+/// server's answer to the login is counted. Ends when the server closes or the sending has ended.
+async fn from_server(mut server: tokio::net::tcp::OwnedReadHalf, for_browser: Waiting, watch: Option<&Watch>, lag: Lag, count: &AtomicUsize) {
+    let mut last = None;
+    let mut buffer = vec![0u8; 16 * 1024];
+    // The start of the server's answer, until it has been judged.
+    let mut answer = watch.map(|_| Vec::new());
+    loop {
+        match server.read(&mut buffer).await {
+            Ok(0) | Err(_) => break,
+            Ok(read) => {
+                if let (Some(start), Some(watch)) = (&mut answer, watch) {
+                    start.extend_from_slice(&buffer[..read]);
+                    if judge(watch, start) {
+                        answer = None;
                     }
                 }
-                Message::Close(_) => break,
-                // The protocol is binary; text is ignored, and pings are answered by the WebSocket layer.
-                _ => {}
+                count.fetch_add(read, Ordering::Relaxed);
+                let due = lag.due_now(last);
+                last = Some(due);
+                if for_browser.send((due, buffer[..read].to_vec())).await.is_err() {
+                    break;
+                }
             }
         }
-        None
+    }
+}
+
+/// Copies bytes both ways until either side closes, then closes the other. What is read one way (`from_browser`,
+/// `from_server`) waits its turn to be written until it is due (`Lag`: at once, unless a delay was asked for).
+/// Gives back how many bytes went each way, from the player and to the player.
+async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>, lag: Lag) -> (usize, usize) {
+    let (from_player, to_player) = (AtomicUsize::new(0), AtomicUsize::new(0));
+    let (mut ws_tx, ws_rx) = socket.split();
+    let (tcp_rx, mut tcp_tx) = tcp.into_split();
+    let watch = watch.as_ref();
+    let (for_server, mut to_write) = tokio::sync::mpsc::channel::<(Instant, Vec<u8>)>(WAITING);
+    let (for_browser, mut to_send) = tokio::sync::mpsc::channel::<(Instant, Vec<u8>)>(WAITING);
+
+    let to_server = async {
+        while let Some((due, bytes)) = to_write.recv().await {
+            tokio::time::sleep_until(tokio::time::Instant::from_std(due)).await;
+            if tcp_tx.write_all(&bytes).await.is_err() {
+                break;
+            }
+        }
+        // Nothing more is taken: the reading ends when it next has something.
+        to_write.close();
     };
     let to_browser = async {
-        let mut buffer = vec![0u8; 16 * 1024];
-        // The start of the server's answer, until it has been judged.
-        let mut answer = watch.map(|_| Vec::new());
-        loop {
-            match tcp_rx.read(&mut buffer).await {
-                Ok(0) | Err(_) => break,
-                Ok(read) => {
-                    if let (Some(start), Some(watch)) = (&mut answer, watch) {
-                        start.extend_from_slice(&buffer[..read]);
-                        if judge(watch, start) {
-                            answer = None;
-                        }
-                    }
-                    to_player.fetch_add(read, Ordering::Relaxed);
-                    if ws_tx.send(Message::Binary(buffer[..read].to_vec().into())).await.is_err() {
-                        return;
-                    }
-                }
+        while let Some((due, bytes)) = to_send.recv().await {
+            tokio::time::sleep_until(tokio::time::Instant::from_std(due)).await;
+            if ws_tx.send(Message::Binary(bytes.into())).await.is_err() {
+                return to_send.close();
             }
         }
         let _ = ws_tx.send(Message::Close(None)).await;
     };
+    // A direction is over when its reading has ended and what it read is written, or when its writing failed;
+    // a login turned away leaves what waits unwritten. The reading lets go of its end of the queue as it ends.
+    let server_way = async {
+        tokio::pin!(to_server);
+        tokio::select! {
+            blocked = from_browser(ws_rx, for_server, watch, lag, &from_player) => {
+                if blocked.is_none() {
+                    to_server.await;
+                }
+                blocked
+            }
+            () = &mut to_server => None,
+        }
+    };
+    let browser_way = async {
+        tokio::pin!(to_browser);
+        tokio::select! {
+            () = from_server(tcp_rx, for_browser, watch, lag, &to_player) => to_browser.await,
+            () = &mut to_browser => {}
+        }
+    };
     // Whichever direction ends first ends the bridge: dropping the halves closes both connections.
     let blocked = tokio::select! {
-        blocked = to_server => blocked,
-        () = to_browser => None,
+        blocked = server_way => blocked,
+        () = browser_way => None,
     };
     if let Some(wait) = blocked {
         turn_away(&mut ws_tx, wait).await;
@@ -278,4 +374,29 @@ fn judge(watch: &Watch, answer: &[u8]) -> bool {
         }
     }
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_delayed_piece_is_due_after_the_fixed_time_and_a_part_of_the_jitter() {
+        let lag = Lag { fixed: Duration::from_millis(150), jitter: Duration::from_millis(100) };
+        let now = Instant::now();
+        assert_eq!(lag.due(now, None, 0), now + Duration::from_millis(150));
+        assert_eq!(lag.due(now, None, 100), now + Duration::from_millis(250));
+        assert_eq!(lag.due(now, None, 101), now + Duration::from_millis(150));
+        assert_eq!(Lag::default().due(now, None, 12_345), now);
+    }
+
+    #[test]
+    fn what_comes_later_is_never_due_sooner() {
+        let lag = Lag { fixed: Duration::from_millis(150), jitter: Duration::from_millis(100) };
+        let now = Instant::now();
+        let first = lag.due(now, None, 100);
+        // Ten milliseconds later a piece draws no jitter at all: it waits for the one before it.
+        assert_eq!(lag.due(now + Duration::from_millis(10), Some(first), 0), first);
+        assert_eq!(lag.due(now + Duration::from_millis(200), Some(first), 0), now + Duration::from_millis(350));
+    }
 }

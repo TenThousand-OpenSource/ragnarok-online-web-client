@@ -52,16 +52,17 @@ pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<
         Ok(bytes) => Rsw::parse(&bytes, decode),
         Err(error) => Err(error),
     };
-    let (models, water) = match described {
-        Ok(rsw) => {
-            let size = (gnd.width as f32 * gnd.zoom, gnd.height as f32 * gnd.zoom);
-            (models(&gpu, &rsw, size, decode).await, water(&gpu, &rsw, size).await)
-        }
+    let size = (gnd.width as f32 * gnd.zoom, gnd.height as f32 * gnd.zoom);
+    let (models, water) = match &described {
+        Ok(rsw) => (land::models(&gpu, rsw, size, decode).await, land::water(&gpu, rsw, &gnd).await),
         Err(error) => {
             web_sys::console::warn_1(&format!("{map}.rsw: {error}").into());
-            (Vec::new(), None)
+            (Models::none(), None)
         }
     };
+    // What the map places about itself, and what the client's tables say of it.
+    let (surroundings, places) = scenery::Surroundings::read(map, described.as_ref().ok(), size).await;
+    let camera = Camera::entering(indoor, true, surroundings.view.as_ref());
     let cell = (i32::from(cell.0), i32::from(cell.1));
     // The pictures of the last map's people are not needed here.
     let mut gpu = gpu;
@@ -85,23 +86,38 @@ pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<
             gpu.ring = Some(gpu.textured(&gpu.sprite_pipeline.get_bind_group_layout(1), &view, &gpu.pixel_sampler));
         }
     }
-    for name in CAST_PICTURES.into_iter().chain(prims::PICTURES) {
+    for name in CAST_PICTURES.into_iter().chain(prims::pictures()).chain(ailments::PICTURES).chain(skill_units::PICTURES) {
         if !gpu.effect_pictures.contains_key(name) {
-            if let Ok(image) = picture(&format!("effect\\{name}")).await {
+            if let Ok(image) = picture(&effect_picture(name)).await {
                 let view = gpu.texture(image.width, image.height, &image.rgba);
                 let binds = [0, 1].map(|which| gpu.textured(&gpu.effect_pipelines[which].get_bind_group_layout(1), &view, &gpu.sampler));
                 gpu.effect_pictures.insert(name, Rc::new(binds));
             }
         }
     }
+    // The sprites of the effects are asked for ahead of their use: an effect is short, and a sprite read only
+    // once it is wanted would miss its first showing.
+    for sprite in prims::sprites() {
+        let _ = gpu::sheet(sprite);
+    }
     pointers();
     progress(100);
     let weapon = STATE.with_borrow(|state| state.weapon);
-    let mut player = Mover::new(Look::Character(Figure { weapon, ..figure }), cell);
+    // (The shield is the one the app gave with the figure, until the server tells of another: `actors::looked`.)
+    let shield = STATE.with_borrow(|state| if state.shield != 0 { state.shield } else { figure.shield });
+    let mut player = Mover::new(Look::Character(Figure { weapon, shield, ..figure }), cell);
     player.state = STATE.with_borrow(|state| state.own_state);
     player.dress();
-    Ok((gpu, Scene { indoor, gat, ground, models, water, player, units: HashMap::new(), drops: HashMap::new(), falls: HashMap::new(), aim: None, portals: HashMap::new(), // A new map is looked at from the south, as the original does: only how near the camera is stays.
-        camera: Camera::starting(indoor, true), told: (-1, -1) }))
+    player.ail = STATE.with_borrow(|state| state.own_ail.clone());
+    Ok((gpu, Scene { indoor, gat, ground, models, water, player, units: HashMap::new(), drops: HashMap::new(), falls: HashMap::new(), aim: None, portals: HashMap::new(), spots: places, // A new map is looked at from the south, as the original does: only how near the camera is stays.
+        camera, wanted: (camera, now()), scenery: surroundings, told: (-1, -1) }))
+}
+
+/// Where a picture an effect names is, under `data/texture/`: among the client's pictures of effects, but for
+/// one named from the folder of the interface's pictures (the pictures of items some effects show, as
+/// `CRagEffect::TexturedSprayKind` does), which is where its name says.
+fn effect_picture(name: &str) -> String {
+    if name.starts_with("유저인터페이스\\") { name.to_owned() } else { format!("effect\\{name}") }
 }
 
 /// A picture of the game by its path under `data/texture/`: BMP files are read here, everything else (TGA with
@@ -125,87 +141,37 @@ pub(super) async fn picture(name: &str) -> Result<bmp::Image, String> {
     Ok(bmp::Image { width, height, rgba })
 }
 
-/// Every model of the map, standing where the map puts it: fetched, put together, lit, and sorted by texture.
-pub(super) async fn models(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32), decode: impl Fn(&[u8]) -> String + Copy) -> Models {
-    let names: BTreeSet<&str> = rsw.placements.iter().map(|placement| placement.model.as_str()).collect();
-    let fetched = futures_util::future::join_all(names.iter().map(|name| async move {
-        let path = format!("data/model/{}", name.replace('\\', "/"));
-        let model = match fetch_asset(&path).await {
-            Ok(bytes) => Rsm::parse(&bytes, decode),
-            Err(error) => Err(error),
-        };
-        (*name, model)
-    }))
-    .await;
-    let mut read = BTreeMap::new();
-    let mut failed: BTreeMap<String, usize> = BTreeMap::new();
-    for (name, model) in fetched {
-        match model {
-            Ok(model) => {
-                read.insert(name, model);
+/// Over what can be pressed in the windows the pointer is the client's finger, and while the button is held on
+/// it the finger goes down picture by picture (`crate::cursor::frame` for action 2) and stays down: the page's
+/// `--pressed` is the picture of the moment, from the button going down.
+fn finger_goes_down(finger: Vec<String>) {
+    let Some(document) = crate::web::document() else { return };
+    let pressed_at = Rc::new(std::cell::Cell::new(None::<f64>));
+    let step = {
+        let pressed_at = pressed_at.clone();
+        Closure::<dyn FnMut()>::new(move || {
+            let Some(since) = pressed_at.get() else { return };
+            let Some(root) = crate::web::document().and_then(|document| document.document_element()).and_then(|root| root.dyn_into::<web_sys::HtmlElement>().ok()) else { return };
+            if let Some(picture) = finger.get(crate::cursor::frame(2, finger.len(), 0.0, Some(now() - since))) {
+                let _ = root.style().set_property("--pressed", picture);
             }
-            Err(error) => *failed.entry(error).or_default() += 1,
-        }
+        })
+    };
+    let down = {
+        let pressed_at = pressed_at.clone();
+        Closure::<dyn FnMut()>::new(move || pressed_at.set(Some(now())))
+    };
+    let up = Closure::<dyn FnMut()>::new(move || pressed_at.set(None));
+    let _ = document.add_event_listener_with_callback("pointerdown", down.as_ref().unchecked_ref());
+    let _ = document.add_event_listener_with_callback("pointerup", up.as_ref().unchecked_ref());
+    // A tick of the client's pointer is 24 milliseconds.
+    if let Some(window) = web_sys::window() {
+        let _ = window.set_interval_with_callback_and_timeout_and_arguments_0(step.as_ref().unchecked_ref(), 24);
     }
-    for (error, count) in failed {
-        web_sys::console::warn_1(&format!("{count} models left out: {error}").into());
-    }
-
-    // Per texture, the corners of all triangles drawn with it: three positions, two texture coordinates and a
-    // colour each.
-    let mut by_texture: BTreeMap<&str, Vec<f32>> = BTreeMap::new();
-    for placement in &rsw.placements {
-        let Some(model) = read.get(placement.model.as_str()) else { continue };
-        for (texture, corners) in model::place(model, placement, map_size, &rsw.light) {
-            let Some(name) = model.textures.get(texture) else { continue };
-            let floats = by_texture.entry(name.as_str()).or_default();
-            for corner in corners {
-                floats.extend(corner.position);
-                floats.extend(corner.uv);
-                floats.extend(corner.colour);
-            }
-        }
-    }
-    let pictures = futures_util::future::join_all(by_texture.keys().map(|name| async move { (*name, picture(name).await) })).await;
-    let layout = gpu.model_pipeline.get_bind_group_layout(1);
-    let mut batches = Vec::new();
-    for (name, loaded) in pictures {
-        let view = match loaded {
-            Ok(picture) => gpu.texture(picture.width, picture.height, &picture.rgba),
-            Err(error) => {
-                web_sys::console::warn_1(&format!("texture {name}: {error}").into());
-                gpu.texture(1, 1, &[160, 160, 160, 255])
-            }
-        };
-        let floats = &by_texture[name];
-        let vertices = gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(floats), usage: wgpu::BufferUsages::VERTEX });
-        batches.push((vertices, (floats.len() / 8) as u32, gpu.textured(&layout, &view, &gpu.repeating)));
-    }
-    batches
-}
-
-/// The map's water: one flat surface over the whole map at the water's height. Where the ground is higher, the
-/// ground hides it.
-pub(super) async fn water(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32)) -> Option<WaterSurface> {
-    let kind = rsw.water.kind;
-    let loaded = futures_util::future::join_all((0..WATER_FRAMES).map(|frame| async move { picture(&format!("워터/water{kind}{frame:02}.jpg")).await })).await;
-    let layout = gpu.water_pipeline.get_bind_group_layout(1);
-    let frames: Vec<wgpu::BindGroup> = loaded
-        .into_iter()
-        .filter_map(|picture| picture.ok())
-        .map(|picture| gpu.textured(&layout, &gpu.texture(picture.width, picture.height, &picture.rgba), &gpu.repeating))
-        .collect();
-    if frames.is_empty() {
-        web_sys::console::warn_1(&format!("no pictures for water of kind {kind}").into());
-        return None;
-    }
-    let level = rsw.water.level;
-    let mut floats = Vec::with_capacity(30);
-    for (x, z) in [(0.0, 0.0), (map_size.0, 0.0), (0.0, map_size.1), (0.0, map_size.1), (map_size.0, 0.0), (map_size.0, map_size.1)] {
-        floats.extend([x, level, z, x / WATER_TILE, z / WATER_TILE]);
-    }
-    let vertices = gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(&floats), usage: wgpu::BufferUsages::VERTEX });
-    Some(WaterSurface { vertices, frames, frame_ms: f64::from(rsw.water.frame_ticks) * 1000.0 / 60.0 })
+    // These live as long as the page.
+    step.forget();
+    down.forget();
+    up.forget();
 }
 
 /// Reads the game's own mouse pointers, once.
@@ -240,10 +206,19 @@ pub(super) fn pointers() {
             if let Ok(aim) = figure::cursor(10, 0).await {
                 let _ = root.style().set_property("--aim", &aim);
             }
-            // The finger down: the last picture of that action, which the client runs to while the button is held.
-            if let Ok(pressed) = figure::cursor(2, 2).await {
-                let _ = root.style().set_property("--pressed", &pressed);
+            // The finger down: the pictures of that action, which the client runs through once while the
+            // button is held (`finger_goes_down`).
+            let mut finger = vec![press];
+            for frame in 1..figure::timing("cursors", 2).map_or(3, |(pictures, _)| pictures).min(16) {
+                match figure::cursor(2, frame).await {
+                    Ok(picture) => finger.push(picture),
+                    Err(_) => break,
+                }
             }
+            if let Some(down) = finger.last() {
+                let _ = root.style().set_property("--pressed", down);
+            }
+            finger_goes_down(finger);
         }
         // Every picture of every pointer is read by the browser ahead of its use and kept on the page, out of
         // sight: a pointer whose picture the browser has yet to read shows as the plain arrow for a moment, which
@@ -271,19 +246,13 @@ pub(super) fn pointers() {
 }
 
 /// The pictures of the effects drawn by code: the rings around a caster and the mark on the one aimed at.
-const CAST_PICTURES: [&str; 14] = [
-    "pikapika2.bmp",
+const CAST_PICTURES: [&str; 7] = [
+    // The circle on the ground of a skill cast on a place (`scopes.rs`).
+    "magic_target.tga",
     "ring_blue.tga",
     "ring_yellow.tga",
     "ring_white.tga",
     "magic_green.tga",
     "magic_violet.tga",
     "lockon128.tga",
-    "icearrow.tga",
-    "불화살1.tga",
-    "불화살2.tga",
-    "불화살3.tga",
-    "불화살4.tga",
-    "불화살5.tga",
-    "불화살6.tga",
 ];

@@ -1,150 +1,150 @@
-//! An NPC's shop (buying and selling) and the Kafra's storage.
+//! An NPC's shop: the question whether to buy or to sell, and the client's two windows of a shop, the list
+//! (`UIItemShopWnd`) and the basket of what is bought (`UIItemPurchaseWnd`) or sold (`UIItemSellWnd`), with the
+//! box that asks how many go across.
 
 use super::*;
+use crate::item_names::Named;
+use crate::net::trade::name_width;
 use crate::press::shops::Press;
 
+/// A row of a shop's windows as they are drawn: the item, whether it is identified, its name, the two prices
+/// (the shop's and this character's) and how many of it the row stands for.
+struct Line {
+    row: usize,
+    id: u32,
+    identified: bool,
+    name: String,
+    prices: (u32, u32),
+    amount: u32,
+}
+
+/// A row's price as the client writes it (`UIItemShopWnd::Paint`): the one price, or the shop's and this
+/// character's with an arrow between them; `unit` after it ("Z", and "Zeny" among what is sold).
+fn priced((price, own): (u32, u32), unit: &str) -> String {
+    if price == own { format!(" {} {unit}", grouped(i64::from(price))) } else { format!(" {price} -> {} {unit}", grouped(i64::from(own))) }
+}
+
 impl App {
-    /// Redraws the shop's window, where it is on the page.
-    /// The shop: the original's box asking whether to buy or to sell (`win_msgbox.bmp` with its three buttons),
-    /// then the list of what is sold or what is taken, with how many of each. The lists are simpler than the
-    /// original's two windows with a basket: one list, a number to each line.
+    /// The shop's question (the client's `UIChooseSellBuyWnd`): its message box with the three buttons.
     pub(in crate::web) fn trade_window(&self) -> String {
-        let Some(shop) = &self.deal.shop else { return String::new() };
-        let rows: Vec<(u32, String, u32, Option<u16>)> = match shop {
-            Shop::Choose(_) => {
-                return format!(
-                    "{}{}{}{}",
-                    art("win_msgbox.bmp", 0, 200, 280, 120),
-                    picture_press(144, 296, "btn_buy", Press::Buy),
-                    picture_press(189, 296, "btn_sell", Press::Sell),
-                    picture_press(234, 296, "btn_cancel", Press::Cancel)
-                );
-            }
-            Shop::Buy(offers) => offers.iter().map(|offer| (offer.id, data::item(offer.id).map_or_else(|| format!("{} {}", tr("Item"), offer.id), |(name, _)| name), offer.price, None)).collect(),
-            Shop::Sell(bids) => bids
-                .iter()
-                .filter_map(|(index, price)| {
-                    let item = self.bag.items.iter().find(|item| item.index == *index)?;
-                    Some((item.id, Self::item_name(item), *price, Some(item.amount)))
-                })
-                .collect(),
-        };
-        let selling = matches!(shop, Shop::Sell(_));
-        // One line of either window: the thing in its cell with how many, its name, its price at the right.
-        let line = |row: usize, amount: Option<u16>, picked: bool, attributes: &str| {
-            let Some((id, name, price, _)) = rows.get(row) else { return String::new() };
-            let resource = data::item(*id).map(|(_, resource)| resource);
-            // The line pressed last is the one picked: the page keeps that itself, so the list is not redrawn
-            // between the two presses of a double click.
-            let _ = picked;
-            let ink = "inherit";
-            format!(
-                r#"<div class="row" tabindex="-1" style="position:relative;height:32px;cursor:default" {attributes}>
-                     <div class="a cell" style="left:3px;top:3px;width:26px;height:26px;background:#f7f7f7;border:1px solid #b0b0b0;box-sizing:border-box;overflow:hidden"><div style="position:absolute;left:-4px;top:-4px">{}</div>{}</div>
-                     <div class="a t" style="left:36px;top:9px;color:{ink}">{}</div>
-                     <div class="a t" style="right:8px;top:9px;color:{ink}">{} Z</div>
-                   </div>"#,
-                Self::icon(resource.as_deref()),
-                amount.map_or(String::new(), |amount| format!(r#"<span class="n">{amount}</span>"#)),
-                escape(name),
-                grouped(i64::from(*price)),
-            )
-        };
-        // What is still to be had of each line: all of it when buying, what is carried less what is put aside.
-        let aside = |row: usize| self.deal.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| *amount);
-        let list: String = (0..rows.len())
-            .filter_map(|row| {
-                let left = rows[row].3.map(|have| have.saturating_sub(aside(row)));
-                (left != Some(0)).then(|| line(row, left.filter(|left| *left > 1), self.deal.picked == Some(row), &used(Use::ShopAdd(row))))
-            })
-            .collect();
-        let kept: String = self.deal.basket.iter().map(|(row, amount)| line(*row, Some(*amount).filter(|amount| *amount > 1), false, &used(Use::ShopRemove(*row)))).collect();
-        let total: i64 = self.deal.basket.iter().filter_map(|(row, amount)| Some(i64::from(rows.get(*row)?.2) * i64::from(*amount))).sum();
-        let frame = |x: i32, y: i32, title: &str, lines: i32, body: &str| {
-            let footer = 17 + lines * 32;
-            format!(
-                r#"<div class="a" style="left:{x}px;top:{y}px;width:280px;height:{}px">{}<div class="a scroll" style="{};background:#fff;border-left:1px solid #c3c3c3;border-right:1px solid #c3c3c3;box-sizing:border-box">{body}</div>{}{}{}"#,
-                footer + 21,
-                title_bar(280, title),
-                at(0, 17, 280, lines * 32),
-                art("basic_interface/btnbar_left.bmp", 0, footer, 21, 21),
-                art("basic_interface/btnbar_mid.bmp", 21, footer, 238, 21),
-                art("basic_interface/btnbar_right.bmp", 259, footer, 21, 21),
-            )
-        };
-        let (have, taken, deal) = if selling { ("Available Items to sell", "Selling Items", "btn_sell") } else { ("Available Items to buy", "Buying Items", "btn_buy") };
-        // The list at the left and what is put aside at the right, as the original lays its two windows out.
+        let Some(Shop::Choose(_)) = &self.deal.shop else { return String::new() };
         format!(
-            r#"{}<div class="a t" style="left:8px;top:{}px">{} <input id="shop-amount" class="in" style="width:44px;height:14px;background:#fff;border:1px solid #9a9a9a" type="number" min="1" placeholder="{}"></div></div>{}<div class="a t" style="left:8px;top:{}px">Total : {} Zeny</div>{}{}</div>"#,
-            frame(-150, 0, tr(have), 9, &list),
-            17 + 9 * 32 + 3,
-            tr("Amount"),
-            if selling { "all" } else { "1" },
-            frame(140, 180, tr(taken), 3, &kept),
-            17 + 3 * 32 + 4,
-            grouped(total),
-            picture_press(188, 17 + 3 * 32 + 1, deal, Press::Ok),
-            picture_press(233, 17 + 3 * 32 + 1, "btn_cancel", Press::Cancel),
+            "{}{}{}{}",
+            art("win_msgbox.bmp", 0, 200, 280, 120),
+            picture_press(144, 296, "btn_buy", Press::Buy),
+            picture_press(189, 296, "btn_sell", Press::Sell),
+            picture_press(234, 296, "btn_cancel", Press::Cancel)
         )
     }
 
-    /// The Kafra's storage, laid out as the original's: tabs for the kinds of things down the left side, each
-    /// thing a line with its picture, how many and its name, and how full the storage is with "close" at the
-    /// bottom. A double click on a line takes the whole stack out; while the storage is open, a double click in
-    /// the inventory puts the whole stack in.
-    pub(in crate::web) fn storage_window(&self) -> String {
-        const TABS: [&str; 8] = ["Item", "Cash", "Armor", "Wpn", "Cstm", "Ammo", "Card", "Misc"];
-        const LINES: i32 = 11;
-        let Some(storage) = &self.deal.storage else { return String::new() };
-        // Which tab a thing is under, by the server's kind of item.
-        let tab_of = |item: &Item| match item.kind {
-            0 | 2 | 11 => 0,
-            18 => 1,
-            4 | 8 | 12 => 2,
-            5 => 3,
-            10 => 5,
-            6 => 6,
-            _ => 7,
-        };
-        let (width, body) = (280, 32 * LINES);
-        let mut window = title_bar(width, "Storage");
-        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::StorageClose));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c3c3c3;border-right:1px solid #c3c3c3;box-sizing:border-box"></div>"#, at(0, 17, width, body)));
-        for (index, label) in TABS.iter().enumerate() {
-            let open = if index == self.deal.storage_tab { " open" } else { "" };
-            window.push_str(&format!(
-                r#"<button type="button" class="a side{open}" style="{}" {}><i>{}</i></button>"#,
-                at(2, 19 + index as i32 * 34, 16, 34),
-                pressed(Press::StorageTab(index)),
-                tr(label)
-            ));
+    /// How many of a row of the shop's list are in the basket.
+    pub(in crate::web) fn shop_kept(&self, row: usize) -> u32 {
+        self.deal.basket.iter().find(|(kept, _)| *kept == row).map_or(0, |(_, amount)| u32::from(*amount))
+    }
+
+    /// The rows of the shop: what it sells, or what it takes of what is carried (how many of each are carried).
+    fn shop_lines(&self) -> Vec<Line> {
+        match &self.deal.shop {
+            Some(Shop::Buy(offers)) => offers
+                .iter()
+                .enumerate()
+                .map(|(row, offer)| {
+                    let name = data::item_title(&Named { id: offer.id, kind: offer.kind, identified: true, ..Named::default() }, false);
+                    Line { row, id: offer.id, identified: true, name, prices: (offer.price, offer.discounted), amount: 0 }
+                })
+                .collect(),
+            Some(Shop::Sell(bids)) => bids
+                .iter()
+                .enumerate()
+                .filter_map(|(row, bid)| {
+                    let item = self.bag.items.iter().find(|item| item.index == bid.index)?;
+                    Some(Line { row, id: item.id, identified: item.identified, name: Self::item_name(item), prices: (bid.price, bid.overcharged), amount: u32::from(item.amount) })
+                })
+                .collect(),
+            _ => Vec::new(),
         }
-        let lines: String = storage
-            .items
+    }
+
+    /// One row of either window (`item_row`): the name 36 from the cell, as wide as the client leaves it beside
+    /// the price, the price ending 18 from the window's edge.
+    fn shop_row(line: &Line, amount: Option<u32>, usual: i32, unit: &str, marks: &str) -> String {
+        let resource = data::item_as(line.id, line.identified).map(|(_, resource)| resource);
+        item_row(&Row {
+            resource: resource.as_deref(),
+            amount,
+            name: &line.name,
+            name_at: (36, name_width(line.prices.0, line.prices.0 != line.prices.1, usual)),
+            price: Some((&priced(line.prices, unit), 3)),
+            marks: &format!("{marks} {}", item_marks(line.id, line.identified)),
+        })
+    }
+
+    /// The shop's list (`UIItemShopWnd`, 280 by 312): eight rows of what is sold, or of what is carried that
+    /// the shop takes with how many are left of each, and at the bottom the box "Toggle Item Amount" (the
+    /// client's line 295), which the client lets be ticked only while selling. The window takes back what is
+    /// dragged out of the basket.
+    pub(in crate::web) fn shop_window(&self) -> String {
+        let selling = match &self.deal.shop {
+            Some(Shop::Buy(_)) => false,
+            Some(Shop::Sell(_)) => true,
+            _ => return String::new(),
+        };
+        let rows: String = self
+            .shop_lines()
             .iter()
-            .filter(|item| tab_of(item) == self.deal.storage_tab)
-            .map(|item| {
-                let resource = data::item(item.id).map(|(_, resource)| resource);
-                let id = item.id;
-                format!(
-                    r#"<div class="row" tabindex="-1" style="position:relative;height:32px;cursor:default" {} data-info="{id}">
-                         <div class="a cell" style="left:0;top:1px;width:30px;height:30px;background:#fff;border:1px solid #7b94ce;border-radius:4px;box-sizing:border-box;overflow:hidden"><div style="position:absolute;left:-2px;top:-2px">{}</div><span class="n">{}</span></div>
-                         <div class="a t" style="left:40px;top:9px;color:inherit">{}</div>
-                       </div>"#,
-                    used(Use::Take(item.index)),
-                    Self::icon(resource.as_deref()),
-                    item.amount,
-                    escape(&Self::item_name(item)),
-                )
+            .filter_map(|line| {
+                let left = line.amount.saturating_sub(self.shop_kept(line.row));
+                let marks = format!("{} {}", dragged(Drag::Offer(line.row)), used(Use::ShopAdd(line.row)));
+                (!selling || left > 0).then(|| Self::shop_row(line, selling.then_some(left), 100, "Z", &marks))
             })
             .collect();
-        window.push_str(&format!(r#"<div class="a scroll" style="{}">{lines}</div>"#, at(40, 17, width - 46, body)));
-        let footer = 17 + body;
-        window.push_str(&art("basic_interface/btnbar_left.bmp", 0, footer, 21, 26));
-        window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, footer, width - 42, 26));
-        window.push_str(&art("basic_interface/btnbar_right.bmp", width - 21, footer, 21, 26));
-        window.push_str(&text(10, footer + 7, "#232323", &format!("{}/{}", storage.count.0.max(storage.items.len() as u16), storage.count.1)));
-        window.push_str(&picture_press(width - 48, footer + 3, "btn_close", Press::StorageClose));
-        window
+        let title = if selling { Self::words(185, "Available Items to sell") } else { Self::words(186, "Shop Items") };
+        format!(
+            "<div {}>{}{}{}</div>",
+            dropped(Drop::Shop),
+            list_frame(280, 312, &title),
+            list_of(40, 225, 8, &rows, ""),
+            check_words(12, 292, self.deal.whole_stacks, &Self::words(295, "Toggle Item Amount."), Press::WholeStacks),
+        )
+    }
+
+    /// The basket (`UIItemPurchaseWnd`, `UIItemSellWnd`, 280 by 152): three rows of what was put aside with
+    /// how many of each, the sum under them ("Total : n Zeny", 12 in and 21 from the bottom), and its two
+    /// buttons, Buy or Sell at 106 from the right edge and Cancel at 61, 24 from the bottom. The client writes
+    /// "Z" after a price of what is bought and "Zeny" after one of what is sold.
+    pub(in crate::web) fn shop_basket_window(&self) -> String {
+        let selling = match &self.deal.shop {
+            Some(Shop::Buy(_)) => false,
+            Some(Shop::Sell(_)) => true,
+            _ => return String::new(),
+        };
+        let lines = self.shop_lines();
+        let kept: Vec<(&Line, u32)> = self.deal.basket.iter().filter_map(|(row, amount)| Some((lines.iter().find(|line| line.row == *row)?, u32::from(*amount)))).collect();
+        let rows: String = kept
+            .iter()
+            .map(|(line, amount)| {
+                let marks = format!("{} {}", dragged(Drag::Basket(line.row)), used(Use::ShopRemove(line.row)));
+                Self::shop_row(line, Some(*amount), if selling { 100 } else { 110 }, if selling { "Zeny" } else { "Z" }, &marks)
+            })
+            .collect();
+        let total: i64 = kept.iter().map(|(line, amount)| i64::from(line.prices.1) * i64::from(*amount)).sum();
+        let (title, deal) = if selling { (Self::words(168, "Selling Items"), "btn_sell") } else { (Self::words(166, "Buying Items"), "btn_buy") };
+        format!(
+            "<div {}>{}{}{}{}{}</div>",
+            dropped(Drop::Basket),
+            list_frame(280, 152, &title),
+            list_of(40, 225, 3, &rows, ""),
+            text(12, 131, BLACK, &format!("Total : {} Zeny", grouped(total))),
+            picture_press(174, 128, deal, Press::Ok),
+            picture_press(219, 128, "btn_cancel", Press::Cancel),
+        )
+    }
+
+    /// How many of a row go across the shop's windows: the box that asks how many, with the row's name.
+    pub(in crate::web) fn shop_count_window(&self) -> String {
+        let Some((across, shown)) = self.deal.counting else { return String::new() };
+        let (crate::web::app::Across::In(row) | crate::web::app::Across::Out(row)) = across;
+        let name = self.shop_lines().into_iter().find(|line| line.row == row).map(|line| line.name).unwrap_or_default();
+        count_box_of(&windows::SHOP_COUNT, &name, shown, Form::ShopCount, Press::CountOk)
     }
 }

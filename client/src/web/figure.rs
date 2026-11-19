@@ -1,5 +1,5 @@
 //! Characters as the windows show them: body, head and headgear sprites put together and painted on a small
-//! canvas.
+//! canvas (how, and in which order: `figure/compose.rs`).
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -10,6 +10,11 @@ use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
 use super::{data, fetch_asset};
 use crate::sprite::{self, Act, Canvas, Frame, Sprite};
+
+mod compose;
+mod weapon;
+
+use compose::compose;
 
 /// The size of a figure's canvas, and where in it the feet stand: as in a character slot of the select window.
 pub const WIDTH: usize = 157;
@@ -31,6 +36,8 @@ pub struct Figure {
     pub body_palette: u16,
     /// The weapon in hand, as its item ID; 0 for none.
     pub weapon: u32,
+    /// The shield on the arm, as its item ID; 0 for none.
+    pub shield: u32,
     /// Which of the sprite's actions: standing is 0-7 by direction (south first, then clockwise), walking 8-15,
     /// sitting 16-23.
     pub action: usize,
@@ -39,11 +46,13 @@ pub struct Figure {
 }
 
 /// Which picture: a character put together from its parts, or one frame of a monster's or an NPC's sprite (its
-/// path under `data/sprite/`, the action, the frame).
+/// path under `data/sprite/`, the action, the frame); or the weapon alone of a character's frame, in a picture
+/// of the same size with the feet at the same place (`figure/weapon.rs`).
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum SpriteKey {
     Player(Figure),
     Creature(String, usize, usize),
+    Weapon(Figure),
 }
 
 /// A picture ready to draw: its pixels, and where in it the feet stand.
@@ -58,6 +67,7 @@ pub struct Picture {
 pub fn picture(key: &SpriteKey) -> Option<Picture> {
     match key {
         SpriteKey::Player(figure) => painted(figure).map(|canvas| Picture { canvas, feet: (FEET.0 as f32, FEET.1 as f32) }),
+        SpriteKey::Weapon(figure) => weapon::alone(figure).map(|canvas| Picture { canvas, feet: (FEET.0 as f32, FEET.1 as f32) }),
         SpriteKey::Creature(..) => {
             if let Some(known) = CREATURES.with_borrow(|creatures| creatures.get(key).cloned()) {
                 return known;
@@ -123,9 +133,7 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
     for layer in &shown.layers {
         let source = if layer.truecolor { &pictures.truecolor } else { &pictures.indexed };
         let Some(picture) = usize::try_from(layer.picture).ok().and_then(|index| source.get(index)) else { continue };
-        let width = (picture.width as f32 * layer.scale.0.abs()).round() as i32;
-        let height = (picture.height as f32 * layer.scale.1.abs()).round() as i32;
-        let (left, top) = (layer.x - (width + 1) / 2, layer.y - (height + 1) / 2);
+        let Some((left, top, width, height)) = layer.reach((picture.width, picture.height)) else { continue };
         low = (low.0.min(left), low.1.min(top));
         high = (high.0.max(left + width), high.1.max(top + height));
     }
@@ -298,6 +306,7 @@ pub fn painted(figure: &Figure) -> Option<Rc<Canvas>> {
 /// Forgets the figures painted so far: the tables that name their sprites have changed.
 pub fn forget() {
     PAINTED.with_borrow_mut(HashMap::clear);
+    weapon::forget();
 }
 
 /// Paints the figure on the canvas element with that ID: at once if it was painted before, else once its files
@@ -381,83 +390,10 @@ fn frame(actions: &Act, action: usize, frame: usize) -> Result<Frame, String> {
     Ok(frames[frame % frames.len()].clone())
 }
 
-async fn compose(figure: &Figure) -> Result<Canvas, String> {
-    let sex = if figure.sex == 1 { "남" } else { "여" };
-    let doram = data::is_doram(figure.job);
-    let race = if doram { "도람족" } else { "인간족" };
-    let job = data::body_sprite(figure.job);
-    // The first human hair styles are numbered differently in the sprites than in the game's data.
-    let hair = if doram { figure.hair_style } else { hair_sprite(figure.sex, figure.hair_style) };
-
-    // Which sprite a weapon has depends on its kind, which the gateway tells: until it has, the figure waits.
-    if figure.weapon != 0 && data::about(figure.weapon).is_none() {
-        data::want_items(std::iter::once(figure.weapon), || {});
-        return Err(LATER.to_owned());
-    }
-    let (body_sprite, body_act) = sprite(&format!("data/sprite/{race}/몸통/{sex}/{job}_{sex}")).await?;
-    BODIES.with_borrow_mut(|bodies| {
-        bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
-    });
-    BODY_STRIKES.with_borrow_mut(|strikes| {
-        strikes.entry((figure.job, figure.sex)).or_insert_with(|| lands_at(&body_act));
-    });
-    let (head_sprite, head_act) = sprite(&format!("data/sprite/{race}/머리통/{sex}/{hair}_{sex}")).await?;
-    // Colour 0 is the sprite's own; the others are palettes of their own.
-    let palette_folder = if doram { "data/palette/도람족" } else { "data/palette" };
-    let hair_palette = match figure.hair_colour {
-        0 => None,
-        colour => file(&format!("{palette_folder}/머리/머리{hair}_{sex}_{colour}.pal")).await.and_then(|bytes| sprite::parse_palette(&bytes)),
-    };
-    let body_palette = match figure.body_palette {
-        0 => None,
-        palette => file(&format!("{palette_folder}/몸/{job}_{sex}_{palette}.pal")).await.and_then(|bytes| sprite::parse_palette(&bytes)),
-    };
-
-    // Standing still, a head's pictures are it looking ahead, right and left: it looks ahead. In other actions
-    // the head has a picture for each of the body's.
-    let head_picture = if figure.action < 8 { 0 } else { figure.frame };
-    let (body_frame, head_frame) = (frame(&body_act, figure.action, figure.frame)?, frame(&head_act, figure.action, head_picture)?);
-    let attach = |part: &Frame| {
-        let offset = sprite::head_offset(&body_frame, part);
-        (FEET.0 + offset.0, FEET.1 + offset.1)
-    };
-    let mut canvas = Canvas::new(WIDTH, HEIGHT);
-    canvas.draw(FEET, &body_sprite, body_palette.as_ref(), &body_frame);
-    // The weapon in hand has a sprite of its own, with a picture for each of the body's: one made for that very
-    // weapon if the client has it, else the one of its kind (a dagger, a sword).
-    if figure.weapon != 0 {
-        let base = format!("data/sprite/{race}/{job}/{job}_{sex}");
-        let own = sprite(&format!("{base}_{}", figure.weapon)).await;
-        let weapon = match own {
-            Ok(weapon) => Some(weapon),
-            Err(_) => match data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| data::weapon_sprite(&kind)) {
-                Some(ending) => sprite(&format!("{base}{ending}")).await.ok(),
-                None => None,
-            },
-        };
-        if let Some((pictures, actions)) = weapon {
-            if let Ok(part) = frame(&actions, figure.action, figure.frame) {
-                canvas.draw(FEET, &pictures, None, &part);
-            }
-        }
-    }
-    canvas.draw(attach(&head_frame), &head_sprite, hair_palette.as_ref(), &head_frame);
-
-    // Headgear sits on the head by the same anchor: bottom first, then middle, then top. One whose sprite is not
-    // there is left out, and the rest of the figure is still drawn.
-    let [bottom, top, middle] = figure.headgear;
-    for view in [bottom, middle, top] {
-        let Some(name) = data::headgear(view) else { continue };
-        match sprite(&format!("data/sprite/악세사리/{sex}/{sex}{name}")).await {
-            Ok((pictures, actions)) => {
-                if let Ok(part) = frame(&actions, figure.action, head_picture) {
-                    canvas.draw(attach(&part), &pictures, None, &part);
-                }
-            }
-            Err(error) => web_sys::console::warn_1(&format!("figure: {error}").into()),
-        }
-    }
-    Ok(canvas)
+/// The sprite of a head by itself, as `frame_picture` takes one: of that job's kind, sex and hair style.
+pub fn head_sprite(job: u16, sex: u8, hair_style: u16) -> String {
+    let (doram, sex_word) = (data::is_doram(job), if sex == 1 { "남" } else { "여" });
+    format!("{}/머리통/{sex_word}/{}_{sex_word}", if doram { "도람족" } else { "인간족" }, if doram { hair_style } else { hair_sprite(sex, hair_style) })
 }
 
 /// Which head sprite a human hair style is: the first styles are numbered differently in the sprites than in the

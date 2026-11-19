@@ -94,68 +94,52 @@ impl App {
             self.assign_key(chord);
             return true;
         }
-        // Letters and digits typed into a line of text are text, not keys of the game.
-        let typing = crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT");
+        // Letters and digits typed into a line of text (or into the text of a letter) are text, not keys of the game.
+        let typing = crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA"));
         let bound = self.bound_to(chord).filter(|_| !(typing && with == 0 && !(112..=123).contains(&chord.key)));
         match (bound, key) {
-            (Some((hotkeys::table::INTERFACE, place)), _) => match place {
-                hotkeys::interface::BASIC_INFO => self.hero.basic_small = !self.hero.basic_small,
-                hotkeys::interface::STATUS => self.hero.status_open = !self.hero.status_open,
-                hotkeys::interface::INVENTORY => self.bag.open = !self.bag.open,
-                hotkeys::interface::EQUIPMENT => self.bag.equipment_open = !self.bag.equipment_open,
-                hotkeys::interface::SKILLS => self.skills.open = !self.skills.open,
-                // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
-                hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
-                hotkeys::interface::SIT => {
-                    // One who walks does not sit down: the key does nothing until the character stands. (The
-                    // server would stop the walk and seat it; the rule is this side's.)
-                    if world::walking() && !self.hero.sitting {
-                        return true;
-                    }
-                    self.send(&units::sit(!self.hero.sitting));
-                    return true;
+            // Tab ticks the World Map's box while the map is open.
+            _ if self.worldmap_key(key, with) => true,
+            (Some((hotkeys::table::INTERFACE, place)), _) => self.interface_key(place),
+            // A line of the Shortcut List (Alt+1 to Alt+0: the table's first ten entries). The ten after them
+            // are the flags, emotions bought with cash, which this client does not have.
+            (Some((hotkeys::table::MACROS, place)), _) => {
+                if place < 10 {
+                    self.shortcut_pressed(place);
                 }
-                // The bar runs through its sizes, as the client's does: a row more each time, then away, then
-                // one row again.
-                hotkeys::interface::HOTKEY_BAR => {
-                    if self.skills.hotkeys_hidden {
-                        self.skills.hotkeys_hidden = false;
-                    } else if self.skills.hotkey_rows >= 3 {
-                        (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
-                    } else {
-                        self.skills.hotkey_rows += 1;
-                    }
-                }
-                hotkeys::interface::CHAT_SIZE => self.chat_resize(),
-                // An entry of the client this client does nothing for yet.
-                _ => return false,
-            },
+                place < 10
+            }
+            // Scroll Lock makes a picture of the screen as Print Screen does (`MM_SCREENSHOT`).
+            _ if chord == (Chord { key: 145, with: 0 }) && !typing => {
+                self.screenshot("");
+                true
+            }
             // A slot of the hotkey bar: the first table's places are the bar's slots, row after row.
             (Some((hotkeys::table::BAR, slot)), _) => {
                 self.use_it(Use::Slot(slot));
-                return true;
+                true
             }
             (_, "Escape") if self.bag.throwing.is_some() => {
                 self.bag.throwing = None;
                 self.redraw(&[&wnd::THROW]);
-                return true;
+                true
             }
             // Enter goes to the chat's line; from there it sends (the form does that).
             // In a field of some window Enter belongs to that window.
-            (_, "Enter") if crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active.tag_name() == "INPUT" && active.id() != "chat-input") => {
-                return false;
+            (_, "Enter") if crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA") && active.id() != "chat-input") => {
+                false
             }
             (_, "Enter") if !writing => {
                 if let Some(input) = chat {
                     let _ = input.focus();
                 }
-                return true;
+                true
             }
             // Escape lets go of a skill being aimed.
             (_, "Escape") if world::aiming() => {
                 world::aim(None, 0);
                 self.skills.aimed = None;
-                return true;
+                true
             }
             // Escape closes the window in front, and with none open it opens the window of game options (or
             // closes that), unless an NPC is being talked to: the client's `UIWindowMgr`, at `VK_ESCAPE`.
@@ -165,14 +149,107 @@ impl App {
                 }
                 self.esc = u8::from(self.esc == 0);
                 self.redraw(&[&wnd::DIALOG]);
-                return true;
+                true
             }
             (_, "Escape") if writing => {
                 if let Some(input) = chat {
                     let _ = input.blur();
                 }
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// A key that does what a press on the page does. The key is used.
+    fn pressed_key(&mut self, press: impl Into<crate::press::Press>) -> bool {
+        self.pressed(press);
+        true
+    }
+
+    /// A key bound to an entry of the client's table of the interface's keys (`hotkeys::interface`): a window
+    /// opened or closed, the character seated, the hotkey bar and the chat run through their sizes. Returns
+    /// whether the key was used.
+    fn interface_key(&mut self, place: usize) -> bool {
+        match place {
+            hotkeys::interface::BASIC_INFO => self.hero.basic_small = !self.hero.basic_small,
+            hotkeys::interface::STATUS => self.hero.status_open = !self.hero.status_open,
+            hotkeys::interface::INVENTORY => self.bag.open = !self.bag.open,
+            hotkeys::interface::EQUIPMENT => self.bag.equipment_open = !self.bag.equipment_open,
+            hotkeys::interface::SKILLS => self.skills.open = !self.skills.open,
+            hotkeys::interface::GUILD => {
+                self.pressed(crate::press::guild::Press::Window);
                 return true;
             }
+            // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
+            hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
+            // The windows of the homunculus and of the mercenary open only while that one is out, and the
+            // key that has one stand by does nothing else (`UIWindowMgr`, at `HK_HOMUNWND_ONOFF` and on).
+            hotkeys::interface::HOMUNCULUS => self.homunculus.open = !self.homunculus.open && self.homunculus.shown(),
+            hotkeys::interface::MERCENARY => self.mercenary.open = !self.mercenary.open && self.mercenary.shown(),
+            hotkeys::interface::HOMUNCULUS_STAND_BY | hotkeys::interface::MERCENARY_STAND_BY => {
+                self.companion_stands_by(if place == hotkeys::interface::MERCENARY_STAND_BY { crate::ai::Kind::Mercenary } else { crate::ai::Kind::Homunculus });
+                return true;
+            }
+            hotkeys::interface::SIT => {
+                // One who walks does not sit down: the key does nothing until the character stands. (The
+                // server would stop the walk and seat it; the rule is this side's.)
+                if world::walking() && !self.hero.sitting {
+                    return true;
+                }
+                self.send(&units::sit(!self.hero.sitting));
+                return true;
+            }
+            // The bar runs through its sizes, as the client's does: a row more each time, then away, then
+            // one row again.
+            hotkeys::interface::HOTKEY_BAR => {
+                if self.skills.hotkeys_hidden {
+                    self.skills.hotkeys_hidden = false;
+                } else if self.skills.hotkey_rows >= 3 {
+                    (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
+                } else {
+                    self.skills.hotkey_rows += 1;
+                }
+            }
+            hotkeys::interface::CHAT_SIZE => self.chat_resize(),
+            hotkeys::interface::QUESTS => return self.quest_key(),
+            hotkeys::interface::CHAT_ROOM => {
+                self.room_make_asked();
+                return true;
+            }
+            hotkeys::interface::MAIL => return self.mail_key(),
+            hotkeys::interface::CART => return self.cart_key(),
+            hotkeys::interface::FRIENDS | hotkeys::interface::PARTY => return self.messenger_key(place == hotkeys::interface::FRIENDS),
+            hotkeys::interface::WORLD_MAP => return self.pressed_key(crate::press::worldmap::Press::Window),
+            hotkeys::interface::EMOTIONS => return self.pressed_key(crate::press::emotions::Press::Window),
+            hotkeys::interface::SHORTCUTS => return self.pressed_key(crate::press::emotions::Press::Shortcuts),
+            hotkeys::interface::TIPS => return self.pressed_key(crate::press::tips::Press::Window),
+            hotkeys::interface::MENU => return self.pressed_key(crate::press::general::Press::Menu),
+            hotkeys::interface::FRIEND_SETUP => return self.pressed_key(crate::press::friends::Press::Setup),
+            // The party's setup opens only for one who is in a party (`WID_PARTYSETTINGWND_PARTYCOUNT`).
+            hotkeys::interface::PARTY_SETUP => return self.party.members.is_empty() || self.pressed_key(crate::press::party::Press::Setup),
+            // The minimap runs through shown, shown fainter and away; not while the World Map is open.
+            hotkeys::interface::MINIMAP => {
+                if self.worldmap.open {
+                    return true;
+                }
+                self.worldmap.minimap = (self.worldmap.minimap + 1) % 3;
+            }
+            // The Game Settings open on their page of commands, or close if they were open on it
+            // (`ToggleGameSettingsTab4`).
+            hotkeys::interface::COMMANDS => (self.settings.open, self.settings.tab) = (!(self.settings.open && self.settings.tab == 4), 4),
+            hotkeys::interface::CHAT => self.chat.hidden = !self.chat.hidden,
+            hotkeys::interface::SCREENSHOT => {
+                self.screenshot("");
+                return true;
+            }
+            // Other players are drawn faintly, or as they are (`ToggleOption` of `TT_HIDE_PLAYER_ON_OFF`).
+            hotkeys::interface::HIDE_PLAYERS => {
+                self.switch_option("TT_HIDE_PLAYER_ON_OFF");
+                self.switched(data::option_says("TT_HIDE_PLAYER_ON_OFF", self.option("TT_HIDE_PLAYER_ON_OFF")));
+                return true;
+            }
+            // An entry of the client this client does nothing for yet.
             _ => return false,
         }
         self.render();

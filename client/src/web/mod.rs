@@ -19,14 +19,20 @@ pub fn start() -> Result<(), JsValue> {
     app::start().map_err(|error| JsValue::from_str(&error))
 }
 
+/// A client path as it is written in a URL: what `encodeURI` leaves alone because it means something in an
+/// address is written out too, or a name with `#` in it (`blast_mine##clock.bmp`) would be cut there.
+fn in_url(path: &str) -> String {
+    String::from(js_sys::encode_uri(path)).replace('#', "%23").replace('?', "%3F")
+}
+
 /// The gateway's URL for a game file, by client path.
 fn asset_url(path: &str) -> String {
-    format!("/assets/{}", String::from(js_sys::encode_uri(path)))
+    format!("/assets/{}", in_url(path))
 }
 
 /// The gateway's URL for a picture of the game as a PNG, by client path.
 fn image_url(path: &str) -> String {
-    format!("/image/{}", String::from(js_sys::encode_uri(path)))
+    format!("/image/{}", in_url(path))
 }
 
 /// Fetches a game file from the gateway by client path.

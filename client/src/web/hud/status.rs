@@ -10,19 +10,23 @@ impl App {
         window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
         window.push_str(&art("statuswnd/w_statwin_bg.bmp", 0, 17, 280, 124));
         let points = self.value(parameter::STATUS_POINTS);
+        // Every number of the window is written as (1, 14) (`UIStatusWnd::Paint`).
         for stat in 0..6u16 {
             let top = 23 + 16 * i32::from(stat);
             let (value, bonus, cost) = (self.value(parameter::STR + stat), self.hero.stat_bonus[usize::from(stat)], self.value(parameter::STR_COST + stat));
-            window.push_str(&text(36, top, BLACK, &value.to_string()));
-            if bonus != 0 {
-                window.push_str(&text(if value >= 100 { 54 } else { 49 }, top, BLACK, &format!("{bonus:+}")));
+            window.push_str(&text_in(FIGURES, 36, top, BLACK, &value.to_string()));
+            // Beside a stat of three figures the bonus is written smaller, further right and 2 lower, as (1, 12).
+            if bonus != 0 && value >= 100 {
+                window.push_str(&text_in(Font(1, 12, false), 54, top + 2, BLACK, &format!("{bonus:+}")));
+            } else if bonus != 0 {
+                window.push_str(&text_in(FIGURES, 49, top, BLACK, &format!("{bonus:+}")));
             }
             // A stat can be raised while the points for it are there.
             if cost > 0 && cost <= points {
                 window.push_str(&press_button(78, top + 1, 11, "basic_interface/arw_right.bmp", "basic_interface/arw_right.bmp", Press::Raise(stat)));
             }
             if cost > 0 {
-                window.push_str(&text_ending(101, width, top, BLACK, &cost.to_string()));
+                window.push_str(&text_ending_in(FIGURES, 101, width, top, BLACK, &cost.to_string()));
             }
         }
         let pair = |first: u16, second: u16| format!("{} + {}", self.value(first), self.value(second));
@@ -37,10 +41,10 @@ impl App {
             points.to_string(),
         ];
         for (row, value) in left.iter().enumerate() {
-            window.push_str(&text_ending(189, width, 22 + 16 * row as i32, BLACK, value));
+            window.push_str(&text_ending_in(FIGURES, 189, width, 22 + 16 * row as i32, BLACK, value));
         }
         for (row, value) in right.iter().enumerate() {
-            window.push_str(&text_ending(275, width, 22 + 16 * row as i32, BLACK, value));
+            window.push_str(&text_ending_in(FIGURES, 275, width, 22 + 16 * row as i32, BLACK, value));
         }
         window
     }

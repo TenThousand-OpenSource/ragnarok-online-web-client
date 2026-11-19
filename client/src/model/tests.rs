@@ -45,13 +45,26 @@ fn rsw_bytes() -> Vec<u8> {
     file.extend(60i32.to_le_bytes());
     file.extend(floats(&[1.0, 0.9, 0.8, 0.3, 0.3, 0.4, 1.0]));
     file.extend([0u8; 16]);
-    file.extend(3i32.to_le_bytes());
+    file.extend(4i32.to_le_bytes());
     file.extend(2i32.to_le_bytes());
     file.extend(vec![0u8; 108]);
     file.extend(3i32.to_le_bytes());
-    file.extend(vec![0u8; 192]);
+    file.extend(padded("", 80));
+    file.extend(padded("se_bell.wav", 80));
+    file.extend(floats(&[1.0, -2.0, 3.0, 0.5]));
+    file.extend(20i32.to_le_bytes());
+    file.extend(10i32.to_le_bytes());
+    file.extend(floats(&[100.0, 8.0]));
+    file.extend(4i32.to_le_bytes());
+    file.extend(padded("", 80));
+    file.extend(floats(&[5.0, -60.0, 7.0]));
+    file.extend(47i32.to_le_bytes());
+    file.extend(floats(&[125.0, 0.6, 1.0, 0.0, 0.0]));
     file.extend(1i32.to_le_bytes());
-    file.extend(vec![0u8; 52]);
+    file.extend(padded("", 40));
+    file.extend(2i32.to_le_bytes());
+    file.extend(floats(&[250.0]));
+    file.extend(0i32.to_le_bytes());
     file.extend(padded("town\\house.rsm", 80));
     file.extend(padded("", 80));
     file.extend(floats(&[10.0, -5.0, 20.0, 0.0, 90.0, 0.0, 1.0, 2.0, 1.0]));
@@ -65,11 +78,14 @@ fn text(name: &[u8]) -> String {
 #[test]
 fn reads_a_map_description() {
     let rsw = Rsw::parse(&rsw_bytes(), text).unwrap();
-    assert_eq!(rsw.water, Water { level: 12.5, kind: 4, frame_ticks: 5 });
+    assert_eq!(rsw.water, Water { level: 12.5, kind: 4, frame_ticks: 5, wave_height: 1.0, wave_speed: 2, wave_pitch: 50 });
     assert_eq!((rsw.light.diffuse, rsw.light.ambient), ([1.0, 0.9, 0.8], [0.3, 0.3, 0.4]));
     // The sun is above the ground.
     assert!(rsw.light.direction[1] > 0.0);
-    assert_eq!(rsw.placements, [Placement { model: "town\\house.rsm".into(), position: [10.0, -5.0, 20.0], rotation: [0.0, 90.0, 0.0], scale: [1.0, 2.0, 1.0] }]);
+    // A speed the client would not take (over 100) is 1.
+    assert_eq!(rsw.placements, [Placement { model: "town\\house.rsm".into(), position: [10.0, -5.0, 20.0], rotation: [0.0, 90.0, 0.0], scale: [1.0, 2.0, 1.0], playback: 2, speed: 1.0 }]);
+    assert_eq!(rsw.effects, [MapEffect { effect: 47, position: [5.0, -60.0, 7.0], delay: 125.0, figures: [0.6, 1.0, 0.0, 0.0] }]);
+    assert_eq!(rsw.sounds, [MapSound { file: "se_bell.wav".into(), position: [1.0, -2.0, 3.0], volume: 0.5, size: (20, 10), range: 100.0, cycle: 8.0 }]);
 
     assert!(Rsw::parse(b"GRSM\x02\x01", text).is_err());
     assert!(Rsw::parse(&rsw_bytes()[..300], text).is_err());
@@ -145,10 +161,10 @@ fn puts_a_model_on_its_base() {
 #[test]
 fn stands_a_model_on_the_map() {
     let model = Rsm::parse(&rsm_bytes(), text).unwrap();
-    let light = Light { direction: [0.0, 0.0, 1.0], diffuse: [0.5; 3], ambient: [0.25; 3] };
+    let light = Light { direction: [0.0, 0.0, -1.0], diffuse: [0.5; 3], ambient: [0.25; 3] };
     // On a map 400 by 600 units: 10 east and 20 north of its middle, 5 above the zero height.
-    let straight = Placement { model: String::new(), position: [10.0, -5.0, 20.0], rotation: [0.0; 3], scale: [1.0; 3] };
-    let placed = place(&model, &straight, (400.0, 600.0), &light);
+    let straight = Placement { model: String::new(), position: [10.0, -5.0, 20.0], rotation: [0.0; 3], scale: [1.0; 3], playback: 0, speed: 1.0 };
+    let placed = place(&model.triangles, 1, &straight, (400.0, 600.0), &light);
     assert_eq!(placed.len(), 2);
     let (texture, corners) = &placed[0];
     assert_eq!(*texture, 0);
@@ -156,18 +172,63 @@ fn stands_a_model_on_the_map() {
     assert!(close(corners[0].position, [200.0, 5.0, 320.0]), "{:?}", corners[0].position);
     assert!(close(corners[1].position, [220.0, 5.0, 320.0]));
     assert!(close(corners[2].position, [200.0, 25.0, 320.0]));
-    // A wall facing north and south, lit by a sun in the north: ambient and all of the sunlight.
+    // A wall that looks south, lit by a sun in the south: ambient and all of the sunlight. It shows from
+    // that side alone, and a model that is not shaded shows its texture as it is.
     assert!(close(corners[0].colour, [0.75; 3]));
+    assert!(close(corners[0].outward, [0.0, 0.0, -1.0]), "{:?}", corners[0].outward);
+    assert!(close(place(&model.triangles, 0, &straight, (400.0, 600.0), &light)[0].1[0].colour, [1.0; 3]));
+    // From behind the sun gives it nothing.
+    let behind = Light { direction: [0.0, 0.0, 1.0], ..light.clone() };
+    assert!(close(place(&model.triangles, 1, &straight, (400.0, 600.0), &behind)[0].1[0].colour, [0.25; 3]));
 
     // Turned a quarter around the upright axis, the wall runs north-south and the same sun only grazes it.
     let turned = Placement { rotation: [0.0, 90.0, 0.0], ..straight.clone() };
-    let (_, corners) = &place(&model, &turned, (400.0, 600.0), &light)[0];
+    let (_, corners) = &place(&model.triangles, 1, &turned, (400.0, 600.0), &light)[0];
     assert!((corners[0].position[0] - corners[1].position[0]).abs() < 1e-3, "{:?}", corners);
     assert!((corners[0].position[2] - corners[1].position[2]).abs() > 19.9);
     assert!(close(corners[0].colour, [0.25; 3]));
 
     // Twice as tall.
     let tall = Placement { scale: [1.0, 2.0, 1.0], ..straight };
-    let (_, corners) = &place(&model, &tall, (400.0, 600.0), &light)[0];
+    let (_, corners) = &place(&model.triangles, 1, &tall, (400.0, 600.0), &light)[0];
     assert!(close(corners[2].position, [200.0, 45.0, 320.0]));
+}
+
+/// The model of `rsm_bytes` with its node turning: no turn at frame 0, a quarter about the upright at frame 100.
+fn turning() -> Rsm {
+    let mut file = rsm_bytes();
+    file.truncate(file.len() - 4);
+    file.extend(2i32.to_le_bytes());
+    file.extend(0i32.to_le_bytes());
+    file.extend(floats(&[0.0, 0.0, 0.0, 1.0]));
+    file.extend(100i32.to_le_bytes());
+    let half = std::f32::consts::FRAC_PI_4;
+    file.extend(floats(&[0.0, half.sin(), 0.0, half.cos()]));
+    file[6..10].copy_from_slice(&100i32.to_le_bytes());
+    Rsm::parse(&file, text).unwrap()
+}
+
+#[test]
+fn a_node_turns_between_its_keys() {
+    let model = turning();
+    assert!(model.animated() && model.length == 100);
+    assert!(!Rsm::parse(&rsm_bytes(), text).unwrap().animated());
+    // Half way it has turned an eighth: the wall's far corner is as far east as it is south of the near one.
+    let half = model.at(50);
+    let (near, far) = (half[0].positions[0], half[0].positions[1]);
+    assert!(((far[0] - near[0]) - (near[2] - far[2])).abs() < 1e-3 && far[0] - near[0] > 1.0, "{near:?} {far:?}");
+    // Its faces look out as it has turned: half south, half west.
+    assert!(close(half[0].outward, [-0.5f32.sqrt(), 0.0, -0.5f32.sqrt()]), "{:?}", half[0].outward);
+    // Past its last key the client turns it not at all.
+    assert_eq!(model.at(100), model.at(0));
+}
+
+#[test]
+fn an_animation_goes_by_the_client_frames() {
+    // A third of the speed times 100 a frame, cut to a whole number: 33.
+    assert_eq!([0, 1, 2, 3, 4, 5].map(|elapsed| frame_at(elapsed, 1.0, 100, 2)), [0, 33, 66, 99, 0, 33]);
+    assert_eq!([0, 3, 4, 90].map(|elapsed| frame_at(elapsed, 1.0, 100, 1)), [0, 99, 99, 99]);
+    assert_eq!(frame_at(7, 1.0, 100, 0), 0);
+    // Too slow to move a whole frame, it never moves.
+    assert_eq!(frame_at(500, 0.01, 768000, 2), 0);
 }

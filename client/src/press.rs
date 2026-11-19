@@ -137,16 +137,62 @@ systems! {
     Skills = skills,
     /// The chat.
     Chat = chat,
-    /// Shops, deals between players and the storage.
+    /// An NPC's shop.
     Shops = shops,
+    /// The storage, the Kafra's or a guild's.
+    Storage = storage,
     /// The pet.
     Pets = pets,
+    /// The quest journal.
+    Quests = quests,
     /// The Shortcut Settings window.
     Hotkeys = hotkeys,
     /// The Game Settings window.
     Settings = settings,
     /// The Adventure Guide.
     Guide = guide,
+    /// The party.
+    Party = party,
+    /// The guild.
+    Guild = guild,
+    /// The menu on another player.
+    PlayerMenu = player_menu,
+    /// A deal between two players.
+    Exchange = exchange,
+    /// The mail.
+    Mail = mail,
+    /// The friends list.
+    Friends = friends,
+    /// A talk with one player in a window of its own.
+    Whispers = whispers,
+    /// Looking at another player's equipment.
+    ViewEquip = viewequip,
+    /// The lists a skill or a card opens to pick one thing of.
+    Choosing = choosing,
+    /// The alchemist's homunculus.
+    Homunculus = homunculus,
+    /// A hired mercenary.
+    Mercenary = mercenary,
+    /// The list of packets this client does not read (`/packets`).
+    Unread = unread,
+    /// What an NPC's script shows: the picture over the screen.
+    Scripted = scripted,
+    /// Chat rooms.
+    ChatRooms = chat_rooms,
+    /// The family: the answer to one who asks to adopt.
+    Family = family,
+    /// The window of emotions and the Shortcut List.
+    Emotions = emotions,
+    /// The World Map and the large window of the map one is on.
+    WorldMap = worldmap,
+    /// The Tipbox.
+    Tips = tips,
+    /// The windows a fight opens: what Sense tells, a Star Gladiator's place.
+    Fight = fight,
+    /// The merchant's cart.
+    Cart = cart,
+    /// A merchant's shop.
+    Vending = vending,
 }
 
 #[cfg(test)]

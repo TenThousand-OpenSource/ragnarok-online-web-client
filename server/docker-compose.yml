@@ -24,6 +24,8 @@ x-rathena: &rathena
     - ./conf/packet_conf.txt:/rathena/conf/import/packet_conf.txt:ro
     - ./conf/battle_conf.txt:/rathena/conf/import/battle_conf.txt:ro
     - ./conf/motd.txt:/rathena/conf/import/motd.txt:ro
+    # What players may do beyond rAthena's defaults: selling while away (@autotrade), switched in that file.
+    - ./conf/groups.yml:/rathena/conf/import/groups.yml:ro
     # The classic scripts put right for the maps the client has in their new form.
     - ./npc/roweb_classic.txt:/rathena/npc/custom/roweb_classic.txt:ro
     - ./npc/roweb_classic_warps.sed:/rathena/npc/custom/roweb_classic_warps.sed:ro

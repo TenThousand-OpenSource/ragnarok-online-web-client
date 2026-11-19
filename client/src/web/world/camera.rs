@@ -18,6 +18,12 @@ impl Camera {
         Self { yaw: if indoor { 45.0 } else { 0.0 }, pitch: PITCH, distance: Self::remembered().distance.clamp(distances[0], distances[1]) }
     }
 
+    /// The camera a map is entered with: the one the client's table of views gives the map, if it has one
+    /// (`CGameMode::InitializeCamera`: its distance, turn and tilt `_IN`), else the one a map starts with.
+    pub(super) fn entering(indoor: bool, zoom_out: bool, view: Option<&crate::scenery::views::MapView>) -> Self {
+        view.map_or_else(|| Self::starting(indoor, zoom_out), |view| Self { yaw: view.yaw.rem_euclid(360.0), pitch: view.pitch, distance: view.distance })
+    }
+
     /// The camera as the player last left it, on any map and in any earlier visit; the game's own if never moved.
     pub(super) fn remembered() -> Self {
         let kept = web_sys::window().and_then(|window| window.local_storage().ok().flatten()).and_then(|storage| storage.get_item(CAMERA_KEPT).ok().flatten());
@@ -59,9 +65,22 @@ impl Camera {
     }
 }
 
-/// One frame of the client, which moves its camera a tenth of the way to the character each: taken as a
-/// sixtieth of a second (the client's own pace is not in what was read of it).
-const CAMERA_FRAME_MS: f64 = 1000.0 / 60.0;
+/// The camera as a shake of the screen has it at this frame, and where it looks (`crate::quake`, the client's
+/// `CView::Apply`): the place looked at thrown across, the distance and the tip changed, by what the shake has
+/// added so far. A shake whose time is over is over, and the camera is as it was.
+pub(super) fn shaken(quake: &mut Option<crate::quake::Quake>, camera: Camera, aim: Vector, time: f64) -> (Camera, Vector) {
+    let Some(shake) = quake.as_mut().filter(|shake| time < shake.until) else {
+        *quake = None;
+        return (camera, aim);
+    };
+    shake.frame(&mut || (js_sys::Math::random() * 5.0) as u32);
+    let [across, distance, pitch] = shake.off;
+    let yaw = camera.yaw.to_radians();
+    (Camera { distance: camera.distance + distance, pitch: camera.pitch + pitch, ..camera }, along(aim, [yaw.cos(), 0.0, -yaw.sin()], across))
+}
+
+/// One frame of the client, which moves its camera a tenth of the way to the character each.
+const CAMERA_FRAME_MS: f64 = scenery::CLIENT_FRAME_MS;
 
 impl Scene {
     /// Where the camera looks now: at the character's feet until it has started to follow them.
@@ -74,13 +93,59 @@ impl Scene {
     pub(super) fn follow(&mut self, feet: Vector, time: f64) -> Vector {
         let aim = match self.aim {
             Some((aim, moved)) => {
-                let share = 1.0 - 0.9f64.powf(((time - moved) / CAMERA_FRAME_MS).clamp(0.0, 600.0));
-                [0, 1, 2].map(|axis| aim[axis] + (feet[axis] - aim[axis]) * share as f32)
+                let share = crate::scenery::views::share((time - moved) / CAMERA_FRAME_MS);
+                [0, 1, 2].map(|axis| aim[axis] + (feet[axis] - aim[axis]) * share)
             }
             None => feet,
         };
         self.aim = Some((aim, time));
         aim
+    }
+}
+
+impl Scene {
+    /// How far the camera may tilt and how far away it may be on this map, and between which turns it may be
+    /// moved, if not all the way round: what the client's table of views says of the map, if it has it
+    /// (`ProcessRightButtonDrag`, `ProcessMouseWheel`), else the limits of a map outdoors or inside.
+    pub(super) fn camera_limits(&self, zoom_out: bool) -> ([f32; 2], [f32; 2], Option<[f32; 2]>) {
+        match &self.scenery.view {
+            Some(view) => (view.pitches, view.distances, Some(view.yaws)),
+            None => {
+                let (pitches, distances) = Camera::limits(self.indoor, zoom_out);
+                (pitches, distances, None)
+            }
+        }
+    }
+
+    /// Asks the camera to be as `change` makes it, within what this map allows: it goes there by and by.
+    pub(super) fn ask_camera(&mut self, zoom_out: bool, change: impl FnOnce(&mut Camera)) {
+        let (pitches, distances, yaws) = self.camera_limits(zoom_out);
+        let asked = &mut self.wanted.0;
+        change(asked);
+        asked.pitch = asked.pitch.clamp(pitches[0].min(pitches[1]), pitches[1].max(pitches[0]));
+        asked.distance = asked.distance.clamp(distances[0], distances[1].max(distances[0]));
+        asked.yaw = match yaws {
+            // (A map of the table holds the turn between two marks; one it lets go all the way round, from
+            // -360 to 360, turns as any other.)
+            Some([from, to]) if to - from < 720.0 => asked.yaw.clamp(from, to),
+            _ => asked.yaw.rem_euclid(360.0),
+        };
+        // Only the camera of a map without a view of its own is the player's to keep.
+        if !self.indoor && self.scenery.view.is_none() {
+            asked.remember();
+        }
+    }
+
+    /// Moves the camera towards what was asked of it, as far as the time since it was last moved allows: a
+    /// tenth of the way in its turn, its tilt and its distance, each of the client's frames
+    /// (`CameraState::Smooth`).
+    pub(super) fn ease_camera(&mut self, time: f64) {
+        let (asked, eased) = self.wanted;
+        let share = crate::scenery::views::share((time - eased) / CAMERA_FRAME_MS);
+        self.camera.yaw = crate::scenery::views::eased_turn(self.camera.yaw, asked.yaw, share);
+        self.camera.pitch += (asked.pitch - self.camera.pitch) * share;
+        self.camera.distance += (asked.distance - self.camera.distance) * share;
+        self.wanted.1 = time;
     }
 }
 

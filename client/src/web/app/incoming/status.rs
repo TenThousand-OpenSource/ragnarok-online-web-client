@@ -7,38 +7,11 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn status_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            // ZC_MSG_STATE_CHANGE (0x0196) and its later form with a time (0x0983): `u16 status, u32 who, u8 on, …`.
-            // A status goes on or off. Two of them say what someone rides, which is how the server tells a
-            // player of its own mount as it comes into a map: riding (27: a bird or a dragon, by the job) and
-            // riding a wolf (357).
-            0x0196 | 0x0983 => {
-                if let (Some(status), Some(who), Some(&on)) = (packet.get(2..4), packet.get(4..8), packet.get(8)) {
-                    let who = u32::from_le_bytes([who[0], who[1], who[2], who[3]]);
-                    // The bits of the state the client's table of mounts goes by: 5 a bird, 19 a dragon, 21 a wolf.
-                    let mask = match u16::from_le_bytes([status[0], status[1]]) {
-                        27 => 1 << 5 | 1 << 19,
-                        357 => 1 << 21,
-                        _ => 0,
-                    };
-                    if mask != 0 {
-                        let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
-                        world::stated((!own).then_some(who), if on != 0 { mask } else { 0 }, Some(mask));
-                        if own {
-                            // The character's own state keeps the one bit its job rides by: a dragon if the
-                            // client's table has one for the job, else a bird.
-                            let job = self.own_figure().job;
-                            let rides = if mask == 1 << 21 || crate::mounts::drawn_job(job, 1 << 19) == job { mask & !(1 << 19) } else { 1 << 19 };
-                            self.hero.state = self.hero.state & !mask | if on != 0 { rides } else { 0 };
-                            self.render();
-                        }
-                    }
-                }
-            }
             0x019b => self.level_gained(id, packet),
             // ZC_USER_COUNT (0x00c2): `u32 count`: how many play on the server. It is shown by the chat's tabs.
-            0x00c2 => {
-                if packet.len() >= 6 {
-                    self.online = Some(u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]));
+            crate::net::commands::ZC_USER_COUNT => {
+                if let Some(count) = crate::net::commands::users(packet) {
+                    self.online = Some(count);
                     if let Some(shown) = element("online-count") {
                         shown.set_text_content(self.online.map(|count| count.to_string()).as_deref());
                     } else {
@@ -96,9 +69,12 @@ impl App {
         true
     }
 
-    /// ZC_NOTIFY_EFFECT (0x019b): `u32 who, u32 kind`: someone gains a level (0 base, 1 job). The client
-    /// (`ReceivePartyMemberEffect`) plays its effect on them: the angel for a base level (`EF_ANGEL`,
-    /// `angel.str`), the light of a job level (`EF_JOBLVUP`, `JobLvUP.str`).
+    /// ZC_NOTIFY_EFFECT (0x019b): `u32 who, u32 kind`: something to show on someone, as the client's
+    /// `ReceivePartyMemberEffect` shows it: the angel of a base level gained (0: `EF_ANGEL`, `angel.str`), the
+    /// light of a job level (1: `EF_JOBLVUP`, `JobLvUP.str`), a refining that failed (2: `EF_REFINEFAIL`) or
+    /// went well (3: `EF_REFINEOK`), a potion brewed (5: `EF_PHARMACY_OK`) or spoilt (6:
+    /// `EF_PHARMACY_FAIL`), the level of a super novice (7: `EF_ANGEL2`; 8: `EF_JOBLVUP50` for its job
+    /// level) and of a taekwon (9: `EF_ANGEL3`). Kind 4 (the game is over) only sets a switch in the client.
     fn level_gained(&mut self, id: u16, packet: &[u8]) {
         let own = self.account.as_ref().map(|account| account.account_id);
         let who = npc::npc(id, packet);
@@ -107,9 +83,14 @@ impl App {
         match kind {
             0 => world::effect("angel.str", on),
             1 => world::effect("joblvup.str", on),
-            _ => {}
+            _ => {
+                if let (Some(shown), Some(_)) = (skills::notified_effect(kind), who) {
+                    world::burst(shown, on, None, 0.0);
+                }
+            }
         }
-        if who == own && who.is_some() {
+        // A level gained by the player's own character is heard, and the pet may tell of it.
+        if who == own && who.is_some() && matches!(kind, 0 | 1 | 7 | 8 | 9) {
             sound::effect("levelup.wav", 1.0);
             self.pet_feels(pets::moment::LEVEL_UP, None);
         }
@@ -120,7 +101,14 @@ impl App {
             if name == packets::PARAMETER_SPEED {
                 world::speed(value);
             }
+            // How heavy the character was before, for what the chat says of the weight (`incoming/inventory.rs`).
+            let weighed = |app: &Self, name: u16| app.hero.params.get(&name).copied().unwrap_or(0);
+            let heavy = crate::net::items::weight::percent(weighed(self, packets::parameter::WEIGHT), weighed(self, packets::parameter::MAX_WEIGHT));
+            let was = weighed(self, name);
             self.hero.params.insert(name, i64::from(value));
+            if name == packets::parameter::WEIGHT || name == packets::parameter::MAX_WEIGHT {
+                self.weight_told(name, was, heavy);
+            }
             self.refresh_values();
             // Under a quarter of its life left, the player's pet may tell of it: half the time, and
             // not more than once in five seconds (the client, on `SP_HP`).

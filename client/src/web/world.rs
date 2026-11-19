@@ -4,8 +4,9 @@
 //! looking north (values as rustnarok-client measured them). The right mouse button turns it, with Shift tilts it,
 //! with Ctrl (or the wheel) moves it nearer and farther; a double right click puts it back.
 //!
-//! The map's models (buildings, trees) stand still, each face lit flatly by the map's sun, and the water is a flat
-//! surface: no animated models, smoothed shading or waves yet.
+//! The map's models (buildings, trees) are lit by the map's sun as the client shades each (`crate::model`); the
+//! parts of those that have an animation turn, and the water has its waves (`land.rs`). Around them are the
+//! effects and sounds the map places, its fog, its sky and its weather (`scenery.rs`).
 //!
 //! Everyone else on the map (players, NPCs, monsters) stands and walks as the server tells; pointing at one
 //! shows its name. Talking to them and fighting them is not made yet.
@@ -21,9 +22,11 @@ use wgpu::util::DeviceExt;
 use super::figure::{self, Figure, SpriteKey};
 use super::{data, fetch_asset, image_url, js_error, sound};
 use crate::bmp;
-use crate::map::{CELL, Gat, Gnd, Walk};
+use crate::map::{CELL, Gat, Gnd};
 use crate::model::{self, Rsm, Rsw};
-use crate::net::units::{Kind, Unit};
+use crate::net::units::{Kind, Unit, Walked};
+use crate::route::Route;
+use crate::server_time::Clock;
 
 mod shaders;
 mod math;
@@ -31,13 +34,32 @@ mod camera;
 mod mover;
 mod gpu;
 mod loading;
+mod land;
+mod scenery;
 mod effects;
 mod prims;
 mod quads;
 mod state;
 mod session;
 mod actors;
+mod poses;
+mod ai;
+mod ailments;
+mod players;
+mod quests;
+mod cart;
+mod pvp;
+mod guild;
 mod combat;
+mod earshot;
+mod names;
+mod written;
+mod launch;
+mod state_effects;
+mod scopes;
+mod skill_units;
+mod signs;
+mod scripted;
 mod frame;
 mod overlays;
 mod pursuit;
@@ -48,12 +70,31 @@ use shaders::*;
 use math::*;
 use mover::*;
 use loading::*;
+use land::{Models, WaterSurface};
+pub use scenery::fog;
 use effects::*;
 use quads::*;
 use state::*;
 pub use session::*;
 pub use actors::*;
+pub use poses::{risen, turned};
+pub use ai::{companions, sight, unit_job, walkable};
+pub use ailments::ailing;
+pub use players::*;
+pub use quests::quest_mark;
+pub use cart::carted;
+pub use quests::visit;
+pub use pvp::{sides, zone};
+pub use guild::{emblem_known, guild_changed, own_guild, player_card, player_guild, player_position};
 pub use combat::*;
+pub use written::spot_says;
+pub use names::{own_level, unit_titled};
+pub use launch::*;
+pub use state_effects::{own_states_again, state_effects, third_option_told};
+pub use scopes::scope_shown;
+pub use skill_units::{cell_retyped, ground_skill, skill_unit_becomes, skill_unit_gone, skill_unit_shown};
+pub use signs::{Board, SIGN, sign};
+pub use scripted::{gauge, sounded};
 use frame::*;
 use overlays::*;
 use pursuit::*;
@@ -71,8 +112,6 @@ const PITCH: f32 = 45.0;
 const PITCH_RANGE: [f32; 2] = [20.0, 70.0];
 /// World units per sprite pixel: about 35 sprite pixels to a cell.
 const SPRITE_SCALE: f32 = CELL / 35.0;
-/// How long one picture of a standing monster shows.
-const IDLE_FRAME_MS: f64 = 150.0;
 /// The sprite numbers of things that are there without being seen: portals' touch areas and invisible NPCs.
 const UNSEEN: [u16; 3] = [111, 139, 32767];
 /// The sprite number of a portal: drawn as rings of light, not as a sprite.
@@ -86,12 +125,9 @@ const DEFAULT_SPEED: f64 = 150.0;
 /// How long one picture of the walking animation shows at the default speed.
 const WALK_FRAME_MS: f64 = 100.0;
 const WALK_FRAMES: usize = 8;
-/// The first of the walking actions; standing ones start at 0. Each has eight directions.
-const WALKING: usize = 8;
 
 /// How many pictures the water runs through, and how many world units one of them covers.
 const WATER_FRAMES: usize = 32;
-const WATER_TILE: f32 = 50.0;
 
 /// An effect file ready to play: its layers, and each layer's pictures on the GPU (for the see-through pipeline
 /// and for the one that adds light).
@@ -105,19 +141,20 @@ struct Playing {
     shown: Rc<Shown>,
     on: Option<u32>,
     began: f64,
+    /// How it is carried, for a file a class of the client's own moves, turns or begins late; none for a file
+    /// that plays over the one it is on.
+    carried: Option<Carrying>,
 }
 
-/// The pictures a bolt of fire runs through as it falls.
-const FIRE_BOLT: [&str; 6] = ["불화살1.tga", "불화살2.tga", "불화살3.tga", "불화살4.tga", "불화살5.tga", "불화살6.tga"];
-
-/// A bolt of fire or of ice falling on someone (the client's `FireArrow` and `IceArrow`): when it sets off, on
-/// whom, from where beside and above them, and whether it is fire.
-struct Bolt {
-    leaves: f64,
-    target: u32,
-    from: Vector,
-    fire: bool,
+/// How a playing file is carried (`crate::effect::carried`), whose place it was told besides that of the one it
+/// is on (none told: nobody; no one named: the player's own character), and what it measured as it began, as
+/// the client's effect does in its `Open`: where the two stood and the angle it is turned by.
+struct Carrying {
+    how: crate::effect::carried::Carried,
+    other: Option<Option<u32>>,
+    set: Option<(Vector, Vector, f32)>,
 }
+
 /// A frame of the client's coded effects (the rings of a cast last the cast's milliseconds over 16).
 const CAST_FRAME_MS: f64 = 16.0;
 /// The arrow's sprite, and how long it flies: 8 of the client's frames of 24 milliseconds (`CArrowEffect`).
@@ -127,10 +164,12 @@ const ARROW_MS: f64 = 192.0;
 /// One of the client's time units for effects: 24 milliseconds (`CRenderObject::GetElapsedFrames`).
 const EFFECT_FRAME_MS: f64 = 24.0;
 
-/// A number (or "miss") flying off someone struck, as the original's `CMsgEffect` flies it.
+/// A number or a word of a fight flying over someone, as the original's `CMsgEffect` flies it.
 struct Flying {
     began: f64,
-    /// Where the one struck stood, on the ground.
+    /// Whom it is over (none named: the player's own character), and where that one stood on the ground when
+    /// last seen: it stays over its owner while that one is in sight.
+    on: Option<u32>,
     base: Vector,
     /// Which way it drifts, east and north.
     drift: (f32, f32),
@@ -139,21 +178,14 @@ struct Flying {
     flight: Flight,
 }
 
-/// How a thing flies off someone struck, by what it is (the client's kinds of `CMsgEffect`).
-#[derive(Clone, Copy, PartialEq)]
-enum Flight {
-    /// The number of a blow (`MET_NUMBER`).
-    Number,
-    /// The number of a critical blow (`MET_NUMBER_CRITICAL`): yellow, and it stays a little larger.
-    Critical,
-    /// The mark that goes with a critical blow (`MET_CRITICAL_EFFECT`): the pictures of an action of the
-    /// numbers' sprite, one after another, greyed.
-    Mark,
-    /// The word for a blow that missed (`MET_MISS`).
-    Miss,
-}
+use crate::blow::flight::Flight;
 
 type Vector = [f32; 3];
+
+/// A picture standing in the world this frame: which, where its feet are, how much of it is left to see (1
+/// all of it), and how it is drawn (`crate::body::Quad`: its colour, its size, where its edges are; `PLAIN` as it
+/// is). Pictures at one place are drawn in the order they were given.
+type Stood = (SpriteKey, Vector, f32, crate::body::Quad);
 
 /// The camera: where it looks, and from where.
 #[derive(Clone, Copy)]
@@ -215,12 +247,17 @@ struct Mover {
     lively: bool,
     /// A pet (or a homunculus, a mercenary): someone's companion, neither fought nor talked to.
     companion: bool,
+    /// A player's guild (0 for none) and the version of its emblem, as the server showed them.
+    guild: (u32, u32),
     cell: (i32, i32),
-    /// Where it was drawn last, in cells.
+    /// Where it is drawn, in cells: a walker along its way, one who stands where it stopped (the middle of
+    /// its cell, or short of it when a blow stopped it).
     at: (f32, f32),
     facing: u8,
-    /// The walk under way, and when it started (milliseconds, as `now` counts).
-    walk: Option<(Walk, f64)>,
+    /// The walk under way: its cells and the server's time at which each is reached (`crate::route`).
+    walk: Option<Route>,
+    /// When it began to walk from standing (milliseconds, as `now` counts): its legs go from then.
+    strode: f64,
     speed: f64,
     /// The picture last drawn, kept on screen until the next one is ready.
     shown: Option<SpriteKey>,
@@ -240,14 +277,28 @@ struct Mover {
     heard: Option<(usize, usize)>,
     /// A motion under way while standing (a blow, a flinch): its first action, when it began, how long it lasts.
     motion: Option<(usize, f64, f64)>,
+    /// What its body state and health state make of it: its colour, the marks by it (`ailments.rs`).
+    ail: ailments::Ail,
     /// A skill being cast: when it began, how long it takes, which of the client's effects shows around the
     /// caster, and on whom it is aimed.
     casting: Option<(f64, f64, u32, Option<u32>)>,
+    /// How it is posed beyond that, and what else of it is drawn (`mover.rs`).
+    pose: mover::Pose,
 }
 
-/// A sprite's picture on the GPU.
+/// A frame of a sprite as one picture on the GPU for the effects' pipelines: the picture for each of the two, and
+/// its size.
+#[derive(Clone)]
+struct EffectSprite {
+    binds: Rc<[wgpu::BindGroup; 2]>,
+    size: (f32, f32),
+}
+
+/// A sprite's picture on the GPU: for the see-through pipeline, and for the one that adds its light to what is
+/// behind it.
 struct SpriteTexture {
     bind: wgpu::BindGroup,
+    adding: wgpu::BindGroup,
     size: (f32, f32),
     feet: (f32, f32),
 }
@@ -256,17 +307,6 @@ struct Ground {
     vertices: wgpu::Buffer,
     /// Per texture: its triangles, how many indices they are, and the texture with the baked light.
     batches: Vec<(wgpu::Buffer, u32, wgpu::BindGroup)>,
-}
-
-/// The map's models: per texture, the corners of every triangle with it, how many, and the texture.
-type Models = Vec<(wgpu::Buffer, u32, wgpu::BindGroup)>;
-
-struct WaterSurface {
-    vertices: wgpu::Buffer,
-    /// The pictures the surface runs through.
-    frames: Vec<wgpu::BindGroup>,
-    /// How long each picture shows, in milliseconds.
-    frame_ms: f64,
 }
 
 struct Gpu {
@@ -279,12 +319,17 @@ struct Gpu {
     camera_buffer: wgpu::Buffer,
     camera_bind: wgpu::BindGroup,
     sprite_camera_bind: wgpu::BindGroup,
-    model_camera_bind: wgpu::BindGroup,
+    model_camera_binds: [wgpu::BindGroup; 2],
     water_camera_bind: wgpu::BindGroup,
     ground_pipeline: wgpu::RenderPipeline,
-    model_pipeline: wgpu::RenderPipeline,
+    /// The models' pipelines: for pictures cut out by their colour, and for those mixed in by their alpha.
+    model_pipelines: [wgpu::RenderPipeline; 2],
     water_pipeline: wgpu::RenderPipeline,
     sprite_pipeline: wgpu::RenderPipeline,
+    /// The sprites' pipeline that adds a picture's light to what is behind it (a body an effect has lit:
+    /// `crate::body`), and the camera for it.
+    sprite_adding_pipeline: wgpu::RenderPipeline,
+    sprite_adding_camera_bind: wgpu::BindGroup,
     sampler: wgpu::Sampler,
     /// For pictures laid side by side again and again: model textures and the water.
     repeating: wgpu::Sampler,
@@ -307,8 +352,11 @@ struct Gpu {
     effect_room: usize,
     /// The pictures of the effects drawn by code (the rings of a cast, the mark on its target, an arrow), by name.
     effect_pictures: HashMap<&'static str, Rc<[wgpu::BindGroup; 2]>>,
-    /// The arrow in flight: its picture and that picture's size.
-    arrow: Option<(Rc<[wgpu::BindGroup; 2]>, (f32, f32))>,
+    /// The sprites' pictures the effects' pipelines draw, a frame to a picture (an arrow in flight), by picture.
+    effect_sprites: HashMap<SpriteKey, EffectSprite>,
+    /// The pictures of the sprites of the effects made of the client's primitives, each by itself: by the
+    /// sprite's path, then by whether the picture is a truecolor one and its number (`gpu/layers.rs`).
+    effect_layers: HashMap<String, HashMap<(bool, usize), Rc<[wgpu::BindGroup; 2]>>>,
 }
 
 struct Scene {
@@ -329,9 +377,18 @@ struct Scene {
     /// the client's frames (`CameraState::Smooth`), so a step the server corrects does not jolt the view. None
     /// until the first frame, and after the character is put somewhere else: then it looks straight at it.
     aim: Option<(Vector, f64)>,
+    /// Where the units of skills on the ground and the places skills were used on are, by ID, in cells
+    /// (`skill_units.rs`): effects play on them as on someone.
+    spots: HashMap<u32, (f32, f32)>,
     /// The portals in sight, by the server's ID: the cells they are on.
     portals: HashMap<u32, (i32, i32)>,
     camera: Camera,
+    /// The camera as the player asked for it, and when `camera` last went towards it: a tenth of the way
+    /// each of the client's frames (`CameraState::Smooth`, `camera.rs`).
+    wanted: (Camera, f64),
+    /// What surrounds the player here: the effects and sounds the map places, its fog, sky and weather
+    /// (`scenery.rs`).
+    scenery: scenery::Surroundings,
     /// The last cell told to the page, so it is told only when it changes.
     told: (i32, i32),
 }
@@ -355,17 +412,29 @@ pub struct Options {
     pub hide_players: bool,
     /// The camera may go out to 730 instead of 400 (`/zoom`).
     pub zoom_out: bool,
+    /// This project's own, off as in the client: a press farther than the server walks in one go sends the
+    /// character there in stretches instead of doing nothing (`pursuit::journey`).
+    pub far_walk: bool,
+    /// The screen shakes when an effect asks for it (`/quake`: the client's `MM_QUAKE` does nothing with it off).
+    pub quake: bool,
+    /// The name of a character the pointer is on stands over its head, not under its feet (`/font`).
+    pub name_above: bool,
+    /// The emblem of a player's guild is drawn by the name (`/emblem`).
+    pub emblems: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false, zoom_out: true }
+        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false, zoom_out: true, far_walk: false, quake: true, name_above: false, emblems: true }
     }
 }
 
 pub struct Hooks {
     /// The player pressed a cell to walk to.
     pub walk_to: fn(u16, u16),
+    /// The character turned, or turned its head, towards a place pressed: how the head is turned and the
+    /// direction, as the server is told them.
+    pub face: fn(u8, u8),
     /// The character stands on, or passes, another cell.
     pub moved: fn(u16, u16),
     /// The player pressed someone: their ID, and whether it is a monster.
@@ -387,6 +456,9 @@ pub struct Hooks {
     pub stop: fn(),
     /// A slot of the hotkey bar is used by the mouse (the client's Quick Skill options).
     pub quick: fn(usize),
+    /// The mouse commands the homunculus, or the mercenary (true): to fight someone (their ID) or to walk to
+    /// a cell, at once or, with Shift (true), after its other commands (`ai.rs`).
+    pub commanded: fn(bool, Option<u32>, (u16, u16), bool),
 }
 
 

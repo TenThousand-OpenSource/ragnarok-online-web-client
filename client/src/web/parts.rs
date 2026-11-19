@@ -1,14 +1,14 @@
 //! The pieces every window on the page is made of, whichever screen it belongs to.
 
 use crate::press::Press;
-use crate::press::things::{self, Drag, Form, Use};
+use crate::press::things::{self, Drag, Drop, Form, Menu, Use};
 
 /// Where the client keeps the pictures of its windows.
 pub(super) const UI: &str = "data/texture/유저인터페이스/";
 
 /// The address of one of the client's pictures of its windows, as the gateway serves it.
 pub(super) fn picture(name: &str) -> String {
-    format!("/image/{}", String::from(js_sys::encode_uri(&format!("{UI}{name}"))))
+    super::image_url(&format!("{UI}{name}"))
 }
 
 /// A place and a size, as a style.
@@ -31,6 +31,16 @@ pub(super) fn used(thing: Use) -> String {
 /// What marks a thing as one that can be dragged out of its place.
 pub(super) fn dragged(thing: Drag) -> String {
     format!(r#"data-drag="{}""#, things::written(&thing))
+}
+
+/// What marks a window, or a part of one, as taking the things dragged that are let go over it.
+pub(super) fn dropped(onto: Drop) -> String {
+    format!(r#"data-drop="{}""#, things::written(&onto))
+}
+
+/// What marks a thing as one the right button opens a menu on.
+pub(super) fn menued(thing: Menu) -> String {
+    format!(r#"data-menu="{}""#, things::written(&thing))
 }
 
 /// What marks a form as the one it is, for when it is sent.

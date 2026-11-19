@@ -27,7 +27,7 @@ impl App {
                     // Sits down or stands up, whichever it is not doing (the client's `ToggleSitStand`).
                     self.command(if self.hero.sitting { "/stand" } else { "/sit" });
                 } else if let Some(command) = Self::command_of(&option) {
-                    self.command(command);
+                    self.typed_command(command);
                 }
             }
             Press::Off(sound) => {

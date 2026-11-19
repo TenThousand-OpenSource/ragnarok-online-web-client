@@ -1,6 +1,8 @@
 //! Skills in use: what the map server tells of a skill being cast and of its landing, and how the client asks
 //! for one aimed at a place.
 
+use super::bytes::{long, word};
+
 /// ZC_USESKILL_ACK (0x0b1a): `u32 who, u32 on whom, u16 x, u16 y, u16 skill, u32 element, u32 milliseconds,
 /// u8 disposable, u32 attack motion`. Someone starts to cast.
 pub const ZC_USESKILL_ACK: u16 = 0x0b1a;
@@ -14,14 +16,6 @@ pub const ZC_USE_SKILL: u16 = 0x09cb;
 pub const ZC_NOTIFY_GROUNDSKILL: u16 = 0x0117;
 /// ZC_ACK_TOUSESKILL (0x0110): `u16 skill, i32 kind, u32 item, u8 flag, u8 cause`. A skill could not be used.
 pub const ZC_ACK_TOUSESKILL: u16 = 0x0110;
-
-fn short(packet: &[u8], at: usize) -> Option<u16> {
-    Some(u16::from_le_bytes(packet.get(at..at + 2)?.try_into().ok()?))
-}
-
-fn long(packet: &[u8], at: usize) -> Option<u32> {
-    Some(u32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?))
-}
 
 /// Someone starts to cast.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -37,7 +31,7 @@ pub struct Casting {
 }
 
 pub fn casting(packet: &[u8]) -> Option<Casting> {
-    Some(Casting { source: long(packet, 2)?, target: long(packet, 6)?, cell: (short(packet, 10)?, short(packet, 12)?), skill: short(packet, 14)?, element: long(packet, 16)?, milliseconds: long(packet, 20)? })
+    Some(Casting { source: long(packet, 2)?, target: long(packet, 6)?, cell: (word(packet, 10)?, word(packet, 12)?), skill: word(packet, 14)?, element: long(packet, 16)?, milliseconds: long(packet, 20)? })
 }
 
 /// A skill lands.
@@ -57,26 +51,26 @@ pub struct Landing {
 
 pub fn landing(packet: &[u8]) -> Option<Landing> {
     Some(Landing {
-        skill: short(packet, 2)?,
+        skill: word(packet, 2)?,
         source: long(packet, 4)?,
         target: long(packet, 8)?,
         attack_motion: long(packet, 16)? as i32,
         attacked_motion: long(packet, 20)? as i32,
         damage: long(packet, 24)? as i32,
-        level: short(packet, 28)? as i16,
-        hits: short(packet, 30)? as i16,
+        level: word(packet, 28)? as i16,
+        hits: word(packet, 30)? as i16,
         action: *packet.get(32)?,
     })
 }
 
 /// A harmless skill used: `(skill, level, on whom, who, whether it worked)`.
 pub fn used(packet: &[u8]) -> Option<(u16, i32, u32, u32, bool)> {
-    Some((short(packet, 2)?, long(packet, 4)? as i32, long(packet, 8)?, long(packet, 12)?, *packet.get(16)? != 0))
+    Some((word(packet, 2)?, long(packet, 4)? as i32, long(packet, 8)?, long(packet, 12)?, *packet.get(16)? != 0))
 }
 
 /// A skill used on a place: `(skill, who, level, cell)`.
 pub fn on_ground(packet: &[u8]) -> Option<(u16, u32, i16, (u16, u16))> {
-    Some((short(packet, 2)?, long(packet, 4)?, short(packet, 8)? as i16, (short(packet, 10)?, short(packet, 12)?)))
+    Some((word(packet, 2)?, long(packet, 4)?, word(packet, 8)? as i16, (word(packet, 10)?, word(packet, 12)?)))
 }
 
 /// CZ_USE_SKILL_TOGROUND (0x0366): `u16 level, u16 skill, u16 x, u16 y`.
@@ -127,9 +121,108 @@ pub fn failure(skill: u16, value: i32, cause: u8) -> Option<usize> {
     }
 }
 
+/// The effect ZC_NOTIFY_EFFECT (0x019b) shows for its kinds beyond the two levels gained, by the client's
+/// numbers (`ReceivePartyMemberEffect`, `EffectTypes.h`): a refining that failed (2: `EF_REFINEFAIL`, 155) or
+/// went well (3: `EF_REFINEOK`, 154), a potion brewed (5: `EF_PHARMACY_OK`, 305) or spoilt (6:
+/// `EF_PHARMACY_FAIL`, 306), the levels of a super novice (7: `EF_ANGEL2`, 338; 8: `EF_JOBLVUP50`, 337) and of
+/// a taekwon (9: `EF_ANGEL3`, 582).
+pub fn notified_effect(kind: u32) -> Option<u32> {
+    Some(match kind {
+        2 => 155,
+        3 => 154,
+        5 => 305,
+        6 => 306,
+        7 => 338,
+        8 => 337,
+        9 => 582,
+        _ => return None,
+    })
+}
+
+/// ZC_NOTIFY_EFFECT2 (0x01f3: `u32 who, u32 effect`) and ZC_NOTIFY_EFFECT3 (0x0284: the same and a
+/// `u32 value`): the server has one of the client's effects shown on someone.
+pub const ZC_NOTIFY_EFFECT2: u16 = 0x01f3;
+pub const ZC_NOTIFY_EFFECT3: u16 = 0x0284;
+/// ZC_AUTORUN_SKILL (0x0147): an item used has the character cast a skill.
+pub const ZC_AUTORUN_SKILL: u16 = 0x0147;
+/// ZC_RECOVERY (0x013d) and ZC_RECOVERY2 (0x0a27): the character recovers life or spirit.
+pub const ZC_RECOVERY: u16 = 0x013d;
+pub const ZC_RECOVERY2: u16 = 0x0a27;
+/// ZC_DISPEL (0x01b9): a cast is broken off.
+pub const ZC_DISPEL: u16 = 0x01b9;
+/// ZC_ATTACK_RANGE (0x013a) and ZC_ATTACK_FAILURE_FOR_DISTANCE (0x0139).
+pub const ZC_ATTACK_RANGE: u16 = 0x013a;
+pub const ZC_ATTACK_FAILURE_FOR_DISTANCE: u16 = 0x0139;
+
+/// An effect shown on someone (either form): `(who, effect)`. The value of the second form is not read.
+pub fn effect_shown(packet: &[u8]) -> Option<(u32, u32)> {
+    Some((long(packet, 2)?, long(packet, 6)?))
+}
+
+/// The number ZC_NOTIFY_EFFECT3 sends with its effect (none in ZC_NOTIFY_EFFECT2, which is shorter).
+pub fn effect_number(packet: &[u8]) -> Option<i32> {
+    long(packet, 10).map(|number| number as i32)
+}
+
+/// The skill an item used has the character cast (`u16 skill, u32 kind, u16 level, …`): `(skill, level)`.
+pub fn item_skill(packet: &[u8]) -> Option<(u16, u16)> {
+    Some((word(packet, 2)?, word(packet, 8)?))
+}
+
+/// What the character recovers (`u16 which, amount`: the amount an `i16` in the older form, an `i32` in the
+/// newer): `(which of its values, how much)`.
+pub fn recovered(packet: &[u8]) -> Option<(u16, i32)> {
+    let amount = if word(packet, 0)? == ZC_RECOVERY { i32::from(word(packet, 4)? as i16) } else { long(packet, 4)? as i32 };
+    Some((word(packet, 2)?, amount))
+}
+
+/// Whose cast is broken off (`u32 who`).
+pub fn dispelled(packet: &[u8]) -> Option<u32> {
+    long(packet, 2)
+}
+
+/// How far the character's weapon reaches (`u16 range`).
+pub fn attack_range(packet: &[u8]) -> Option<u16> {
+    word(packet, 2)
+}
+
+/// A blow asked for from too far (`u32 target, i16 x, i16 y, i16 own x, i16 own y, i16 range`):
+/// `(target, how far the weapon reaches)`.
+pub fn out_of_reach(packet: &[u8]) -> Option<(u32, i16)> {
+    Some((long(packet, 2)?, word(packet, 14)? as i16))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_notified_effect_is_the_clients_number_for_its_kind() {
+        assert_eq!((notified_effect(2), notified_effect(3), notified_effect(5), notified_effect(6)), (Some(155), Some(154), Some(305), Some(306)));
+        assert_eq!((notified_effect(7), notified_effect(8), notified_effect(9)), (Some(338), Some(337), Some(582)));
+        assert_eq!((notified_effect(0), notified_effect(4)), (None, None));
+    }
+
+    #[test]
+    fn reads_what_else_the_server_says_of_blows_and_effects() {
+        let mut shown = vec![0u8; 14];
+        shown[2..6].copy_from_slice(&2_000_001u32.to_le_bytes());
+        shown[6..10].copy_from_slice(&315u32.to_le_bytes());
+        assert_eq!((effect_shown(&shown), effect_shown(&shown[..10]), effect_shown(&shown[..9])), (Some((2_000_001, 315)), Some((2_000_001, 315)), None));
+        // An item's skill: Teleport at its first level.
+        let cast = [0x47, 0x01, 26, 0, 4, 0, 0, 0, 1, 0];
+        assert_eq!(item_skill(&cast), Some((26, 1)));
+        // Life recovered, in the older form (a short) and the newer (a long).
+        assert_eq!(recovered(&[0x3d, 0x01, 5, 0, 0x2c, 0x01]), Some((5, 300)));
+        assert_eq!(recovered(&[0x27, 0x0a, 7, 0, 0xa0, 0x86, 0x01, 0]), Some((7, 100_000)));
+        assert_eq!(recovered(&[0x27, 0x0a, 7, 0, 0xa0]), None);
+        assert_eq!(dispelled(&[0xb9, 0x01, 0x40, 0x42, 0x0f, 0]), Some(1_000_000));
+        assert_eq!(attack_range(&[0x3a, 0x01, 9, 0]), Some(9));
+        let mut far = vec![0u8; 16];
+        far[2..6].copy_from_slice(&110_005u32.to_le_bytes());
+        far[14..16].copy_from_slice(&3i16.to_le_bytes());
+        assert_eq!((out_of_reach(&far), out_of_reach(&far[..15])), (Some((110_005, 3)), None));
+    }
 
     #[test]
     fn reads_a_cast_and_its_landing() {

@@ -100,4 +100,10 @@ impl Matrix {
             matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
         ]
     }
+
+    /// A direction through the matrix: turned and stretched, not moved.
+    pub fn direction(&self, [x, y, z]: Vector) -> Vector {
+        let matrix = &self.0;
+        [matrix[0] * x + matrix[4] * y + matrix[8] * z, matrix[1] * x + matrix[5] * y + matrix[9] * z, matrix[2] * x + matrix[6] * y + matrix[10] * z]
+    }
 }

@@ -1,4 +1,4 @@
-//! NPC shops and the Kafra's storage.
+//! An NPC's shop: its question, its lists, and what it answers to a deal.
 
 use super::*;
 
@@ -6,72 +6,52 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn trade_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            // The Kafra's storage.
-            trade::ZC_NOTIFY_STOREITEM_COUNTINFO => {
-                if let Some(count) = trade::storage_count(packet) {
-                    self.deal.storage.get_or_insert_with(Storage::default).count = count;
-                    // With the storage open the inventory is too, beside it.
-                    self.bag.open = true;
-                    self.items_changed();
-                    self.render();
-                }
-            }
-            trade::ZC_ADD_ITEM_TO_STORE => {
-                if let (Some(storage), Some(added)) = (&mut self.deal.storage, trade::stored(packet)) {
-                    match storage.items.iter_mut().find(|item| item.index == added.index) {
-                        Some(item) => item.amount = item.amount.saturating_add(added.amount),
-                        None => storage.items.push(added),
-                    }
-                    self.items_changed();
-                }
-            }
-            trade::ZC_DELETE_ITEM_FROM_STORE => {
-                if let (Some(storage), Some((index, amount))) = (&mut self.deal.storage, trade::taken(packet)) {
-                    if let Some(item) = storage.items.iter_mut().find(|item| item.index == index) {
-                        item.amount = item.amount.saturating_sub(amount.min(u32::from(u16::MAX)) as u16);
-                    }
-                    storage.items.retain(|item| item.amount > 0);
-                    self.items_changed();
-                }
-            }
-            trade::ZC_CLOSE_STORE => {
-                self.deal.storage = None;
-                self.render();
-            }
-            // An NPC's shop.
             trade::ZC_SELECT_DEALTYPE => {
                 if let Some(npc) = npc::npc(id, packet) {
-                    self.deal.shop = Some(Shop::Choose(npc));
-                    self.redraw(&[&wnd::TRADE]);
+                    self.shop_opened(Shop::Choose(npc));
                 }
             }
             trade::ZC_PC_PURCHASE_ITEMLIST => {
                 let offers = trade::offers(packet);
                 data::want_items(offers.iter().map(|offer| offer.id), || dispatch(Action::ItemsKnown));
-                self.deal.basket.clear();
-                self.deal.picked = None;
-                self.deal.shop = Some(Shop::Buy(offers));
-                self.redraw(&[&wnd::TRADE]);
+                self.shop_opened(Shop::Buy(offers));
             }
-            trade::ZC_PC_SELL_ITEMLIST => {
-                self.deal.basket.clear();
-                self.deal.picked = None;
-                self.deal.shop = Some(Shop::Sell(trade::bids(packet)));
-                self.redraw(&[&wnd::TRADE]);
-            }
-            trade::ZC_PC_PURCHASE_RESULT | trade::ZC_PC_SELL_RESULT => {
-                let words = match (id, packet.get(2).copied().unwrap_or(0)) {
-                    (trade::ZC_PC_PURCHASE_RESULT, 0) => "The deal has successfully completed.",
-                    (trade::ZC_PC_PURCHASE_RESULT, 1) => "You do not have enough zeny.",
-                    (trade::ZC_PC_PURCHASE_RESULT, 2) => "You are over your weight limit.",
-                    (trade::ZC_PC_PURCHASE_RESULT, _) => "You cannot carry any more items.",
-                    (_, 0) => "The deal has successfully completed.",
-                    _ => "The deal has failed.",
-                };
-                self.chat_line(words.to_owned(), "#ffff00");
-            }
+            trade::ZC_PC_SELL_ITEMLIST => self.shop_opened(Shop::Sell(trade::bids(packet))),
+            trade::ZC_PC_PURCHASE_RESULT => self.shop_answer(trade::purchase_line(packet.get(2).copied().unwrap_or(0))),
+            trade::ZC_PC_SELL_RESULT => self.shop_answer(trade::sell_line(packet.get(2).copied().unwrap_or(0))),
             _ => return false,
         }
         true
+    }
+
+    /// The shop asks, or lists what it sells or takes: the basket is empty again.
+    fn shop_opened(&mut self, shop: Shop) {
+        self.deal.basket.clear();
+        self.deal.counting = None;
+        self.deal.shop = Some(shop);
+        self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
+    }
+
+    /// What the shop answers to a deal (`CGameMode`'s handlers of ZC_PC_PURCHASE_RESULT and
+    /// ZC_PC_SELL_RESULT): the client's line for it in the chat, in the colour it has there (0xFFFF00 for a
+    /// deal done, which is blue and green; red for one that failed), and the shop's windows closed.
+    fn shop_answer(&mut self, line: Option<(usize, bool)>) {
+        if let Some((line, failed)) = line {
+            let otherwise = match line {
+                54 => "The deal has successfully completed.",
+                55 => "You do not have enough zeny.",
+                56 => "You are over your Weight Limit.",
+                57 => "The deal has failed.",
+                221 => "Out of the maximum capacity",
+                _ => "Amounts are exceeded the possession of the item is not available for purchase.",
+            };
+            self.chat_line(Self::words(line, otherwise), if failed { RED } else { CYAN });
+        }
+        if matches!(self.deal.shop, Some(Shop::Buy(_) | Shop::Sell(_))) {
+            self.deal.shop = None;
+            self.deal.basket.clear();
+            self.deal.counting = None;
+            self.redraw(&[&wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
+        }
     }
 }

@@ -33,11 +33,14 @@ impl App {
         let mut bar = String::new();
         for row in 0..rows {
             bar.push_str(&art("shortcut/shortcut_frame.bmp", 0, row * 33, 290, 34));
-            bar.push_str(&text(6, row * 33 + 13, "rgb(74,74,47)", &(row + 1).to_string()));
+            // The row's number, in the smaller text (`UIShortCutWnd::Paint`: (0, 11) at 6, 13).
+            bar.push_str(&text_in(SMALL, 6, row * 33 + 13, "rgb(74,74,47)", &(row + 1).to_string()));
             for column in 0..9 {
                 let slot = (row * 9 + column) as usize;
                 let hotkey = self.skills.hotkeys.get(slot).copied().unwrap_or_default();
                 let (icon, count, title) = self.hotkey_look(hotkey);
+                // A skill that waits to be used again has the shade of its wait over it (`hud/cooldowns.rs`).
+                let count = if hotkey.skill && hotkey.id != 0 { format!("{count}{}", self.waiting(hotkey.id as u16)) } else { count };
                 let key = if row == 0 { format!("F{} ", column + 1) } else { String::new() };
                 let skill = if hotkey.skill && hotkey.id != 0 { format!(r#" data-skill="{}""#, hotkey.id) } else { String::new() };
                 // What is on a slot can be dragged to another, or off the bar to take it away.
@@ -69,14 +72,14 @@ impl App {
             let known = data::skill(hotkey.id as u16);
             let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
             let name = known.map_or_else(|| format!("{} {}", tr("Skill"), hotkey.id), |(_, name, _)| name);
-            (icon, format!(r#"<span class="n">{}</span>"#, hotkey.count), format!("{name} Lv {}", hotkey.count))
+            (icon, count(hotkey.count), format!("{name} Lv {}", hotkey.count))
         } else {
             let known = data::item(hotkey.id);
             let carried = self.carried(hotkey.id);
             // An item that is used up stays on the bar, without its picture, until there is more of it.
             let icon = if carried == 0 { String::new() } else { Self::icon(known.as_ref().map(|(_, resource)| resource.as_str())) };
             let name = known.map_or_else(|| format!("{} {}", tr("Item"), hotkey.id), |(name, _)| name);
-            (icon, if carried == 0 { String::new() } else { format!(r#"<span class="n">{carried}</span>"#) }, format!("{name} : {carried} {}", tr("ea")))
+            (icon, if carried == 0 { String::new() } else { count(carried) }, format!("{name} : {carried} {}", tr("ea")))
         }
     }
 
@@ -90,11 +93,13 @@ impl App {
         let page = self.skills.tab.min(pages.len().saturating_sub(1));
         let mut window = String::new();
         window.push_str(&Self::skill_window_frame(width, height));
-        // The tabs: one for each job the character grew through.
+        // The tabs: one for each job the character grew through, their words in the usual text, not bold
+        // whether open or not (`UITabControl::DrawVerticalTab`, its `fontSize` 12).
+        let font = Font(0, 12, false).style();
         for tab in 0..pages.len() {
             let open = if tab == page { " open" } else { "" };
             window.push_str(&format!(
-                r#"<button type="button" class="a side{open}" style="{};font:11px Tahoma,Arial,sans-serif" {}>{}</button>"#,
+                r#"<button type="button" class="a side{open}" style="{};{font}" {}>{}</button>"#,
                 at(0, 22 + tab as i32 * 50, SKILL_TABS + 1, 48),
                 pressed(Press::Tab(tab)),
                 tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or(""))
@@ -164,18 +169,21 @@ impl App {
         let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
         window.push_str(&format!(r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#, at(x + 4, y + 44, 24, 24), escape(&name)));
         let shade = if level == 0 { "#787878" } else { "#666666" };
-        // The name, over the cell: as much of it as fits in 48 pixels.
+        // The name, over the cell: as much of it as fits in 48 pixels, in the smaller text (`DrawSkillTree`:
+        // (0, 11), and the level under the cell the same in bold).
         window.push_str(&format!(
-            r#"<div class="a" style="{};font:11px Tahoma,Arial,sans-serif;color:{shade};text-align:center;white-space:nowrap;overflow:hidden;pointer-events:none">{}</div>"#,
+            r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;overflow:hidden;pointer-events:none">{}</div>"#,
             at(x - 8, y + 30, 48, 13),
+            SMALL.style(),
             escape(&name)
         ));
         if level > 0 {
             // "Used at / known at", the first in the client's pink when it is less than all (`0x7F3CFF`).
             let shown = if usable { format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" }) } else { level.to_string() };
             window.push_str(&format!(
-                r#"<div class="a" style="{};font:bold 11px Tahoma,Arial,sans-serif;color:{shade};text-align:center;white-space:nowrap;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff;pointer-events:none">{shown}</div>"#,
-                at(x - 8, y + 70, 48, 13)
+                r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff;pointer-events:none">{shown}</div>"#,
+                at(x - 8, y + 70, 48, 13),
+                Font(0, 11, true).style()
             ));
         }
         // The arrows at either side of the level pick the level it is used at, one down or up (the client's
@@ -191,10 +199,13 @@ impl App {
                 ));
             }
         }
+        // The client writes here, in red, how many levels are being added ("+N", `DrawSkillTree`: (0, 11), not
+        // bold, at 30, 44); this client's plus that raises the skill at once stands in its place and its text.
         if raisable {
             window.push_str(&format!(
-                r#"<button type="button" class="a" style="{};padding:0;border:0;background:none;font:bold 11px Tahoma,Arial,sans-serif;color:#f00;cursor:pointer" {} title="{}">+</button>"#,
+                r#"<button type="button" class="a" style="{};padding:0;border:0;background:none;{};color:#f00;cursor:pointer" {} title="{}">+</button>"#,
                 at(x + 30, y + 42, 12, 14),
+                SMALL.style(),
                 pressed(Press::Raise(id)),
                 tr("Raise")
             ));

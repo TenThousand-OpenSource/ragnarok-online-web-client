@@ -7,6 +7,9 @@ use super::*;
 pub(super) fn shown(state: &mut State, view: &View, time: f64, over: Option<u32>, (width, height): (f32, f32)) {
     let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return };
     let unit = over.and_then(|id| scene.units.get(&id));
+    // Another player who is fought on this map has a monster's pointers: the sword, and the aimed skill's
+    // other picture (the client's cursor actions 5 and 11 in `CGameMode::HandleActorPick`).
+    let foe = over.zip(unit).is_some_and(|(id, unit)| state.pvp.foe(id, unit));
     let lying = || state.pointer.is_some_and(|pointer| lying_at(gpu, scene, view, pointer).is_some());
     // A portal is pointed at anywhere over its rings.
     let near = DISTANCE / scene.camera.distance * height / 480.0;
@@ -23,11 +26,11 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, over: Option<u32>
         _ if state.turning.is_some() => 5,
         // A skill being aimed: the pointer of a skill, and its other picture over a monster it can go to
         // (the client's cursor actions 10 and 11).
-        Some(unit) if state.aiming == Some(false) && unit.lively => 7,
+        Some(unit) if state.aiming == Some(false) && (unit.lively || foe) => 7,
         _ if state.aiming.is_some() => 6,
         // Over a pet the pointer stays plain, as in the client.
         Some(unit) if unit.companion => 0,
-        Some(unit) if unit.lively => 2,
+        Some(unit) if unit.lively || foe => 2,
         // A thing lying at an NPC's feet is still picked up.
         _ if lying() => 4,
         Some(unit) if matches!(unit.look, Look::Creature(_)) => 1,

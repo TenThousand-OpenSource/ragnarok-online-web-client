@@ -49,7 +49,7 @@ pub(super) fn wire(window: &web_sys::Window, ui: &Element) -> Result<(), String>
         place(&event, true);
         DRAGGED.set(Some(dragged.clone()));
         // An item: its sprite, by what the cell says it is (`data-info`: the item, with a `?` if not identified).
-        let about = taken.get_attribute("data-info").filter(|_| matches!(dragged, Drag::Item(_)));
+        let about = taken.get_attribute("data-info").filter(|_| matches!(dragged, Drag::Item(_) | Drag::Worn(_) | Drag::Attached(_) | Drag::Offer(_) | Drag::Basket(_) | Drag::Stored(_) | Drag::Carted(_) | Drag::Stock(_) | Drag::Stalled(_) | Drag::Vended(_) | Drag::Wanted(_)));
         if let Some((id, identified)) = about.and_then(|about| Some((about.trim_end_matches('?').parse::<u32>().ok()?, !about.ends_with('?')))) {
             wasm_bindgen_futures::spawn_local(async move {
                 let resource = data::item_as(id, identified).map(|(_, resource)| resource).filter(|resource| !resource.is_empty()).unwrap_or_else(|| "사과".to_owned());
@@ -72,10 +72,39 @@ pub(super) fn wire(window: &web_sys::Window, ui: &Element) -> Result<(), String>
         let under = crate::web::document().and_then(|document| document.element_from_point(event.client_x() as f32, event.client_y() as f32));
         let Some(under) = under else { return };
         let slot = under.closest("[data-slot]").ok().flatten().and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok());
+        // A window that takes things says so itself (`data-drop`: a shop's list and basket, the storage).
+        let onto = under.closest("[data-drop]").ok().flatten().and_then(|onto| onto.get_attribute("data-drop")).and_then(|onto| things::read::<Drop>(&onto));
         match slot {
             Some(slot) => dispatch(Action::Dropped(slot, Some(dragged))),
+            None if onto.is_some() => dispatch(Action::LetGo(dragged, onto.unwrap_or(Drop::Storage))),
             // Over the world itself, not over a window on it.
             None if under.id() == "game" => dispatch(Action::Thrown(dragged)),
+            // Over the window of a deal between two players: it goes into the deal (the client's
+            // `CUIExchangeUI::DragAndDrop`).
+            None if under.closest("#exchange").ok().flatten().is_some() => dispatch(Action::Offered(dragged)),
+            // Over a thing being forged: it goes into one of its slots (`UIMakeTargetProcessWnd::DragAndDrop`).
+            None if under.closest("#choose-line").ok().flatten().is_some() => dispatch(Action::Forged(dragged)),
+            // Over the letter being written: it goes into the letter (the client's `UIRodexComposeWnd::DragAndDrop`).
+            None if under.closest("#mail-write").ok().flatten().is_some() => dispatch(Action::Mailed(dragged)),
+            // A thing worn, let go over the inventory, is taken off (the client's item window takes what is
+            // dragged out of `UIEquipWnd` so).
+            None if under.closest("#inventory").ok().flatten().is_some() => {
+                if let Drag::Worn(index) = dragged {
+                    dispatch(Action::Use(Use::Item(index)));
+                }
+                // A thing of a letter being written comes back out of it.
+                if let Drag::Attached(index) = dragged {
+                    dispatch(Action::Unmailed(index));
+                }
+                // A thing of the storage comes out of it (the client's `UIItemWnd::DragAndDrop`).
+                if let Drag::Stored(index) = dragged {
+                    dispatch(Action::Unstored(index));
+                }
+                // A thing of the cart comes out of it (the same function, for what was taken up in the cart).
+                if let Drag::Carted(index) = dragged {
+                    dispatch(Action::Uncarted(index));
+                }
+            }
             None => {}
         }
     });

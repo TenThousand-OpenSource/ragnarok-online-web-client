@@ -3,6 +3,15 @@
 use super::*;
 
 impl App {
+    /// Takes the slot machine of taming away, and stops its timer.
+    pub(in crate::web::app) fn close_taming(&mut self) {
+        if let Some(taming) = self.pets.taming.take() {
+            if let Some(window) = web_sys::window() {
+                window.clear_interval_with_handle(taming.timer);
+            }
+        }
+    }
+
     /// A monster was picked to tame: the slot machine opens for it (not for players, as in the client).
     pub(super) fn taming_begins(&mut self, target: u32) {
         self.skills.aimed = None;
@@ -10,8 +19,7 @@ impl App {
         // The fight, if there was one, stops for the taming.
         world::stand_down();
         if let Some(socket) = &self.socket {
-            // CZ_CANCEL_LOCKON (0x0118): the server stops the blows it was dealing on its own.
-            socket.send(&0x0118u16.to_le_bytes());
+            socket.send(&units::stop_attack());
         }
         let tick = Closure::<dyn FnMut()>::new(|| dispatch(Action::TamingTick));
         let timer = web_sys::window().and_then(|window| window.set_interval_with_callback_and_timeout_and_arguments_0(tick.as_ref().unchecked_ref(), 16).ok()).unwrap_or(0);
@@ -81,14 +89,14 @@ impl App {
 
     /// The right button on someone. The client has a menu for the player's own pet (its status, feeding, a trick,
     /// the accessory off, back into the egg), for a homunculus, a mercenary and other players; for a monster or an
-    /// NPC it has none. Here: the pet's.
+    /// NPC it has none. Here: the pet's, and another player's (`clicks/player_menu.rs`).
     pub(super) fn unit_menu(&mut self, id: u32, at: (f32, f32)) {
-        if id == self.pets.unit && self.pets.pet.is_some() {
-            // The page's place, in the stage's own measure: the stage may be drawn larger or smaller.
-            let stage = crate::web::document().and_then(|document| document.query_selector(".stage").ok().flatten());
-            let scale = stage.as_ref().and_then(|stage| Some(stage.get_bounding_client_rect().width() / f64::from(stage.clone().dyn_into::<web_sys::HtmlElement>().ok()?.offset_width().max(1)))).filter(|scale| *scale > 0.0).unwrap_or(1.0);
-            self.pets.menu_at = Some(((f64::from(at.0) / scale) as i32 + 1, (f64::from(at.1) / scale) as i32 + 1));
+        if self.companion_menu(id, at) {
+        } else if id == self.pets.unit && self.pets.pet.is_some() {
+            self.pets.menu_at = Some(Self::on_stage(at));
             self.render();
+        } else {
+            self.player_menu_opens(id, at);
         }
     }
 }

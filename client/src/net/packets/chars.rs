@@ -42,7 +42,7 @@ pub(super) fn character(info: &[u8]) -> Character {
         job: u16_at(info, 84),
         hair_style: u16_at(info, 86),
         base_level: u16_at(info, 92),
-        name: text_at(info, 108, NAME_LENGTH),
+        name: name_at(info, 108, NAME_LENGTH),
         stats: info[132..138].try_into().unwrap(),
         slot: info[138],
         hair_color: info[139],
@@ -50,7 +50,7 @@ pub(super) fn character(info: &[u8]) -> Character {
         body_palette: u16_at(info, 106),
         // Zero stands for "not being deleted"; a date already passed arrives as a negative number.
         delete_in: Some(u32_at(info, 158) as i32).filter(|seconds| *seconds != 0),
-        map: map_name(&text_at(info, 142, 16)),
+        map: map_name(&name_at(info, 142, 16)),
         sex: info[174],
     }
 }
@@ -110,7 +110,7 @@ pub fn delete_result(packet: &[u8]) -> Option<(u32, u32)> {
 
 /// HC_NOTIFY_ZONESVR (0x0ac5): `u32 CID, char[16] map, u32 ip, u16 port, char[128] domain`.
 pub fn zone_server(packet: &[u8]) -> Option<ZoneServer> {
-    (packet.len() >= 28).then(|| ZoneServer { char_id: u32_at(packet, 2), map: map_name(&text_at(packet, 6, 16)), port: u16_at(packet, 26) })
+    (packet.len() >= 28).then(|| ZoneServer { char_id: u32_at(packet, 2), map: map_name(&name_at(packet, 6, 16)), port: u16_at(packet, 26) })
 }
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -8,6 +8,7 @@
 
 use super::app::{App, Ask, Game, Screen, epoch, escape};
 use super::{data, figure};
+use super::hud::{BOLD, Font, SMALL};
 use super::parts::{at, picture, pressed, sent};
 use crate::press::things::Form;
 use crate::i18n::{Key, Lang};

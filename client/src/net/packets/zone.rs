@@ -12,9 +12,16 @@ pub fn map_loaded() -> Vec<u8> {
     Writer::new(0x007d).0
 }
 
-/// CZ_REQUEST_TIME (0x0360): `u32 client_tick`. Keeps the map server connection open.
+/// CZ_REQUEST_TIME (0x0360): `u32 client_tick`. Asks the map server its time, and keeps the connection open.
 pub fn tick(tick: u32) -> Vec<u8> {
     Writer::new(0x0360).u32(tick).0
+}
+
+/// ZC_NOTIFY_TIME (0x007f): `u32 time`: the server's time, in answer to CZ_REQUEST_TIME.
+pub const ZC_NOTIFY_TIME: u16 = 0x007f;
+
+pub fn server_time(packet: &[u8]) -> Option<u32> {
+    (packet.len() >= 6).then(|| u32_at(packet, 2))
 }
 
 /// CZ_REQUEST_MOVE (0x035f): the cell to walk to, packed as a position.
@@ -25,12 +32,9 @@ pub fn walk_to(x: u16, y: u16) -> Vec<u8> {
 }
 
 /// ZC_NOTIFY_PLAYERMOVE (0x0087): `u32 start_time, u8[6] move`. The move packs the cell walked from and the cell
-/// walked to, 10 bits a coordinate. Returns `(from, to)`.
-pub fn player_move(packet: &[u8]) -> Option<((u16, u16), (u16, u16))> {
-    let data: Vec<u16> = packet.get(6..12)?.iter().map(|&byte| u16::from(byte)).collect();
-    let from = (data[0] << 2 | data[1] >> 6, (data[1] & 0x3f) << 4 | data[2] >> 4);
-    let to = ((data[2] & 0x0f) << 6 | data[3] >> 2, (data[3] & 0x03) << 8 | data[4]);
-    Some((from, to))
+/// walked to, 10 bits a coordinate (`units::walked`).
+pub fn player_move(packet: &[u8]) -> Option<crate::net::units::Walked> {
+    crate::net::units::walked(packet.get(6..12)?, u32_at(packet, 2))
 }
 
 /// ZC_STOPMOVE (0x0088): `u32 id, u16 x, u16 y`: a unit stands on that cell now, wherever it was thought to be.
@@ -41,7 +45,7 @@ pub fn stop_move(packet: &[u8]) -> Option<(u32, u16, u16)> {
 /// ZC_NPCACK_MAPMOVE (0x0091): `char[16] map, u16 x, u16 y`: the character is moved to another place, on this map
 /// or another of the same server.
 pub fn map_move(packet: &[u8]) -> Option<(String, u16, u16)> {
-    (packet.len() >= 22).then(|| (map_name(&text_at(packet, 2, 16)), u16_at(packet, 18), u16_at(packet, 20)))
+    (packet.len() >= 22).then(|| (map_name(&name_at(packet, 2, 16)), u16_at(packet, 18), u16_at(packet, 20)))
 }
 
 /// ZC_PAR_CHANGE (0x00b0) and ZC_LONGPAR_CHANGE (0x00b1): `u16 parameter, i32 value`.
@@ -116,23 +120,16 @@ pub fn say(name: &str, words: &str) -> Vec<u8> {
 }
 
 /// The text of a chat line: ZC_NOTIFY_PLAYERCHAT (0x008e, the player's own words back: `u16 length, char[]`),
-/// ZC_NOTIFY_CHAT (0x008d, someone near: `u16 length, u32 id, char[]`), ZC_BROADCAST (0x009a, an announcement)
-/// and ZC_BROADCAST2 (0x01c3, one with a colour: `u16 length, u32 colour, u16[4], char[]`).
+/// ZC_NOTIFY_CHAT (0x008d, someone near: `u16 length, u32 id, char[]`). (The server's announcements are
+/// read in `net/broadcast.rs`.)
 pub fn chat_text(id: u16, packet: &[u8]) -> Option<String> {
     let from = match id {
-        ZC_NOTIFY_PLAYERCHAT | ZC_BROADCAST => 4,
+        ZC_NOTIFY_PLAYERCHAT => 4,
         ZC_NOTIFY_CHAT => 8,
-        ZC_BROADCAST2 => 16,
         _ => return None,
     };
     let text = packet.get(from..)?;
-    Some(text_at(text, 0, text.len()))
-}
-
-/// The colour of a ZC_BROADCAST2, as red, green, blue.
-pub fn broadcast_colour(packet: &[u8]) -> Option<[u8; 3]> {
-    let colour = packet.get(4..8)?;
-    Some([colour[2], colour[1], colour[0]])
+    Some(name_at(text, 0, text.len()))
 }
 
 /// ZC_ACCEPT_ENTER (0x02eb): `u32 start_time, u8[3] position, u8 x_size, u8 y_size, u16 font`. The position packs

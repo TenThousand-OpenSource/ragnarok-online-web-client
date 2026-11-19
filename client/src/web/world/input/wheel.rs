@@ -22,20 +22,30 @@ pub(super) fn turned(event: &WheelEvent) {
         }
         return;
     }
+    // With Shift held the wheel tilts the camera, 5 degrees a notch (`ProcessMouseWheel`): between 50 and 65
+    // degrees outdoors, as flat as 25 with Ctrl held too; else it moves the camera in and out.
+    let (shift, ctrl) = (event.shift_key(), event.ctrl_key());
     STATE.with_borrow_mut(|state| {
         let zoom_out = state.options.zoom_out;
-        if let Some(scene) = &mut state.scene {
-            // A notch of a mouse's wheel is about a hundred pixels, and one step of the camera. A touchpad sends
-            // many small moves, a finger resting on it during a click among them: those move it as little.
-            let pixels = event.delta_y() * [1.0, 16.0, 400.0][event.delta_mode().min(2) as usize];
-            let step = (pixels * 0.15).clamp(-15.0, 15.0) as f32;
-            if pixels.abs() >= 4.0 {
-                let (_, distances) = Camera::limits(scene.indoor, zoom_out);
-                scene.camera.distance = (scene.camera.distance + step).clamp(distances[0], distances[1]);
-                if !scene.indoor {
-                    scene.camera.remember();
-                }
-            }
+        let Some(scene) = &mut state.scene else { return };
+        // A notch of a mouse's wheel is about a hundred pixels, and one step of the camera. A touchpad sends
+        // many small moves, a finger resting on it during a click among them: those move it as little.
+        let pixels = event.delta_y() * [1.0, 16.0, 400.0][event.delta_mode().min(2) as usize];
+        if pixels.abs() < 4.0 {
+            return;
         }
+        let notches = (pixels / 100.0).clamp(-1.0, 1.0) as f32;
+        let tilts = scene.scenery.view.is_none().then(|| crate::scenery::views::wheel_tilts(scene.indoor, ctrl));
+        scene.ask_camera(zoom_out, |camera| {
+            if shift {
+                // (The way of the wheel that moves the camera out lays it flatter.)
+                camera.pitch -= notches * crate::scenery::views::WHEEL_TILT;
+                if let Some([flattest, steepest]) = tilts {
+                    camera.pitch = camera.pitch.clamp(flattest, steepest);
+                }
+            } else {
+                camera.distance += notches * crate::scenery::views::WHEEL_STEP;
+            }
+        });
     });
 }

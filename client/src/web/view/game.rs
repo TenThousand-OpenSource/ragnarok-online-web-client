@@ -11,21 +11,11 @@ pub(in super::super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> S
     if hidden {
         return String::new();
     }
-    let Some((width, height)) = game.map_size else { return String::new() };
-    let zoom = zoom.clamp(1.0, 4.0);
-    let scale = 100.0 / width.max(height) as f32;
-    let on_picture = |x: f32, y: f32| (50.0 + (x - width as f32 / 2.0) * scale, 50.0 - (y - height as f32 / 2.0) * scale);
-    let (own_x, own_y) = on_picture(f32::from(game.x), f32::from(game.y));
-    let shown = 100.0 / zoom;
-    let from = |at: f32| (at - shown / 2.0).clamp(0.0, 100.0 - shown);
-    let (left, top) = (from(own_x), from(own_y));
     data::town_marks(&game.map)
         .iter()
         .filter_map(|(name, x, y, kind)| {
             let picture_name = PICTURES.get(usize::try_from(*kind).ok()?)?;
-            let (x, y) = on_picture(*x as f32, *y as f32);
-            let (x, y) = ((x - left) * zoom, (y - top) * zoom);
-            ((0.0..=100.0).contains(&x) && (0.0..=100.0).contains(&y)).then(|| {
+            minimap_spot(game, zoom, (*x as f32, *y as f32)).map(|(x, y)| {
                 format!(
                     r#"<img class="mark" src="{}" alt="" title="{}" draggable="false" style="left:{x:.2}%;top:{y:.2}%" onerror="this.remove()">"#,
                     picture(&format!("information/{picture_name}.bmp")),
@@ -34,6 +24,21 @@ pub(in super::super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> S
             })
         })
         .collect()
+}
+
+/// Where a cell of the map is on the minimap, in hundredths of its width and height: none for one outside the
+/// part of the map shown (which follows the character when the map is shown nearer than whole).
+pub(in super::super) fn minimap_spot(game: &Game, zoom: f32, cell: (f32, f32)) -> Option<(f32, f32)> {
+    let (width, height) = game.map_size?;
+    let zoom = zoom.clamp(1.0, 4.0);
+    let scale = 100.0 / width.max(height) as f32;
+    let on_picture = |x: f32, y: f32| (50.0 + (x - width as f32 / 2.0) * scale, 50.0 - (y - height as f32 / 2.0) * scale);
+    let (own_x, own_y) = on_picture(f32::from(game.x), f32::from(game.y));
+    let shown = 100.0 / zoom;
+    let from = |at: f32| (at - shown / 2.0).clamp(0.0, 100.0 - shown);
+    let (x, y) = on_picture(cell.0, cell.1);
+    let (x, y) = ((x - from(own_x)) * zoom, (y - from(own_y)) * zoom);
+    ((0.0..=100.0).contains(&x) && (0.0..=100.0).contains(&y)).then_some((x, y))
 }
 
 /// How the minimap's picture and the character's mark on it are placed, as styles. The minimap is a square
@@ -61,21 +66,27 @@ impl App {
         let Some(game) = &self.game else { return String::new() };
         // A map name goes into a URL: only what map names are made of passes.
         let map: String = game.map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
-        // Under the minimap, as the original has it: the character's cell, and the minimap's buttons (which do
-        // nothing yet).
-        // Plus and minus bring the map nearer and take it back (the client's `UIMinimapZoomWnd`), the first
-        // button shows and hides the marks of who stands where in a town; the others (the small map's window,
-        // the world map) do nothing yet.
-        use crate::press::{Step, general::Press};
-        let buttons: String = [("object", 1, Some(Press::MapMarks)), ("plus", 73, Some(Press::MapZoom(Step::More))), ("minus", 87, Some(Press::MapZoom(Step::Less))), ("mini", 101, None), ("viewon", 115, None)]
+        // Under the minimap, as the original has it (`UIMinimapZoomWnd`): the character's cell, and the
+        // minimap's buttons: the first shows and hides the marks of who stands where in a town, plus and minus
+        // bring the map nearer and take it back, "mini" opens the large window of the map one is on
+        // (`WID_MINIMAPWND`) and the last the World Map (`WID_ROMAPWND`). Under the pointer each tells what it
+        // does, in the words of lines 2855 to 2859 of the client's message table.
+        use crate::press::{Step, general::Press, worldmap};
+        let buttons: [(&str, i32, crate::press::Press, usize, &str); 5] = [
+            ("object", 1, Press::MapMarks.into(), 2855, "Show information"),
+            ("plus", 73, Press::MapZoom(Step::More).into(), 2856, "Zoom in"),
+            ("minus", 87, Press::MapZoom(Step::Less).into(), 2857, "Zoom out"),
+            ("mini", 101, worldmap::Press::Large.into(), 2858, "Maximize"),
+            ("viewon", 115, worldmap::Press::Window.into(), 2859, "World Map"),
+        ];
+        let buttons: String = buttons
             .into_iter()
-            .map(|(name, x, does)| {
-                let lives = does.is_some();
-                let press = does.map(|does| format!(" {}", pressed(does))).unwrap_or_default();
+            .map(|(name, x, does, line, otherwise)| {
                 format!(
-                    r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;{}" onerror="this.remove()"{press}>"#,
+                    r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{x}px;top:0;pointer-events:auto;cursor:pointer" onerror="this.remove()" {} data-tip="{}">"#,
                     picture(&format!("minimap/i_{name}_1.bmp")),
-                    if lives { "pointer-events:auto;cursor:pointer" } else { "" }
+                    pressed(does),
+                    escape(&Self::words(line, otherwise))
                 )
             })
             .collect();
@@ -83,14 +94,23 @@ impl App {
         let buttons = if self.option("TT_SHOW_MINIMAP_BUTTON_ONOFF") { buttons } else { String::new() };
         let (pictured, marked) = minimap_place(game, self.minimap_zoom).unwrap_or_else(|| (String::new(), "display:none".to_owned()));
         format!(
-            r#"<div class="minimap" style="overflow:hidden"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i><div id="map-marks">{marks}</div></div>
-               <div class="mapname"><span id="position"> {}  {}</span>{buttons}</div>{}"#,
+            r#"<div class="minimap" style="overflow:hidden{faint}"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i><div id="map-marks">{marks}</div><div id="party-marks">{party}</div><div id="quest-marks">{quests}</div><div id="compass-marks">{compass}</div></div>
+               <div class="mapname" style="{away}"><span id="position" style="{}"> {}  {}</span>{buttons}</div>{}"#,
             picture(&format!("map/{map}.bmp")),
             marked,
+            // The character's cell is written in the usual text (`UIMinimapZoomWnd::Paint`: (0, 12) at 19, 128).
+            Font(0, 12, false).style(),
             game.x,
             game.y,
             self.hud(view),
             marks = minimap_marks(game, self.minimap_zoom, self.minimap_marks_off),
+            // Ctrl+Tab runs the minimap through shown, shown fainter (`0xAAFFFFFF`) and away
+            // (`HK_MINIMAP_ONOFF`).
+            faint = ["", ";opacity:.67", ";display:none"][usize::from(self.worldmap.minimap.min(2))],
+            away = if self.worldmap.minimap >= 2 { "display:none" } else { "" },
+            party = self.minimap_party(),
+            quests = self.minimap_quests(),
+            compass = self.minimap_compass(),
         )
     }
 }

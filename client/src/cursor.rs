@@ -21,14 +21,15 @@ fn ticks(action: usize) -> f64 {
 /// Which of an action's `pictures` shows, `since` milliseconds after the pointer became that action. `held` is
 /// for how long the left button has been down, if it is.
 ///
-/// Most actions run round and round. The one for talking (1) runs once and stays on its last picture. The hand
-/// (9) is open while the button is up; when the button goes down it closes, and stays closed.
+/// Most actions run round and round. The one for talking (1) runs once and stays on its last picture. The
+/// finger (2) and the hand (9) show their first picture while the button is up; when the button goes down they
+/// run once, each at its own pace, and stay on their last (the finger pressed, the hand closed).
 pub fn frame(action: usize, pictures: usize, since: f64, held: Option<f64>) -> usize {
     let (count, last) = (pictures.max(1), pictures.saturating_sub(1));
     let after = |milliseconds: f64| (milliseconds / (24.0 * ticks(action))).max(0.0) as usize;
     match (action, held) {
-        (9, None) => 0,
-        (9, Some(held)) => after(held).min(last),
+        (2 | 9, None) => 0,
+        (2 | 9, Some(held)) => after(held).min(last),
         (1, _) => after(since).min(last),
         _ => after(since) % count,
     }
@@ -61,6 +62,16 @@ mod tests {
         assert_eq!(frame(9, 3, 5000.0, Some(24.0)), 1);
         assert_eq!(frame(9, 3, 5000.0, Some(48.0)), 2);
         assert_eq!(frame(9, 3, 5000.0, Some(4000.0)), 2);
+    }
+
+    #[test]
+    fn the_finger_goes_down_with_the_button_and_stays_down() {
+        // Up, it does not move; down, a picture every four ticks, then the last.
+        assert_eq!(frame(2, 3, 9000.0, None), 0);
+        assert_eq!(frame(2, 3, 9000.0, Some(95.0)), 0);
+        assert_eq!(frame(2, 3, 9000.0, Some(96.0)), 1);
+        assert_eq!(frame(2, 3, 9000.0, Some(192.0)), 2);
+        assert_eq!(frame(2, 3, 9000.0, Some(60000.0)), 2);
     }
 
     #[test]

@@ -40,12 +40,13 @@ impl App {
         own
     }
 
-    /// The entry a chord is bound to, of the hotkey bars and the interface: its table and place.
+    /// The entry a chord is bound to, of the interface, the Shortcut List's lines and the hotkey bars: its
+    /// table and place.
     pub(super) fn bound_to(&self, chord: Chord) -> Option<(usize, usize)> {
         if chord.key == 0 {
             return None;
         }
-        [hotkeys::table::INTERFACE, hotkeys::table::BAR, hotkeys::table::BAR_2].into_iter().find_map(|table| (0..data::hotkeys(table).len()).find(|place| self.bound(table, *place) == chord).map(|place| (table, place)))
+        [hotkeys::table::INTERFACE, hotkeys::table::MACROS, hotkeys::table::BAR, hotkeys::table::BAR_2].into_iter().find_map(|table| (0..data::hotkeys(table).len()).find(|place| self.bound(table, *place) == chord).map(|place| (table, place)))
     }
 
     /// The places of a table the window lists, in order: those with a name, and of the interface those the

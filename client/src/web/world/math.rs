@@ -1,4 +1,4 @@
-//! Vectors of three, as far as the world needs them.
+//! Vectors of three, as far as the world needs them, and the lots the world draws.
 
 use super::*;
 
@@ -17,6 +17,11 @@ pub(super) fn dot(a: Vector, b: Vector) -> f32 {
 pub(super) fn normalize(a: Vector) -> Vector {
     let length = dot(a, a).sqrt().max(f32::EPSILON);
     [a[0] / length, a[1] / length, a[2] / length]
+}
+
+/// A whole number from 0 up to, not reaching, `under`, drawn by lot: the client's `rand() % under`.
+pub(super) fn lot(under: u32) -> u32 {
+    (js_sys::Math::random() * f64::from(under)) as u32
 }
 
 pub(super) fn along(origin: Vector, direction: Vector, distance: f32) -> Vector {

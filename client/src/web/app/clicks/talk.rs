@@ -6,6 +6,10 @@ impl App {
     /// A press of this system (`crate::press::talk`).
     pub(super) fn talk_pressed(&mut self, press: crate::press::talk::Press) {
         use crate::press::talk::Press;
+        // A link to an item (`CCreateLineInfo::OnItemLink`: `UM_ITEMEXPLANATION`, as one that is identified).
+        if let Press::Item(item) = press {
+            return self.handle(Action::Info(item, true));
+        }
         let (Some(dialog), Some(socket)) = (&mut self.dialog, &self.socket) else { return };
         let npc = dialog.npc;
         match press {
@@ -19,6 +23,7 @@ impl App {
                 self.dialog = None;
             }
             Press::Pick(choice) => dialog.picked = choice,
+            Press::Item(_) => {}
             Press::Ok if !dialog.menu.is_empty() => {
                 // The choices are counted from 1.
                 socket.send(&npc::choose(npc, dialog.picked as u8 + 1));

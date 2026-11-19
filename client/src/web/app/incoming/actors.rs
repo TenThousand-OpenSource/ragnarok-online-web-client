@@ -10,6 +10,15 @@ impl App {
             units::ZC_NOTIFY_STANDENTRY | units::ZC_NOTIFY_NEWENTRY | units::ZC_NOTIFY_MOVEENTRY => {
                 if let Some(unit) = units::unit(id, packet) {
                     world::unit_shown(&unit);
+                    // A player that comes into being in sight (logged in, teleported in) arrives in the walls
+                    // of light of `EF_ENTRY2`, unless it is invisible (the client's reader of the packet).
+                    if id == units::ZC_NOTIFY_NEWENTRY && unit.kind == units::Kind::Player && unit.state & 0x40 == 0 {
+                        world::burst(344, Some(unit.id), None, 0.0);
+                    }
+                    // A player of a guild: its name and emblem are asked for (`incoming/guild.rs`).
+                    if unit.kind == units::Kind::Player {
+                        self.guild_looked_up(unit.id, unit.guild, u32::from(unit.emblem));
+                    }
                 }
             }
             units::ZC_HP_INFO => {
@@ -31,21 +40,31 @@ impl App {
                 }
             }
             units::ZC_NOTIFY_MOVE => {
-                if let Some((id, from, to)) = units::moved(packet) {
-                    world::unit_walk(id, from, to);
+                if let Some((id, walk)) = units::moved(packet) {
+                    world::unit_walk(id, &walk);
+                }
+            }
+            units::ZC_HIGHJUMP | units::ZC_FASTMOVE => {
+                if let Some((id, cell)) = units::slid(packet) {
+                    let own = Some(id) == self.account.as_ref().map(|account| account.account_id);
+                    world::slid((!own).then_some(id), cell);
                 }
             }
             units::ZC_NOTIFY_VANISH => self.unit_vanished(packet),
-            units::ZC_STATE_CHANGE => {
-                if let Some((who, bits)) = units::state_changed(packet) {
+            // Someone turns on the spot, or turns its head.
+            units::ZC_CHANGE_DIRECTION => {
+                if let Some((who, head, direction)) = units::turned(packet) {
                     let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
-                    world::stated((!own).then_some(who), bits, None);
-                    if own {
-                        self.hero.state = bits;
-                        self.render();
-                    }
+                    world::turned((!own).then_some(who), head, direction);
                 }
             }
+            // The states that show on someone in sight are told anew (`crate::state_effects::seen`).
+            units::ZC_NPC_SHOWEFST_UPDATE => {
+                if let Some((who, bits, third)) = units::third_option(packet) {
+                    world::third_option_told(who, bits, third);
+                }
+            }
+            units::ZC_STATE_CHANGE => self.unit_stated(packet),
             // ZC_NPCSPRITE_CHANGE (0x01b0): `u32 who, u8 kind, u32 class`. A monster becomes another (the server has
             // a Fabre turn into a Pupa and a Pupa into a Creamy by itself, as a skill of theirs).
             0x01b0 => {
@@ -55,30 +74,51 @@ impl App {
                     world::unit_becomes(who, class as u16);
                 }
             }
-            // ZC_ACK_REQNAMEALL_NPC (0x0adf): `u32 who, u32 group, char[24] name, char[24] title`.
-            0x0adf => {
-                if packet.len() >= 34 {
-                    let who = u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]);
-                    let name = &packet[10..34];
-                    let end = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
-                    world::unit_named(who, &String::from_utf8_lossy(&name[..end]));
-                }
-            }
-            0x01d7 => self.look_changed(packet),
-            // ZC_RESURRECTION (0x0148): `u32 who, u16 how`. The player's own character stands up again, and the
-            // window that offered the save point goes.
-            0x0148 => {
-                if packet.len() >= 6 && Some(u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]])) == self.account.as_ref().map(|account| account.account_id) {
+            0x0adf => Self::unit_named(packet),
+            units::ZC_SPRITE_CHANGE => self.look_changed(packet),
+            // The player's own character stands up again, and the window that offered the save point goes;
+            // another who lay dead stands up where it lay.
+            units::ZC_RESURRECTION => match units::risen(packet) {
+                Some(who) if Some(who) == self.account.as_ref().map(|account| account.account_id) => {
                     self.hero.dead = false;
                     self.esc = 0;
                     world::own_dead(false);
                     self.redraw(&[&wnd::DIALOG]);
                     self.refresh_values();
                 }
-            }
+                Some(who) => world::risen(who),
+                None => {}
+            },
             _ => return false,
         }
         true
+    }
+
+    /// ZC_STATE_CHANGE: the state someone is in changed: what they ride, whether they hide, how they ail.
+    fn unit_stated(&mut self, packet: &[u8]) {
+        if let Some((who, bits)) = units::state_changed(packet) {
+            let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
+            world::stated((!own).then_some(who), bits, None);
+            // Its body and health states colour it, mark it and sound (`world/ailments.rs`).
+            if let Some((_, body, health)) = crate::net::statuses::body_and_health(packet) {
+                world::ailing((!own).then_some(who), body, health);
+            }
+            if own {
+                self.hero.state = bits;
+                self.render();
+                // Its body and health states are listed among its states (`incoming/statuses.rs`).
+                self.body_stated(packet);
+            }
+        }
+    }
+
+    /// ZC_ACK_REQNAMEALL_NPC (0x0adf): `u32 who, u32 group, char[24] name, char[24] title`.
+    fn unit_named(packet: &[u8]) {
+        if let Some((who, group, name, title)) = units::named(packet) {
+            world::unit_named(who, &name);
+            // The title and the group are written with the name (`world/names.rs`).
+            world::unit_titled(who, group, &title);
+        }
     }
 
     fn unit_vanished(&mut self, packet: &[u8]) {
@@ -120,14 +160,15 @@ impl App {
         }
     }
 
-    /// ZC_SPRITE_CHANGE (0x01d7): `u32 who, u8 kind, u32 value, u32 second`. What someone wears or holds
-    /// changes: it shows on them at once.
+    /// What someone wears or holds changes (ZC_SPRITE_CHANGE): it shows on them at once.
     fn look_changed(&mut self, packet: &[u8]) {
-        if packet.len() >= 11 {
-            let who = u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]);
-            let (kind, value) = (packet[6], u32::from_le_bytes([packet[7], packet[8], packet[9], packet[10]]));
+        if let Some((who, kind, value, second)) = units::look(packet) {
             let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
-            world::looked((!own).then_some(who), kind, value);
+            world::looked((!own).then_some(who), kind, value, second);
+            // A unit of a skill on the ground changes its kind in the same packet (`world/skill_units.rs`).
+            if kind == 0 && !own {
+                world::skill_unit_becomes(who, value);
+            }
             // The windows that show the character follow.
             let char_id = self.zone.as_ref().map(|zone| zone.char_id);
             if let Some(character) = self.characters.iter_mut().find(|character| own && Some(character.char_id) == char_id) {

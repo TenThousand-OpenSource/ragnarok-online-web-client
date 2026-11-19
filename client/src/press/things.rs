@@ -25,6 +25,16 @@ presses! {
         Egg(usize) = "egg",
         /// A row of the items to identify: it is picked and confirmed.
         Identify(usize) = "identify",
+        /// A friend in the list of friends, by its place: a window opens for a talk with that friend alone.
+        Friend(usize) = "friend",
+        /// A row of a list a skill or a card opened: it is picked and confirmed.
+        Choice(usize) = "choice",
+        /// The sign of a chat room over its owner's head, by the room's number: the room is entered.
+        Room(u32) = "room",
+        /// An emotion of the window of emotions: it is shown.
+        Emotion(u16) = "emotion",
+        /// The sign over a vendor's head, by the vendor's account: what the shop sells is asked for.
+        Sign(u32) = "sign",
     }
 }
 
@@ -59,6 +69,68 @@ presses! {
         Skill(Leveled) = "skill",
         /// What is on a slot of the hotkey bar.
         Slot(usize) = "slot",
+        /// A thing worn, by its place in the inventory: taken out of the Equipment window.
+        Worn(u16) = "worn",
+        /// A thing put into a letter of the mail, by its place in the inventory: taken out of the letter.
+        Attached(u16) = "attached",
+        /// A row of a shop's list, counted from 0: taken out of the list towards the basket.
+        Offer(usize) = "offer",
+        /// A row of a shop's list that is in the basket: taken out of the basket.
+        Basket(usize) = "basket",
+        /// A thing in the storage, by its place there: taken out of the storage's window.
+        Stored(u16) = "stored",
+        /// A thing in the cart, by its place there: taken out of the cart's window.
+        Carted(u16) = "carted",
+        /// A thing of the cart offered to a shop being made, by its place in the cart: taken towards the shop.
+        Stock(u16) = "stock",
+        /// A row of a shop being made, counted from 0: taken back out of it.
+        Stalled(usize) = "stalled",
+        /// A row of a vendor's list, counted from 0: taken towards the basket.
+        Vended(usize) = "vended",
+        /// A row of a vendor's list that is in the basket: taken out of the basket.
+        Wanted(usize) = "wanted",
+    }
+}
+
+presses! {
+    /// A thing the right button opens a menu on.
+    Menu {
+        /// A member of the party, by its place in the party window's list.
+        Member(usize) = "member",
+        /// A member of the guild, by its place in the guild window's list.
+        GuildMember(usize) = "guild-member",
+        /// A guild allied to the player's or opposed, by its place among those the server told.
+        GuildRelated(usize) = "guild-related",
+        /// A friend, by its place in the list of friends.
+        Friend(usize) = "friend",
+        /// The window of a talk with one player, by its place in the list of windows.
+        Whisper(usize) = "whisper",
+        /// The window of the chat room sat in, and a member in its list by its place there.
+        Room = "room",
+        RoomMember(usize) = "room-member",
+    }
+}
+
+presses! {
+    /// A window a thing dragged is let go over, for one that takes things (`data-drop`; the hotkey bar's slots
+    /// have their own mark).
+    Drop {
+        /// The list of a shop.
+        Shop = "shop",
+        /// The basket of a shop: what is bought, or what is sold.
+        Basket = "basket",
+        /// The storage, and the windows that show a part of it.
+        Storage = "storage",
+        /// The cart's window.
+        Cart = "cart",
+        /// The window of a shop being made, and the one beside it of what the cart has for it.
+        Stall = "stall",
+        Stock = "stock",
+        /// A vendor's list, and the basket of what is bought from it.
+        Vendor = "vendor",
+        Wants = "wants",
+        /// A tab of the inventory, counted from 0: a thing let go on "Fav" is kept under it, on another no more.
+        InventoryTab(usize) = "inventory-tab",
     }
 }
 
@@ -75,6 +147,36 @@ presses! {
         Throw = "throw",
         /// A line of chat.
         Chat = "chat",
+        /// How many of a thing go into a deal between two players.
+        Offer = "offer",
+        /// How many of a thing go into a letter of the mail.
+        Attach = "attach",
+        /// What is searched for in the mailbox.
+        MailSearch = "mail-search",
+        /// How many of a thing go into a shop's basket or out of it.
+        ShopCount = "shop-count",
+        /// How many of a thing go into the storage or out of it.
+        StorageCount = "storage-count",
+        /// What is searched for in the storage.
+        StorageSearch = "storage-search",
+        /// A line typed into the window of a talk with one player: the window's place in the list of windows.
+        Whisper(usize) = "whisper",
+        /// A line typed into the window of the chat room sat in.
+        Room = "room",
+        /// The window that makes or changes a chat room, sent with Enter.
+        RoomMake = "room-make",
+        /// The password of a chat room, typed into the box that asks for it.
+        RoomPassword = "room-password",
+        /// How many of a thing go into the cart or out of it.
+        CartCount = "cart-count",
+        /// How many of a thing go into a shop being made, or into the basket at a vendor's.
+        VendingCount = "vending-count",
+        /// The shop being made, with its title and prices: it is opened.
+        Stall = "stall",
+        /// The ten lines of the Shortcut List, kept as they are typed.
+        Shortcuts = "shortcuts",
+        /// What is looked for in the Tipbox.
+        TipSearch = "tip-search",
     }
 }
 
@@ -99,13 +201,19 @@ mod tests {
 
     #[test]
     fn each_is_read_back_from_what_it_is_written_as() {
-        for thing in [Use::Item(7), Use::Skill(28), Use::Slot(35), Use::ShopAdd(2), Use::ShopRemove(0), Use::Put(3), Use::Take(9), Use::Egg(1), Use::Identify(4)] {
+        for thing in [Use::Item(7), Use::Skill(28), Use::Slot(35), Use::ShopAdd(2), Use::ShopRemove(0), Use::Put(3), Use::Take(9), Use::Egg(1), Use::Identify(4), Use::Friend(6), Use::Choice(2), Use::Emotion(18), Use::Sign(2_000_001)] {
             assert_eq!(read::<Use>(&written(&thing)), Some(thing));
         }
-        for thing in [Drag::Item(501), Drag::Skill(Leveled { id: 19, level: 10 }), Drag::Slot(8)] {
+        for thing in [Drag::Item(501), Drag::Skill(Leveled { id: 19, level: 10 }), Drag::Slot(8), Drag::Worn(4), Drag::Attached(6), Drag::Offer(3), Drag::Basket(1), Drag::Stored(9), Drag::Carted(3), Drag::Stock(3), Drag::Stalled(1), Drag::Vended(2), Drag::Wanted(2)] {
             assert_eq!(read::<Drag>(&written(&thing)), Some(thing));
         }
-        for thing in [Form::Login, Form::Register, Form::Recover, Form::Reset, Form::Create, Form::Throw, Form::Chat] {
+        for thing in [Menu::Member(2), Menu::GuildMember(4), Menu::GuildRelated(2), Menu::Friend(1), Menu::Whisper(7)] {
+            assert_eq!(read::<Menu>(&written(&thing)), Some(thing));
+        }
+        for thing in [Drop::Shop, Drop::Basket, Drop::Storage, Drop::InventoryTab(3), Drop::Cart, Drop::Stall, Drop::Stock, Drop::Vendor, Drop::Wants] {
+            assert_eq!(read::<Drop>(&written(&thing)), Some(thing));
+        }
+        for thing in [Form::Login, Form::Register, Form::Recover, Form::Reset, Form::Create, Form::Throw, Form::Chat, Form::Offer, Form::Attach, Form::MailSearch, Form::Whisper(2), Form::ShopCount, Form::StorageCount, Form::StorageSearch, Form::CartCount, Form::VendingCount, Form::Stall] {
             assert_eq!(read::<Form>(&written(&thing)), Some(thing));
         }
     }

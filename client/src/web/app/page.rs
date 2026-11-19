@@ -26,6 +26,50 @@ pub(super) fn place_moved() {
     });
 }
 
+/// A window that opens anew at a place of its own is no longer where its element was last dragged to.
+pub(super) fn forget_moved(id: &str) {
+    MOVED.with_borrow_mut(|moved| moved.remove(id));
+}
+
+/// Gives the player a file to keep: the browser saves what is at that address under that name.
+pub(super) fn give_file(name: &str, address: &str) {
+    let Some(link) = crate::web::document().and_then(|document| document.create_element("a").ok()) else { return };
+    let _ = link.set_attribute("href", address);
+    let _ = link.set_attribute("download", name);
+    if let Ok(link) = link.dyn_into::<web_sys::HtmlElement>() {
+        link.click();
+    }
+}
+
+thread_local! {
+    /// Whether a window being moved docks to what is near it (the player's `/window`).
+    static SNAP: std::cell::Cell<bool> = const { std::cell::Cell::new(true) };
+}
+
+/// Sets whether a window being moved docks to what is near it.
+pub(super) fn snap_windows(on: bool) {
+    SNAP.set(on);
+}
+
+/// How far the window being moved is to go, on the screen, to dock (`crate::snap`): to the edges of the
+/// screen and to the other windows that show. None when it docks to nothing.
+fn docked(id: &str, scale: f64) -> Option<(f64, f64)> {
+    let rect = |window: &Element| {
+        let rect = window.get_bounding_client_rect();
+        [rect.left(), rect.top(), rect.right(), rect.bottom()]
+    };
+    let moved = rect(&element(id)?);
+    let windows = crate::web::document()?.query_selector_all(".hud:not([hidden])").ok()?;
+    let others: Vec<crate::snap::Rect> = (0..windows.length())
+        .filter_map(|at| windows.item(at)?.dyn_into::<Element>().ok())
+        .filter(|window| window.id() != id)
+        .map(|window| rect(&window))
+        .filter(|rect| rect[2] > rect[0] && rect[3] > rect[1])
+        .collect();
+    let by = crate::snap::shift(moved, &others, crate::web::page_size(), crate::snap::NEAR * scale);
+    (by != (0.0, 0.0)).then_some(by)
+}
+
 /// The windows of the game are dragged by their title bars (the top strip of each), as the original's are.
 pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
     let on_down = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(|event: web_sys::MouseEvent| {
@@ -65,6 +109,14 @@ pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
         let to = (was.0 + (f64::from(event.client_x()) - from.0) / scale, was.1 + (f64::from(event.client_y()) - from.1) / scale);
         MOVED.with_borrow_mut(|moved| moved.insert(id.clone(), to));
         place_moved();
+        // With the player's `/window` on, a window docks to the screen's edges and to the other windows.
+        if SNAP.get() {
+            if let Some(by) = docked(&id, scale) {
+                MOVED.with_borrow_mut(|moved| moved.insert(id.clone(), (to.0 + by.0 / scale, to.1 + by.1 / scale)));
+                place_moved();
+            }
+        }
+        let to = MOVED.with_borrow(|moved| moved.get(&id).copied().unwrap_or(to));
         // No window leaves the screen: one pushed past an edge is put back against it.
         if let Some(window) = element(&id) {
             let (wide, tall) = crate::web::page_size();
@@ -108,6 +160,11 @@ pub(super) fn after_fade(action: Action) {
     }
 }
 
+/// The address of one of the loading screen's pictures: they are taken in turn.
+fn loading_picture(picture: usize) -> String {
+    crate::web::parts::picture(&format!("loading{:02}.jpg", picture % LOADING_PICTURES))
+}
+
 /// Shows the client's loading screen with one of its pictures (`loading00.jpg` and on, in turn), or takes it away.
 pub(super) fn loading(picture: Option<usize>) {
     let Some(screen) = element("loading").and_then(|screen| screen.dyn_into::<web_sys::HtmlElement>().ok()) else { return };
@@ -116,7 +173,7 @@ pub(super) fn loading(picture: Option<usize>) {
         Some(picture) => {
             let scale = crate::web::stage_scale();
             let _ = style.set_property("--s", &scale.to_string());
-            let _ = style.set_property("background-image", &format!("url('{}')", super::super::image_url(&format!("data/texture/유저인터페이스/loading{:02}.jpg", picture % LOADING_PICTURES))));
+            let _ = style.set_property("background-image", &format!("url('{}')", loading_picture(picture)));
             let _ = style.set_property("display", "block");
         }
         None => {
@@ -128,7 +185,7 @@ pub(super) fn loading(picture: Option<usize>) {
 /// Has the browser fetch a loading picture ahead of its screen, so that it is there when the screen shows.
 pub(super) fn loading_ahead(picture: usize) {
     if let Ok(image) = web_sys::HtmlImageElement::new() {
-        image.set_src(&super::super::image_url(&format!("data/texture/유저인터페이스/loading{:02}.jpg", picture % LOADING_PICTURES)));
+        image.set_src(&loading_picture(picture));
         // The browser keeps what it fetched; the element itself is not needed.
         std::mem::forget(image);
     }
@@ -143,6 +200,13 @@ pub(super) fn element(id: &str) -> Option<Element> {
 }
 
 /// What is typed into (or picked in) the form field with that ID.
+/// What was typed into a field of the account's forms, without the spaces around it: a name, a password or an
+/// address has none of its own (the rules for each forbid them), so one before or after is a slip of the hand
+/// or of a paste, and is not held against the player.
+pub(super) fn typed(id: &str) -> String {
+    field(id).trim().to_owned()
+}
+
 pub(super) fn field(id: &str) -> String {
     let Some(element) = element(id) else { return String::new() };
     match element.dyn_into::<HtmlInputElement>() {
@@ -197,7 +261,7 @@ pub(super) fn store(name: &str, value: Option<&str>) {
 }
 
 /// The client's clock, in milliseconds, as the servers count it.
-pub(super) fn now() -> u32 {
+pub(in super::super) fn now() -> u32 {
     web_sys::window().and_then(|window| window.performance()).map_or(0, |performance| performance.now() as u32)
 }
 

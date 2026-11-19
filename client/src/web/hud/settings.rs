@@ -19,7 +19,9 @@ impl App {
     /// 34 down; Reset at the left of the bottom, Apply and Close at the right. The effects, the controls and
     /// the rest are lists of the options of the client's `GameSettings.lub`, a row 26 high each: the switch (a
     /// picture 34 by 15, 8 in), the name from 47 and what it does from 138. The first page has the sound: the
-    /// music and the effects, each a slider 174 wide from 152 and a box to turn it off.
+    /// music and the effects, each a slider 174 wide from 152 and a box to turn it off. All of it is the usual
+    /// text; a group's title and an option's name are bold (`CUIGroupSound::OnCreate`, `CUIOptionItem`'s label,
+    /// 85 wide: "Gulim" at 12 with `SetBold(1)`).
     ///
     /// The client's names of the tabs and of "off" are in messages its English table does not have; they are
     /// this client's words here.
@@ -64,8 +66,9 @@ impl App {
                             )
                         };
                         format!(
-                            r#"<div style="position:relative;height:26px">{switch}<div class="a t" style="{};overflow:hidden;white-space:nowrap">{}</div><div class="a t" style="{};overflow:hidden;white-space:nowrap">{}</div></div>"#,
-                            at(47, 6, 88, 14),
+                            r#"<div style="position:relative;height:26px">{switch}<div class="a t" style="{};{};overflow:hidden;white-space:nowrap">{}</div><div class="a t" style="{};overflow:hidden;white-space:nowrap">{}</div></div>"#,
+                            at(47, 6, 85, 14),
+                            BOLD.style(),
                             escape(tr(&option.title)),
                             at(138, 6, 245, 14),
                             escape(tr(&option.description))
@@ -75,8 +78,9 @@ impl App {
                 window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-y:auto">{rows}</div>"#, at(1, 35, 398, 286)));
             }
             None if self.settings.tab == 0 => {
-                // The language, at the top of the page, where the client has the choice of a skin.
-                window.push_str(&text(19, 34 + 12, BLACK, tr("Language")));
+                // The language, at the top of the page, where the client has the choice of a skin, its title bold
+                // as that one's is.
+                window.push_str(&text_in(BOLD, 19, 34 + 12, BLACK, tr("Language")));
                 for (at_x, lang) in [(152, crate::i18n::Lang::En), (200, crate::i18n::Lang::Ru)] {
                     let chosen = lang == self.lang;
                     window.push_str(&format!(
@@ -88,7 +92,7 @@ impl App {
                     ));
                 }
                 // The sound, where the client's page has it: 36 down the page, 60 high.
-                window.push_str(&text(19, 34 + 36 + 12, BLACK, tr("Audio Settings")));
+                window.push_str(&text_in(BOLD, 19, 34 + 36 + 12, BLACK, tr("Audio Settings")));
                 for (row, (name, level, off, which)) in [("BGM", self.settings.music, self.settings.music_off, Sound::Music), ("SFX", self.settings.effects, self.settings.effects_off, Sound::Effects)].iter().enumerate() {
                     let y = 34 + 36 + 12 + row as i32 * 24;
                     // The name ends just before the slider, so a longer word does not run under it.

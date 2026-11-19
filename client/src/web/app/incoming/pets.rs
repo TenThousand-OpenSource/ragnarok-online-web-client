@@ -10,7 +10,7 @@ impl App {
             // ZC_PETEGG_LIST (0x01a6): `u16 length`, then the place in the inventory of each egg. An incubator was
             // used: the eggs are listed to pick the one to hatch (the client's `UIPetEggListWnd`).
             0x01a6 => {
-                self.pets.eggs = Some(packet.get(4..).unwrap_or_default().chunks_exact(2).map(|index| u16::from_le_bytes([index[0], index[1]])).collect());
+                self.pets.eggs = Some(pets::eggs(packet));
                 self.pets.egg_picked = 0;
                 self.render();
             }
@@ -21,7 +21,7 @@ impl App {
                 world::aim(Some(false), 5);
                 // Taming and fighting do not go together: the fight stops as soon as the bait is in hand.
                 world::stand_down();
-                self.send(&0x0118u16.to_le_bytes());
+                self.send(&units::stop_attack());
             }
             // ZC_TRYCAPTURE_MONSTER (0x01a0): `u8 caught`. The reels slow down and stop on the picture of the
             // catch (the eighth) or of the miss (the fourth).
@@ -89,7 +89,7 @@ impl App {
         self.pets.fed = None;
         if fed {
             let left: u32 = self.bag.items.iter().filter(|item| item.id == food).map(|item| u32::from(item.amount)).sum();
-            self.chat_line(crate::i18n::tr("Your pet has been fed. {} ({}) remaining").replacen("{}", &name, 1).replacen("{}", &left.to_string(), 1), "#64ffff");
+            self.chat_line(crate::i18n::tr("Your pet has been fed. {} ({}) remaining").replacen("{}", &name, 1).replacen("{}", &left.to_string(), 1), PALE_CYAN);
         } else {
             self.chat_line(crate::i18n::tr("Pet food [{}] is not available.").replace("{}", &name), "#f51e1e");
         }

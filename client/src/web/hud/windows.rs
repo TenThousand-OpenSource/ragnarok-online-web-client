@@ -1,14 +1,74 @@
 //! The windows of the game's screen as one list: each with its element, when it is open, where it stands, what
-//! draws it and what Escape does to it. Everything that goes through the windows goes through this list: the
-//! screen is written from it (`App::hud`), a window is drawn anew from it (`App::redraw`), and the order the
-//! windows lie in and what Escape closes are read from it (`app/windows.rs`). A new window is a new entry here
-//! and its drawing in its system's file; nothing else has to know of it.
+//! draws it, how it lies among the others and what Escape does to it. Everything that goes through the windows
+//! goes through this list: the screen is written from it (`App::hud`), a window is drawn anew from it
+//! (`App::redraw`), and the order the windows lie in and what Escape closes are read from it
+//! (`app/windows.rs`). A new window is a new entry in its system's file of `windows/`, its name in `ALL`, and
+//! its drawing in its system's file of `hud/`; nothing else has to know of it, the page's style sheet least of
+//! all: how a window lies over the others is its entry's `layer`.
 //!
 //! A window's element is always on the page: closed, it is empty and hidden. So a window can open, close and
 //! change without the whole screen being written again.
+//!
+//! Here are the type, what the entries are written with (`framed`, `middle`, `staged`, `ordered`, and the three
+//! kinds of window that are the same in every system: `Window::question`, `Window::count`, `Window::menu`),
+//! and `ALL`; the entries themselves are in `windows/`, a file to a system.
 
 use super::*;
 use wasm_bindgen::JsCast;
+
+/// Closing a window whose being open is one switch: the switch off, and the screen written again.
+macro_rules! switched_off {
+    ($($field:ident).+) => {
+        |app: &mut App| {
+            app.$($field).+ = false;
+            app.render();
+        }
+    };
+}
+
+mod choosing;
+mod exchange;
+mod fight;
+mod friends;
+mod guide;
+mod guild;
+mod homunculus;
+mod mercenary;
+mod inventory;
+mod mail;
+mod cart;
+mod vending;
+mod party;
+mod pets;
+mod player_menu;
+mod quests;
+mod settings;
+mod shops;
+mod skills;
+mod status;
+mod storage;
+mod talk;
+mod viewequip;
+mod whispers;
+mod broadcast;
+mod unread;
+mod scripted;
+mod chat_rooms;
+mod family;
+mod chat;
+mod emotions;
+mod tips;
+mod worldmap;
+pub(in crate::web) use {exchange::*, friends::*, guide::*, guild::*, inventory::*, mail::*, party::*, pets::*, player_menu::*, quests::*};
+pub(in crate::web) use choosing::*;
+pub(in crate::web) use {homunculus::*, mercenary::*};
+pub(in crate::web) use unread::*;
+pub(in crate::web) use {chat_rooms::*, family::*, scripted::*};
+pub(in crate::web) use broadcast::*;
+pub(in crate::web) use {chat::*, emotions::*, tips::*, worldmap::*};
+pub(in crate::web) use fight::*;
+pub(in crate::web) use {cart::*, vending::*};
+pub(in crate::web) use {settings::*, shops::*, skills::*, status::*, storage::*, talk::*, viewequip::*, whispers::*};
 
 /// A window of the game's screen, or a fixed piece of it (the hotkey bar, the chat).
 pub(in crate::web) struct Window {
@@ -23,6 +83,8 @@ pub(in crate::web) struct Window {
     pub draw: fn(&App) -> String,
     /// Its part in the order the windows lie in, for one that has a part (`app/windows.rs`).
     pub order: Option<Order>,
+    /// How it lies among the others while it has no part in the order.
+    pub layer: Layer,
     /// What is done to its element after it was drawn anew: a field to type into is given the keyboard, a text
     /// is shown from its end.
     pub drawn: Option<fn(&web_sys::Element)>,
@@ -33,6 +95,37 @@ pub(in crate::web) struct Window {
 pub(in crate::web) struct Order {
     pub when: fn(&App) -> bool,
     pub close: fn(&mut App),
+}
+
+/// How a window lies among the others. The windows that lie in the order take their heights from it
+/// (`app/windows.rs`: 11 and up); the rest lie as this says, and the page's style sheet has one rule to a
+/// layer (`[data-layer=…]` in `index.html`) and none to a window.
+#[derive(Clone, Copy, PartialEq)]
+pub(in crate::web) enum Layer {
+    /// As the list has it: a later window over an earlier one.
+    Usual,
+    /// Under the windows: the chat, the notice of mail.
+    Under,
+    /// A window that asks something (what an NPC says, a question to answer, how many of a thing): over the
+    /// windows that lie in the order.
+    Asks,
+    /// A menu opened with the right button: over those too.
+    Menu,
+    /// Over everything of the screen: the slot machine of taming.
+    Top,
+}
+
+impl Layer {
+    /// What the window's tag says of its layer, for the page's style sheet.
+    fn written(self) -> &'static str {
+        match self {
+            Layer::Usual => "",
+            Layer::Under => r#" data-layer="under""#,
+            Layer::Asks => r#" data-layer="asks""#,
+            Layer::Menu => r#" data-layer="menu""#,
+            Layer::Top => r#" data-layer="top""#,
+        }
+    }
 }
 
 /// The tag of a usual window: one that is dragged by its title and comes to the front when pressed.
@@ -50,251 +143,76 @@ fn centred(view: (f64, f64), width: i32, height: i32) -> String {
     format!("left:{}px;top:{}px;width:{width}px", ((view.0 as i32 - width) / 2).max(0), ((view.1 as i32 - height) / 2).max(0))
 }
 
+/// Where the client opens a window so far across its 640-wide stage and so far of 480 down
+/// (`CenterOnViewportX`, `ScaleByScreenHeight`).
+fn staged(view: (f64, f64), across: i32, down: i32, width: i32, height: i32) -> String {
+    framed(format!("left:{}px;top:{}px;width:{width}px;height:{height}px", (view.0 as i32 - 640) / 2 + across, view.1 as i32 * down / 480))
+}
+
+/// Where a menu opened with the right button stands, as a style: a white box with a grey rim, its corner at
+/// that place of the stage. `App::open_at` is given this when a menu opens without the screen being written.
+pub(in crate::web) fn menu_style((x, y): (i32, i32)) -> String {
+    format!("left:{x}px;top:{y}px;background:#fff;border:1px solid #9a9a9a")
+}
+
+/// The tag of a menu that was opened at that place.
+fn menu_frame(at: Option<(i32, i32)>) -> String {
+    framed(menu_style(at.unwrap_or_default()))
+}
+
 /// A window that lies in the order whenever it is open, and is closed by setting what says it is open.
 const fn ordered(open: fn(&App) -> bool, close: fn(&mut App)) -> Option<Order> {
     Some(Order { when: open, close })
 }
 
-/// Closing a window whose being open is one switch: the switch off, and the screen written again.
-macro_rules! switched_off {
-    ($($field:ident).+) => {
-        |app: &mut App| {
-            app.$($field).+ = false;
-            app.render();
-        }
-    };
+/// The number in a box that asks how many is ready to be typed over: its field has the keyboard, and what is
+/// in it is marked.
+fn typed_over(window: &web_sys::Element) {
+    if let Some(count) = window.query_selector("input").ok().flatten().and_then(|count| count.dyn_into::<web_sys::HtmlInputElement>().ok()) {
+        let _ = count.focus();
+        count.select();
+    }
+}
+
+impl Window {
+    /// A question in the client's message box (`hud::message_box`): 280 wide, 200 of 480 down the middle of
+    /// the screen, over the windows.
+    const fn question(id: &'static str, open: fn(&App) -> bool, draw: fn(&App) -> String) -> Window {
+        Window { id, open, frame: |_, view| middle(view, 280, 200), draw, order: None, layer: Layer::Asks, drawn: None }
+    }
+
+    /// The box that asks how many of a thing (`App::count_box`, the client's `UIItemDropCntWnd`): 182 wide in
+    /// the same place, the number ready to be typed over.
+    const fn count(id: &'static str, open: fn(&App) -> bool, draw: fn(&App) -> String) -> Window {
+        Window { id, open, frame: |_, view| middle(view, 182, 200), draw, order: None, layer: Layer::Asks, drawn: Some(typed_over) }
+    }
+
+    /// A menu opened with the right button, where the pointer was (`at` tells where: `menu_frame`), its rows
+    /// drawn with `hud::menu_row`.
+    const fn menu(id: &'static str, open: fn(&App) -> bool, frame: fn(&App, (f64, f64)) -> String, draw: fn(&App) -> String) -> Window {
+        Window { id, open, frame, draw, order: None, layer: Layer::Menu, drawn: None }
+    }
+
+    /// The name of the field of a window that has one to type into (the number of a box that asks how many).
+    pub(in crate::web) fn field(&self) -> String {
+        format!("{}-field", self.id)
+    }
 }
 
 const ALWAYS: fn(&App) -> bool = |_| true;
 
-pub(in crate::web) static BASIC: Window =
-    Window { id: "basic", open: ALWAYS, frame: |_, _| framed("left:0;top:0;width:220px".to_owned()), draw: App::basic_info, order: None, drawn: None };
-
-/// The menu hangs under the basic window, a little into it.
-pub(in crate::web) static MENU: Window =
-    Window { id: "menu", open: ALWAYS, frame: |app, _| framed(format!("left:0;top:{}px;width:220px", app.basic_height() - 4)), draw: App::menu_icons, order: None, drawn: None };
-
-pub(in crate::web) static HOTKEYS: Window = Window {
-    id: "hotkeys",
-    open: |app| !app.skills.hotkeys_hidden,
-    frame: |app, _| framed(at(230, 0, 290, (i32::from(app.skills.hotkey_rows) + 1) * 33 + 1)),
-    draw: App::hotkeys,
-    order: None,
-    drawn: None,
-};
-
-pub(in crate::web) static STATUS: Window = Window {
-    id: "status",
-    open: |app| app.hero.status_open,
-    frame: |_, _| framed(at(225, 285, 280, 141)),
-    draw: App::status_window,
-    order: ordered(|app| app.hero.status_open, switched_off!(hero.status_open)),
-    drawn: None,
-};
-
-/// The inventory stands aside while the storage is open beside it.
-pub(in crate::web) static INVENTORY: Window = Window {
-    id: "inventory",
-    open: |app| app.bag.open,
-    frame: |app, _| framed(at(if app.deal.storage.is_some() { 515 } else { 225 }, 80, 40 + 32 * ITEM_COLUMNS + 16, 17 + 32 * ITEM_ROWS + 21)),
-    draw: App::inventory_window,
-    order: ordered(|app| app.bag.open, switched_off!(bag.open)),
-    drawn: None,
-};
-
-pub(in crate::web) static SKILLS: Window = Window {
-    id: "skills",
-    open: |app| app.skills.open,
-    frame: |_, _| framed(at(230, 60, 560, 400)),
-    draw: App::skill_window,
-    order: ordered(|app| app.skills.open, switched_off!(skills.open)),
-    drawn: None,
-};
-
-pub(in crate::web) static STORAGE: Window = Window {
-    id: "storage",
-    open: |app| app.deal.storage.is_some(),
-    frame: |_, _| framed("left:225px;top:80px;width:280px".to_owned()),
-    draw: App::storage_window,
-    order: ordered(|app| app.deal.storage.is_some(), |app| app.pressed(crate::press::shops::Press::StorageClose)),
-    drawn: None,
-};
-
-pub(in crate::web) static EQUIPMENT: Window = Window {
-    id: "equipment",
-    open: |app| app.bag.equipment_open,
-    frame: |_, _| framed("left:560px;top:290px;width:280px".to_owned()),
-    draw: App::equipment_window,
-    order: ordered(|app| app.bag.equipment_open, switched_off!(bag.equipment_open)),
-    drawn: None,
-};
-
-/// What an NPC says, and in the same place the game's menu (the client's `UIEscOptionWnd`). The original puts
-/// the NPC's window a fifth of the way down the screen, in the middle, and what it asks under it. Only the menu
-/// lies in the order: a window it opens (Game Settings, the keys) goes over it, as `EnsureWindow` puts it in
-/// front there, and the menu stays open behind; what an NPC says is over the windows, by the page's own rules.
-pub(in crate::web) static DIALOG: Window = Window {
-    id: "dialog",
-    open: |app| app.esc != 0 || app.dialog.is_some(),
-    frame: |_, view| middle(view, 280, 100),
-    draw: App::dialog_window,
-    order: ordered(|app| app.esc == 1, |app| app.pressed(crate::press::general::Press::EscClose)),
-    // What was said last is in sight.
-    drawn: Some(|dialog| {
-        if let Ok(Some(text)) = dialog.query_selector(".said") {
-            text.set_scroll_top(text.scroll_height());
-        }
-    }),
-};
-
-pub(in crate::web) static TRADE: Window =
-    Window { id: "trade", open: |app| app.deal.shop.is_some(), frame: |_, view| middle(view, 280, 100), draw: App::trade_window, order: None, drawn: None };
-
-pub(in crate::web) static ITEM_INFO: Window = Window {
-    id: "iteminfo",
-    open: |app| app.bag.info.is_some(),
-    frame: |_, _| framed("left:300px;top:230px;width:280px".to_owned()),
-    draw: App::item_info_window,
-    order: ordered(|app| app.bag.info.is_some(), |app| app.pressed(crate::press::inventory::Press::InfoClose)),
-    drawn: None,
-};
-
-pub(in crate::web) static SKILL_INFO: Window = Window {
-    id: "skillinfo",
-    open: |app| app.skills.info.is_some(),
-    frame: |_, _| framed("left:330px;top:110px;width:304px".to_owned()),
-    draw: App::skill_info_window,
-    order: ordered(|app| app.skills.info.is_some(), |app| app.pressed(crate::press::skills::Press::InfoClose)),
-    drawn: None,
-};
-
-/// The note of what was just picked up: not a window, nothing on it is pressed.
-pub(in crate::web) static OBTAINED: Window = Window {
-    id: "obtained",
-    open: ALWAYS,
-    frame: |_, view| format!(r#"class="a" style="left:{}px;top:75px;width:260px;pointer-events:none""#, (view.0 as i32 - 260) / 2),
-    draw: App::obtained_note,
-    order: None,
-    drawn: None,
-};
-
-/// How many of a stack to drop: the number is ready to be typed over.
-pub(in crate::web) static THROW: Window = Window {
-    id: "throw",
-    open: |app| app.bag.throwing.is_some(),
-    frame: |_, view| middle(view, 182, 200),
-    draw: App::throw_window,
-    order: None,
-    drawn: Some(|window| {
-        if let Some(count) = window.query_selector("input").ok().flatten().and_then(|count| count.dyn_into::<web_sys::HtmlInputElement>().ok()) {
-            let _ = count.focus();
-            count.select();
-        }
-    }),
-};
-
-/// The slot machine of taming: 196 by 256 in the middle of the screen; a press on it starts the reels.
-pub(in crate::web) static TAMING: Window = Window {
-    id: "taming",
-    open: |app| app.pets.taming.is_some(),
-    frame: |_, view| {
-        format!(
-            r#"class="a" style="{};cursor:pointer;z-index:30;pointer-events:auto" {}"#,
-            at((view.0 as i32 - 196) / 2, (view.1 as i32 - 256) / 2, 196, 256),
-            pressed(crate::press::pets::Press::TamingShoot)
-        )
-    },
-    draw: |_| r#"<img id="taming-picture" alt="" draggable="false" style="position:absolute;left:0;top:0">"#.to_owned(),
-    order: None,
-    drawn: None,
-};
-
-/// The list of eggs to hatch: 200 by 200, where the client opens it.
-pub(in crate::web) static EGGS: Window =
-    Window { id: "eggs", open: |app| app.pets.eggs.is_some(), frame: |_, view| middle(view, 200, 200), draw: App::egg_window, order: None, drawn: None };
-
-/// The list of items to identify: the same window, in the same place.
-pub(in crate::web) static IDENTIFY: Window =
-    Window { id: "identify", open: |app| app.bag.identify.is_some(), frame: |_, view| middle(view, 200, 200), draw: App::identify_window, order: None, drawn: None };
-
-/// The pet window, where the client opens it: 185 across its 640-wide stage, 60 above 400 of 480 down.
-pub(in crate::web) static PET: Window = Window {
-    id: "pet",
-    open: |app| app.pets.open && app.pets.pet.is_some(),
-    frame: |_, view| framed(format!("left:{}px;top:{}px;width:280px", (view.0 as i32 - 640) / 2 + 185, view.1 as i32 * 400 / 480 - 60)),
-    draw: App::pet_window,
-    order: ordered(|app| app.pets.open && app.pets.pet.is_some(), switched_off!(pets.open)),
-    drawn: None,
-};
-
-/// What the pet window asks before it acts, in the middle of the screen.
-pub(in crate::web) static PET_ASKS: Window = Window {
-    id: "pet-asks",
-    open: |app| app.pets.open && app.pets.pet.is_some(),
-    frame: |_, view| framed(format!("left:{}px;top:{}px;width:280px", (view.0 as i32 - 280) / 2, (view.1 as i32 - 120) / 2)),
-    draw: App::pet_question,
-    order: None,
-    drawn: None,
-};
-
-/// The Shortcut Settings window, in the middle of the view.
-pub(in crate::web) static KEYS: Window = Window {
-    id: "keys",
-    open: |app| app.keys.open,
-    frame: |_, view| framed(centred(view, 436, 432)),
-    draw: App::key_window,
-    order: ordered(|app| app.keys.open, |app| app.pressed(crate::press::hotkeys::Press::Close)),
-    drawn: None,
-};
-
-/// The Game Settings window, in the middle of the view, as the client puts it.
-pub(in crate::web) static SETTINGS: Window = Window {
-    id: "settings",
-    open: |app| app.settings.open,
-    frame: |_, view| framed(centred(view, 400, 350)),
-    draw: App::settings_window,
-    order: ordered(|app| app.settings.open, switched_off!(settings.open)),
-    drawn: None,
-};
-
-/// The Adventure Guide, 750 by 468, in the middle.
-pub(in crate::web) static GUIDE: Window = Window {
-    id: "guide",
-    open: |app| app.guide.open,
-    frame: |_, view| framed(format!("{};height:468px", centred(view, 750, 468))),
-    draw: App::guide_window,
-    order: ordered(|app| app.guide.open, switched_off!(guide.open)),
-    drawn: None,
-};
-
-/// The menu of the pet, opened with the right button on it, where the pointer was.
-pub(in crate::web) static PET_MENU: Window = Window {
-    id: "pet-menu",
-    open: |app| app.pets.menu_at.is_some() && app.pets.pet.is_some(),
-    frame: |app, _| {
-        let (x, y) = app.pets.menu_at.unwrap_or_default();
-        framed(format!("left:{x}px;top:{y}px;background:#fff;border:1px solid #9a9a9a;z-index:26"))
-    },
-    draw: App::pet_menu,
-    order: None,
-    drawn: None,
-};
-
-/// The chat, along the bottom of the screen: as tall as its rows make it.
-pub(in crate::web) static CHAT: Window = Window {
-    id: "chat",
-    open: ALWAYS,
-    frame: |app, view| format!(r#"class="a hud" data-locked="{}" style="{}""#, u8::from(app.chat.locked), at(0, view.1 as i32 - app.chat_height(), 600, app.chat_height())),
-    draw: |app| app.chat_window(app.chat.rows, app.chat_height()),
-    order: None,
-    drawn: None,
-};
-
 /// Every window of the screen, as they are written to the page: a later one lies over an earlier one where
-/// neither has a place in the order.
-pub(in crate::web) static ALL: [&Window; 24] = [
-    &BASIC, &MENU, &HOTKEYS, &STATUS, &INVENTORY, &SKILLS, &STORAGE, &EQUIPMENT, &DIALOG, &TRADE, &ITEM_INFO, &SKILL_INFO, &OBTAINED, &THROW, &TAMING, &EGGS, &IDENTIFY, &PET, &PET_ASKS,
-    &KEYS, &SETTINGS, &GUIDE, &PET_MENU, &CHAT,
+/// neither has a place in the order and both are of one layer.
+pub(in crate::web) static ALL: [&Window; 122] = [
+    &STATUSES,
+    &SIGNS, &CUTIN, &ROOM, &ROOM_MAKE, &ROOM_PASSWORD, &ROOM_MENU, &FAMILY_ASKS,
+    &BASIC, &MENU, &HOTKEYS, &STATUS, &INVENTORY, &SKILLS, &STORAGE, &STORAGE_APART_0, &STORAGE_APART_1, &STORAGE_APART_2, &STORAGE_APART_3, &STORAGE_APART_4, &STORAGE_APART_5, &STORAGE_APART_6, &STORAGE_APART_7, &STORAGE_FOUND, &STORAGE_COUNT,
+    &CART, &CART_LOOKS, &CART_COUNT, &VENDING_STALL, &VENDING_STOCK, &VENDING_MINE, &VENDOR, &VENDOR_BASKET, &VENDOR_CONFIRM, &VENDING_ASKS, &VENDING_COUNT,
+    &EQUIPMENT, &DIALOG, &TRADE, &SHOP, &SHOP_BASKET, &SHOP_COUNT, &ITEM_INFO, &CARD_ILLUST, &SKILL_INFO, &OBTAINED, &THROW, &TAMING, &EGGS, &IDENTIFY, &PET, &PET_ASKS,
+    &KEYS, &SETTINGS, &GUIDE, &PET_MENU, &HOMUNCULUS, &HOMUNCULUS_ASKS, &HOMUNCULUS_SKILLS, &HOMUNCULUS_MENU, &MERCENARY, &MERCENARY_ASKS, &MERCENARY_SKILLS, &MERCENARY_MENU, &PARTY, &PARTY_SIDE, &PARTY_ASKS, &PARTY_MENU, &GUILD, &GUILD_ASKS, &GUILD_MENU, &PLAYER_MENU, &EXCHANGE, &EXCHANGE_ASKS, &EXCHANGE_COUNT, &MAIL_NOTICE, &MAIL, &MAIL_READ, &MAIL_WRITE, &MAIL_ASKS, &MAIL_COUNT, &QUESTS, &QUEST_PANE, &QUEST_NOTICE, &QUEST_LIST,
+    &FRIEND_SETUP, &FRIEND_ASKS, &FRIEND_MENU, &VIEW_EQUIP, &WHISPER_0, &WHISPER_1, &WHISPER_2, &WHISPER_3, &WHISPER_4, &WHISPER_5, &WHISPER_6, &WHISPER_7, &WHISPER_MENU, &UNREAD, &CHOOSE_PLACE, &CHOOSE_PICTURED, &CHOOSE_LINE, &BROADCAST, &CHAT,
+    &CHAT_OWN_0, &CHAT_OWN_1, &CHAT_OWN_2, &CHAT_OWN_3, &CHAT_OWN_4, &CHAT_OWN_5, &CHAT_OWN_6, &CHAT_OWN_7, &CHAT_OWN_8, &CHAT_OWN_9, &CHAT_OPTIONS, &EMOTIONS, &SHORTCUTS, &TIPS, &LARGE_MAP, &WORLD_MAP,
+    &SENSE_WINDOW, &STAR_ASKS,
 ];
 
 impl Window {
@@ -305,18 +223,12 @@ impl Window {
 }
 
 impl App {
-    /// The chat's height: the client's own sum (`UINewChatWnd::ResizeRows`), the input line, the rows and three
-    /// more, the tabs.
-    fn chat_height(&self) -> i32 {
-        if self.chat.rows == 0 { 24 } else { 24 + (self.chat.rows as i32 + 3) * 14 + 16 }
-    }
-
     /// Every window of the game, each in its own element. `view` is the stage's size.
     pub(in crate::web) fn hud(&self, view: (f64, f64)) -> String {
         ALL.iter()
             .map(|window| {
                 let hidden = if (window.open)(self) { "" } else { " hidden" };
-                format!(r#"<div id="{}" {}{hidden}>{}</div>"#, window.id, (window.frame)(self, view), window.inside(self))
+                format!(r#"<div id="{}" {}{}{hidden}>{}</div>"#, window.id, (window.frame)(self, view), window.layer.written(), window.inside(self))
             })
             .collect()
     }
@@ -361,11 +273,13 @@ impl App {
     /// Redraws the windows that show the character's values.
     pub(in crate::web) fn refresh_values(&self) {
         crate::web::world::own_life(self.value(parameter::HP), self.value(parameter::MAX_HP), self.value(parameter::SP), self.value(parameter::MAX_SP));
+        crate::web::world::own_level(self.value(parameter::BASE_LEVEL) as u16);
         self.redraw(&[&BASIC, &STATUS]);
     }
 
     /// Redraws the windows that show items and skills.
     pub(in crate::web) fn refresh_items(&self) {
-        self.redraw(&[&INVENTORY, &SKILLS, &HOTKEYS, &STORAGE, &ITEM_INFO, &SKILL_INFO, &EQUIPMENT]);
+        self.redraw(&[&INVENTORY, &SKILLS, &HOTKEYS, &ITEM_INFO, &SKILL_INFO, &EQUIPMENT]);
+        self.redraw(&STORAGE_WINDOWS);
     }
 }

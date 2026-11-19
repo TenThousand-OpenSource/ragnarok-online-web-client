@@ -1,7 +1,62 @@
-//! What the app keeps, in groups: one for each part of the game (the bag, the skills, the chat, a deal, the pets…).
-//! `App` itself, which holds one of each, is in `app.rs`.
+//! What the app keeps, in groups: one for each part of the game. Here are the groups the whole game shares (the
+//! character, the bag, the skills, the chat, what an NPC says) and what the way in keeps; every other system's
+//! group is in a file of its name in `state/`. `App` itself, which holds one of each, is in `app.rs`.
 
 use super::*;
+
+mod ai;
+mod choosing;
+mod broadcast;
+mod commands;
+mod cooldowns;
+mod exchange;
+mod fight;
+mod friends;
+mod guide;
+mod guild;
+mod homunculus;
+mod link;
+mod mail;
+mod cart;
+mod vending;
+mod mercenary;
+mod marks;
+mod party;
+mod notices;
+mod pets;
+mod player_menu;
+mod pvp;
+mod quests;
+mod settings;
+mod shops;
+mod statuses;
+mod storage;
+mod unread;
+mod scripted;
+mod chat_rooms;
+mod family;
+mod viewequip;
+mod whispers;
+mod emotions;
+mod tips;
+mod worldmap;
+pub(in crate::web) use mail::{MAIL_SAID, Mail, MailAsk, Writing};
+pub(in crate::web) use choosing::{Choice, Choosing, Shape};
+pub(in crate::web) use quests::Quests;
+pub(in crate::web) use cart::{CHANGE_CART, Cart, Carting, Looks};
+pub(in crate::web) use vending::{Crossing, Stall, Stage, Stalled, Vending, VendingAsk, Visit};
+pub(in crate::web) use {ai::{Script, Scripts}, homunculus::{Homunculus, HomunculusAsk}, mercenary::Mercenary};
+pub(in crate::web) use storage::{Storage, Stored, Stowing};
+pub(in crate::web) use unread::Unread;
+pub(in crate::web) use {chat_rooms::{ChatRooms, Making, Sitting}, family::Family, scripted::{Mark, Repeated, Scripted}};
+pub(in crate::web) use notices::Notices;
+pub(in crate::web) use link::Link;
+pub(in crate::web) use marks::Marks;
+pub(in crate::web) use broadcast::{Announced, Broadcast};
+pub(in crate::web) use {commands::*, cooldowns::*, exchange::*, friends::*, guide::*, guild::*, party::*, pets::*, player_menu::*, pvp::*};
+pub(in crate::web) use {settings::*, shops::*, statuses::*, viewequip::*, whispers::*};
+pub(in crate::web) use fight::*;
+pub(in crate::web) use {emotions::Emotions, tips::Tips, worldmap::WorldMap};
 
 pub(in crate::web) struct Game {
     pub name: String,
@@ -9,39 +64,9 @@ pub(in crate::web) struct Game {
     pub map: String,
     pub x: u16,
     pub y: u16,
-    /// Packets received since entering the map.
-    pub packets: u32,
     /// The map's size in cells, once it is drawn: for the minimap.
     pub map_size: Option<(usize, usize)>,
 }
-
-/// The slot machine shown when a monster is being tamed (the client's `UIPetTamingDeceiveWnd`): the pictures
-/// of `slotmachine.spr` run in turn; a press starts the reels and asks the server, whose answer has them slow
-/// down and stop on the picture of the catch or of the miss.
-pub(in crate::web) struct Taming {
-    /// The monster being tamed.
-    pub(super) target: u32,
-    /// Which action of the sprite plays: 0 waiting, 1 the reels turning.
-    pub(super) state: usize,
-    /// The client's counters: the picture shown is `tick / delay`.
-    pub(super) tick: i32,
-    pub(super) delay: i32,
-    pub(super) longest: i32,
-    /// The picture to stop on (-1: none yet).
-    pub(super) wanted: i32,
-    pub(super) started: bool,
-    /// When it came to rest: it closes two seconds later.
-    pub(super) rested: Option<f64>,
-    /// The pictures of both actions, once read: each a data URL, its size and where its origin is.
-    pub frames: [Vec<(String, (usize, usize), (f32, f32))>; 2],
-    /// The picture on the page now.
-    pub shown: (usize, usize),
-    /// The page's timer that drives it.
-    pub(super) timer: i32,
-}
-
-/// The pseudo-skill the client aims with when a monster is to be tamed (`Zc_Start_Capture`).
-pub(super) const TAME: u16 = 10000;
 
 /// A question over the window, waiting for OK or Cancel; each is about the character with that ID.
 #[derive(Clone, Copy)]
@@ -71,23 +96,6 @@ impl Default for Make {
     fn default() -> Self {
         Self { doram: false, sex: 1, hair_style: 1, hair_colour: 0, direction: 0 }
     }
-}
-
-/// An NPC's shop, as far as the dealing has come.
-pub(in crate::web) enum Shop {
-    /// The shop asks whether to buy or to sell.
-    Choose(u32),
-    Buy(Vec<trade::Offer>),
-    /// What the shop takes of what is carried: `(index, price)`.
-    Sell(Vec<(u16, u32)>),
-}
-
-/// The Kafra's storage while it is open.
-#[derive(Default)]
-pub(in crate::web) struct Storage {
-    pub items: Vec<items::Item>,
-    /// How many kinds of things are in it, and how many fit.
-    pub count: (u16, u16),
 }
 
 /// A talk with an NPC, as its window shows it.
@@ -130,9 +138,17 @@ pub(in crate::web) struct Bag {
     /// The Inventory window is open, and which of its tabs.
     pub open: bool,
     pub tab: Tab,
+    /// The places in the inventory of the things kept under the tab "Fav", and whether that tab's button
+    /// "Align items" is on (the client's `m_sortPrivateTab`).
+    pub favourites: Vec<u16>,
+    pub aligned: bool,
     pub equipment_open: bool,
+    /// The Equipment window shows its Costume page.
+    pub costumes: bool,
     /// The item whose description is open, and whether it is identified.
     pub info: Option<(u32, bool)>,
+    /// The card whose illustration is open (the client's `UICardItemIllustWnd`).
+    pub illust: Option<u32>,
     /// The items a magnifier can identify (their places in the inventory) while its list is open, and the row
     /// picked in it (none at first, as in the client's `UIItemIdentifyWnd`).
     pub identify: Option<Vec<u16>>,
@@ -176,112 +192,14 @@ pub(in crate::web) struct Chat {
     /// Which of its tabs is open, and whether the window is locked where it is.
     pub tab: usize,
     pub locked: bool,
+    /// Its tabs as the player has them (`crate::chat_tabs`), those taken out into windows of their own among
+    /// them: kept in the browser. Empty until the player changes one: then they are as the client starts them.
+    pub tabs: Vec<crate::chat_tabs::Tab>,
+    /// A line with a link to an item came in whose name may not be known yet.
+    pub linked: bool,
+    /// The window is put away (Alt+F10 shows and hides it).
+    pub hidden: bool,
+    /// The tab whose window of what it lists is open (`UIBattleMsgOptionWnd`).
+    pub options: Option<usize>,
 }
 
-/// The kinds of line the chat window keeps, by the numbers the client's code gives them (the last but two of
-/// what it sends with `UIM_PUSHINTOCHATHISTORY`): each tab of the window lists some kinds and not others.
-pub(super) mod said {
-    /// Anything of no particular kind: most of what the game itself says.
-    pub const GENERAL: u8 = 0;
-    /// What someone says aloud.
-    pub const CHAT: u8 = 1;
-    pub const WHISPER: u8 = 2;
-    /// A thing obtained.
-    pub const ITEM: u8 = 6;
-    /// What is worn: put on, taken off, refused.
-    pub const EQUIPMENT: u8 = 7;
-    /// A skill that failed.
-    pub const SKILL_FAILED: u8 = 11;
-}
-
-/// Dealing with NPCs: a shop and the Kafra's storage.
-#[derive(Default)]
-pub(in crate::web) struct Deal {
-    pub shop: Option<Shop>,
-    /// The row picked in the shop's list, and what was put aside to buy or sell: `(row, amount)`.
-    pub picked: Option<usize>,
-    pub basket: Vec<(usize, u16)>,
-    pub storage: Option<Storage>,
-    /// Which of the storage's tabs is open.
-    pub storage_tab: usize,
-}
-
-/// The Adventure Guide's window: whether it is open, which of its tabs, the monster picked in its list, and the
-/// monsters' pictures made so far (and those asked for), by the monster's number.
-#[derive(Default)]
-pub(in crate::web) struct GuideWnd {
-    pub open: bool,
-    pub tab: usize,
-    /// The kind picked under the tab (the tab's own smaller tabs), where it has kinds: its number.
-    pub kind: Option<u32>,
-    /// The open tab's kinds are folded away: a press on the tab that is open already does that, and another
-    /// brings them back (the client's `CUITab::SetSelected`).
-    pub folded: bool,
-    pub picked: Option<String>,
-    pub pictures: HashMap<u32, (String, (usize, usize), (f32, f32))>,
-    pub asked: std::collections::HashSet<u32>,
-}
-
-/// The Game Settings window, and what the player has set in it.
-#[derive(Default)]
-pub(in crate::web) struct Settings {
-    /// The window is open, and which of its five pages.
-    pub open: bool,
-    pub tab: usize,
-    /// The options the player has switched otherwise than they start, by the client's name: kept in the browser.
-    pub set: HashMap<String, bool>,
-    /// How loud the music and the effects are (0 to 100), and whether each is off: kept in the browser.
-    pub music: u8,
-    pub effects: u8,
-    pub music_off: bool,
-    pub effects_off: bool,
-}
-
-/// The keys: what the player has bound otherwise than the client does, and the window that shows and sets them.
-#[derive(Default)]
-pub(in crate::web) struct Keys {
-    /// The Shortcut Settings window is open; which of its tabs, which page of it, and the row picked in it.
-    pub open: bool,
-    pub tab: usize,
-    pub page: usize,
-    pub row: Option<usize>,
-    /// What the player has set, by table and place: kept in the browser.
-    pub own: HashMap<(usize, usize), Chord>,
-    /// What was set in the window since it was opened, until OK keeps it or Cancel drops it.
-    pub edited: HashMap<(usize, usize), Chord>,
-    /// The keyboard is a Mac's: some keys are missing on it, and Alt is called Option.
-    pub mac: bool,
-    /// What the window says of the last key pressed in it, when it would not take it.
-    pub notice: Option<String>,
-}
-
-/// The player's pet: catching one, hatching it, and its window.
-#[derive(Default)]
-pub(in crate::web) struct Pets {
-    /// The slot machine of taming a monster, while it is open.
-    pub taming: Option<Taming>,
-    /// The pet eggs offered for hatching (their places in the inventory), while the incubator's list is open,
-    /// and which of them is picked.
-    pub eggs: Option<Vec<u16>>,
-    pub egg_picked: usize,
-    /// The pet, while one is out of its egg, and the unit on the map that is it.
-    pub pet: Option<pets::Pet>,
-    pub unit: u32,
-    /// The pet window is open; its menu of commands is; what it asks before acting (1 whether to feed, 2
-    /// whether to give the name typed, kept in `named`).
-    pub open: bool,
-    pub menu: bool,
-    pub asks: u8,
-    pub named: String,
-    /// The answer to feeding the pet (whether it ate, and its food), until the chat has told of it: the food's
-    /// name may arrive a moment later.
-    pub fed: Option<(bool, u32)>,
-    /// The pet window was opened by itself for this pet's low intimacy: it is, once for a pet.
-    pub alerted: bool,
-    /// The menu of the pet, opened with the right button on it: where on the stage.
-    pub menu_at: Option<(i32, i32)>,
-    /// How hungry the pet was before its hunger last changed: what it feels on being fed goes by that.
-    pub hunger_before: i32,
-    /// When the pet last told of its master's danger (milliseconds since 1970): at most once in five seconds.
-    pub warned_at: f64,
-}

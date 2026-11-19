@@ -4,14 +4,42 @@
 //! Protocol facts come from rAthena's source (`src/common/packets.hpp`, `src/char/char_clif.cpp`,
 //! `src/map/clif.cpp`) at PACKETVER 20260219.
 
+mod bytes;
+pub mod cart;
+pub mod choosing;
+pub mod broadcast;
 pub mod emotions;
+pub mod exchange;
+pub mod fight;
+pub mod friends;
+pub mod viewequip;
+pub mod guild;
+pub mod homunculus;
 pub mod items;
+pub mod link;
+pub mod mail;
+pub mod marks;
+pub mod mercenary;
+pub mod notices;
 pub mod npc;
 pub mod packets;
+pub mod party;
 pub mod pets;
+pub mod quests;
+pub mod pvp;
 pub mod skills;
+pub mod skill_units;
+pub mod statuses;
+pub mod storage;
+pub mod cooldowns;
+pub mod commands;
 pub mod trade;
 pub mod units;
+pub mod vending;
+pub mod unread;
+pub mod scripted;
+pub mod chat_rooms;
+pub mod family;
 
 use std::collections::HashMap;
 use std::sync::OnceLock;

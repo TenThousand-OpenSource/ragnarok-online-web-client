@@ -7,6 +7,8 @@ Read from the decompiled client (`rodecomp`):
   Source/Contents/Skills/SkillId.h                    the skills' numbers
   Source/Contents/Effects/Core/EffectTypes.h          the effects' numbers (EF_…)
   Source/Contents/Effects/Core/RagEffectInitialization.cpp   which .str file an effect plays
+  Source/Contents/Effects/Particles/EZ2STREffect.cpp  CEZ2STRScreenEffect::InitParticle: the .str file of an
+                                                      effect that is nothing but its file; InitEvents: its sound
   Source/Contents/Effects/Core/RagEffect.cpp          which sound an effect starts with
   Source/Client/Mode/GameModePackets.cpp              CGameMode::ReceiveSkillUse: the effects of a skill that
                                                       strikes nobody, on the one who used it or on its target
@@ -16,18 +18,36 @@ Read from the decompiled client (`rodecomp`):
   Source/Client/Session/SessionState.cpp              the tables `skillEffectIds` and `skillFollowEffects`: the
                                                       effect the striker launches as a skill strikes, and the one
                                                       launched on the one struck as the blow lands
+  Source/Contents/Actors/RenderObject.cpp             CGameActor::ProcessSkillMessage: the effect of each hit of a
+                                                      skill on the one struck (the `hitEffect` of its message), and
+                                                      the following effects it puts in place of the table's
+
+Read from this client, beside the output folder: the effects it draws by code already, which are the numbers the
+functions `known` of its files of effects answer for (`../web/world/prims/` and the folders in it), and the
+effects it plays from files that are not the one file of the client's table (picked by lot, or carried by a
+class of the client's), which are the numbers `played` of `../effect/played.rs` names.
 
 Written, one entry a line, tab between the fields:
-  effect_files.txt     <effect>  <file.str>       (merged with what the folder already has)
+  effect_files.txt     <effect>  <file.str>       (merged with what the folder already has; without the effects
+                                                  a `played` here answers for, whose files the code plays)
   effect_sounds.txt    <effect>  <sound.wav>
   skill_effects.txt    <skill>   <s|t>  <effect>  (s: on the one who used the skill, t: on its target)
   skill_hits.txt       <skill>   <s|t>  <effect>  (the same, for a skill that strikes: s at the striker's place,
                                                   t at the place of the one struck)
   skill_launch.txt     <skill>   <effect>         (launched by the striker, as `CGameActor::ProcessSkillMessage` does)
   skill_follow.txt     <skill>   <effect>         (launched on the one struck when the blow lands)
+  skill_struck.txt     <skill>   <effect>         (shown on the one struck at each hit of the skill that hurts; a
+                                                  skill not listed shows none. Two skills the client decides as
+                                                  the blow comes are written as it decides without that: Resurrection
+                                                  that hurts shows 152 and nothing following, written 0 here; Earth
+                                                  Drive shows 1708 on anyone but the player's own character, written
+                                                  as none here)
   skill_motions.txt    <skill>   <state>          (only skills whose state is not the usual one, 7)
-  effects_missing.txt  <effect>  <EF_NAME>  <skills that use it>   effects of the list above that have no .str
-                       file: the client draws them by code, and this client does not yet
+  effects_missing.txt  <effect>  <EF_NAME>  <skills that use it>   effects of the five tables of skills above
+                       that have no .str file: the client draws them by code, and this client does not yet.
+                       (One is left, and stays: 941 EF_SPR_LIGHTPRINT3, whose colour the client reads from
+                       memory nothing has written, so there is nothing to port. The list has no header: a line
+                       is an effect.)
 """
 import os
 import re
@@ -90,10 +110,30 @@ for labels, body in switch(read('Source/Contents/Effects/Core/RagEffectInitializ
             if label in effects:
                 files[effects[label]] = names[-1]
 
+# The same for the effects that are nothing but a file (`particle->Open` and `particle->Load`, which both play the
+# file named unless the "simple effects" option is on): the file that is not the lighter twin, under `mineffect`.
+plain = {}
+for labels, body in switch(function(read('Source/Contents/Effects/Particles/EZ2STREffect.cpp'), 'void CEZ2STRScreenEffect::InitParticle('), '  '):
+    names = [name.replace('\\\\', '/') for name in re.findall(r'particle->(?:Open|Load)\("([^"%]+\.str)"', '\n'.join(body))]
+    names = [name for name in names if not name.lower().startswith('mineffect/')]
+    if names:
+        for label in labels:
+            if label in effects:
+                plain[effects[label]] = names[-1]
+
 # The sound an effect starts with.
 sounds = {}
 for labels, body in switch(read('Source/Contents/Effects/Core/RagEffect.cpp'), '  '):
     waves = re.findall(r'Play(?:Effect)?Wave\([^"]*"([^"]+\.wav)"', '\n'.join(body))
+    if waves:
+        for label in labels:
+            if label in effects and effects[label] not in sounds:
+                sounds[effects[label]] = waves[0].replace('\\\\', '/')
+
+# An effect that is nothing but its file starts its sound as the file begins (`CEZ2STRScreenEffect::InitEvents`,
+# an event at the file's frame 0).
+for labels, body in switch(function(read('Source/Contents/Effects/Particles/EZ2STREffect.cpp'), 'void CEZ2STRScreenEffect::InitEvents('), '  '):
+    waves = re.findall(r'AddEvent\(0, "([^"]+\.wav)"', '\n'.join(body))
     if waves:
         for label in labels:
             if label in effects and effects[label] not in sounds:
@@ -107,6 +147,8 @@ for labels, body in switch(used, '  '):
     text = '\n'.join(body)
     found = re.findall(r'\b(source|target)->LaunchEffect\((EF_[A-Z0-9_]+)', text)
     found += [(who, effect) for effect, who in re.findall(r'g_effectMgr->Spawn\([^,]*,\s*(EF_[A-Z0-9_]+),\s*(source|target)->', text)]
+    # One told that it guarded (`AM_MAKE_GUARD`) launches the shield of a guard on itself (`CGameActor::SendMsg`).
+    found += [(who, 'EF_GUARD') for who in re.findall(r'\b(source|target)->SendMsg\(nullptr, AM_MAKE_GUARD\b', text)]
     for label in labels:
         if label not in skills:
             continue
@@ -159,6 +201,46 @@ for line in read('Source/Client/Session/SessionState.cpp').split('\n'):
     elif entry and key is not None and int(entry.group(2)) >= 0:
         (launch if entry.group(1) == 'skillEffectIds' else follow)[key] = int(entry.group(2))
 
+# The effect of each hit on the one struck, and the following effects put in place of the table's. The client
+# starts from a rule by the skill's number (`int effect = skillId < … ? 0 : -1;`) and then has a switch of the
+# skills that differ. An arm that decides by something else than the skill (an `if`) is left as the rule has it.
+message = function(read('Source/Contents/Actors/RenderObject.cpp'), 'void CGameActor::ProcessSkillMessage(')
+rule = re.search(r'int effect = skillId < (\d+) && !\(skillId >= (\d+) && skillId <= (\d+)\) \? 0 : -1;', message)
+under, hole_from, hole_to = (int(number) for number in rule.groups())
+struck_by = {number: 0 for number in skills.values() if 0 < number < under and not hole_from <= number <= hole_to}
+for labels, body in switch(message[rule.end():message.index('  int action;', rule.end())], '  '):
+    text = '\n'.join(body)
+    if re.search(r'\bif \(', text):
+        continue
+    hit = re.search(r'^\s*effect = (-?\w+);', text, re.M)
+    followed = re.search(r'^\s*followEffect = (-?\w+);', text, re.M)
+    for label in labels:
+        if label not in skills:
+            continue
+        if hit:
+            struck_by[skills[label]] = int(hit.group(1), 0)
+        if followed:
+            follow[skills[label]] = int(followed.group(1), 0)
+struck_by = {skill: effect for skill, effect in struck_by.items() if effect >= 0}
+follow = {skill: effect for skill, effect in follow.items() if effect >= 0}
+
+# The effects this client draws by code: the numbers before `=>` in the functions `known` of its files of
+# effects. Those `played` names (`effect/played.rs`) are played from files that the code picks or carries: such
+# an effect is not one of the plain files, whatever file the client's table has for it.
+ported, picked = set(), set()
+prims = os.path.join(out, '..', 'web', 'world', 'prims')
+for path in sorted(os.path.join(folder, name) for folder, _, names in os.walk(prims) for name in names if name.endswith('.rs')) + [os.path.join(out, '..', 'effect', 'played.rs')]:
+    text = open(path, encoding='utf-8').read()
+    for start in re.finditer(r'\bfn (known|played)\(', text):
+        end = text.find('\n}\n', start.start())
+        for arm in re.findall(r'^\s*(\d[\d\s|.=]*?)\s*(?:if [^=]*)?=>', text[start.start():end if end >= 0 else len(text)], re.M):
+            for part in arm.split('|'):
+                first, _, last = part.strip().partition('..=')
+                numbers = range(int(first), int(last or first) + 1)
+                ported.update(numbers)
+                if start.group(1) == 'played':
+                    picked.update(numbers)
+
 os.makedirs(out, exist_ok=True)
 
 
@@ -177,20 +259,31 @@ if os.path.exists(path):
             known[int(number)] = name
 for number, name in files.items():
     known.setdefault(number, name)
+# A lighter twin written here before gives way to the file itself.
+for number, name in plain.items():
+    if number not in known or known[number].lower().startswith('mineffect/'):
+        known[number] = name
+for number in picked:
+    known.pop(number, None)
 write('effect_files.txt', sorted(known.items()))
 write('effect_sounds.txt', sorted(sounds.items()))
 write('skill_effects.txt', sorted(skill_effects))
 write('skill_hits.txt', sorted(skill_hits))
 write('skill_launch.txt', sorted(launch.items()))
 write('skill_follow.txt', sorted(follow.items()))
+write('skill_struck.txt', sorted(struck_by.items()))
 write('skill_motions.txt', sorted(motions.items()))
-names = {number: name for name, number in effects.items()}
+# The header has other lists of numbers beside the effects' (states, options): a number is named as an effect.
+names = {}
+for name, number in effects.items():
+    if number not in names or (name.startswith('EF_') and not names[number].startswith('EF_')):
+        names[number] = name
 missing = {}
-for skill, _, effect in skill_effects + skill_hits:
-    if effect not in known:
+for skill, effect in [(skill, effect) for skill, _, effect in skill_effects + skill_hits] + list(launch.items()) + list(follow.items()) + list(struck_by.items()):
+    if effect not in known and effect not in ported:
         missing.setdefault(effect, []).append(skill)
 skill_names = {number: name for name, number in skills.items()}
-write('effects_missing.txt', [(effect, names[effect], ' '.join(skill_names[skill] for skill in sorted(set(users)))) for effect, users in sorted(missing.items())])
-print(f'{len(skills)} skills, {len(effects)} effects; {len(known)} effect files ({len(files)} from the code), {len(sounds)} sounds, '
+write('effects_missing.txt', [(effect, names.get(effect, ''), ' '.join(skill_names.get(skill, str(skill)) for skill in sorted(set(users)))) for effect, users in sorted(missing.items())])
+print(f'{len(skills)} skills, {len(effects)} effects; {len(known)} effect files ({len(files)} and {len(plain)} from the code), {len(sounds)} sounds, '
       f'{len(skill_effects)} skill effects of {len(set(skill for skill, _, _ in skill_effects))} skills, '
-      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(launch)} launched and {len(follow)} following effects, {len(motions)} motions, {len(missing)} effects without a file')
+      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(launch)} launched and {len(follow)} following effects, {len(struck_by)} effects of a hit, {len(motions)} motions, {len(ported)} effects drawn by code here, {len(missing)} effects neither a file nor drawn here')

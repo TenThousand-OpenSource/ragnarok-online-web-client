@@ -15,6 +15,9 @@ pub enum SocketEvent {
 /// Open while it lives: dropping it closes the connection and silences its events.
 pub struct Socket {
     ws: WebSocket,
+    /// When something was last sent on it, in milliseconds (the client's `m_lastSendTick`): the watch on a
+    /// quiet connection goes by it (`crate::net::link`).
+    sent_at: std::cell::Cell<f64>,
     _on_open: Closure<dyn FnMut()>,
     _on_message: Closure<dyn FnMut(MessageEvent)>,
     _on_close: Closure<dyn FnMut(CloseEvent)>,
@@ -45,13 +48,19 @@ impl Socket {
         ws.set_onopen(Some(on_open.as_ref().unchecked_ref()));
         ws.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
         ws.set_onclose(Some(on_close.as_ref().unchecked_ref()));
-        Ok(Self { ws, _on_open: on_open, _on_message: on_message, _on_close: on_close })
+        Ok(Self { ws, sent_at: std::cell::Cell::new(js_sys::Date::now()), _on_open: on_open, _on_message: on_message, _on_close: on_close })
     }
 
     pub fn send(&self, bytes: &[u8]) {
+        self.sent_at.set(js_sys::Date::now());
         if let Err(error) = self.ws.send_with_u8_array(bytes) {
             web_sys::console::warn_1(&format!("send: {}", js_error(error)).into());
         }
+    }
+
+    /// When something was last sent on it, or when it was opened if nothing was.
+    pub fn sent_at(&self) -> f64 {
+        self.sent_at.get()
     }
 }
 

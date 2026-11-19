@@ -60,8 +60,11 @@ impl App {
         // The tabs: the guide's own first page, then its contents in their order.
         let tabs: Vec<&str> = std::iter::once(guide.menu.as_str()).chain(guide.tabs.iter().map(|(name, _)| name.as_str())).collect();
         // Under the tab that is open hang its kinds, where it has them (`CUITab::CreateSubTabList`: 98 by 26
-        // each, the picture's box 92 of them, so the label is written a little smaller here than the client's
-        // narrower font writes it, to fit the same; the labels of both, `CUITab::OnCreate` and `CUISubTab::OnCreate`, bold, in the middle, dark blue), and the tabs after it move down by as much; what does not fit is scrolled to.
+        // each, the picture's box 92 of them; the labels of both, `CUITab::OnCreate` and `CUISubTab::OnCreate`,
+        // the usual text in bold ("Gulim" at 12, `SetBold(1)`), in the middle, dark blue; a label longer than its
+        // tab is cut at the tab's edge), and the tabs after it move down by as much; what does not fit is
+        // scrolled to.
+        let bold = BOLD.style();
         let kinds: Vec<(u32, String, u32, u32)> = match self.guide.tab {
             1 | 3 | 4 => guide.quests[[0, 0, 0, 1, 2][self.guide.tab]].kinds.clone(),
             5 | 6 => guide.items[self.guide.tab - 5].kinds.clone(),
@@ -84,7 +87,7 @@ impl App {
             let state = if index == self.guide.tab { "press" } else { "normal" };
             let press = pressed(Press::Tab(index));
             strip.push_str(&format!(
-                r#"<button type="button" class="t" style="display:block;width:98px;height:40px;padding:0;font-weight:bold;color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:40px;cursor:default" {press}>{}</button>"#,
+                r#"<button type="button" class="t" style="display:block;width:98px;height:40px;padding:0;{bold};color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:40px;cursor:default" {press}>{}</button>"#,
                 picture(&format!("adventureguide/tab_btn_{state}.bmp")),
                 escape(name)
             ));
@@ -93,7 +96,7 @@ impl App {
                     let state = if Some(*kind) == picked_kind { "press" } else { "normal" };
                     let press = pressed(Press::Kind(*kind));
                     strip.push_str(&format!(
-                        r#"<button type="button" class="t" style="display:block;width:98px;height:26px;padding:0 6px 0 0;box-sizing:border-box;font-weight:bold;font-size:10.5px;letter-spacing:-0.3px;color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:26px;cursor:default;white-space:nowrap;overflow:hidden" {press}>{}</button>"#,
+                        r#"<button type="button" class="t" style="display:block;width:98px;height:26px;padding:0 6px 0 0;box-sizing:border-box;{bold};color:#2c3c5f;background:url('{}') 0 0 / 100% 100% no-repeat;border:0;text-align:center;line-height:26px;cursor:default;white-space:nowrap;overflow:hidden" {press}>{}</button>"#,
                         picture(&format!("adventureguide/tab_btn_sub_{state}.bmp")),
                         escape(name)
                     ));
@@ -102,7 +105,8 @@ impl App {
         }
         window.push_str(&format!(r#"<div class="a scroll" style="{}">{strip}</div>"#, at(9, 63, 98, 372)));
         let title = if self.guide.tab == 0 { guide.intro.as_str() } else { tabs.get(self.guide.tab).copied().unwrap_or_default() };
-        window.push_str(&format!(r#"<div class="a t" style="{};text-align:center;font-weight:bold;font-size:14px;color:#1b2689">{}</div>"#, at(312, 30, 204, 20), escape(title)));
+        // The page's title: `CUIAdventureGuide::OnCreate`, "Gulim" at 14, bold.
+        window.push_str(&format!(r#"<div class="a t" style="{};text-align:center;{};color:#1b2689">{}</div>"#, at(312, 30, 204, 20), Font(0, 14, true).style(), escape(title)));
         match self.guide.tab {
             // The first page (`CUIIntro`, 637 by 373 at 112, 63): the banner's frame, 630 by 216, with the
             // banner itself in it, 583 by 162 at 22, 27; under it, at 10, 207, the guide's other pages, a row 603

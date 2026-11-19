@@ -21,6 +21,30 @@ pub fn drawn_job(job: u16, state: u32) -> u16 {
         .map_or(job, |(_, _, drawn)| drawn)
 }
 
+/// How high over where its name would stand the name of a character stands, by the job it is drawn as
+/// (`drawn_job`) and whether it is a Doram (`CGameActor::GetNameOffset`): what the signs of Fury and its like
+/// are lifted by (`crate::prim::Prim::lifted`). 6 for one on a bird, a dragon or a wolf or in a machine, 4 for
+/// a baby so mounted; else -1 for a baby and -2 for a Doram; nothing for anyone else. A monster or an NPC has
+/// none.
+///
+/// Left out of the client's rule, as this client does not know of them: one riding a rented mount
+/// (`isRiding`: 6, 2 for a Novice's kind, 0 for a Gunslinger's, 4 for a baby, -3 for a Doram), and one shrunk
+/// by an effect (its `render.flags & 0x10`, which makes all of these smaller).
+pub fn name_offset(drawn: u16, doram: bool) -> f32 {
+    // `IsBabyJob`, the ranges of the client's `JT_…_B`.
+    let baby = matches!(drawn, 4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4238 | 4241 | 4242 | 4244 | 4247 | 4248 | 4352 | 4354);
+    match drawn {
+        // `JT_CHICKEN`, `JT_CHICKEN2` and theirs of the high jobs; the third jobs' mounts from `JT_RUNE_CHICKEN`
+        // to `JT_RUNE_CHICKEN5_H`; `JT_WOLF_WINDHAWK` to `JT_IMPERIAL_GUARD_CHICKEN`.
+        13 | 21 | 4014 | 4022 | 4080..=4095 | 4278..=4281 => 6.0,
+        // The babies' mounts: `JT_CHICKEN_B`, `JT_CHICKEN2_B`, `JT_RUNE_CHICKEN_B` to `JT_MADOGEAR_B`.
+        4036 | 4044 | 4109..=4112 => 4.0,
+        _ if baby => -1.0,
+        _ if doram => -2.0,
+        _ => 0.0,
+    }
+}
+
 /// What the Equipment window's "off" button asks the server to take away from a character in that state, and
 /// the line of the client's message table that the button says (none: nothing to take away but a cart). As the
 /// client's `UIEquipWnd` has them: a falcon first, then a bird, a machine, a dragon; the number is what the
@@ -42,7 +66,7 @@ pub fn off(state: u32) -> (u8, Option<usize>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{drawn_job, off};
+    use super::{drawn_job, name_offset, off};
 
     #[test]
     fn the_off_button_takes_away_what_the_state_has() {
@@ -51,6 +75,14 @@ mod tests {
         assert_eq!(off(1 << 19), (1, Some(1463)));
         // A falcon goes before a bird.
         assert_eq!(off(1 << 4 | 1 << 5), (5, Some(441)));
+    }
+
+    #[test]
+    fn a_name_stands_higher_over_one_who_is_mounted_and_lower_over_a_baby_or_a_doram() {
+        // A Lord Knight on a Peco Peco, a Rune Knight on a dragon, a baby Knight on a Peco Peco.
+        assert_eq!((name_offset(4014, false), name_offset(4080, false), name_offset(4036, false)), (6.0, 6.0, 4.0));
+        // A baby Swordman, a Summoner, a baby Summoner (a baby first), a Knight on foot.
+        assert_eq!((name_offset(4024, false), name_offset(4218, true), name_offset(4220, true), name_offset(7, false)), (-1.0, -2.0, -1.0, 0.0));
     }
 
     #[test]

@@ -66,7 +66,7 @@ impl App {
     }
 
     pub(super) fn login(&mut self) {
-        let (user, password) = (field("user"), field("password"));
+        let (user, password) = (typed("user"), typed("password"));
         for (text, least) in [(&user, LOGIN_ID_MIN), (&password, LOGIN_PASSWORD_MIN)] {
             if text.len() < least {
                 self.message = Some(fill(Key::EnterAtLeast.text(self.lang), &[&least.to_string()]));
@@ -90,12 +90,12 @@ impl App {
     }
 
     pub(super) fn register(&mut self) {
-        let (id, password, email) = (field("reg-id"), field("reg-password"), field("reg-email"));
+        let (id, password, email) = (typed("reg-id"), typed("reg-password"), typed("reg-email"));
         let problem = if !valid_id(&id) {
             Some(Key::BadId)
         } else if !valid_password(&password) {
             Some(Key::BadPassword)
-        } else if password != field("reg-repeat") {
+        } else if password != typed("reg-repeat") {
             Some(Key::PasswordsDiffer)
         } else if !valid_email(&email) {
             Some(Key::BadEmail)
@@ -109,7 +109,7 @@ impl App {
     }
 
     pub(super) fn recover(&mut self) {
-        let (id, email) = (field("rec-id"), field("rec-email"));
+        let (id, email) = (typed("rec-id"), typed("rec-email"));
         if !valid_id(&id) {
             return self.say(Key::BadId);
         }
@@ -122,11 +122,11 @@ impl App {
 
     pub(super) fn reset(&mut self) {
         let Screen::Reset(token) = &self.screen else { return };
-        let (token, password) = (token.clone(), field("new-password"));
+        let (token, password) = (token.clone(), typed("new-password"));
         if !valid_password(&password) {
             return self.say(Key::BadPassword);
         }
-        if password != field("new-repeat") {
+        if password != typed("new-repeat") {
             return self.say(Key::PasswordsDiffer);
         }
         self.request(Request::Reset, "/api/reset", vec![("token", token), ("password", password)]);
@@ -152,7 +152,7 @@ impl App {
         };
         if let Some(done) = done {
             if matches!(request, Request::Register) {
-                self.saved_id = field("reg-id");
+                self.saved_id = typed("reg-id");
             }
             // A used reset link is taken out of the address bar.
             if matches!(request, Request::Reset) {

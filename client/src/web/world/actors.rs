@@ -5,6 +5,13 @@ use super::*;
 /// Someone comes into sight, or someone in sight starts to walk.
 pub fn unit_shown(unit: &Unit) {
     STATE.with_borrow_mut(|state| {
+        // The time a walker set out at corrects the clock, whether it is drawn or not (the client does so as
+        // it reads each packet that shows someone walking).
+        if let Some(walk) = &unit.walks {
+            state.clock.sync(now(), walk.started);
+        }
+        // Its level and whether it is a boss: its name is coloured and marked by them (`names.rs`).
+        names::ranked(state, unit.id, unit.level, unit.boss);
         let Some(scene) = &mut state.scene else {
             // The map is still being read: the server does not say it twice.
             state.early.retain(|early| early.id != unit.id);
@@ -26,7 +33,8 @@ pub fn unit_shown(unit: &Unit) {
                 hair_colour: unit.hair_colour,
                 headgear: unit.headgear,
                 body_palette: unit.body_palette,
-                weapon: 0,
+                weapon: unit.weapon,
+                shield: unit.shield,
                 action: 0,
                 frame: 0,
             }),
@@ -44,6 +52,8 @@ pub fn unit_shown(unit: &Unit) {
         let cell = (i32::from(unit.cell.0), i32::from(unit.cell.1));
         let mover = scene.units.entry(unit.id).or_insert_with(|| Mover::new(look.clone(), cell));
         mover.look = look;
+        // One that went out of sight a moment ago and is back does not fade on.
+        (mover.pose.vanishes, mover.pose.head) = (None, unit.head);
         // Who it is (a monster's kind too: `crate::blow` asks), and a player's state: what it rides shows at once.
         mover.job = unit.job;
         if unit.kind == Kind::Player {
@@ -53,27 +63,67 @@ pub fn unit_shown(unit: &Unit) {
         // What follows a # in the name of an NPC or a monster tells the server's scripts apart, and is not shown.
         mover.name = if unit.kind == Kind::Player { unit.name.clone() } else { unit.name.split('#').next().unwrap_or_default().trim().to_owned() };
         mover.lively = unit.kind == Kind::Monster;
+        // A monster's life as the server tells it with the monster: its bar shows from then, and goes when
+        // the server tells none (the client's `AM_UPDATE_MONSTER_GAGE`, sent -1 for both).
+        if mover.lively {
+            mover.life = unit.life;
+        }
         mover.companion = unit.kind == Kind::Companion;
+        mover.guild = if unit.kind == Kind::Player { (unit.guild, u32::from(unit.emblem)) } else { (0, 0) };
+        // Its body and health states: one who comes into sight poisoned or frozen is seen so.
+        ailments::seen(mover, unit.body, unit.health);
         mover.speed = if unit.speed > 0 { f64::from(unit.speed) } else { DEFAULT_SPEED };
-        match unit.walks_to {
-            Some(to) => mover.walk(&scene.gat, cell, (i32::from(to.0), i32::from(to.1))),
+        let lay = mover.dead;
+        match &unit.walks {
+            Some(walk) => {
+                mover.dead = false;
+                mover.walk(&scene.gat, &state.clock, walk);
+            }
             None => {
                 mover.walk = None;
-                mover.cell = cell;
+                mover.put(cell);
                 // The server counts directions from the north and turning left, the sprites from the south and
                 // turning the other way.
                 mover.facing = (12 - unit.direction % 8) % 8;
+                // How it is there: sitting, or lying dead (the packet's `state`; the client's `AM_STANDENTRY`
+                // puts it straight into that state, lying in the last picture of its fall).
+                if unit.kind == Kind::Player {
+                    (mover.sitting, mover.dead) = (unit.posture == crate::net::units::Posture::Sits, unit.posture == crate::net::units::Posture::Lies);
+                }
             }
+        }
+        // One that lay dead and is shown alive again is up.
+        if lay && !mover.dead {
+            mover.rises();
+        }
+        // The states its third option tells show on it: one who walks into sight with Fury on is seen so.
+        state_effects::third_option(state, unit.id, unit.third, unit.state, unit.kind == Kind::Player);
+    });
+}
+
+/// Someone already in sight walks from one cell to another (ZC_NOTIFY_MOVE): the time it set out at corrects
+/// the clock, and the walk is shown from that time (the client's `AM_MOVE`).
+pub fn unit_walk(id: u32, told: &Walked) {
+    STATE.with_borrow_mut(|state| {
+        state.clock.sync(now(), told.started);
+        let Some(scene) = &mut state.scene else { return };
+        if let Some(unit) = scene.units.get_mut(&id) {
+            unit.walk(&scene.gat, &state.clock, told);
         }
     });
 }
 
-/// Someone already in sight walks from one cell to another.
-pub fn unit_walk(id: u32, from: (u16, u16), to: (u16, u16)) {
+/// Someone is on a cell at once (ZC_HIGHJUMP: a leap, a slide, being thrown back): none named is the player's
+/// own character. The client writes the cell's middle as its place and nothing else.
+pub fn slid(id: Option<u32>, cell: (u16, u16)) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(unit) = scene.units.get_mut(&id) {
-            unit.walk(&scene.gat, (i32::from(from.0), i32::from(from.1)), (i32::from(to.0), i32::from(to.1)));
+        let mover = match id {
+            None => Some(&mut scene.player),
+            Some(id) => scene.units.get_mut(&id),
+        };
+        if let Some(mover) = mover {
+            mover.put((i32::from(cell.0), i32::from(cell.1)));
         }
     });
 }
@@ -136,11 +186,11 @@ pub fn unit_named(id: u32, name: &str) {
 
 /// Someone's look changes (ZC_SPRITE_CHANGE): `None` is the player's own character. The kinds are the server's:
 /// 1 the hair, 2 the weapon, 3 to 5 what is worn on the head (low, top, middle), 6 the hair's colour, 7 the
-/// clothes' colour.
-pub fn looked(id: Option<u32>, kind: u8, value: u32) {
+/// clothes' colour. `second` is the packet's second value: the shield, beside a weapon.
+pub fn looked(id: Option<u32>, kind: u8, value: u32, second: u32) {
     STATE.with_borrow_mut(|state| {
         if id.is_none() && kind == 2 {
-            state.weapon = value;
+            (state.weapon, state.shield) = (value, second);
         }
         let Some(scene) = &mut state.scene else { return };
         let mover = match id {
@@ -156,7 +206,8 @@ pub fn looked(id: Option<u32>, kind: u8, value: u32) {
         let Look::Character(figure) = &mut mover.look else { return };
         match kind {
             1 => figure.hair_style = value as u16,
-            2 => figure.weapon = value,
+            // The weapon, and with it the shield (rAthena's `clif_changelook` sends both in one).
+            2 => (figure.weapon, figure.shield) = (value, second),
             3 => figure.headgear[0] = value as u16,
             4 => figure.headgear[1] = value as u16,
             5 => figure.headgear[2] = value as u16,
@@ -170,21 +221,24 @@ pub fn looked(id: Option<u32>, kind: u8, value: u32) {
 /// Someone's state changed (none named: the player's own character): the bits say what they ride, and they are
 /// drawn so from now on. With a `mask`, only those bits are set or cleared and the rest stay as they were.
 pub fn stated(id: Option<u32>, bits: u32, mask: Option<u32>) {
-    STATE.with_borrow_mut(|state| {
+    let bash = STATE.with_borrow_mut(|state| {
         let merged = |was: u32| mask.map_or(bits, |mask| was & !mask | bits & mask);
         if id.is_none() {
             state.own_state = merged(state.own_state);
         }
-        let Some(scene) = &mut state.scene else { return };
+        let Some(scene) = &mut state.scene else { return false };
         let mover = match id {
             None => Some(&mut scene.player),
             Some(id) => scene.units.get_mut(&id),
         };
-        if let Some(mover) = mover {
-            mover.state = merged(mover.state);
-            mover.dress();
-        }
+        let Some(mover) = mover else { return false };
+        let now_in = merged(mover.state);
+        let was = std::mem::replace(&mut mover.state, now_in);
+        mover.dress();
+        // One that hides, or comes out, puffs smoke (`poses.rs`).
+        mover.hides(was, now())
     });
+    poses::hid(id, bash);
 }
 
 /// Someone says something: it shows over their head for a while. `own` is the player's own ID.
@@ -221,9 +275,28 @@ pub fn sat(id: u32, own: u32, down: bool) {
         let Some(scene) = &mut state.scene else { return };
         if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
             mover.sitting = down;
+            mover.pose.at_ease();
         }
     });
 }
+
+/// Someone plays dead, or stops (the client's `EFST_TRICKDEAD` in `ApplyStatusChange`: the last picture of
+/// the dying action, held; then standing again). The client treats one who plays dead as one dead wherever it
+/// asks (`isTrickDead` beside `ST_DEAD`), and so it is here. `own` is the player's own ID.
+pub fn plays_dead(id: u32, own: u32, down: bool) {
+    STATE.with_borrow_mut(|state| {
+        let Some(scene) = &mut state.scene else { return };
+        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
+            mover.dead = down;
+            if down {
+                mover.walk = None;
+            }
+        }
+    });
+}
+
+/// How long one that goes out of sight takes to fade (`AM_OUTOFSIGHT`).
+pub(super) const VANISH_MS: f64 = 510.0;
 
 /// Someone is out of sight, or gone.
 pub fn unit_gone(id: u32, died: bool) {
@@ -236,6 +309,14 @@ pub fn unit_gone(id: u32, died: bool) {
             // then lies as its last picture and fades (`MakeCorpse`).
             let time = now();
             let falls = state.landing.iter().filter(|blow| blow.1 == id).map(|blow| blow.0).fold(time, f64::max);
+            // A player struck down lies where it fell (the client's `AM_DEAD`): it is gone when it leaves,
+            // and stands up when it is raised (`poses::risen`).
+            if let Some(player) = scene.units.get_mut(&id).filter(|unit| died && matches!(unit.look, Look::Character(_))) {
+                if !player.dead {
+                    player.falls(falls);
+                }
+                return;
+            }
             match scene.units.get_mut(&id).filter(|unit| died && unit.lively) {
                 Some(unit) => {
                     let lasts = match &unit.look {
@@ -248,8 +329,12 @@ pub fn unit_gone(id: u32, died: bool) {
                     unit.life = None;
                     unit.motion = Some((32, falls, lasts));
                 }
+                // One out of sight fades away over half a second (`AM_OUTOFSIGHT`: its `vanishTime` is 510
+                // milliseconds on, its alpha half the milliseconds left); its shadow goes at once.
                 None => {
-                    scene.units.remove(&id);
+                    if let Some(unit) = scene.units.get_mut(&id).filter(|unit| unit.dying.is_none()) {
+                        unit.pose.vanishes.get_or_insert(time + VANISH_MS);
+                    }
                 }
             }
             scene.portals.remove(&id);
@@ -257,12 +342,11 @@ pub fn unit_gone(id: u32, died: bool) {
     });
 }
 
-/// The server says someone stands on a cell.
+/// The server says someone stands on a cell (ZC_STOPMOVE).
 pub fn unit_stand(id: u32, cell: (u16, u16)) {
     STATE.with_borrow_mut(|state| {
         if let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)) {
-            unit.walk = None;
-            unit.cell = (i32::from(cell.0), i32::from(cell.1));
+            unit.stand((i32::from(cell.0), i32::from(cell.1)));
         }
     });
 }

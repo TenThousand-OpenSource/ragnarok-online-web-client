@@ -10,30 +10,29 @@ impl App {
             items::ZC_INVENTORY_START => {
                 if packet.get(4) == Some(&0) {
                     self.bag.items.clear();
+                    self.bag.favourites.clear();
                 }
-                if packet.get(4) == Some(&trade::STORAGE) {
-                    self.deal.storage = Some(Storage::default());
+                if packet.get(4) == Some(&crate::net::storage::STORAGE) {
+                    self.storage_begun(packet);
                 }
             }
             items::ZC_INVENTORY_ITEMLIST_NORMAL => {
                 self.bag.items.extend(items::stackable(packet));
-                if let Some(storage) = &mut self.deal.storage {
-                    storage.items.extend(items::stackable_of(packet, trade::STORAGE));
-                }
+                self.bag.favourites.extend(items::favourite_stacks(packet));
+                self.storage_listed(id, packet);
                 self.items_changed();
             }
             items::ZC_INVENTORY_ITEMLIST_EQUIP => {
                 self.bag.items.extend(items::equipment(packet));
-                if let Some(storage) = &mut self.deal.storage {
-                    storage.items.extend(items::equipment_of(packet, trade::STORAGE));
-                }
+                self.bag.favourites.extend(items::favourite_equipment(packet));
+                self.storage_listed(id, packet);
                 self.items_changed();
             }
             // ZC_ITEMIDENTIFY_LIST (0x0177): `u16 length`, then the place in the inventory of each item not
             // identified. A magnifier was used: they are listed to pick the one to identify (the client's
             // `UIItemIdentifyWnd`).
             0x0177 => {
-                self.bag.identify = Some(packet.get(4..).unwrap_or_default().chunks_exact(2).map(|index| u16::from_le_bytes([index[0], index[1]])).collect());
+                self.bag.identify = Some(items::unidentified(packet));
                 self.bag.identify_picked = None;
                 self.render();
             }
@@ -48,6 +47,18 @@ impl App {
                         item.worn = 0;
                     }
                     self.items_changed();
+                } else {
+                    self.wearing_refused(items::take_off_refused(packet), false);
+                }
+            }
+            // A thing is kept under the inventory's tab "Fav" now, or no more.
+            items::ZC_INVENTORY_TAB => {
+                if let Some((index, kept)) = items::favourite_moved(packet) {
+                    self.bag.favourites.retain(|favourite| *favourite != index);
+                    if kept {
+                        self.bag.favourites.push(index);
+                    }
+                    self.redraw(&[&wnd::INVENTORY]);
                 }
             }
             // The server sends the list twice on coming in: the hotkey bar (tab 0), then the second bar (tab 1),
@@ -63,10 +74,9 @@ impl App {
                     self.items_changed();
                 }
             }
-            // ZC_EQUIP_ARROW (0x013c): `u16 index`. The ammunition in use (0: none).
+            // ZC_EQUIP_ARROW (0x013c): the ammunition in use.
             0x013c => {
-                if packet.len() >= 4 {
-                    let index = u16::from_le_bytes([packet[2], packet[3]]);
+                if let Some(index) = items::ammunition(packet) {
                     for item in self.bag.items.iter_mut().filter(|item| item.kind == 10) {
                         item.worn = if item.index == index { 0x8000 } else { 0 };
                     }
@@ -81,10 +91,10 @@ impl App {
     /// ZC_ACK_ITEMIDENTIFY (0x0179): `u16 index, u8 result`. Identified (0): the client says so in yellow
     /// and the item is what it is from now on, name and picture; failed (1): it says so in red.
     fn identified(&mut self, packet: &[u8]) {
-        let index = packet.get(2..4).map_or(0, |index| u16::from_le_bytes([index[0], index[1]]));
-        match packet.get(4) {
+        let (index, result) = items::identified(packet);
+        match result {
             Some(0) => {
-                self.chat_line(data::message(491).unwrap_or_else(|| "Item appraisal has completed successfully.".to_owned()), "#ffff00");
+                self.chat_line(data::message(491).unwrap_or_else(|| "Item appraisal has completed successfully.".to_owned()), YELLOW);
                 if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
                     item.identified = true;
                     // Its description, if open, is the identified one now.
@@ -94,18 +104,25 @@ impl App {
                 }
                 self.items_changed();
             }
-            Some(1) => self.chat_line(data::message(492).unwrap_or_else(|| "Item appraisal has failed.".to_owned()), "#ff0000"),
+            Some(1) => self.chat_line(data::message(492).unwrap_or_else(|| "Item appraisal has failed.".to_owned()), RED),
             _ => {}
         }
     }
 
     fn picked_up(&mut self, packet: &[u8]) {
         if let Some(gained) = items::gained(packet) {
+            self.bag.favourites.retain(|favourite| *favourite != gained.index);
+            if items::favourite_gained(packet) {
+                self.bag.favourites.push(gained.index);
+            }
             // What was picked up is told in the chat and shown for a moment, as the original does.
             self.bag.obtained = Some((gained.id, gained.amount, gained.identified));
             self.bag.obtained_at = js_sys::Date::now();
             match self.bag.items.iter_mut().find(|item| item.index == gained.index) {
-                Some(item) => item.amount += gained.amount,
+                Some(item) if item.id == gained.id => item.amount += gained.amount,
+                // Another thing in a place the server has given anew: what lay there is gone without a word
+                // (what was given away in a deal that is being made: `incoming/exchange.rs`).
+                Some(item) => *item = gained,
                 None => self.bag.items.push(gained),
             }
             self.items_changed();
@@ -117,12 +134,10 @@ impl App {
     fn item_used(&mut self, packet: &[u8]) {
         if let Some((index, item, who, left)) = items::used(packet) {
             let own = Some(who) == self.account.as_ref().map(|account| account.account_id);
-            // What the item looks and sounds like when used, by the client's own tables.
-            if let Some((file, sound)) = crate::effect_tables::item_effect(item) {
-                world::effect(file, (!own).then_some(who));
-                if let Some(sound) = sound {
-                    sound::effect(sound, 1.0);
-                }
+            // What the item looks and sounds like when used, by the client's own tables: its effect, launched
+            // on the one who used it as any effect is, with that effect's sounds heard from there.
+            if let Some(effect) = crate::effect_tables::item_effect(item) {
+                world::burst(effect, (!own).then_some(who), None, 0.0);
             }
             if own {
                 if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
@@ -141,7 +156,7 @@ impl App {
             // read as blue, green, red is cyan).
             let thrown = self.bag.items.iter().find(|item| id == items::ZC_ITEM_THROW_ACK && item.index == index && count > 0);
             if let Some((name, line)) = thrown.and_then(|item| Some((data::item_as(item.id, item.identified)?.0, data::message(1609)?))) {
-                self.chat_line_of(said::ITEM, crate::i18n::tr(&line).replacen("%s", &name, 1).replacen("%d", &count.to_string(), 1), "#00ffff");
+                self.chat_line_of(said::ITEM, crate::i18n::tr(&line).replacen("%s", &name, 1).replacen("%d", &count.to_string(), 1), CYAN);
             }
             if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
                 item.amount = item.amount.saturating_sub(count);
@@ -158,8 +173,45 @@ impl App {
             }
             self.items_changed();
         } else {
-            // The server would not have it worn (another job's thing, too low a level): the client says so.
-            self.chat_line_of(said::EQUIPMENT, crate::i18n::tr("You can't put this item on.").to_owned(), "#ff8484");
+            self.wearing_refused(items::wear_refused(packet), true);
+        }
+    }
+
+    /// The server would not have a thing put on, or taken off: the client's line for its answer
+    /// (`CGameMode::ReceiveWearEquipAck`, `ReceiveTakeOffEquipResult`: 1953 where the character does not meet
+    /// what the thing asks, 372 for any other thing that cannot be put on), in red among the lines of what
+    /// is worn. The colour and the kind of line are the ones this client had; the client's own were not read.
+    fn wearing_refused(&mut self, result: Option<u8>, putting_on: bool) {
+        let Some(line) = result.and_then(|result| items::refusal_line(result, putting_on)) else { return };
+        let otherwise = if line == 372 { "You can't put this item on." } else { "Can't equip this item because you don't meet the requirements." };
+        self.chat_line_of(said::EQUIPMENT, Self::words(line, otherwise), PALE_RED);
+    }
+
+    /// The weight carried, or the most that can be, changed from `was`, which was `before` hundredths of the
+    /// most, to what it is now (`CGameMode`'s `SP_WEIGHT` and `SP_MAXWEIGHT`): the chat says when that passes the share from
+    /// which nothing is recovered and 90 of a hundred, in red as it grows too heavy and in the client's
+    /// 0xFFFF00 as it is light enough again.
+    pub(super) fn weight_told(&mut self, name: u16, was: i64, before: i64) {
+        use crate::net::items::weight;
+        let value = |app: &Self, name: u16| app.hero.params.get(&name).copied().unwrap_or(0);
+        // Until the most that can be carried is known there is no share to tell of; and of that most the
+        // client tells only when it grew from one it knew.
+        let most = value(self, packets::parameter::MAX_WEIGHT);
+        if most == 0 || (name == packets::parameter::MAX_WEIGHT && (was == 0 || was >= most)) {
+            return;
+        }
+        let after = weight::percent(value(self, packets::parameter::WEIGHT), value(self, packets::parameter::MAX_WEIGHT));
+        let lines = if name == packets::parameter::WEIGHT { weight::weight_changed(before, after, self.notices.overweight.clamp(1, 100) as u8) } else { weight::most_grew(before, after) };
+        for said in lines {
+            let otherwise = match said.line {
+                307 => "Attacks and skills cannot be used when your Weight is over 90%.",
+                308 => "Your HP/SP are now being restored naturally.",
+                309 => "Attack and Skills are now available.",
+                _ => "Your weight limit is over %d, HP and SP will not recover naturally.",
+            };
+            let words = Self::words(said.line, otherwise);
+            let words = if said.with_share { words.replace("%d", &self.notices.overweight.to_string()) } else { words };
+            self.chat_line_of(said::STATUS, words, if said.warning { RED } else { CYAN });
         }
     }
 }

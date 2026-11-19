@@ -5,6 +5,9 @@ use super::*;
 /// Where the browser keeps it: the options switched (`name=1`), and the sound (`music,effects,music off,effects off`).
 const OPTIONS_KEPT: &str = "roweb.options";
 const SOUND_KEPT: &str = "roweb.levels";
+/// This project's own option, kept with the client's: walking in stretches to a place pressed too far away
+/// (`world::Options::far_walk`). Off until switched on with `/farwalk`.
+pub(super) const FAR_WALK: &str = "ROWEB_FAR_WALK";
 
 impl App {
     /// Reads what the browser keeps.
@@ -21,14 +24,20 @@ impl App {
     /// Whether an option of the client is on (by its name, `TT_FIXED_CAMERA_ON_OFF`): as the player set it,
     /// or as the client's table starts it.
     pub(in crate::web) fn option(&self, id: &str) -> bool {
-        self.settings.set.get(id).copied().unwrap_or_else(|| data::option_starts(id))
+        self.settings.set.get(id).copied().unwrap_or_else(|| Self::option_starts(id))
+    }
+
+    /// How an option starts: as the client's table of the Game Settings has it, or, for one that has a
+    /// command and no row there, as `commands/beside.rs` has it.
+    fn option_starts(id: &str) -> bool {
+        Self::starts_beside(id).unwrap_or_else(|| data::option_starts(id))
     }
 
     /// Switches an option, keeps it, and has what it changes follow.
     pub(super) fn switch_option(&mut self, id: &str) {
         let on = !self.option(id);
         // One that is as it starts again is not kept: it follows the client's table.
-        if on == data::option_starts(id) {
+        if on == Self::option_starts(id) {
             self.settings.set.remove(id);
         } else {
             self.settings.set.insert(id.to_owned(), on);
@@ -36,10 +45,23 @@ impl App {
         let kept: Vec<String> = self.settings.set.iter().map(|(name, on)| format!("{name}={}", u8::from(*on))).collect();
         store(OPTIONS_KEPT, (!kept.is_empty()).then(|| kept.join(";")).as_deref());
         self.apply_options();
+        // What the server is told of (`CZ_CONFIG`): whether the guild's Emergency Call may take the character
+        // (`/call`, the setting 1), and whether the pet's window opens by itself when the pet is unhappy (the
+        // setting 6).
+        match id {
+            "TT_BLOCK_CALL_ON_OFF" => self.send_on_map(&crate::net::viewequip::set(1, on)),
+            "TT_PETINFO_ALERT_ONOFF" => self.send_on_map(&crate::net::viewequip::set(6, on)),
+            _ => {}
+        }
+        // The minimap's buttons show or go as their option says.
+        if id == "TT_SHOW_MINIMAP_BUTTON_ONOFF" {
+            self.render();
+        }
     }
 
     /// Tells the world of the options it goes by.
     pub(in crate::web) fn apply_options(&self) {
+        self.vending_signs_told();
         world::camera_fixed(self.option("TT_FIXED_CAMERA_ON_OFF"));
         world::options(world::Options {
             no_ctrl: self.option("TT_NOCTRL_ON_OFF"),
@@ -50,7 +72,15 @@ impl App {
             monster_life: self.option("TT_MONSTERHP_ON_OFF"),
             hide_players: self.option("TT_HIDE_PLAYER_ON_OFF"),
             zoom_out: self.option("TT_EXPAND_SIGHT_ON_OFF"),
+            far_walk: self.option(FAR_WALK),
+            quake: self.option("TT_QUAKE_ON_OFF"),
+            name_above: self.option("TT_NAME_ABOVE_HEAD_ON_OFF"),
+            emblems: self.option("TT_SHOW_EMBLEM_ON_OFF"),
         });
+        // The fog of maps shows or not (`/fog`).
+        world::fog(self.option("TT_FOG_ON_OFF"));
+        // A window being moved docks to the others and to the screen's edges (`/window`).
+        snap_windows(self.option("TT_WINDOW_SNAP_ON_OFF"));
     }
 
     /// The sound's levels as set, told to what plays, and kept.

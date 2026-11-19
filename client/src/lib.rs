@@ -1,22 +1,50 @@
 //! roweb: a Ragnarok Online client for the browser.
 
+pub mod ai;
+pub mod ailments;
 pub mod blow;
 pub mod bmp;
+pub mod carts;
+pub mod chat_tabs;
+pub mod body;
 pub mod cursor;
+pub mod earshot;
 pub mod effect;
+pub mod figures;
+pub mod font;
 pub mod effect_tables;
 pub mod hotkeys;
 pub mod i18n;
+pub mod item_names;
 pub mod jobs;
+pub mod links;
 pub mod map;
 pub mod model;
 pub mod mounts;
+pub mod names;
 pub mod net;
+pub mod pose;
 pub mod press;
 pub mod prim;
+pub mod quake;
+pub mod quests;
+pub mod route;
+pub mod said;
+pub mod scenery;
+pub mod scope;
+pub mod screenshot;
+pub mod server_time;
+pub mod skill_units;
+pub mod snap;
 pub mod sprite;
 pub mod stack;
+pub mod song_talk;
+pub mod state_effects;
+pub mod statuses;
+pub mod cooldowns;
+pub mod commands;
 pub mod talk;
+pub mod whispers;
 
 #[cfg(target_arch = "wasm32")]
 mod web;

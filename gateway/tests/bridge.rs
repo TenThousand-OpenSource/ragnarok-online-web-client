@@ -22,7 +22,7 @@ const TIMEOUT: Duration = Duration::from_secs(5);
 /// Starts a gateway that bridges to `host` on `ports`, and returns its address.
 async fn gateway(host: &str, ports: Vec<u16>) -> String {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let router = bridge::router(Bridge { host: host.to_owned(), ports, login_guard: None, connections_per_minute: 10_000 });
+    let router = bridge::router(Bridge { host: host.to_owned(), ports, login_guard: None, connections_per_minute: 10_000, lag: Default::default() });
     serve(listener, router)
 }
 
@@ -285,7 +285,7 @@ async fn refuses_oversized_messages() {
 async fn limits_new_connections_per_address() {
     let (server, port) = game_server().await;
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let gateway = serve(listener, bridge::router(Bridge { host: "127.0.0.1".to_owned(), ports: vec![port], login_guard: None, connections_per_minute: 3 }));
+    let gateway = serve(listener, bridge::router(Bridge { host: "127.0.0.1".to_owned(), ports: vec![port], login_guard: None, connections_per_minute: 3, lag: Default::default() }));
 
     let mut open_sockets = Vec::new();
     for _ in 0..3 {
@@ -356,7 +356,7 @@ async fn login_server() -> (u16, Arc<AtomicUsize>) {
 async fn guarded_gateway(port: u16, per_address: usize, per_account: usize) -> String {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let guard = LoginGuard::with_limits(port, per_address, per_account, Duration::from_secs(600));
-    serve(listener, bridge::router(Bridge { host: "127.0.0.1".to_owned(), ports: vec![port], login_guard: Some(Arc::new(guard)), connections_per_minute: 10_000 }))
+    serve(listener, bridge::router(Bridge { host: "127.0.0.1".to_owned(), ports: vec![port], login_guard: Some(Arc::new(guard)), connections_per_minute: 10_000, lag: Default::default() }))
 }
 
 /// One login attempt, with the request sent in pieces of `piece` bytes.
@@ -471,7 +471,7 @@ async fn guard_leaves_other_ports_alone() {
     let (server, port) = game_server().await;
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let guard = LoginGuard::with_limits(1, 1, 1, Duration::from_secs(600));
-    let gateway = serve(listener, bridge::router(Bridge { host: "127.0.0.1".to_owned(), ports: vec![port], login_guard: Some(Arc::new(guard)), connections_per_minute: 10_000 }));
+    let gateway = serve(listener, bridge::router(Bridge { host: "127.0.0.1".to_owned(), ports: vec![port], login_guard: Some(Arc::new(guard)), connections_per_minute: 10_000, lag: Default::default() }));
     let mut browser = open(&gateway, port).await;
     let (mut game, _) = within(server.accept()).await.unwrap();
 

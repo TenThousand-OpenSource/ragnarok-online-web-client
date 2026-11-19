@@ -93,10 +93,24 @@ fn wire_presses(ui: &Element) -> Result<(), String> {
             event.prevent_default();
             dispatch(Action::Dropped(slot, None));
         }
+        // The right button with Alt held on a thing that goes into the storage or comes out of it moves all
+        // of it at once (the client's `UIItemWnd::OnRBtnDown`, `UIItemStoreWnd::OnRBtnDown`).
+        let alt = event.dyn_ref::<web_sys::MouseEvent>().is_some_and(|event| event.alt_key());
+        let stowed = pressed(&event, "data-use").filter(|_| alt).and_then(|thing| thing.get_attribute("data-use")).and_then(|what| things::read::<Use>(&what));
+        if let Some(what @ (Use::Put(_) | Use::Take(_))) = stowed {
+            event.prevent_default();
+            return dispatch(Action::Stowed(what));
+        }
         // The right button on an item shows what it is.
         if let Some((id, identified)) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| Some((id.trim_end_matches('?').parse().ok()?, !id.ends_with('?')))) {
             event.prevent_default();
             dispatch(Action::Info(id, identified));
+        }
+        // The right button on a thing that has a menu opens it there (`data-menu`).
+        let place = event.dyn_ref::<web_sys::MouseEvent>().map(|event| (event.client_x() as f32, event.client_y() as f32));
+        if let (Some(what), Some(place)) = (pressed(&event, "data-menu").and_then(|thing| thing.get_attribute("data-menu")).and_then(|what| things::read(&what)), place) {
+            event.prevent_default();
+            dispatch(Action::MenuOn(what, place));
         }
         // The right button on a skill shows its description.
         if let Some(id) = pressed(&event, "data-skill").and_then(|skill| skill.get_attribute("data-skill")).and_then(|id| id.parse().ok()) {
@@ -159,10 +173,13 @@ fn wire_page(window: &web_sys::Window, document: &web_sys::Document) -> Result<(
         glance(App::tune);
     });
     let on_timer = Closure::<dyn FnMut()>::new(|| dispatch(Action::KeepAlive));
+    let on_watch = Closure::<dyn FnMut()>::new(|| dispatch(Action::Watch));
     window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("visibilitychange", on_visibility.as_ref().unchecked_ref()).map_err(js_error)?;
     window.set_interval_with_callback_and_timeout_and_arguments_0(on_timer.as_ref().unchecked_ref(), KEEP_ALIVE_MS).map_err(js_error)?;
+    window.set_interval_with_callback_and_timeout_and_arguments_0(on_watch.as_ref().unchecked_ref(), crate::net::link::WATCH_EVERY).map_err(js_error)?;
     // These live as long as the page.
+    on_watch.forget();
     on_resize.forget();
     on_visibility.forget();
     on_timer.forget();
@@ -180,6 +197,10 @@ fn restore(window: &web_sys::Window) {
         app.sound = stored("roweb.sound").as_deref() != Some("off");
         app.load_keys();
         app.load_settings();
+        app.load_chat();
+        app.load_shortcuts();
+        app.load_tips();
+        app.load_whispers();
         // A reset link from an e-mail: `/?reset=<token>`.
         let query = window.location().search().unwrap_or_default();
         // `/?mute` opens the page silent without changing what the player has chosen: for tests beside a player.

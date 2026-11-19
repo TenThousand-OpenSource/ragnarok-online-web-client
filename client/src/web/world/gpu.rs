@@ -3,6 +3,10 @@
 use super::*;
 
 mod draw;
+mod land;
+mod layers;
+
+pub(super) use layers::{frames_of, sheet};
 
 pub(super) fn depth_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
     device
@@ -25,9 +29,10 @@ pub(super) fn effect_buffer(device: &wgpu::Device, room: usize) -> wgpu::Buffer 
     device.create_buffer(&wgpu::BufferDescriptor { label: None, size: (room * 6 * 36) as u64, usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false })
 }
 
-/// A buffer for the corners of `room` sprites: six corners each, of three coordinates and two texture ones.
+/// A buffer for the corners of `room` sprites: six corners each, of three coordinates, two texture ones and
+/// four of colour.
 pub(super) fn sprite_buffer(device: &wgpu::Device, room: usize) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor { label: None, size: (room * 6 * 20) as u64, usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false })
+    device.create_buffer(&wgpu::BufferDescriptor { label: None, size: (room * 6 * 36) as u64, usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false })
 }
 
 /// The canvas's surface, the device that draws on it and its queue, and how the surface is set up for a canvas
@@ -94,9 +99,10 @@ impl Gpu {
         canvas.set_height(height);
         let (surface, device, queue, config) = connect(&canvas, (width, height)).await?;
 
+        // The camera's matrix and, after it, what the programs of the map are told besides (`gpu/land.rs`).
         let camera_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
-            size: 64,
+            size: land::FRAME_BYTES,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -104,11 +110,14 @@ impl Gpu {
 
         let pipeline = |shader: &str, attributes: &[wgpu::VertexAttribute], stride: u64, blend: wgpu::BlendState, depth_write: bool| pipeline(&device, config.format, shader, attributes, stride, blend, depth_write);
         let ground_pipeline = pipeline(GROUND_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x2, 3 => Float32x3], 40, wgpu::BlendState::REPLACE, true);
-        let model_pipeline = pipeline(MODEL_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x3], 32, wgpu::BlendState::REPLACE, true);
-        let water_pipeline = pipeline(WATER_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2], 20, wgpu::BlendState::ALPHA_BLENDING, false);
-        let sprite_pipeline = pipeline(SPRITE_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2], 20, wgpu::BlendState::ALPHA_BLENDING, false);
+        // The models: those whose pictures are cut out by their colour, and those mixed in by their alpha.
+        let model_attributes = wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x3, 3 => Float32x3];
+        let model_pipelines = [pipeline(MODEL_SHADER, &model_attributes, 44, wgpu::BlendState::REPLACE, true), pipeline(MODEL_BLENDING_SHADER, &model_attributes, 44, wgpu::BlendState::ALPHA_BLENDING, false)];
+        let water_pipeline = pipeline(WATER_SHADER, &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32], 24, wgpu::BlendState::ALPHA_BLENDING, false);
         let effect_attributes = wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x4];
         let adding = wgpu::BlendComponent { src_factor: wgpu::BlendFactor::SrcAlpha, dst_factor: wgpu::BlendFactor::One, operation: wgpu::BlendOperation::Add };
+        let sprite_pipeline = pipeline(SPRITE_SHADER, &effect_attributes, 36, wgpu::BlendState::ALPHA_BLENDING, false);
+        let sprite_adding_pipeline = pipeline(SPRITE_SHADER, &effect_attributes, 36, wgpu::BlendState { color: adding, alpha: adding }, false);
         let effect_pipelines = [
             pipeline(EFFECT_SHADER, &effect_attributes, 36, wgpu::BlendState::ALPHA_BLENDING, false),
             pipeline(EFFECT_SHADER, &effect_attributes, 36, wgpu::BlendState { color: adding, alpha: adding }, false),
@@ -130,9 +139,10 @@ impl Gpu {
             })
         };
         let (camera_bind, sprite_camera_bind) = (camera(&ground_pipeline), camera(&sprite_pipeline));
-        let (model_camera_bind, water_camera_bind) = (camera(&model_pipeline), camera(&water_pipeline));
+        let (model_camera_binds, water_camera_bind) = ([camera(&model_pipelines[0]), camera(&model_pipelines[1])], camera(&water_pipeline));
 
         let effect_camera_binds = [camera(&effect_pipelines[0]), camera(&effect_pipelines[1])];
+        let sprite_adding_camera_bind = camera(&sprite_adding_pipeline);
         let pixel_sampler = device.create_sampler(&wgpu::SamplerDescriptor::default());
         let sprite_room = 64;
         let sprite_vertices = sprite_buffer(&device, sprite_room);
@@ -148,12 +158,14 @@ impl Gpu {
             camera_buffer,
             camera_bind,
             sprite_camera_bind,
-            model_camera_bind,
+            model_camera_binds,
             water_camera_bind,
             ground_pipeline,
-            model_pipeline,
+            model_pipelines,
             water_pipeline,
             sprite_pipeline,
+            sprite_adding_pipeline,
+            sprite_adding_camera_bind,
             sampler,
             repeating,
             pixel_sampler,
@@ -167,7 +179,8 @@ impl Gpu {
             effect_vertices,
             effect_room: 64,
             effect_pictures: HashMap::new(),
-            arrow: None,
+            effect_sprites: HashMap::new(),
+            effect_layers: HashMap::new(),
         })
     }
 
@@ -258,7 +271,24 @@ impl Gpu {
         let canvas = &picture.canvas;
         let view = self.texture(canvas.width as u32, canvas.height as u32, &canvas.rgba);
         let bind = self.textured(&self.sprite_pipeline.get_bind_group_layout(1), &view, &self.pixel_sampler);
-        self.sprite_textures.insert(key.clone(), SpriteTexture { bind, size: (canvas.width as f32, canvas.height as f32), feet: picture.feet });
+        let adding = self.textured(&self.sprite_adding_pipeline.get_bind_group_layout(1), &view, &self.pixel_sampler);
+        self.sprite_textures.insert(key.clone(), SpriteTexture { bind, adding, size: (canvas.width as f32, canvas.height as f32), feet: picture.feet });
         true
+    }
+
+    /// A frame of a sprite as one picture for the effects' pipelines (an arrow in flight): put on the GPU now if
+    /// it is ready, nothing while it is not. (The sprites of the effects made of the client's primitives are
+    /// drawn a layer at a time: `gpu/layers.rs`.)
+    pub(super) fn effect_sprite(&mut self, key: &SpriteKey) -> Option<EffectSprite> {
+        if let Some(known) = self.effect_sprites.get(key) {
+            return Some(known.clone());
+        }
+        let picture = figure::picture(key)?;
+        let canvas = &picture.canvas;
+        let view = self.texture(canvas.width as u32, canvas.height as u32, &canvas.rgba);
+        let binds = [0, 1].map(|which| self.textured(&self.effect_pipelines[which].get_bind_group_layout(1), &view, &self.pixel_sampler));
+        let made = EffectSprite { binds: Rc::new(binds), size: (canvas.width as f32, canvas.height as f32) };
+        self.effect_sprites.insert(key.clone(), made.clone());
+        Some(made)
     }
 }

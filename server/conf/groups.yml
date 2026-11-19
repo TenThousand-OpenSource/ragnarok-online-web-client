@@ -1,0 +1,19 @@
+# What the players of the local server may do beyond rAthena's defaults (conf/groups.yml); read over them.
+#
+# Selling while away: a merchant opens a shop (Vending) and types @autotrade (or @at). The client is
+# disconnected and the character stays where it is, selling, until everything is sold or the player logs in
+# again; shops come back after a restart of the server (feature.autotrade in rAthena's conf/battle/feature.conf).
+# rAthena gives the command to group 1 and above only; here every player (group 0) has it.
+#
+# TO SWITCH IT OFF: change "true" to "false" on the autotrade line below and restart the map server:
+#   docker compose -f roweb/server/docker-compose.yml restart map
+# Limits, if wanted, go into battle_conf.txt beside this file: at_timeout (minutes), at_mapflag,
+# at_monsterignore.
+Header:
+  Type: PLAYER_GROUP_DB
+  Version: 1
+
+Body:
+  - Id: 0
+    Commands:
+      autotrade: true

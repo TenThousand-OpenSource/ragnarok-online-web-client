@@ -21,6 +21,9 @@ impl App {
             if self.minimap_zoom > 1.0 {
                 if let Some(marks) = element("map-marks") {
                     marks.set_inner_html(&crate::web::view::minimap_marks(game, self.minimap_zoom, self.minimap_marks_off));
+                    self.party_marks();
+                    self.quest_marks();
+                    self.compass_marks();
                 }
             }
         }
@@ -35,6 +38,10 @@ impl App {
         self.apply_options();
         if outcome.is_ok() {
             self.map_sign();
+            // The Tipbox opens as the game is first entered, unless the player has it not.
+            self.tips_at_start();
+            // The effects of the states the character is in begin anew on the map it has come to.
+            world::own_states_again(self.statuses.on.iter().map(|active| active.state));
         }
         if let Err(error) = outcome {
             web_sys::console::error_1(&format!("world: {error}").into());
@@ -69,11 +76,15 @@ impl App {
         self.hero.dead = false;
         self.esc = 0;
         self.dialog = None;
+        // What an NPC's script showed and the chat room sat in are of the place left.
+        self.scripted_moved(same);
+        self.chat_rooms_moved();
         self.refresh_values();
         self.redraw(&[&wnd::DIALOG]);
         if same {
             // The map is already drawn: the character is only put elsewhere on it.
             world::jump((x, y));
+            world::own_states_again(self.statuses.on.iter().map(|active| active.state));
             // (While the map is read, its loading screen stays; the dark goes when it shows.)
             if !reading {
                 fade(false);

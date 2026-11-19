@@ -33,12 +33,57 @@ pub mod interface {
     pub const BASIC_INFO: usize = 0;
     pub const EQUIPMENT: usize = 1;
     pub const SKILLS: usize = 2;
+    /// The quest journal (`HK_QUESTWND_ONOFF`).
+    pub const QUESTS: usize = 3;
+    /// The window of friends and party, on its Friend side and on its Party side (`HK_FRIENDWND_ONOFF`,
+    /// `HK_PARTYWND_ONOFF`: Alt+H and Alt+Z).
+    pub const FRIENDS: usize = 4;
+    pub const PARTY: usize = 5;
+    /// The World Map (`HK_MAPWND_ONOFF`: Ctrl+~).
+    pub const WORLD_MAP: usize = 8;
+    /// The window that makes a chat room (`HK_CHATWND_MAKE`: Alt+C).
+    pub const CHAT_ROOM: usize = 6;
+    /// The cart's window (`HK_CARTWND_ONOFF`: Alt+W).
+    pub const CART: usize = 7;
     pub const INVENTORY: usize = 9;
+    pub const GUILD: usize = 10;
+    /// The window of emotions (`HK_EMOTIONWND_ONOFF`: Alt+L).
+    pub const EMOTIONS: usize = 11;
     pub const SIT: usize = 12;
+    /// The minimap, shown, shown fainter, away (`HK_MINIMAP_ONOFF`: Ctrl+Tab).
+    pub const MINIMAP: usize = 13;
+    /// The Shortcut List (`HK_MACROWND_ONOFF`: Alt+M).
+    pub const SHORTCUTS: usize = 14;
+    /// The Game Settings on their page of commands (Alt+Y).
+    pub const COMMANDS: usize = 15;
+    /// The windows put away and brought back (F11).
+    pub const WINDOWS: usize = 16;
     pub const HOTKEY_BAR: usize = 17;
+    /// The chat window shown and hidden (Alt+F10).
+    pub const CHAT: usize = 18;
     pub const CHAT_SIZE: usize = 19;
+    /// A picture of the screen (Print Screen).
+    pub const SCREENSHOT: usize = 21;
     pub const PET: usize = 23;
+    /// The windows of the homunculus and of the mercenary, and the two told to stand by (`HK_HOMUNWND_ONOFF`,
+    /// `HK_MERWND_ONOFF`, `HK_HOMUN_FOLLOW`, `HK_MER_FOLLOW`: Alt+R, Ctrl+R, Alt+T and Ctrl+T in the client's
+    /// table).
+    pub const HOMUNCULUS: usize = 24;
+    pub const MERCENARY: usize = 25;
+    pub const HOMUNCULUS_STAND_BY: usize = 26;
+    pub const MERCENARY_STAND_BY: usize = 27;
+    /// The Friend Setup and the party's setup, which start with no key.
+    pub const FRIEND_SETUP: usize = 28;
+    pub const PARTY_SETUP: usize = 29;
+    /// The strip of menu icons folded away and brought back (Alt+~).
+    pub const MENU: usize = 32;
     pub const STATUS: usize = 47;
+    /// The mailbox (`HK_MAIL_ONOFF`).
+    pub const MAIL: usize = 51;
+    /// The Tipbox (Alt+D).
+    pub const TIPS: usize = 54;
+    /// Other players drawn faintly, or as they are (Ctrl+End).
+    pub const HIDE_PLAYERS: usize = 59;
 }
 
 /// The places of the interface table the window does not list (the client's `HiddenHotkeyIndex`).
@@ -120,6 +165,8 @@ pub fn mac_instead(which: usize, place: usize) -> Option<Chord> {
     match (which, place) {
         // Sit and stand: Insert.
         (table::INTERFACE, interface::SIT) => Some(Chord { key: u16::from(b'X'), with: ALT }),
+        // A picture of the screen: Print Screen.
+        (table::INTERFACE, interface::SCREENSHOT) => Some(Chord { key: u16::from(b'P'), with: ALT }),
         _ => None,
     }
 }

@@ -2,19 +2,6 @@
 
 use super::*;
 
-/// A number with commas between its thousands.
-pub(super) fn grouped(number: i64) -> String {
-    let digits = number.unsigned_abs().to_string();
-    let mut grouped = String::new();
-    for (index, digit) in digits.chars().enumerate() {
-        if index > 0 && (digits.len() - index) % 3 == 0 {
-            grouped.push(',');
-        }
-        grouped.push(digit);
-    }
-    if number < 0 { format!("-{grouped}") } else { grouped }
-}
-
 impl App {
     /// A gauge of the Basic Information window: its back, the fill up to `now` of `most` (red when under a
     /// quarter), and the two numbers over it.
@@ -42,7 +29,8 @@ impl App {
         gauge.push_str(&art(&format!("basic_interface/gze{colour}_left.bmp"), x, y, 4, 8));
         gauge.push_str(&art(&format!("basic_interface/gze{colour}_mid.bmp"), x + 4, y, fill, 8));
         gauge.push_str(&art(&format!("basic_interface/gze{colour}_right.bmp"), x + 4 + fill, y, 4, 8));
-        gauge.push_str(&format!(r#"<div class="a t centre" style="{};white-space:pre">{now:3}  /  {most:3}</div>"#, at(x, y - 2, 135, 13)));
+        // The numbers over it: `UIBarGraphPlayer::Paint`, in the middle, 2 above the gauge, as (1, 13).
+        gauge.push_str(&format!(r#"<div class="a t centre" style="{};{};white-space:pre">{now:3}  /  {most:3}</div>"#, at(x, y - 2, 135, 13), Font(1, 13, false).style()));
         gauge
     }
 
@@ -65,60 +53,72 @@ impl App {
         if most > 0 { format!("{}%", now * 100 / most) } else { String::new() }
     }
 
-    /// The strip of icons that open the windows, as the original lays it out: five to a row, under a bar that
-    /// folds it away. The icons of windows not made yet are there, faded, and do nothing.
+    /// The strip of icons that open the windows, as the original lays it out (`UIMenuIconWnd::OnCreate`): five
+    /// to a row, under a bar that folds it away. Under the pointer an icon tells what it opens, in the words
+    /// of the client's message table, with the key that opens it too where there is one
+    /// (`UIMenuIcon::OnMouseMove`: the line of the table and the entry of the interface's keys are beside each
+    /// icon here; the game's options tell of Escape). The icons of what only later content has are there,
+    /// faded, and are pressed for nothing.
     pub(in crate::web) fn menu_icons(&self) -> String {
-        // What an icon does is written as its tag has it: a press, or nothing for a window not made.
-        use crate::press::{guide, inventory, skills, status};
-        let none = || r#"data-click="""#.to_owned();
-        let icons: [(&str, String, &str); 23] = [
-            ("status", pressed(status::Press::Window), "Status (Alt+A)"),
-            ("equip", pressed(inventory::Press::Equipment), "Equipment (Alt+Q)"),
-            ("item", pressed(inventory::Press::Window), "Inventory (Alt+E)"),
-            ("skill", pressed(skills::Press::Window), "Skills (Alt+S)"),
-            ("party", none(), "Party (Alt+Z)"),
-            ("guild", none(), "Guild (Alt+G)"),
-            ("battle", none(), "Battlegrounds"),
-            ("quest", none(), "Quests (Alt+U)"),
-            ("map", none(), "World map (Ctrl+~)"),
-            ("navigation", none(), "Navigation"),
-            ("option", none(), "Options (Alt+O)"),
-            ("bank", none(), "Bank"),
-            ("rec", none(), "Replay"),
-            ("mail", none(), "Mail"),
-            ("achievement", none(), "Achievements"),
-            ("tip", none(), "Tips"),
-            ("shop", none(), "Cash shop"),
-            ("keyboard", none(), "Shortcut settings"),
-            ("attendance", none(), "Attendance"),
-            ("adventurerAgency", none(), "Adventurer agency"),
-            ("repute", none(), "Reputation"),
-            ("adventureguide", pressed(guide::Press::Open), "Adventure guide"),
-            ("probability", none(), "Probabilities"),
+        use crate::hotkeys::interface as key;
+        use crate::press::{Press, general, guide, inventory, skills, status};
+        // The icon's picture, what a press on it does, the line of the message table, the same in this
+        // client's words until the table is read, and its key.
+        let icons: [(&str, Option<Press>, usize, &str, Option<usize>); 23] = [
+            ("status", Some(status::Press::Window.into()), 105, "Status", Some(key::STATUS)),
+            ("equip", Some(inventory::Press::Equipment.into()), 104, "Equipment", Some(key::EQUIPMENT)),
+            ("item", Some(inventory::Press::Window.into()), 106, "Inventory", Some(key::INVENTORY)),
+            ("skill", Some(skills::Press::Window.into()), 283, "Skill Tree", Some(key::SKILLS)),
+            ("party", Some(crate::press::party::Press::Window.into()), 103, "Party", Some(key::PARTY)),
+            ("guild", Some(crate::press::guild::Press::Window.into()), 3134, "Guild", Some(key::GUILD)),
+            ("battle", None, 2003, "Battleground", None),
+            ("quest", Some(crate::press::quests::Press::Window.into()), 1317, "Quest List", Some(key::QUESTS)),
+            ("map", Some(crate::press::worldmap::Press::Window.into()), 2859, "World Map", Some(key::WORLD_MAP)),
+            ("navigation", None, 2353, "Navigation", None),
+            ("option", Some(general::Press::Options.into()), 265, "Option", None),
+            ("bank", None, 3135, "Bank", None),
+            ("rec", None, 2350, "Replay", None),
+            ("mail", Some(crate::press::mail::Press::Window.into()), 3136, "Mail", Some(key::MAIL)),
+            ("achievement", None, 2646, "Achievements", None),
+            ("tip", Some(crate::press::tips::Press::Window.into()), 3239, "Tipbox", Some(key::TIPS)),
+            ("shop", None, 3137, "Cash Shop", None),
+            // The client's icon opens its guide to the keys (`WID_HOTKEYGUIDEWND`), a picture of a keyboard;
+            // here it opens the Shortcut Settings, which the client has in the game's menu.
+            ("keyboard", Some(crate::press::hotkeys::Press::Open.into()), 3128, "Hotkey Guide", None),
+            ("attendance", None, 3473, "Attendance check", None),
+            ("adventurerAgency", None, 3514, "Adventurer's Agency", None),
+            ("repute", None, 3827, "Reputation Status", None),
+            ("adventureguide", Some(guide::Press::Open.into()), 4053, "Adventure guide", None),
+            ("probability", None, 4119, "Probabilities", None),
         ];
         let bar = |name: &str| {
-            format!(
-                r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {} title="Menu"></button>"#,
-                at(0, 4, 219, 9),
-                picture(&format!("menu_icon/bt_menu_{name}normal.bmp")),
-                picture(&format!("menu_icon/bt_menu_{name}over.bmp")),
-                picture(&format!("menu_icon/bt_menu_{name}press.bmp")),
-                pressed(crate::press::general::Press::Menu)
-            )
+            pictured(0, 4, (219, 9), [&format!("menu_icon/bt_menu_{name}normal.bmp"), &format!("menu_icon/bt_menu_{name}over.bmp"), &format!("menu_icon/bt_menu_{name}press.bmp")], general::Press::Menu, r#" title="Menu""#)
         };
         if self.menu_closed {
             return bar("");
         }
         let mut strip = bar("close_");
-        for (position, (name, click, title)) in icons.iter().enumerate() {
-            let name = if *name == "status" && self.game.as_ref().is_some_and(|game| data::is_doram(game.job)) { "status_doram" } else { name };
+        for (position, (name, press, line, otherwise, key)) in icons.into_iter().enumerate() {
+            let name = if name == "status" && self.game.as_ref().is_some_and(|game| data::is_doram(game.job)) { "status_doram" } else { name };
             let (x, y) = ((position % 5 * 42 + 9) as i32, (position / 5 * 43 + 23) as i32);
-            let (normal, pressed) = (picture(&format!("menu_icon/bt_{name}.bmp")), picture(&format!("menu_icon/bt_{name}_press.bmp")));
-            let dim = if *click == none() { " dim" } else { "" };
+            // With mail not read the mail's icon is the one that wears a mark, six higher and 35 by 40
+            // (`UIMenuIconWnd::OnCreate`, `notificationButtons`).
+            let (name, y, size) = if name == "mail" && self.mail.marked { ("mail_new", y - 6, (35, 40)) } else { (name, y, (32, 34)) };
+            let (normal, down) = (picture(&format!("menu_icon/bt_{name}.bmp")), picture(&format!("menu_icon/bt_{name}_press.bmp")));
+            let keys = match (name, key) {
+                ("option", _) => "Esc".to_owned(),
+                (_, Some(place)) => crate::hotkeys::written(self.bound(crate::hotkeys::table::INTERFACE, place), self.keys.mac, data::key_name),
+                _ => String::new(),
+            };
+            let tells = if keys.is_empty() { Self::words(line, otherwise) } else { format!("{} ({keys})", Self::words(line, otherwise)) };
+            let (dim, click) = match press {
+                Some(press) => ("", pressed(press)),
+                None => (" dim", String::new()),
+            };
             strip.push_str(&format!(
-                r#"<button type="button" class="a b{dim}" style="{};--n:url('{normal}');--o:url('{normal}');--p:url('{pressed}')" {click} title="{}"></button>"#,
-                at(x, y, 32, 34),
-                tr(title)
+                r#"<button type="button" class="a b{dim}" style="{};--n:url('{normal}');--o:url('{normal}');--p:url('{down}')" {click} data-tip="{}"></button>"#,
+                at(x, y, size.0, size.1),
+                escape(&tells)
             ));
         }
         strip
@@ -148,19 +148,21 @@ impl App {
         let ap = crate::jobs::has_ap(crate::mounts::drawn_job(game.job, self.hero.state)).then(|| (self.value(parameter::AP), self.value(parameter::MAX_AP)));
         let lower = if ap.is_some() { 15 } else { 0 };
         if self.hero.basic_small {
-            // The small form: a title bar with the name, and two lines; a third for Activity Points.
+            // The small form: a title bar with the name, and two lines; a third for Activity Points. Its lines
+            // are written as (1, 14), as the window's words are when it is open (`UIBasicInfoWnd::Paint`).
+            let figures = FIGURES.style();
             let exp = if next_base > 0 { base_exp as f64 * 100.0 / next_base as f64 } else { 0.0 };
             let low = |now: i64, most: i64| if now * 4 < most { "#f00" } else { BLACK };
             return format!(
                 r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0"></div>{}{}{}
-                   <div class="a t" style="left:9px;top:36px"><span style="color:{}">HP. {hp} / {max_hp}</span> | <span style="color:{}">SP. {sp} / {max_sp}</span></div>{}"#,
+                   <div class="a t" style="left:9px;top:36px;{figures}"><span style="color:{}">HP. {hp} / {max_hp}</span> | <span style="color:{}">SP. {sp} / {max_sp}</span></div>{}"#,
                 at(0, 17, 220, if ap.is_some() { 54 } else { 38 }),
                 title_bar(220, &game.name),
                 press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize),
-                text(9, 20, BLACK, &format!("{lv}{base_level:2} / {job} / {lv}{job_level:2} / {} {exp:.1} %", tr("Exp."), lv = tr("Lv."))),
+                text_in(FIGURES, 9, 20, BLACK, &format!("{lv}{base_level:2} / {job} / {lv}{job_level:2} / {} {exp:.1} %", tr("Exp."), lv = tr("Lv."))),
                 low(hp, max_hp),
                 low(sp, max_sp),
-                ap.map(|(ap, max_ap)| text(9, 52, BLACK, &format!("AP. {ap} / {max_ap}"))).unwrap_or_default(),
+                ap.map(|(ap, max_ap)| text_in(FIGURES, 9, 52, BLACK, &format!("AP. {ap} / {max_ap}"))).unwrap_or_default(),
             );
         }
 
@@ -171,31 +173,36 @@ impl App {
         };
         window.push_str(&format!(r#"<div class="a t titled" style="left:17px;top:2px">{}</div>"#, tr("Basic Information")));
         window.push_str(&press_button(206, 3, 11, "basic_interface/sys_mini_off.bmp", "basic_interface/sys_mini_on.bmp", crate::press::status::Press::BasicSize));
+        // The name is a text of its own in the usual font (`UIBasicInfoWnd::OnCreate`: `SetFont(0, 12, 0, 0)`);
+        // everything under it is written as (1, 14) (`UIBasicInfoWnd::Paint`; the job's name is (0, 12) only
+        // in the Korean service).
         window.push_str(&text(9, 22, BLACK, &game.name));
-        window.push_str(&text(9, 36, BLACK, &job));
-        window.push_str(&text(17, 51, BLACK, "HP"));
-        window.push_str(&text(17, 65, BLACK, "SP"));
+        window.push_str(&text_in(FIGURES, 9, 36, BLACK, &job));
+        window.push_str(&text_in(FIGURES, 17, 51, BLACK, "HP"));
+        window.push_str(&text_in(FIGURES, 17, 65, BLACK, "SP"));
         window.push_str(&self.gauge(35, 53, hp, max_hp));
         window.push_str(&self.gauge(35, 68, sp, max_sp));
-        window.push_str(&text(173, 51, BLACK, &Self::percent(hp, max_hp)));
-        window.push_str(&text(173, 65, BLACK, &Self::percent(sp, max_sp)));
+        window.push_str(&text_in(FIGURES, 173, 51, BLACK, &Self::percent(hp, max_hp)));
+        window.push_str(&text_in(FIGURES, 173, 65, BLACK, &Self::percent(sp, max_sp)));
         if let Some((ap, max_ap)) = ap {
-            window.push_str(&text(17, 80, BLACK, "AP"));
+            window.push_str(&text_in(FIGURES, 17, 80, BLACK, "AP"));
             window.push_str(&self.ap_gauge(35, 83, ap, max_ap));
         }
-        window.push_str(&text(17, 84 + lower, BLACK, &format!("{} {base_level}", tr("Base Lv."))));
-        window.push_str(&text(17, 96 + lower, BLACK, &format!("{} {job_level}", tr("Job Lv."))));
+        window.push_str(&text_in(FIGURES, 17, 84 + lower, BLACK, &format!("{} {base_level}", tr("Base Lv."))));
+        window.push_str(&text_in(FIGURES, 17, 96 + lower, BLACK, &format!("{} {job_level}", tr("Job Lv."))));
         window.push_str(&self.experience(85, 89 + lower, base_exp, next_base));
         window.push_str(&self.experience(85, 101 + lower, job_exp, next_job));
-        // Weight is kept in tenths; carrying half of what one can is already too much to recover by resting.
+        // Weight is kept in tenths; carrying the share of what one can that the server names (half, until it
+        // names another: `m_overweightThresholdPercent`) is already too much to recover by resting.
         let (weight, max_weight) = (self.value(parameter::WEIGHT), self.value(parameter::MAX_WEIGHT));
-        let heavy = if max_weight > 0 && weight * 2 >= max_weight { "#f00" } else { BLACK };
+        let heavy = if max_weight > 0 && weight * 100 / max_weight >= self.notices.overweight { "#f00" } else { BLACK };
         // The window's bottom left, 100 wide and 20 high, tells under the pointer how much of what can be carried
         // is carried (`UIBasicInfoWnd::OnMouseHover`).
         window.push_str(&format!(r#"<div class="a" style="{}" data-tip="Weight {}%"></div>"#, at(0, 114 + lower, 100, 20), if max_weight > 0 { weight * 100 / max_weight } else { 0 }));
         window.push_str(&format!(
-            r#"<div class="a t" style="right:5px;top:{}px;white-space:pre"><span style="color:{heavy}">{} : {:3} / {:3}</span>  {} : {}</div>"#,
+            r#"<div class="a t" style="right:5px;top:{}px;{};white-space:pre"><span style="color:{heavy}">{} : {:3} / {:3}</span>  {} : {}</div>"#,
             116 + lower,
+            FIGURES.style(),
             tr("Weight"),
             weight / 10,
             max_weight / 10,

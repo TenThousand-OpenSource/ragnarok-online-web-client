@@ -1,8 +1,16 @@
-//! The client's sprites: SPR (the pictures), ACT (how they are laid out per action and frame) and PAL (a recolour),
-//! and drawing a frame of them into an RGBA picture.
+//! The client's sprites: SPR (the pictures), ACT (how they are laid out per action and frame) and PAL (a recolour).
+//! Drawing a frame of them into an RGBA picture is in `sprite/canvas.rs`; a frame as the client's effects draw it,
+//! a quad to a layer, in `sprite/layers.rs`.
 //!
 //! Format facts follow the layouts documented by korangar's `ragnarok-formats` (MIT) and rustnarok-client's
 //! `src/sprite.rs` (MIT OR Apache-2.0).
+
+mod canvas;
+pub mod imf;
+mod layers;
+
+pub use canvas::Canvas;
+pub use layers::{LayerQuad, layer_quads};
 
 pub type Palette = [[u8; 4]; 256];
 
@@ -126,8 +134,12 @@ pub struct Layer {
     pub mirrored: bool,
     pub colour: [u8; 4],
     pub scale: (f32, f32),
+    /// How far the picture is turned about its middle, in degrees, clockwise.
+    pub rotation: i32,
     /// Whether `picture` counts in the truecolor pictures.
     pub truecolor: bool,
+    /// How large the file says the picture is (files of version 2.5 on): what its place is taken from.
+    pub size: Option<(i32, i32)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -169,17 +181,16 @@ pub fn parse_act(bytes: &[u8]) -> Result<Act, String> {
             let mut layers = Vec::with_capacity(layer_count);
             for _ in 0..layer_count {
                 let (x, y, picture) = (reader.i32()?, reader.i32()?, reader.i32()?);
-                let mut layer = Layer { x, y, picture, mirrored: reader.i32()? != 0, colour: [255; 4], scale: (1.0, 1.0), truecolor: false };
+                let mut layer = Layer { x, y, picture, mirrored: reader.i32()? != 0, colour: [255; 4], scale: (1.0, 1.0), rotation: 0, truecolor: false, size: None };
                 if version >= 0x200 {
                     layer.colour = reader.take(4)?.try_into().unwrap();
                     let scale_x = reader.f32()?;
                     let scale_y = if version >= 0x204 { reader.f32()? } else { scale_x };
                     layer.scale = (scale_x, scale_y);
-                    // The rotation, in degrees: not used by the sprites drawn so far.
-                    reader.i32()?;
+                    layer.rotation = reader.i32()?;
                     layer.truecolor = reader.i32()? != 0;
                     if version >= 0x205 {
-                        reader.take(8)?;
+                        layer.size = Some((reader.i32()?, reader.i32()?));
                     }
                 }
                 layers.push(layer);
@@ -222,77 +233,6 @@ pub fn parse_act(bytes: &[u8]) -> Result<Act, String> {
         }
     }
     Ok(Act { actions, sounds, delays })
-}
-
-/// An RGBA picture to draw into.
-pub struct Canvas {
-    pub width: usize,
-    pub height: usize,
-    pub rgba: Vec<u8>,
-}
-
-impl Canvas {
-    pub fn new(width: usize, height: usize) -> Self {
-        Self { width, height, rgba: vec![0; width * height * 4] }
-    }
-
-    /// Draws one frame with its origin (the feet) at `origin`. `palette` replaces the sprite's own (hair and
-    /// cloth colours).
-    pub fn draw(&mut self, origin: (i32, i32), sprite: &Sprite, palette: Option<&Palette>, frame: &Frame) {
-        let palette = palette.unwrap_or(&sprite.palette);
-        for layer in &frame.layers {
-            let pictures = if layer.truecolor { &sprite.truecolor } else { &sprite.indexed };
-            let Some(picture) = usize::try_from(layer.picture).ok().and_then(|index| pictures.get(index)) else { continue };
-            let width = (picture.width as f32 * layer.scale.0.abs()).round() as i32;
-            let height = (picture.height as f32 * layer.scale.1.abs()).round() as i32;
-            if width <= 0 || height <= 0 {
-                continue;
-            }
-            // The picture's centre goes on the layer's point; an odd size leaves the extra pixel on the left and top.
-            let left = origin.0 + layer.x - (width + 1) / 2;
-            let top = origin.1 + layer.y - (height + 1) / 2;
-            for row in 0..height {
-                let to_y = top + row;
-                if to_y < 0 || to_y >= self.height as i32 {
-                    continue;
-                }
-                let from_y = (row as usize * picture.height / height as usize).min(picture.height - 1);
-                for column in 0..width {
-                    let to_x = left + column;
-                    if to_x < 0 || to_x >= self.width as i32 {
-                        continue;
-                    }
-                    let across = if layer.mirrored { width - 1 - column } else { column };
-                    let from_x = (across as usize * picture.width / width as usize).min(picture.width - 1);
-                    let from = from_y * picture.width + from_x;
-                    let colour = if layer.truecolor {
-                        picture.pixels[from * 4..from * 4 + 4].try_into().unwrap()
-                    } else {
-                        // Index 0 is the transparent colour.
-                        match picture.pixels[from] {
-                            0 => continue,
-                            index => palette[usize::from(index)],
-                        }
-                    };
-                    self.blend(to_x as usize, to_y as usize, colour, layer.colour);
-                }
-            }
-        }
-    }
-
-    fn blend(&mut self, x: usize, y: usize, colour: [u8; 4], tint: [u8; 4]) {
-        let alpha = u32::from(colour[3]) * u32::from(tint[3]) / 255;
-        if alpha == 0 {
-            return;
-        }
-        let pixel = &mut self.rgba[(y * self.width + x) * 4..][..4];
-        let under = u32::from(pixel[3]);
-        for channel in 0..3 {
-            let over = u32::from(colour[channel]) * u32::from(tint[channel]) / 255;
-            pixel[channel] = ((over * alpha + u32::from(pixel[channel]) * under * (255 - alpha) / 255) / (alpha + under * (255 - alpha) / 255).max(1)) as u8;
-        }
-        pixel[3] = (alpha + under * (255 - alpha) / 255) as u8;
-    }
 }
 
 /// Where a head goes for its anchor to lie on the body's.
@@ -381,7 +321,11 @@ mod tests {
         assert_eq!(act.actions.len(), 1);
         let frame = &act.actions[0][0];
         assert_eq!(frame.anchor, Some((1, -30)));
-        assert_eq!(frame.layers, [Layer { x: 4, y: -9, picture: 0, mirrored: true, colour: [255; 4], scale: (1.0, 1.0), truecolor: false }]);
+        assert_eq!(frame.layers, [Layer { x: 4, y: -9, picture: 0, mirrored: true, colour: [255; 4], scale: (1.0, 1.0), rotation: 0, truecolor: false, size: Some((3, 2)) }]);
+        // A layer's turn follows its two scales, 84 bytes into this file.
+        let mut turned = self::act(4, -9, true, (1, -30));
+        turned[84..88].copy_from_slice(&(-30i32).to_le_bytes());
+        assert_eq!(parse_act(&turned).unwrap().actions[0][0].layers[0].rotation, -30);
         assert!(parse_act(b"SP").is_err());
     }
 

@@ -7,7 +7,7 @@
 //! World space: x grows east and z north, 5 units per cell, y up (the files keep heights pointing down).
 
 use std::cmp::Reverse;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 
 /// World units per GAT cell.
 pub const CELL: f32 = 5.0;
@@ -16,6 +16,9 @@ pub const MAX_WALK_PATH: usize = 32;
 /// The longest path, in cells, a player may ask the server to walk in one go (rAthena's `max_walk_path`, 17 as
 /// on the official servers): a longer one is refused without a word.
 pub const MAX_ASKED_PATH: usize = 17;
+/// How many cells the Windows client's search for a way looks at before it gives up (the 149 nodes of
+/// `CPathFinder::FindOrCreateNode`, rodecomp Source/Contents/Movement/TerrainPathSearch.cpp).
+pub const CLIENT_PATH_NODES: usize = 149;
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -78,8 +81,7 @@ impl Gat {
         let mut walkable = Vec::with_capacity(width * height);
         for _ in 0..width * height {
             heights.push([-reader.f32()?, -reader.f32()?, -reader.f32()?, -reader.f32()?]);
-            // Types 1 (a wall) and 5 (a cliff one can shoot over) cannot be walked on.
-            walkable.push(!matches!(reader.i32()?, 1 | 5));
+            walkable.push(Self::walked(reader.i32()?));
         }
         Ok(Self { width, height, heights, walkable })
     }
@@ -87,6 +89,19 @@ impl Gat {
     /// A flat, open map, for tests.
     pub fn open(width: usize, height: usize) -> Self {
         Self { width, height, heights: vec![[0.0; 4]; width * height], walkable: vec![true; width * height] }
+    }
+
+    /// Whether a cell of that type can be walked on: types 1 (a wall) and 5 (a cliff one can shoot over) cannot.
+    fn walked(kind: i32) -> bool {
+        !matches!(kind, 1 | 5)
+    }
+
+    /// A cell becomes of another type while the map is played on (the server's ZC_UPDATE_MAPINFO: an Ice Wall
+    /// shuts its cells and opens them again when it melts). A cell outside the map changes nothing.
+    pub fn retype(&mut self, x: i32, y: i32, kind: i32) {
+        if x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height {
+            self.walkable[y as usize * self.width + x as usize] = Self::walked(kind);
+        }
     }
 
     pub fn block(&mut self, x: usize, y: usize) {
@@ -114,6 +129,7 @@ impl Gat {
     /// The path from one cell to another, the start left out and the goal last; empty when there is none within
     /// the server's reach. Steps are to the eight neighbours; a diagonal needs both cells beside it free.
     pub fn path(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)> {
+        let longest = MAX_WALK_PATH;
         if from == to || !self.walkable(to.0, to.1) || !self.walkable(from.0, from.1) {
             return Vec::new();
         }
@@ -139,7 +155,7 @@ impl Gat {
                     at = came_from[at];
                 }
                 path.reverse();
-                return if path.len() <= MAX_WALK_PATH { path } else { Vec::new() };
+                return if path.len() <= longest { path } else { Vec::new() };
             }
             let here = cost[index(cell)];
             for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)] {
@@ -153,7 +169,7 @@ impl Gat {
                 }
                 let through = here + if diagonal { DIAGONAL } else { STRAIGHT };
                 // Nothing farther than the server walks is worth looking at.
-                if through > (MAX_WALK_PATH as u32) * DIAGONAL || through >= cost[index(next)] {
+                if through > (longest as u32) * DIAGONAL || through >= cost[index(next)] {
                     continue;
                 }
                 cost[index(next)] = through;
@@ -165,26 +181,90 @@ impl Gat {
         Vec::new()
     }
 
-    /// Whether the server would walk a player from one cell to another when asked: there is a path, and it is
-    /// no longer than a player may ask for.
-    fn askable(&self, from: (i32, i32), to: (i32, i32)) -> bool {
-        (1..=MAX_ASKED_PATH).contains(&self.path(from, to).len())
+    /// The way the Windows client finds from one cell to another before it asks the server for a walk
+    /// (`CPathFinder::FindPath`, rodecomp Source/Contents/Movement/TerrainPathSearch.cpp): the start left out
+    /// and the goal last, or nothing. Its search looks at no more than `CLIENT_PATH_NODES` cells and gives up
+    /// altogether when it needs one more, so it finds a way round what is near and never one across a map.
+    /// The neighbours are tried in the client's order, and what is left is estimated in straight steps.
+    pub fn client_path(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)> {
+        if from == to || !self.walkable(to.0, to.1) {
+            return Vec::new();
+        }
+        let estimate = |(x, y): (i32, i32)| 10 * ((x - to.0).unsigned_abs() + (y - to.1).unsigned_abs());
+        // Of each cell looked at: what the way to it costs, and the cell before it.
+        let mut nodes = HashMap::from([(from, (0u32, from))]);
+        let mut open = BinaryHeap::from([Reverse((estimate(from), 0u32, 0u32, from))]);
+        let mut found = 0u32;
+        while let Some(Reverse((_, _, costed, cell))) = open.pop() {
+            if cell == to {
+                let mut path = Vec::new();
+                let mut at = to;
+                while at != from {
+                    path.push(at);
+                    at = nodes[&at].1;
+                }
+                path.reverse();
+                return path;
+            }
+            // An older, dearer entry of a cell since reached more cheaply.
+            if nodes[&cell].0 != costed {
+                continue;
+            }
+            for (dx, dy) in [(1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1)] {
+                let next = (cell.0 + dx, cell.1 + dy);
+                let diagonal = dx != 0 && dy != 0;
+                if !self.walkable(next.0, next.1) || diagonal && (!self.walkable(cell.0, next.1) || !self.walkable(next.0, cell.1)) {
+                    continue;
+                }
+                let through = costed + if diagonal { 14 } else { 10 };
+                match nodes.get(&next) {
+                    Some((cost, _)) if *cost <= through => continue,
+                    None if nodes.len() >= CLIENT_PATH_NODES => return Vec::new(),
+                    _ => {}
+                }
+                nodes.insert(next, (through, cell));
+                found += 1;
+                open.push(Reverse((through + estimate(next), found, through, next)));
+            }
+        }
+        Vec::new()
     }
 
-    /// Where a press on `to` sends a character standing on `from`: there, if the server would walk it there
-    /// when asked; else the cell nearest to it on the straight line towards it that the server would walk to (a
-    /// press too far away, or on a wall). None when there is nowhere to go that way.
-    pub fn goal_towards(&self, from: (i32, i32), to: (i32, i32)) -> Option<(i32, i32)> {
-        if self.askable(from, to) {
-            return Some(to);
+    /// Where a press on `to` sends a character standing on `from`, as the Windows client decides it
+    /// (`CGameMode`'s press on the ground, rodecomp Source/Client/Mode/GameMode.cpp, and
+    /// `GetClosestValidCell`, Source/Contents/Messenger/ClientMessenger.cpp). To the place itself when it is
+    /// walkable, nobody stands on it (`taken`: the client's `IsRegisterCell`) and the client's search finds a
+    /// way to it. Else the client goes along the straight line from the place back to the character and takes
+    /// the first cell on it or beside it that is walkable and not taken: there, if its search finds a way to
+    /// that one, and nowhere if not — it does not look further, and it does not walk on by itself afterwards.
+    ///
+    /// The client asks for the cell however long the way found is, and this server refuses without a word a
+    /// way longer than `MAX_ASKED_PATH`: such a press does nothing, there as here. With `far` — this project's
+    /// own switch, off unless the player turns it on — the cell that far along the way found is given instead,
+    /// from which the character is sent on (`world/pursuit.rs`, the journey).
+    pub fn goal_towards(&self, from: (i32, i32), to: (i32, i32), taken: impl Fn((i32, i32)) -> bool, far: bool) -> Option<(i32, i32)> {
+        let free = |cell: (i32, i32)| self.walkable(cell.0, cell.1) && !taken(cell);
+        let reached = |cell: (i32, i32)| {
+            let way = self.client_path(from, cell);
+            if far { way.get(way.len().min(MAX_ASKED_PATH).wrapping_sub(1)).copied() } else { way.last().copied() }
+        };
+        if let Some(cell) = Some(to).filter(|to| free(*to)).and_then(reached) {
+            return Some(cell);
         }
-        let steps = (to.0 - from.0).abs().max((to.1 - from.1).abs());
-        // Nothing farther than a player may ask for is worth trying: a path is at least as long as the way is.
-        (1..=steps.min(MAX_ASKED_PATH as i32)).rev().find_map(|step| {
-            let along = step as f32 / steps as f32;
-            let cell = (from.0 + ((to.0 - from.0) as f32 * along).round() as i32, from.1 + ((to.1 - from.1) as f32 * along).round() as i32);
-            self.askable(from, cell).then_some(cell)
-        })
+        const BESIDE: [(i32, i32); 9] = [(0, 0), (1, 0), (1, 1), (1, -1), (-1, 0), (-1, 1), (-1, -1), (0, 1), (0, -1)];
+        let (dx, dy) = (from.0 - to.0, from.1 - to.1);
+        // Along the longer side of the line a cell at a time, the other side by whole division as the client.
+        let wide = dx.abs() >= dy.abs();
+        let (long, short) = if wide { (dx, dy) } else { (dy, dx) };
+        for step in 0..long.abs() {
+            let along = step * long.signum();
+            let across = along * short / long;
+            let on_line = if wide { (to.0 + along, to.1 + across) } else { (to.0 + across, to.1 + along) };
+            if let Some(cell) = BESIDE.iter().map(|(x, y)| (on_line.0 + x, on_line.1 + y)).find(|cell| free(*cell)) {
+                return reached(cell);
+            }
+        }
+        None
     }
 }
 
@@ -201,51 +281,6 @@ pub fn direction(dx: i32, dy: i32) -> u8 {
         (1, 0) => 6,
         (1, -1) => 7,
         _ => 0,
-    }
-}
-
-/// A walk along a path, at a speed in milliseconds per cell; diagonal steps take 1.4 times as long, as on the
-/// server.
-pub struct Walk {
-    /// The cell walked from, then every cell of the path.
-    cells: Vec<(i32, i32)>,
-    /// When each cell of `cells` is reached, in milliseconds from the start.
-    reached: Vec<f64>,
-}
-
-impl Walk {
-    pub fn new(from: (i32, i32), path: &[(i32, i32)], speed: f64) -> Self {
-        let mut cells = vec![from];
-        let mut reached = vec![0.0];
-        for &cell in path {
-            let last = *cells.last().unwrap();
-            let diagonal = cell.0 != last.0 && cell.1 != last.1;
-            reached.push(reached.last().unwrap() + if diagonal { speed * 1.4 } else { speed });
-            cells.push(cell);
-        }
-        Self { cells, reached }
-    }
-
-    pub fn duration(&self) -> f64 {
-        *self.reached.last().unwrap()
-    }
-
-    pub fn goal(&self) -> (i32, i32) {
-        *self.cells.last().unwrap()
-    }
-
-    /// Where the walker is `elapsed` milliseconds in, in cells (whole numbers are cell centres), and which way it
-    /// faces.
-    pub fn at(&self, elapsed: f64) -> ((f32, f32), u8) {
-        let last = self.cells.len() - 1;
-        if last == 0 {
-            return ((self.cells[0].0 as f32, self.cells[0].1 as f32), 0);
-        }
-        let step = self.reached.iter().rposition(|&time| time <= elapsed).unwrap_or(0).min(last - 1);
-        let (from, to) = (self.cells[step], self.cells[step + 1]);
-        let along = ((elapsed - self.reached[step]) / (self.reached[step + 1] - self.reached[step])).clamp(0.0, 1.0) as f32;
-        let position = (from.0 as f32 + (to.0 - from.0) as f32 * along, from.1 as f32 + (to.1 - from.1) as f32 * along);
-        (position, direction(to.0 - from.0, to.1 - from.1))
     }
 }
 
@@ -364,6 +399,12 @@ impl Gnd {
 
     fn surface(&self, index: i32) -> Option<&Surface> {
         usize::try_from(index).ok().and_then(|index| self.surfaces.get(index))
+    }
+
+    /// The cubes (east, north) with a corner lower than `level`: where water of that level shows
+    /// (`GroundGeometry::DrawWaterCell` draws a cell's water when a corner of its ground is under it).
+    pub fn under(&self, level: f32) -> Vec<(usize, usize)> {
+        (0..self.width * self.height).filter(|&index| self.cubes[index].heights.iter().any(|&height| height < level)).map(|index| (index % self.width, index / self.width)).collect()
     }
 
     /// The ground as triangles: the top of every cube, and the walls between cubes of different heights.

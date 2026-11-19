@@ -11,6 +11,9 @@ pub fn enter(map: String, cell: (u16, u16), figure: Figure, hooks: Hooks) {
         state.start = None;
         state.hooks = Some(hooks);
         state.entered += 1;
+        // The first time the server tells on this map sets the clock (the client's `serverTimeSyncCount`
+        // starts over with every map), and the first frame has no frame before it.
+        (state.clock_told, state.stepped) = (false, None);
         state.entered
     });
     if let Ok(canvas) = canvas() {
@@ -26,7 +29,7 @@ pub fn enter(map: String, cell: (u16, u16), figure: Figure, hooks: Hooks) {
             match loaded {
                 Ok((gpu, mut scene)) => {
                     if let Some(cell) = state.start.take() {
-                        (scene.player.cell, scene.player.at) = (cell, (cell.0 as f32, cell.1 as f32));
+                        scene.player.put(cell);
                     }
                     state.reading = None;
                     state.gpu = Some(gpu);
@@ -64,20 +67,26 @@ pub fn leave() {
         state.held = None;
         state.chase = None;
         state.fetch = None;
-        state.hits.clear();
         state.flying.clear();
         state.arrows.clear();
-        state.bolts.clear();
         state.effects_due.clear();
         state.sounds_due.clear();
+        state.heard.clear();
         state.effects.clear();
         state.landing.clear();
+        state.blows.clear();
+        state.scopes.clear();
         state.bursts.clear();
+        state.copies.clear();
     });
     // What the game drew over the page goes with it: the bars, the names, the numbers of blows.
     if let Some(document) = crate::web::document() {
         if let Some(bars) = document.get_element_by_id("bars") {
             bars.set_inner_html("");
+        }
+        // The standing on a PVP map.
+        if let Some(rank) = document.get_element_by_id("pvp-rank") {
+            rank.set_inner_html("");
         }
         if let Ok(numbers) = document.query_selector_all(".hit") {
             for index in 0..numbers.length() {
@@ -93,11 +102,32 @@ pub fn leave() {
     }
 }
 
-/// The server says the character walks from one cell to another.
-pub fn walk(from: (u16, u16), to: (u16, u16)) {
+/// The server tells its time on letting the character onto a map server (ZC_ACCEPT_ENTER): the clock everyone's
+/// walk is shown by is set from it (the client's `CSession::SetServerTime`).
+pub fn clock_set(told: u32) {
+    STATE.with_borrow_mut(|state| state.clock.set(now(), told));
+}
+
+/// The server answers what its time is (ZC_NOTIFY_TIME): the first answer on a map sets the clock, every later
+/// one corrects it (`CSession::SyncServerTime`).
+pub fn clock_told(told: u32) {
     STATE.with_borrow_mut(|state| {
+        if state.clock_told { state.clock.sync(now(), told) } else { state.clock.set(now(), told) }
+        state.clock_told = true;
+    });
+}
+
+/// The server says the character walks from one cell to another (ZC_NOTIFY_PLAYERMOVE): the time it set out at
+/// corrects the clock, and the walk is shown from that time (the client's `AM_MOVE`).
+pub fn walk(told: &Walked) {
+    STATE.with_borrow_mut(|state| {
+        state.clock.sync(now(), told.started);
         let Some(scene) = &mut state.scene else { return };
-        scene.player.walk(&scene.gat, (i32::from(from.0), i32::from(from.1)), (i32::from(to.0), i32::from(to.1)));
+        // A walk from a cell to itself has no way: the client's player then looks for one from the cell it
+        // is drawn on (`CPlayer::SendMsg`).
+        let drawn = (scene.player.cell.0.max(0) as u16, scene.player.cell.1.max(0) as u16);
+        let told = if told.from == told.to { Walked { from: drawn, within: (8, 8), ..*told } } else { *told };
+        scene.player.walk(&scene.gat, &state.clock, &told);
     });
 }
 
@@ -121,9 +151,12 @@ pub fn own_life(hp: i64, most_hp: i64, sp: i64, most_sp: i64) {
 pub fn own_dead(dead: bool) {
     STATE.with_borrow_mut(|state| {
         if let Some(scene) = &mut state.scene {
-            scene.player.dead = dead;
-            scene.player.walk = None;
-            scene.player.motion = None;
+            // It falls through the pictures of its dying and lies in the last (`poses.rs`).
+            match dead {
+                true if !scene.player.dead => scene.player.falls(now()),
+                true => {}
+                false => scene.player.rises(),
+            }
         }
         state.chase = None;
         state.fetch = None;
@@ -147,8 +180,7 @@ pub fn jump(cell: (u16, u16)) {
         if scene.player.cell == cell && scene.player.walk.is_none() {
             return;
         }
-        scene.player.cell = cell;
-        scene.player.at = (cell.0 as f32, cell.1 as f32);
+        scene.player.put(cell);
         scene.player.walk = None;
         scene.player.motion = None;
         scene.player.dead = false;
@@ -164,21 +196,23 @@ pub fn jump(cell: (u16, u16)) {
         state.target_at = [None; 2];
         state.flying.clear();
         state.arrows.clear();
-        state.bolts.clear();
         state.effects_due.clear();
         state.sounds_due.clear();
+        state.heard.clear();
         state.effects.clear();
         state.landing.clear();
+        state.blows.clear();
+        state.scopes.clear();
         state.bursts.clear();
+        state.copies.clear();
     });
 }
 
-/// The server says the character stands on a cell.
+/// The server says the character stands on a cell (ZC_STOPMOVE).
 pub fn stand(cell: (u16, u16)) {
     STATE.with_borrow_mut(|state| {
         if let Some(scene) = &mut state.scene {
-            scene.player.walk = None;
-            scene.player.cell = (i32::from(cell.0), i32::from(cell.1));
+            scene.player.stand((i32::from(cell.0), i32::from(cell.1)));
         }
     });
 }
@@ -189,8 +223,7 @@ pub fn options(options: Options) {
         state.options = options;
         // A camera farther out than is now allowed comes in.
         if let Some(scene) = &mut state.scene {
-            let (_, distances) = Camera::limits(scene.indoor, options.zoom_out);
-            scene.camera.distance = scene.camera.distance.clamp(distances[0], distances[1]);
+            scene.ask_camera(options.zoom_out, |_| {});
         }
     });
 }

@@ -3,6 +3,19 @@
 //! (`CEZ2STRParticle` in the decompiled source): a key of kind 0 sets a layer's whole state, a key of another kind
 //! is added to it every frame while that key is the current one.
 
+pub mod carried;
+pub mod played;
+
+/// Where a picture of an effect file is, among the client's pictures of effects: in the file's own folder
+/// (`CEZ2STRParticle::Open` keeps the folder of the file's name, and `ClipTexture` asks for every picture
+/// with it before its name). `file` is the file's name in the folder of effects, with either slash.
+pub fn texture_path(file: &str, texture: &str) -> String {
+    match file.rfind(['/', '\\']) {
+        Some(end) => format!("{}{texture}", &file[..=end]),
+        None => texture.to_owned(),
+    }
+}
+
 /// The state of a layer at one frame.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Transform {
@@ -284,6 +297,13 @@ mod tests {
         // On the last key's frame the layer still shows what it had; after it, nothing.
         assert!(layer.at(6).is_some());
         assert_eq!(layer.at(7), None);
+    }
+
+    #[test]
+    fn a_picture_is_in_the_folder_of_its_file() {
+        assert_eq!(texture_path("lightning.str", "lightning.bmp"), "lightning.bmp");
+        assert_eq!(texture_path("stormcannon/stormcannon/stormcannon.str", "a.tga"), "stormcannon/stormcannon/a.tga");
+        assert_eq!(texture_path("new_cart_cannon\\new_cart_cannon.str", "a.tga"), "new_cart_cannon\\a.tga");
     }
 
     #[test]

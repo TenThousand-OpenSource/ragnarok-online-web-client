@@ -8,14 +8,32 @@ pub(super) struct State {
     pub(super) gpu: Option<Gpu>,
     pub(super) scene: Option<Scene>,
     pub(super) hooks: Option<Hooks>,
+    /// The server's clock, by which everyone's walk is shown (`crate::server_time`); whether the server has told
+    /// its time on this map yet (the first answer sets the clock, the later ones correct it); and the clock's
+    /// time at the frame before, none before a map's first frame.
+    pub(super) clock: Clock,
+    pub(super) clock_told: bool,
+    pub(super) stepped: Option<f64>,
+    /// When a walk was last asked of the server, and to which cell (the client's `standTick` and the cell its
+    /// player is bound for).
+    pub(super) walk_asked: f64,
+    pub(super) asked: (i32, i32),
     /// Counts the maps entered: a map that finishes loading after the next was asked for is dropped.
     pub(super) entered: u32,
     /// The right button is held: where the pointer was last.
     pub(super) turning: Option<(f32, f32)>,
     /// When the right button was last pressed: twice in a moment puts the camera back.
     pub(super) right_pressed: f64,
+    /// Fighting other players: the map's kind and the player's friends (`pvp.rs`).
+    pub(super) pvp: pvp::Pvp,
+    /// The player's homunculus and mercenary: which units they are, and their life (`ai.rs`).
+    pub(super) ai: ai::Owned,
+    /// The guilds of those in sight: their names and emblems (`guild.rs`).
+    pub(super) guilds: guild::Guilds,
     /// The player's options the world goes by.
     pub(super) options: Options,
+    /// What of the surroundings is kept from map to map: the switch of the fog, the night (`scenery.rs`).
+    pub(super) scenery: scenery::Kept,
     /// The skill being aimed is one of help, which goes on a monster only with Shift held (unless the client's
     /// No Shift option is on).
     pub(super) aim_guarded: bool,
@@ -63,38 +81,66 @@ pub(super) struct State {
     pub(super) strike_range: Option<i32>,
     /// The thing on the ground the character is walking to, to pick it up, and when it was last looked after.
     pub(super) fetch: Option<(u32, f64)>,
-    /// The glitter of First Aid playing: on whom (none: the player's own character), since when, and the two
-    /// angles it starts at (how it is turned, and where its slow pulse is), which the client draws by lot.
-    pub(super) aids: Vec<(Option<u32>, f64, f32, f32)>,
+    /// The copies of someone that effects left standing (`ailments.rs`).
+    pub(super) copies: Vec<ailments::Ghost>,
     /// The effects the client draws by code that are under way.
     pub(super) bursts: Vec<prims::Burst>,
+    /// The shake of the screen under way (`crate::quake`).
+    pub(super) quake: Option<crate::quake::Quake>,
     /// The bits of the state the player's own character is in (kept across maps): what it rides.
     pub(super) own_state: u32,
+    /// What the player's own character's body and health states make of it (kept across maps), and its two
+    /// veils over the screen (`ailments.rs`).
+    pub(super) own_ail: ailments::Ail,
+    pub(super) veils: ailments::Veils,
+    /// The units of skills standing on the ground, and the places skills were used on (`skill_units.rs`).
+    pub(super) grounds: skill_units::Grounds,
     /// The weapon the player's own character holds (kept across maps).
     pub(super) weapon: u32,
+    /// The shield it has on its arm (kept across maps).
+    pub(super) shield: u32,
     /// The player's own life and spirit, left and most: the bars under the character.
     pub(super) own: [i64; 4],
     /// Whether life bars are on the page.
     pub(super) bars: bool,
-    /// Blows on their way: when each lands, on whom, the player's own ID, how much, what it sounds like, and
-    /// whether it is a critical one.
-    pub(super) landing: Vec<(f64, u32, u32, i32, Option<String>, bool)>,
+    /// Blows on their way, for what the body of the one struck does as each lands (`frame/sprites.rs`: it
+    /// stops and flinches): when, on whom, the player's own ID, how much (none for a hit endured), and three
+    /// things `combat/landing.rs` sees to now and leaves empty here (a sound, a critical blow's flare, the ring).
+    pub(super) landing: Vec<(f64, u32, u32, i32, Option<String>, bool, bool)>,
+    /// The same hits, for what each sounds like and shows: when it lands, on whom, and what it is
+    /// (`combat/landing.rs`).
+    pub(super) blows: Vec<(f64, u32, combat::Landing)>,
+    /// What `frame/sprites.rs` hands on of the blows landed; nothing reads it since the numbers are made by
+    /// `combat/landing.rs`, which empties it.
+    pub(super) hits: Vec<(u32, i32, bool)>,
     /// Where the turning marks in the world stand this frame: at the feet of the monster being fought, and of
     /// another monster the pointer is on.
     pub(super) target_at: [Option<Vector>; 2],
     /// The numbers in the air.
     pub(super) flying: Vec<Flying>,
-    /// Bolts falling, and the effects and sounds that are to start at a moment yet to come.
-    pub(super) bolts: Vec<Bolt>,
-    pub(super) effects_due: Vec<(f64, String, Option<u32>)>,
+    /// The circles on the ground of skills being cast on a place.
+    pub(super) scopes: Vec<super::scopes::Scope>,
+    /// The effects and sounds that are to start at a moment yet to come.
+    pub(super) effects_due: Vec<(f64, String, Option<u32>, Option<Carrying>)>,
     pub(super) sounds_due: Vec<(f64, String)>,
+    /// The sounds that are to start on someone at a moment yet to come, heard from where that one is then
+    /// (`earshot.rs`).
+    pub(super) heard: Vec<earshot::Due>,
+    /// What the server told of those in sight beside their names, and the player's own level (`names.rs`).
+    pub(super) cards: HashMap<u32, crate::names::Card>,
+    pub(super) own_level: u16,
+    /// The words of units on the ground (`written.rs`).
+    pub(super) written: written::Words,
     /// Arrows in flight: when each leaves, from where, and at whom.
     pub(super) arrows: Vec<(f64, Vector, u32)>,
     /// The effects playing, and the effect files read so far, by name.
     pub(super) effects: Vec<Playing>,
     pub(super) effect_files: HashMap<String, Rc<Shown>>,
-    /// Hits to show as numbers: on whom, and how much.
-    pub(super) hits: Vec<(u32, i32, bool)>,
+    /// Which of its three places the next hit the client puts at one of three is put at (its `CRandomHitEffect`
+    /// counts them round in one number for every such effect: `crate::effect::played`).
+    pub(super) hit_turn: usize,
+    /// The counts towards launching anew the effects that a bit of someone's state keeps going (Sight, Ruwach).
+    pub(super) kept: crate::state_effects::Kept,
     /// A skill is being aimed: at a place (`true`) or at someone.
     pub(super) aiming: Option<bool>,
     /// How far the skill being aimed reaches, in cells.
@@ -114,4 +160,13 @@ pub(super) struct State {
     /// Which picture of the pointer the page shows now.
     pub(super) pointer_frame: usize,
     pub(super) frame: Option<Closure<dyn FnMut()>>,
+    /// The marks over NPCs that have something for the character (`quests.rs`): the visit to a map they are
+    /// of (`entered`), and by NPC which action of the marks' sprite each is.
+    pub(super) quest_marks: (u32, HashMap<u32, usize>),
+    /// The carts merchants pull (`cart.rs`).
+    pub(super) carts: cart::Carts,
+    /// The signs standing over heads: of chat rooms, of shops (`signs.rs`).
+    pub(super) signs: signs::Signs,
+    /// What an NPC's script shows in the world: the bars that fill over someone (`scripted.rs`).
+    pub(super) scripted: scripted::Scripted,
 }

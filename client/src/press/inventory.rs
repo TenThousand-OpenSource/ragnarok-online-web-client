@@ -18,12 +18,20 @@ presses! {
         ThrowOk = "throw-ok",
         /// The box that asks how many to drop is put away.
         ThrowCancel = "throw-cancel",
+        /// The button "Align items" of the inventory's tab "Fav": its things are put in order, or left as they came.
+        Align = "inventory-align",
+        /// A page of the Equipment window, counted from 0: what is worn, the costumes.
+        EquipmentPage(usize) = "equipment-page",
         /// The Equipment window's "off" button: off the mount, out of the machine, the falcon let go.
         MountOff = "mount-off",
         /// The Equipment window is opened or closed: its icon in the menu, and the cross in its corner.
         Equipment = "equipment",
         /// The cross of an item's description.
         InfoClose = "item-info-close",
+        /// The "view" button of a card's description: its illustration opens.
+        InfoCard = "item-info-card",
+        /// The cross of a card's illustration.
+        IllustClose = "card-illust-close",
     }
 }
 
@@ -42,9 +50,13 @@ mod tests {
             Press::IdentifyCancel,
             Press::ThrowOk,
             Press::ThrowCancel,
+            Press::Align,
+            Press::EquipmentPage(1),
             Press::MountOff,
             Press::Equipment,
             Press::InfoClose,
+            Press::InfoCard,
+            Press::IllustClose,
         ];
         assert_eq!(all.len(), Press::NAMES.len());
         for press in all {

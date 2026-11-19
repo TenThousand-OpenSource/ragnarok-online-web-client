@@ -20,8 +20,8 @@ pub(super) fn frame() {
         let sounds: Vec<_> = state.sounds_due.extract_if(.., |due| due.0 <= time).collect();
         (effects, sounds)
     });
-    for (_, name, on) in effects {
-        effect(&name, on);
+    for (_, name, on, carried) in effects {
+        effect_carried(&name, on, carried);
     }
     for (_, name) in sounds {
         sound::effect(&name, 1.0);
@@ -30,25 +30,48 @@ pub(super) fn frame() {
         let (Some(gpu), Some(scene)) = (&mut state.gpu, &mut state.scene) else { return None };
         gpu.fit();
         let (time, yaw) = (now(), scene.camera.yaw);
+        stride(state, time);
+        let (Some(gpu), Some(scene)) = (&mut state.gpu, &mut state.scene) else { return None };
         let own = scene.player.now(time, yaw);
         let feet = on_ground(&scene.gat, own.0);
         if state.camera_fixed {
             scene.aim = None;
         }
         let aim = scene.follow(feet, time);
-        let view = scene.camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32);
+        // The camera goes towards what was asked of it, and the models whose parts turn are moved on.
+        scene.ease_camera(time);
+        scene.models.animate(gpu, aim, time);
+        // A shake of the screen throws the camera about, a step every frame, and leaves it as it was.
+        let (camera, aim) = camera::shaken(&mut state.quake, scene.camera, aim, time);
+        let view = camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32);
 
         sprites::landings(state, time);
+        combat::landings(state, time);
+        earshot::due(state, time);
         let mut standing = sprites::standing(state, own, time, yaw);
+        // The marks over NPCs that have a quest stand among them.
+        quests::marks(state, time, &mut standing);
+        // The carts merchants pull stand among them too.
+        cart::drawn(state, &mut standing);
         let (rings, marks) = marks::ground(state, &view, time);
         let numbers = marks::numbers(state, time);
+        skill_units::step(state, time);
+        // What the map places about itself, its weather and the night.
+        scenery::step(state, time);
         let mut quads = Quads::default();
+        skill_units::drawn(state, &view, &mut quads);
         effects::files(state, &view, time, &mut quads);
+        scopes::drawn(state, time, &mut quads);
         let casts = effects::casts(state, time, &mut quads);
-        effects::aids(state, &view, time, &mut quads);
-        effects::bursts(state, &view, time, &mut quads);
-        effects::bolts(state, &view, time, &mut quads);
+        let asked = effects::bursts(state, &view, time, &mut quads);
+        // What the effects do to the bodies of those they are on, and the shakes of the screen they ask for.
+        ailments::bodies(state, &asked.touches, time);
+        ailments::copies_left(state, &asked.copies, time);
+        if let Some(kind) = asked.quakes.last().filter(|_| state.options.quake) {
+            state.quake = Some(crate::quake::Quake::begun(*kind, time));
+        }
         effects::arrows(state, &view, time, &mut quads);
+        ailments::veils(state, &view, time, &mut quads);
         let (Some(gpu), Some(scene)) = (&mut state.gpu, &state.scene) else { return None };
         gpu.draw(scene, &view, &mut standing, &rings, &marks, &numbers, &quads);
 

@@ -69,7 +69,8 @@ impl App {
         if pages > 1 {
             window.push_str(&press_button(356, 25, 11, "basic_interface/arw_left.bmp", "basic_interface/arw_left.bmp", Press::Page(Step::Less)));
             window.push_str(&press_button(416, 25, 11, "basic_interface/arw_right.bmp", "basic_interface/arw_right.bmp", Press::Page(Step::More)));
-            window.push_str(&format!(r#"<div class="a t" style="{};text-align:center">{} / {pages}</div>"#, at(367, 23, 49, 14), page + 1));
+            // Which page of how many, in the smaller text in bold (`UIHotKeyWnd::Paint`: (0, 11), bold).
+            window.push_str(&format!(r#"<div class="a t" style="{};{};text-align:center">{} / {pages}</div>"#, at(367, 23, 49, 14), Font(0, 11, true).style(), page + 1));
         }
         // What the window says: how a key is set while a row is picked, or why the last key was not taken.
         let says = self.keys.notice.clone().or_else(|| self.keys.row.map(|_| tr("Press a key to assign. Pressing 'ESC' will remove the assigned key.").to_owned()));

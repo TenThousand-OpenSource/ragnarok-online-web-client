@@ -1,6 +1,8 @@
 //! Talking to NPCs: what the player sends, and what the script answers (rAthena, `clif_scriptmes` and its
 //! neighbours in `src/map/clif.cpp`, at PACKETVER 20260219).
 
+use super::bytes::{text};
+
 /// ZC_SAY_DIALOG (0x00b4): `u16 length, u32 npc, char[] text`; ZC_SAY_DIALOG2 (0x0972) has a `u8 type` before
 /// the text.
 pub const ZC_SAY_DIALOG: u16 = 0x00b4;
@@ -18,15 +20,21 @@ pub const ZC_CLEAR_DIALOG: u16 = 0x08d6;
 pub const ZC_OPEN_EDITDLG: u16 = 0x0142;
 pub const ZC_OPEN_EDITDLGSTR: u16 = 0x01d4;
 
+/// ZC_NPC_CHAT (0x02c1): `u16 length, u32 who, u32 colour, char[] text`: a line for the chat in a colour of its
+/// own (blue first), said by someone in sight or by the server itself (rAthena's `clif_messagecolor`).
+pub const ZC_NPC_CHAT: u16 = 0x02c1;
+
+/// ZC_NPC_CHAT: who says it, the colour as red, green and blue, and the words.
+pub fn coloured_line(packet: &[u8]) -> Option<(u32, [u8; 3], String)> {
+    let who = u32::from_le_bytes(packet.get(4..8)?.try_into().ok()?);
+    let colour = packet.get(8..11)?;
+    Some((who, [colour[0], colour[1], colour[2]], text(packet.get(12..)?)))
+}
+
 /// The NPC a packet is about: at offset 4 where a length comes first, else at 2.
 pub fn npc(id: u16, packet: &[u8]) -> Option<u32> {
     let at = if matches!(id, ZC_SAY_DIALOG | ZC_SAY_DIALOG2 | ZC_MENU_LIST) { 4 } else { 2 };
     Some(u32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?))
-}
-
-fn text(bytes: &[u8]) -> String {
-    let end = bytes.iter().position(|byte| *byte == 0).unwrap_or(bytes.len());
-    String::from_utf8_lossy(&bytes[..end]).into_owned()
 }
 
 /// What an NPC says: one line of its window.
@@ -106,13 +114,16 @@ pub fn whispered(packet: &[u8]) -> Option<(String, String)> {
     Some((text(packet.get(8..32)?), text(packet.get(33..)?)))
 }
 
+/// ZC_ACK_WHISPER (0x09df, 7 bytes): how the whisper went (`crate::whispers::answer`).
+pub fn whisper_answered(packet: &[u8]) -> Option<u8> {
+    packet.get(..7).map(|packet| packet[2])
+}
+
 /// CZ_WHISPER (0x0096): `u16 length, char[24] name, char[] words` ending in a zero.
 pub fn whisper(name: &str, words: &str) -> Vec<u8> {
     let mut packet = 0x0096u16.to_le_bytes().to_vec();
     packet.extend(((4 + 24 + words.len() + 1) as u16).to_le_bytes());
-    let mut to = name.as_bytes()[..name.len().min(23)].to_vec();
-    to.resize(24, 0);
-    packet.extend(to);
+    packet.extend(super::bytes::name24(name));
     packet.extend(words.as_bytes());
     packet.push(0);
     packet
@@ -121,6 +132,13 @@ pub fn whisper(name: &str, words: &str) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_a_line_in_a_colour_of_its_own() {
+        let mut packet = vec![0xc1, 0x02, 16, 0, 7, 0, 0, 0, 0, 0, 255, 0];
+        packet.extend(b"No!\0");
+        assert_eq!(coloured_line(&packet), Some((7, [0, 0, 255], "No!".to_owned())));
+    }
 
     #[test]
     fn reads_what_an_npc_says_in_both_forms() {
@@ -137,6 +155,12 @@ mod tests {
         let mut packet = vec![0xb7, 0, 0, 0, 9, 0, 0, 0];
         packet.extend(b"Save::Quit:\0");
         assert_eq!(menu(&packet), Some(vec!["Save".to_owned(), String::new(), "Quit".to_owned()]));
+    }
+
+    #[test]
+    fn reads_how_a_whisper_went() {
+        assert_eq!(whisper_answered(&[0xdf, 0x09, 1, 0, 0, 0, 0]), Some(crate::whispers::answer::ABSENT));
+        assert_eq!(whisper_answered(&[0xdf, 0x09, 0]), None);
     }
 
     #[test]

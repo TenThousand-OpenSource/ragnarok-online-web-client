@@ -12,8 +12,8 @@ mod pointer;
 pub(super) fn overlays(state: &mut State, view: &View, time: f64, feet: Vector, casts: &[((f32, f32), f64, f64, u32, Option<u32>)]) -> Option<(f32, f32)> {
     let size = state.gpu.as_ref().map(|gpu| (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32))?;
     let over = pointed(state, view)?;
-    numbers(state, time);
     bars::shown(state, view, time, feet, casts, size);
+    signs::shown(state, view, size);
     pointer::shown(state, view, time, over.map(|(id, _)| id), size);
     named(state, view, over, size);
     Some(size)
@@ -32,73 +32,21 @@ fn pointed(state: &mut State, view: &View) -> Option<Option<(u32, (f32, f32))>> 
     let over = state.pointer.and_then(|pointer| pointed_at(gpu, scene, view, pointer)).filter(|(id, _)| scene.units.contains_key(id));
     let unit = over.and_then(|(id, _)| Some((id, scene.units.get(&id)?)));
     let fought = state.chase.map(|(id, ..)| id);
-    let pointed = unit.filter(|(id, unit)| unit.lively && Some(*id) != fought).map(|(id, _)| id);
+    // A player who is fought on this map is marked and pressed as a monster is (`pvp.rs`).
+    let foe = |id: u32, unit: &Mover| state.pvp.foe(id, unit);
+    let pointed = unit.filter(|(id, unit)| (unit.lively || foe(*id, unit)) && Some(*id) != fought).map(|(id, _)| id);
     state.target_at = [fought, pointed].map(|id| id.and_then(|id| scene.units.get(&id)).filter(|unit| unit.dying.is_none()).map(|unit| on_ground(&scene.gat, unit.at)));
-    state.over = unit.filter(|(_, unit)| matches!(unit.look, Look::Creature(_))).map(|(id, unit)| (id, unit.lively));
+    state.over = unit.filter(|(id, unit)| matches!(unit.look, Look::Creature(_)) || foe(*id, unit)).map(|(id, unit)| (id, unit.lively || foe(id, unit)));
     Some(over)
-}
-
-/// The sprite of a critical blow's mark: the numbers', greyed.
-const CRITICAL_MARK: &str = "이팩트/숫자#aaaaaa";
-
-/// The numbers of the hits rise from the heads of those hit, and are gone in a moment.
-fn numbers(state: &mut State, time: f64) {
-    let Some(scene) = &state.scene else { return };
-    for (target, damage, critical) in std::mem::take(&mut state.hits) {
-        let (hurt, own) = match scene.units.get(&target) {
-            Some(unit) => (unit, false),
-            None => (&scene.player, true),
-        };
-        // The client sends the number off by the quarter the one struck faces (`MsgEffectDrift`).
-        let drift = match hurt.facing {
-            0 | 1 => (-0.8, 0.8),
-            2 | 3 => (-0.8, -0.8),
-            4 | 5 => (0.8, -0.8),
-            _ => (0.8, 0.8),
-        };
-        // Blows taken by the player's own character are red; a critical blow is yellow whoever takes it (the
-        // client's `CGameActor::SendMsg`: its number is made with 0xFFFFFF00).
-        let sprite = if critical {
-            "이팩트/숫자#ffff00"
-        } else if own {
-            "이팩트/숫자#ff0000"
-        } else {
-            "이팩트/숫자"
-        };
-        let pictures = if damage > 0 {
-            damage.to_string().bytes().map(|digit| SpriteKey::Creature(sprite.to_owned(), 0, usize::from(digit - b'0'))).collect()
-        } else {
-            vec![SpriteKey::Creature("이팩트/msg".to_owned(), 0, 0)]
-        };
-        // A miss is shown only when the player has it so (the client's `/miss`).
-        if damage > 0 || state.options.misses {
-            let base = on_ground(&scene.gat, hurt.at);
-            // With a critical blow goes its mark: the third action of the numbers' sprite, greyed
-            // (`SpawnMsgEffect` of `MAKETYPE_CRITICAL_EFFECT`, its colour 0xFFAAAAAA).
-            if critical {
-                let mark = vec![SpriteKey::Creature(CRITICAL_MARK.to_owned(), 2, 0)];
-                state.flying.push(Flying { began: time, base, drift, pictures: mark, flight: Flight::Mark });
-            }
-            let flight = if damage <= 0 {
-                Flight::Miss
-            } else if critical {
-                Flight::Critical
-            } else {
-                Flight::Number
-            };
-            state.flying.push(Flying { began: time, base, drift, pictures, flight });
-        }
-    }
 }
 
 /// The name of whoever the pointer is on goes under their feet, as the original puts it; with nothing pointed
 /// at, the name of the monster being fought stays (the client's lock-on).
 fn named(state: &mut State, view: &View, over: Option<(u32, (f32, f32))>, (width, height): (f32, f32)) {
     let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return };
-    // 20 pixels of a screen 480 high under the feet, nearer when the camera is.
-    let below = height * 20.0 / 480.0 * DISTANCE / scene.camera.distance;
-    // Monsters' names are pink, as the original's.
-    let colour = |unit: &Mover| if unit.lively { "#ffc3c3" } else { "#fff" };
+    // 20 pixels of a screen 480 high under the feet, nearer when the camera is; with the player's `/font` on,
+    // 100 over them (the client's `PlaceWindowAtActor`).
+    let below = height * if state.options.name_above { -100.0 } else { 20.0 } / 480.0 * DISTANCE / scene.camera.distance;
     let fought = state.chase.and_then(|(id, ..)| Some((id, scene.units.get(&id)?))).filter(|(_, unit)| !unit.name.is_empty() && unit.dying.is_none());
     // A thing on the ground under the pointer, when nobody is: what it is and how many (`lying_name`).
     let lying = || {
@@ -107,17 +55,35 @@ fn named(state: &mut State, view: &View, over: Option<(u32, (f32, f32))>, (width
         let under = view.project(on_ground(&scene.gat, thing.at))?;
         Some((id, lying_name(thing)?, (under.0 * width, under.1 * height + below)))
     };
-    let of_fought = || fought.and_then(|(id, unit)| view.project(on_ground(&scene.gat, unit.at)).map(|feet| (id, unit.name.clone(), colour(unit), (feet.0 * width, feet.1 * height + below))));
+    // What is written under someone in sight, its colour and the picture beside it (`names.rs`): an NPC's
+    // name in pale blue, a monster's by its level, a title before it, a boss's mark.
+    let of_unit = |id: u32, unit: &Mover, label: String, at: (f32, f32)| {
+        let (label, colour, mark) = names::written(state, id, unit, label);
+        (id, label, colour, at, mark)
+    };
+    let of_fought = || fought.and_then(|(id, unit)| view.project(on_ground(&scene.gat, unit.at)).map(|feet| of_unit(id, unit, unit.name.clone(), (feet.0 * width, feet.1 * height + below))));
     let pointed = over.and_then(|(id, feet)| Some((id, scene.units.get(&id)?, feet))).filter(|(_, unit, _)| !unit.name.is_empty());
-    // Whoever the pointer is on; else the thing on the ground it is on; else the monster being fought.
+    // The player's own character under the pointer, when nobody else is: it has its name too (`guild.rs`).
+    let own = || {
+        let feet = touched(gpu, scene, view, &scene.player, state.pointer.filter(|_| over.is_none())?)?;
+        let (id, name) = state.guilds.own_label()?;
+        Some((id, name, crate::names::PLAIN, (feet.0, feet.1 + below), None))
+    };
+    // Whoever the pointer is on; else the player's own character; else the thing on the ground it is on; else
+    // the monster being fought.
     let shown = match pointed {
-        Some((id, unit, feet)) => Some((id, unit.name.clone(), colour(unit), (feet.0, feet.1 + below))),
-        None => lying().filter(|_| over.is_none()).map(|(id, name, under)| (id, name, LYING_NAME, under)).or_else(of_fought),
+        // A player's name is written with the party's and the guild's (`guild.rs`).
+        Some((id, unit, feet)) => Some(of_unit(id, unit, state.guilds.label(id, &unit.name), (feet.0, feet.1 + below))),
+        None => own().or_else(|| lying().filter(|_| over.is_none()).map(|(id, name, under)| (id, name, LYING_NAME, under, None))).or_else(of_fought),
     };
     match shown {
-        Some((id, name, colour, at)) => {
+        Some((id, name, colour, at, mark)) => {
             state.named = Some(id);
             name_shown(Some((&name, colour, at)));
+            state.guilds.decorate(id, scene.units.get(&id), state.options.emblems);
+            if let Some(mark) = mark {
+                names::marked(&mark);
+            }
         }
         None if state.named.take().is_some() => name_shown(None),
         None => {}

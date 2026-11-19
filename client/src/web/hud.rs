@@ -8,15 +8,18 @@
 //! Each window lives in an element of its own, so a value that changes redraws only its window: the chat's
 //! input line is never rebuilt while someone types in it.
 
+use crate::figures::grouped;
 use crate::i18n::tr;
 use super::app::{App, Shop, escape};
 use super::data;
-use super::parts::{at, dragged, picture, pressed, sent, used};
-use crate::press::things::{Drag, Form, Leveled, Use};
+use super::parts::{at, dragged, dropped, picture, pressed, sent, used};
+use crate::press::things::{Drag, Drop, Form, Leveled, Use};
 use crate::net::items::{Hotkey, Item, Tab};
 use crate::net::packets::parameter;
 
 mod basic;
+mod boxes;
+mod choosing;
 mod inventory;
 mod equipment;
 mod skills;
@@ -24,13 +27,43 @@ mod status;
 mod chat;
 mod dialogs;
 mod pets;
+mod quests;
+mod pvp;
+mod statuses;
+mod cooldowns;
 mod hotkeys_set;
 mod settings;
 mod guide;
+mod party;
+mod guild;
+mod homunculus;
+mod mercenary;
+mod skill_list;
+mod player_menu;
+mod exchange;
+mod mail;
+mod cart;
+mod vending;
+mod fight;
+mod friends;
+mod whispers;
+mod viewequip;
+mod unread;
+mod scripted;
+mod chat_rooms;
+mod family;
+mod broadcast;
+mod marks;
 mod trade;
+mod storage;
+mod lists;
+mod emotions;
+mod tips;
+mod worldmap;
 pub(super) mod windows;
 
-use basic::*;
+use boxes::*;
+use lists::*;
 
 
 /// How many chat lines are kept.
@@ -68,22 +101,40 @@ fn system_box(top: i32, width: i32, height: i32) -> String {
     .concat()
 }
 
-/// One of the original's small buttons with three pictures: `name.bmp`, `name_a.bmp` under the pointer,
-/// `name_b.bmp` pressed.
-fn picture_press(x: i32, y: i32, name: &str, press: impl Into<crate::press::Press>) -> String {
+/// A button that is one of three of the client's pictures: as it stands, under the pointer, pressed. Every
+/// picture button of the windows is written by this. `more` is anything else its tag says (what it tells when
+/// pointed at), with the space before it.
+fn pictured(x: i32, y: i32, (width, height): (i32, i32), [off, over, down]: [&str; 3], press: impl Into<crate::press::Press>, more: &str) -> String {
     format!(
-        r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {}></button>"#,
-        at(x, y, 42, 20),
-        picture(&format!("{name}.bmp")),
-        picture(&format!("{name}_a.bmp")),
-        picture(&format!("{name}_b.bmp")),
+        r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {}{more}></button>"#,
+        at(x, y, width, height),
+        picture(off),
+        picture(over),
+        picture(down),
         pressed(press)
     )
 }
 
+/// One of the original's small buttons with three pictures: `name.bmp`, `name_a.bmp` under the pointer,
+/// `name_b.bmp` pressed.
+fn picture_press(x: i32, y: i32, name: &str, press: impl Into<crate::press::Press>) -> String {
+    pictured(x, y, (42, 20), [&format!("{name}.bmp"), &format!("{name}_a.bmp"), &format!("{name}_b.bmp")], press, "")
+}
+
 /// A small picture button whose picture changes under the pointer.
 fn press_button(x: i32, y: i32, size: i32, off: &str, on: &str, press: impl Into<crate::press::Press>) -> String {
-    format!(r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {}></button>"#, at(x, y, size, size), picture(off), picture(on), picture(on), pressed(press))
+    pictured(x, y, (size, size), [off, on, on], press, "")
+}
+
+/// One of the client's small boxes with its words beside it (`UICheckBox`: `checkbox_1.bmp` ticked,
+/// `checkbox_0.bmp` not, the words 12 to the right of where the box begins), pressed to switch it.
+fn check_words(x: i32, y: i32, on: bool, words: &str, press: impl Into<crate::press::Press>) -> String {
+    format!(
+        r#"<div class="a t" style="left:{x}px;top:{y}px;height:12px;line-height:12px;padding-left:12px;white-space:nowrap;cursor:default;color:{BLACK};background:url('{}') 0 1px no-repeat" {}>{}</div>"#,
+        picture(if on { "checkbox_1.bmp" } else { "checkbox_0.bmp" }),
+        pressed(press),
+        escape(words)
+    )
 }
 
 /// A line an NPC says, as HTML: `^RRGGBB` in it changes the colour of what follows.
@@ -115,14 +166,52 @@ fn coloured(line: &str) -> String {
     if html.is_empty() { "&nbsp;".to_owned() } else { html }
 }
 
-/// A line of text with its top-left corner at a place.
+/// How the client asks for a text: the family, the height and whether it is bold, as `UIWindow::DrawTextAt`
+/// and the other drawing functions take them, and `UIStaticText::SetFont` and `CUIStaticText::SetFont` with
+/// `SetFontHeight` and `SetBold` (whose "Gulim" is family 0: the first of `FontCache`'s names). A window that
+/// writes a text in anything but the usual (0, 12) says so with one of these, never with a size in pixels.
+#[derive(Clone, Copy)]
+pub(super) struct Font(pub u8, pub u8, pub bool);
+
+/// The usual text in bold.
+pub(super) const BOLD: Font = Font(0, 12, true);
+/// The smaller text: how many of an item there are (`DrawItemWithQuantity`), the counts under the lists.
+pub(super) const SMALL: Font = Font(0, 11, false);
+/// What Basic Information and Status write their words and numbers in (`UIBasicInfoWnd`, `UIStatusWnd::Paint`).
+const FIGURES: Font = Font(1, 14, false);
+
+impl Font {
+    /// The style of a text asked for so: its size and the line it stands in (`crate::font::style`), and its
+    /// weight. The face is the page's, also in a button, which would otherwise take the browser's own.
+    pub(super) fn style(self) -> String {
+        format!("font-family:inherit;{};font-weight:{}", crate::font::style(self.0, self.1), if self.2 { "bold" } else { "normal" })
+    }
+}
+
+/// A line of text with its top-left corner at a place, in the usual font.
 fn text(x: i32, y: i32, colour: &str, words: &str) -> String {
     format!(r#"<div class="a t" style="left:{x}px;top:{y}px;color:{colour}">{}</div>"#, escape(words))
+}
+
+/// A line of text with its top-left corner at a place, in the font the client asks for there.
+fn text_in(font: Font, x: i32, y: i32, colour: &str, words: &str) -> String {
+    format!(r#"<div class="a t" style="left:{x}px;top:{y}px;color:{colour};{}">{}</div>"#, font.style(), escape(words))
+}
+
+/// A line of text ending at `right`, in a window `width` wide, in the font the client asks for there.
+fn text_ending_in(font: Font, right: i32, width: i32, y: i32, colour: &str, words: &str) -> String {
+    format!(r#"<div class="a t" style="right:{}px;top:{y}px;color:{colour};{}">{}</div>"#, width - right, font.style(), escape(words))
 }
 
 /// A line of text ending at `right`, in a window `width` wide.
 fn text_ending(right: i32, width: i32, y: i32, colour: &str, words: &str) -> String {
     format!(r#"<div class="a t" style="right:{}px;top:{y}px;color:{colour}">{}</div>"#, width - right, escape(words))
+}
+
+/// How many of a thing there are, written in the corner of its cell: the client's smaller text
+/// (`DrawItemWithQuantity`, `CUIGameItemWithNum::Paint` and the hotkey bar's `DrawRightOutlinedText`: (0, 11)).
+fn count(amount: impl std::fmt::Display) -> String {
+    format!(r#"<span class="n" style="{}">{amount}</span>"#, SMALL.style())
 }
 
 /// The standard title bar: caps that keep their size and a middle that stretches, the title in black over a
@@ -137,26 +226,30 @@ pub(super) fn title_bar(width: i32, title: &str) -> String {
     )
 }
 
+/// The white panel every plain window has under its title (`UIWindow::DrawPanelBackground`), with the bar its
+/// OK and Cancel stand on at the bottom (`DrawButtonBar`).
+fn panel(width: i32, height: i32) -> String {
+    format!(
+        r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;box-sizing:border-box"></div>{}{}{}"#,
+        at(0, 17, width, height - 17),
+        art("basic_interface/btnbar_left.bmp", 0, height - 21, 21, 21),
+        art("basic_interface/btnbar_mid.bmp", 21, height - 21, width - 42, 21),
+        art("basic_interface/btnbar_right.bmp", width - 21, height - 21, 21, 21)
+    )
+}
+
 impl App {
+    /// A line of the client's message table (`msgstringtable.txt`, counted from 0), in the player's language
+    /// where this client has it; `otherwise` until the tables are there.
+    pub(in crate::web) fn words(line: usize, otherwise: &str) -> String {
+        tr(&data::message(line).unwrap_or_else(|| otherwise.to_owned())).to_owned()
+    }
+
     fn value(&self, name: u16) -> i64 {
         // A dead character has no life left, whatever the server has already set aside for its return.
         if self.hero.dead && name == parameter::HP {
             return 0;
         }
         self.hero.params.get(&name).copied().unwrap_or(0)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::grouped;
-
-    #[test]
-    fn groups_thousands() {
-        assert_eq!(grouped(0), "0");
-        assert_eq!(grouped(999), "999");
-        assert_eq!(grouped(1000), "1,000");
-        assert_eq!(grouped(1234567), "1,234,567");
-        assert_eq!(grouped(-45000), "-45,000");
     }
 }

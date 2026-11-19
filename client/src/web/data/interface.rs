@@ -5,6 +5,8 @@ use super::*;
 thread_local! {
     /// The chat window's tabs as the client starts with them: for each, whether it lists a line of each kind.
     static CHAT_TABS: RefCell<Vec<Vec<bool>>> = const { RefCell::new(Vec::new()) };
+    /// The names of those tabs, as the client's own names of lines of its message table (`MSI_ST_CHAT`).
+    static CHAT_TAB_NAMES: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
     /// The client's keys: its four tables, each entry's name and the keys it starts with.
     static HOTKEYS: RefCell<Vec<Vec<(String, crate::hotkeys::Chord)>>> = const { RefCell::new(Vec::new()) };
     /// How the client writes each key, by the key's number.
@@ -19,6 +21,8 @@ thread_local! {
     static EMOTIONS: RefCell<HashMap<u16, (String, usize)>> = RefCell::new(HashMap::new());
     /// What is typed after a slash to show an emotion, in small letters, and the emotion.
     static EMOTION_NAMES: RefCell<HashMap<String, u16>> = RefCell::new(HashMap::new());
+    /// The first name of each emotion, as the client's list gives it.
+    static EMOTION_FIRST_NAMES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
 }
 
 /// The entries of one of the client's four tables of keys (`crate::hotkeys::table`): each one's name, and the
@@ -77,12 +81,35 @@ pub fn emotion_named(command: &str) -> Option<u16> {
     EMOTION_NAMES.with_borrow(|names| names.get(&command.to_lowercase()).copied())
 }
 
-/// Whether a tab of the chat window lists a line of that kind (the client's `UINewChatWnd`, on `UM_ADDCHAT`):
-/// what the tab is set to list (its `ChatWndInfo.lub`, by the kind's number), and besides, in every tab, a line
-/// of kind 25, and one of no particular kind written in pure red — what the client says when something went
-/// wrong. Until the table is read the first tab lists everything and the others only those.
-pub fn chat_tab_shows(tab: usize, kind: u8, red: bool) -> bool {
-    kind == 25 || (kind == 0 && red) || CHAT_TABS.with_borrow(|tabs| if tabs.is_empty() { tab == 0 } else { tabs.get(tab).and_then(|shows| shows.get(usize::from(kind))).copied().unwrap_or(false) })
+/// The chat window's tabs as the client starts with them (its `ChatWndInfo.lub`): the name of each, and whether
+/// it lists a line of each kind. The file names a tab by a line of the message table: `MSI_ST_CHAT` is line
+/// 1291, `MSI_BT_CHAT` line 1292 (the client's `MSGSTRINGID`). Until the table is read there are the two tabs
+/// the client starts with, the first listing what its file has it list.
+pub fn chat_tabs_start() -> Vec<crate::chat_tabs::Tab> {
+    let named = |name: &str| match name {
+        "MSI_ST_CHAT" => message(1291).unwrap_or_else(|| "Public".to_owned()),
+        "MSI_BT_CHAT" => message(1292).unwrap_or_else(|| "Battle".to_owned()),
+        other => other.to_owned(),
+    };
+    let tab = |name: String, lists: &[bool]| {
+        let mut shows = [false; crate::chat_tabs::KINDS];
+        shows.iter_mut().zip(lists).for_each(|(shown, listed)| *shown = *listed);
+        crate::chat_tabs::Tab { name, shows, own: None }
+    };
+    let read: Vec<crate::chat_tabs::Tab> = CHAT_TABS.with_borrow(|tabs| CHAT_TAB_NAMES.with_borrow(|names| tabs.iter().zip(names).map(|(lists, name)| tab(named(name), lists)).collect()));
+    if read.is_empty() { vec![tab(named("MSI_ST_CHAT"), &[true; 14]), tab(named("MSI_BT_CHAT"), &[])] } else { read }
+}
+
+/// Every emotion of the client's basic pack, by its number, in the order of the numbers.
+pub fn emotions() -> Vec<u16> {
+    let mut all: Vec<u16> = EMOTIONS.with_borrow(|emotions| emotions.keys().copied().collect());
+    all.sort_unstable();
+    all
+}
+
+/// What is typed after a slash to show an emotion: the first of its names (`/!`).
+pub fn emotion_name(id: u16) -> Option<String> {
+    EMOTION_FIRST_NAMES.with_borrow(|names| names.get(&id).cloned())
 }
 
 /// Takes its tables out of what the gateway gave: the client's messages, the options of its Game Settings
@@ -94,6 +121,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .map(|tab| js_sys::Array::from(&field(&tab, "shows")).iter().map(|shown| shown.as_bool().unwrap_or(false)).collect())
             .collect(),
     );
+    CHAT_TAB_NAMES.set(js_sys::Array::from(&field(tables, "chat_tabs")).iter().map(|tab| text_of(&tab, "name").unwrap_or_default()).collect());
     RENEWAL.set(field(tables, "renewal").as_bool().unwrap_or(false));
     MESSAGES.set(field(tables, "messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
     OPTIONS.set(
@@ -136,6 +164,15 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     KEY_NAMES.set(entries::<u16>(&part(&keys, "names")).into_iter().filter_map(|(key, name)| Some((key, name.as_string()?))).collect());
     let emotions = entries::<u16>(&field(tables, "emotions"));
     EMOTIONS.set(emotions.iter().filter_map(|(id, about)| Some((*id, (text_of(about, "sprite")?, js_sys::Reflect::get(about, &"action".into()).ok()?.as_f64()? as usize)))).collect());
+    EMOTION_FIRST_NAMES.set(
+        emotions
+            .iter()
+            .filter_map(|(id, about)| {
+                let names = js_sys::Reflect::get(about, &"names".into()).ok().and_then(|names| names.dyn_into::<js_sys::Array>().ok())?;
+                Some((*id, names.get(0).as_string()?))
+            })
+            .collect(),
+    );
     EMOTION_NAMES.set(
         emotions
             .iter()

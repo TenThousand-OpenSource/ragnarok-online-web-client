@@ -5,9 +5,13 @@ use crate::press::account::Press;
 
 impl App {
     pub(super) fn login_window(&self, view: (f64, f64)) -> String {
-        // The client writes these two in the middle of their fields and has the box 56 in; here, by the player's
-        // wish, the text starts at the left and the box stands under the fields' left edge.
+        // The client writes these two in the middle of their fields; here, by the player's wish, the text starts
+        // at the left. The box is where the client has it, 56 in: the window's picture has a box drawn there,
+        // and one anywhere else stands beside that one.
         let field = |id: &str, y: i32, extra: &str| format!(r#"<input class="a in" id="{id}" maxlength="23" style="{};text-align:left;padding-left:4px;box-sizing:border-box" {extra}>"#, at(15, y, 153, 16));
+        // The words by the box are the smaller text and those on the two buttons are bold (`UILoginWnd::OnCreate`:
+        // `SetFont(0, 11, 0, 0)`, and `AddTextStyle` of height 12, bold).
+        let (small, bold) = (SMALL.style(), BOLD.style());
         let checkbox = if self.save_id { "login_interface/checkbox_on.bmp" } else { "login_interface/checkbox_off.bmp" };
         let sends = sent(Form::Login);
         let inner = format!(
@@ -15,7 +19,7 @@ impl App {
                 <div class="a combo" style="{combo}">{service}</div>
                 {id}{password}
                 <button type="button" class="a check" style="{check};{check_picture}" {save}></button>
-                <div class="a small" style="{save_label};color:#333">{save_text}</div>
+                <div class="a" style="{save_label};{small};color:#333">{save_text}</div>
                 {restore}{register}
                 <button class="a b" style="{login};{login_pictures}" aria-label="Login"></button>
             </form>"#,
@@ -23,20 +27,21 @@ impl App {
             service = self.text(Key::Service),
             id = field("user", 40, &format!(r#"name="username" autocomplete="username" autofocus placeholder="{}" value="{}""#, self.text(Key::Id), escape(&self.saved_id))),
             password = field("password", 64, &format!(r#"name="password" type="password" autocomplete="current-password" placeholder="{}""#, self.text(Key::Password))),
-            check = at(17, 85, 12, 12),
+            check = at(56, 85, 12, 12),
             check_picture = background(checkbox),
             save = pressed(Press::SaveId),
-            save_label = at(34, 85, 110, 14),
+            save_label = at(73, 85, 90, 14),
             save_text = self.text(Key::SaveId),
-            restore = button(&at(13, 104, 67, 21), &states_of("login_interface/bt_close"), &pressed(Press::ToRecover), self.text(Key::Restore)),
-            register = button(&at(87, 104, 84, 21), &states_of("login_interface/bt_join"), &pressed(Press::ToRegister), self.text(Key::Register)),
+            restore = button(&format!("{};{bold}", at(13, 104, 67, 21)), &states_of("login_interface/bt_close"), &pressed(Press::ToRecover), self.text(Key::Restore)),
+            register = button(&format!("{};{bold}", at(87, 104, 84, 21)), &states_of("login_interface/bt_join"), &pressed(Press::ToRegister), self.text(Key::Register)),
             login = at(192, 32, 84, 84),
             login_pictures = states_of("login_interface/bt_start"),
         );
         window(view, (301, 132), login_place(view), "", "login_interface/bg_login.tga", &inner)
     }
 
-    /// A window for a form the original client does not have, in the look of its newer windows.
+    /// A window for a form the original client does not have, in the look of its newer windows. Its texts are
+    /// none of the client's, and their sizes are this project's own (the page's `.panel`).
     pub(super) fn form(&self, view: (f64, f64), height: i32, submit: Form, title: Key, rows: &str) -> String {
         let buttons = format!(
             r#"<button class="a b" style="{};{pictures}">{}</button>{}"#,

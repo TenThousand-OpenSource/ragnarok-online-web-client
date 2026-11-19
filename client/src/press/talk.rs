@@ -14,6 +14,8 @@ presses! {
         Cancel = "dialog-cancel",
         /// A line of the menu is picked: which, counted from 0.
         Pick(usize) = "dialog-pick",
+        /// A link to an item in what the NPC said, by the item's number: what is known of the item opens.
+        Item(u32) = "dialog-item",
     }
 }
 
@@ -24,7 +26,7 @@ mod tests {
 
     #[test]
     fn every_press_is_read_back_from_what_it_is_written_as() {
-        for press in [Press::Next, Press::Close, Press::Ok, Press::Cancel, Press::Pick(3)] {
+        for press in [Press::Next, Press::Close, Press::Ok, Press::Cancel, Press::Pick(3), Press::Item(512)] {
             let (what, arg) = press.name();
             assert_eq!(Press::parse(what, &arg), Some(press));
         }

@@ -78,6 +78,12 @@ What the gateway sends is compressed (gzip or Brotli, as the browser takes) and 
 their build, are kept by the browser. Both can be switched off: `--compress off` where a proxy or a CDN in front
 does the compressing, `--cache-client off` to have the client asked for anew each time.
 
+To see walking and fighting as a player far away has them, the gateway can hold back everything that goes
+between the browser and the game server: `--lag 150 --jitter 100` delays each way by 150 milliseconds and a
+random part of up to 100 more, keeping the order as a TCP connection would. It is a debug option, off unless
+given, and delays everyone who plays through that gateway: never give it to the gateway others play through
+(it does not start with `--invite-file` or `--behind-proxy`, which `public.sh` gives).
+
 The server plays by the classic (pre-renewal) rules unless told otherwise. `./rules.sh renewal` rebuilds and
 restarts it for Renewal (third and fourth jobs, their monsters, items, skills and NPCs), and `./rules.sh classic`
 goes back; restart the gateway after either. The choice is kept in `server/.env`, which the gateway reads too for
@@ -92,6 +98,16 @@ wall on any map.
 
 E-mails of the account service go to a development mailbox at http://127.0.0.1:8025; point the gateway's
 `--smtp-url` at a real server for anything else.
+
+## Working on the client
+
+```sh
+./dev.sh           # builds the client again at every save
+```
+
+Open the page as `http://localhost:8080/?dev` and it loads itself anew when a new build is there. That is a new
+page, so the game is left and logged into again: a change is not put into a running game, whose state lives in
+the program being replaced. The gateway is not watched; start it again after changing it.
 
 ## Letting friends in
 

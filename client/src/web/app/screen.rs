@@ -62,6 +62,10 @@ impl App {
     }
 
     pub(in super::super) fn paint_figures(&self) {
+        // The other player in the window that shows their equipment (`hud/viewequip.rs`).
+        if let (Screen::Game, Some(figure)) = (&self.screen, self.seen_figure()) {
+            figure::paint("pc-viewequip", figure);
+        }
         match self.screen {
             Screen::CharSelect => {
                 for character in &self.characters {
@@ -73,6 +77,7 @@ impl App {
                         headgear: character.headgear,
                         body_palette: character.body_palette,
                         weapon: 0,
+                        shield: 0,
                         action: if self.deletions.contains_key(&character.char_id) { SITTING } else { 0 },
                         frame: 0,
                     };
@@ -92,7 +97,7 @@ impl App {
             Screen::CharCreate(_) => {
                 let make = &self.make;
                 let job = if make.doram { data::SUMMONER } else { 0 };
-                let figure = Figure { job, sex: make.sex, hair_style: make.hair_style, hair_colour: make.hair_colour, headgear: [0; 3], body_palette: 0, weapon: 0, action: usize::from(make.direction), frame: 0 };
+                let figure = Figure { job, sex: make.sex, hair_style: make.hair_style, hair_colour: make.hair_colour, headgear: [0; 3], body_palette: 0, weapon: 0, shield: 0, action: usize::from(make.direction), frame: 0 };
                 figure::paint("pc-make", figure);
             }
             _ => {}

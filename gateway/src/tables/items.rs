@@ -122,6 +122,8 @@ type Korean = std::collections::HashMap<u32, (String, Vec<String>)>;
 pub struct About {
     description: Vec<String>,
     facts: Vec<(String, String)>,
+    /// How many slots for cards it has (the table's `slotCount`: what the client writes as `[n]` after a name).
+    slots: u8,
 }
 
 impl Items {
@@ -139,7 +141,7 @@ impl Items {
                 let line = line.trim_start();
                 // What the database says of the item last named, as far as a player wants to know.
                 if let (Some(item), Some((key, value))) = (last, line.split_once(':')) {
-                    if matches!(key, "Type" | "SubType" | "Buy" | "Sell" | "Weight" | "Attack" | "MagicAttack" | "Defense" | "Range" | "Slots" | "WeaponLevel" | "ArmorLevel" | "EquipLevelMin")
+                    if matches!(key, "Type" | "SubType" | "Buy" | "Sell" | "Weight" | "Attack" | "MagicAttack" | "Defense" | "Range" | "Slots" | "WeaponLevel" | "ArmorLevel" | "EquipLevelMin" | "View")
                         && !value.trim().is_empty()
                     {
                         let value = value.trim();
@@ -183,7 +185,10 @@ impl Items {
                     unidentified.insert(id, (field("unidentifiedDisplayName"), field("unidentifiedResourceName"), lines));
                     if let Ok(lines) = item.get::<Table>("identifiedDescriptionName") {
                         let description: Vec<String> = lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect();
-                        about.insert(id, About { description, facts: Vec::new() });
+                        about.insert(id, About { description, facts: Vec::new(), slots: 0 });
+                    }
+                    if let Ok(slots @ 1..) = item.get::<u8>("slotCount") {
+                        about.entry(id).or_default().slots = slots;
                     }
                 }
             }
@@ -238,6 +243,10 @@ impl Items {
                 if !description.is_empty() {
                     about.description = description;
                 }
+                // An item the client's own table lacks takes its slots from this one too.
+                if about.slots == 0 {
+                    about.slots = item.get::<u8>("slotCount").unwrap_or(0);
+                }
                 // What the item is before it is identified, in English too.
                 let unknown = self.4.entry(id).or_default();
                 if let Ok(Value::String(text)) = item.get::<Value>("unidentifiedDisplayName") {
@@ -272,14 +281,14 @@ impl Items {
         let found: serde_json::Map<String, serde_json::Value> = ids
             .filter_map(|id| {
                 let (name, resource) = self.0.get(&id)?;
-                let (description, facts) = self.1.get(&id).map_or((&[][..], &[][..]), |about| (&about.description[..], &about.facts[..]));
+                let (description, facts, slots) = self.1.get(&id).map_or((&[][..], &[][..], 0), |about| (&about.description[..], &about.facts[..], about.slots));
                 let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
                 let (name, description) = match self.3.get(&id) {
                     Some((russian, lines)) => (if russian.is_empty() { name.clone() } else { russian.clone() }, if lines.is_empty() { description.iter().map(|line| russian_line(line)).collect() } else { lines.clone() }),
                     None => (name.clone(), description.iter().map(|line| russian_line(line)).collect()),
                 };
                 let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": lines.iter().map(|line| russian_line(line)).collect::<Vec<String>>() }));
-                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified })))
+                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified, "slots": slots })))
             })
             .collect();
         found.into()
@@ -306,10 +315,10 @@ impl Items {
         let found: serde_json::Map<String, serde_json::Value> =
             ids.filter_map(|id| {
                 let (name, resource) = self.0.get(&id)?;
-                let (description, facts) = self.1.get(&id).map_or((&[][..], &[][..]), |about| (&about.description[..], &about.facts[..]));
+                let (description, facts, slots) = self.1.get(&id).map_or((&[][..], &[][..], 0), |about| (&about.description[..], &about.facts[..], about.slots));
                 let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
                 let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": lines }));
-                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified })))
+                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified, "slots": slots })))
             })
             .collect();
         found.into()

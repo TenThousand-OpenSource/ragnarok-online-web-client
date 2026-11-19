@@ -16,6 +16,11 @@ impl App {
                 self.pressed(crate::press::inventory::Press::IdentifyPick(row));
                 return self.pressed(crate::press::inventory::Press::IdentifyOk);
             }
+            Use::Choice(row) => return self.choice_used(row),
+            Use::Room(id) => return self.room_used(id),
+            Use::Emotion(emotion) => return self.emotion_shown(emotion),
+            // A card asks what it can be set into (`clicks/choosing.rs`).
+            Use::Item(index) if self.card_used(index) => return,
             _ => {}
         }
         // A slot of the bar stands for its item or its skill.
@@ -31,6 +36,16 @@ impl App {
             },
             other => (other, None),
         };
+        // A skill of the homunculus or of the mercenary is used through the one whose it is (`ai.rs`).
+        if let Use::Skill(id) = what {
+            if self.uses_companion_skill(id, level) {
+                return;
+            }
+        }
+        // Change Cart opens the window of the looks, or is not used at all (`clicks/cart.rs`).
+        if what == Use::Skill(CHANGE_CART) && self.skills.known.iter().any(|skill| skill.id == CHANGE_CART && skill.level > 0) && !self.cart_change_used() {
+            return;
+        }
         let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };
         match what {
             Use::Item(index) => {
@@ -47,9 +62,14 @@ impl App {
                 }
             }
             Use::Skill(id) => {
-                let Some(skill) = self.skills.known.iter().find(|skill| skill.id == id).cloned() else { return };
+                // A skill of the guild's is used as one of the character's own (the client's `MM_USING_SKILL` for both).
+                let Some(skill) = self.skills.known.iter().find(|skill| skill.id == id).cloned().or_else(|| self.guild_skill(id)) else { return };
                 if skill.level == 0 || skill.passive() {
                     return;
+                }
+                // One that still waits is not used, and the chat says so (`cooldowns`).
+                if !self.cooldowns.waits.ready(skill.id, now()) {
+                    return self.skill_waits(skill.id);
                 }
                 // From the bar it is used at the level it was put there with; from the skill window, at the
                 // level picked there.
@@ -82,7 +102,19 @@ impl App {
                 }
                 Hotkey { skill: false, id, count: 0 }
             }
+            // A thing worn goes on the bar as the item it is, by the same rule.
+            Some(Drag::Worn(index)) => match self.bag.items.iter().find(|item| item.index == index).filter(|item| item.fits_hotkeys()) {
+                Some(item) => Hotkey { skill: false, id: item.id, count: 0 },
+                None => return,
+            },
             Some(Drag::Skill(skill)) => Hotkey { skill: true, id: skill.id, count: skill.level },
+            // A thing of a letter being written does not go on the bar.
+            Some(Drag::Attached(_)) => return,
+            // Nor does a row of a shop, or a thing that lies in the storage.
+            Some(Drag::Offer(_) | Drag::Basket(_) | Drag::Stored(_)) => return,
+            // Nor a thing of the cart, or of a merchant's shop (the client lets go of what was taken up in the
+            // cart there and nothing happens).
+            Some(Drag::Carted(_) | Drag::Stock(_) | Drag::Stalled(_) | Drag::Vended(_) | Drag::Wanted(_)) => return,
             None => Hotkey::default(),
             // From another slot of the bar: what was there moves here, and that slot is left empty.
             Some(Drag::Slot(from)) => {
@@ -104,29 +136,13 @@ impl App {
 
     /// Asks what the items carried and on the bar are called, and redraws their windows.
     pub(super) fn items_changed(&self) {
-        let stored = self.deal.storage.iter().flat_map(|storage| storage.items.iter().map(|item| item.id));
+        let stored = self.storage.open.iter().flat_map(|storage| storage.items.iter().map(|item| item.id));
         let ids = self.bag.items.iter().map(|item| item.id).chain(self.skills.hotkeys.iter().filter(|hotkey| !hotkey.skill).map(|hotkey| hotkey.id)).chain(stored);
         data::want_items(ids, || dispatch(Action::ItemsKnown));
         // The weapon in hand (bit 2 of where a thing is worn) is drawn on the character.
         world::own_weapon(self.bag.items.iter().find(|item| item.worn & 2 != 0).map_or(0, |item| item.id));
         self.refresh_items();
         self.paint_figures();
-    }
-
-    /// The sound a blow of the weapon in hand makes when it lands (the client's `_hit_*.wav`): by the kind of
-    /// weapon its number tells, bare fists if nothing is held.
-    pub(super) fn weapon_sound(&self) -> &'static str {
-        // Bit 2 of where a thing is worn is the hand that holds the weapon.
-        match self.bag.items.iter().find(|item| item.worn & 2 != 0).map_or(0, |item| item.id) {
-            1100..=1199 | 13400..=13499 => "_hit_sword.wav",
-            1200..=1249 | 13000..=13099 => "_hit_dagger.wav",
-            1300..=1399 => "_hit_axe.wav",
-            1400..=1499 => "_hit_spear.wav",
-            1500..=1549 | 16000..=16099 => "_hit_mace.wav",
-            1550..=1699 | 2000..=2099 => "_hit_rod.wav",
-            1700..=1749 | 18100..=18199 => "_hit_arrow.wav",
-            _ => "_hit_fist1.wav",
-        }
     }
 
     /// The chat's next size, as the client steps it (`UM_TOGGLEPUSH`): one row, then three more each time up to
@@ -141,7 +157,7 @@ impl App {
         let Some((id, amount, identified)) = self.bag.obtained.filter(|_| !self.bag.told_obtained) else { return };
         let Some((name, _)) = data::item_as(id, identified) else { return };
         self.bag.told_obtained = true;
-        self.chat_line_of(said::ITEM, format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), "#ffff00");
+        self.chat_line_of(said::ITEM, format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), YELLOW);
         if let Some(note) = element("obtained") {
             note.set_inner_html(&self.obtained_note());
         }
@@ -154,6 +170,8 @@ impl App {
 
     /// A line for the chat window, of one of the client's kinds (`said`): the window's tabs list it or not by that.
     pub(super) fn chat_line_of(&mut self, kind: u8, words: String, colour: &str) {
+        // The items a line links to are asked about, so that the line can name them.
+        self.chat_links_wanted(&words);
         self.chat.lines.push((words, colour.to_owned(), kind));
         if self.chat.lines.len() > super::super::hud::CHAT_KEPT {
             self.chat.lines.remove(0);
@@ -170,21 +188,14 @@ impl App {
         }
     }
 
-    /// Takes the slot machine of taming away, and stops its timer.
-    pub(super) fn close_taming(&mut self) {
-        if let Some(taming) = self.pets.taming.take() {
-            if let Some(window) = web_sys::window() {
-                window.clear_interval_with_handle(taming.timer);
-            }
-        }
-    }
-
     pub(super) fn entered_map(&mut self, packet: &[u8]) {
         let (Some(accepted), Some(zone), Some(socket)) = (packets::map_accepted(packet), &self.zone, &self.socket) else {
             return self.leave(Some(Key::Rejected.text(self.lang).to_owned()));
         };
         let name = self.characters.iter().find(|character| character.char_id == zone.char_id).map(|character| character.name.clone()).unwrap_or_default();
         let map = zone.map.clone();
+        // The clock the world shows everyone's walk by is set from the server's time (`CSession::SetServerTime`).
+        world::clock_set(accepted.server_tick);
         // The map counts as loaded: the server now puts the character into the world, where other players see it.
         socket.send(&packets::map_loaded());
         // Until the map server sends the character's values, the ones of the character list stand in.
@@ -194,7 +205,19 @@ impl App {
         self.bag.items.clear();
         self.skills.known.clear();
         self.skills.hotkeys.clear();
+        // Another map server tells the states and the waits anew (the client's `ChangeZoneServer`).
+        (self.statuses, self.cooldowns) = Default::default();
+        // The guild is told anew too, if the character is of one; the standing on a PVP map starts over.
+        (self.guild, self.pvp.rank, self.pvp.total) = Default::default();
+        // The world is told who the player's own character is: its name shows under it, and its guild's once
+        // the server has said (`world/guild.rs`).
+        world::own_guild(self.account.as_ref().map_or(0, |account| account.account_id), &name, 0, 0);
         self.hero.stat_bonus = [0; 6];
+        // The journal is the character's that enters: the server tells it anew, if it has any quest.
+        (self.quests.log, self.quests.pane, self.quests.notice) = Default::default();
+        // The talks with one player each, and what was open of the friends list and of another's equipment,
+        // were the last character's. The friends themselves the server tells anew.
+        (self.whispers.talks, self.whispers.menu, self.viewequip.seen, self.friends.asks, self.friends.menu) = Default::default();
         self.chat.lines.clear();
         if let Some(character) = character {
             use packets::parameter::*;
@@ -216,7 +239,7 @@ impl App {
         if self.chat.rows == 0 && self.chat.rows_kept == 0 {
             self.chat.rows = 4;
         }
-        self.game = Some(Game { name, job, map, x: accepted.x, y: accepted.y, packets: 0, map_size: None });
+        self.game = Some(Game { name, job, map, x: accepted.x, y: accepted.y, map_size: None });
         self.screen = Screen::Game;
         self.tune();
         self.enter_world();
@@ -233,6 +256,8 @@ impl App {
             headgear: character.map_or([0; 3], |character| character.headgear),
             body_palette: character.map_or(0, |character| character.body_palette),
             weapon: self.bag.items.iter().find(|item| item.worn & 2 != 0).map_or(0, |item| item.id),
+            // What is worn on the left hand alone: a weapon of two hands is not a shield.
+            shield: self.bag.items.iter().find(|item| item.worn & 0x22 == 0x20).map_or(0, |item| item.id),
             action: 0,
             frame: 0,
         }
@@ -251,6 +276,7 @@ impl App {
         let figure = self.own_figure();
         let hooks = world::Hooks {
             walk_to: |x, y| dispatch(Action::WalkTo(x, y)),
+            face: |head, direction| dispatch(Action::Face(head, direction)),
             press: |id, monster| dispatch(Action::Pressed(id, monster)),
             take: |id| dispatch(Action::Take(id)),
             moved: |x, y| dispatch(Action::Moved(x, y)),
@@ -261,8 +287,12 @@ impl App {
             strike_once: |id| dispatch(Action::StrikeOnce(id)),
             stop: || dispatch(Action::StopFight),
             quick: |slot| dispatch(Action::Quick(slot)),
+            commanded: |mercenary, whom, cell, later| dispatch(Action::Commanded(mercenary, whom, cell, later)),
         };
         sound::map_track(data::music(&game.map));
+        // The server is asked its time as each map begins (the client's `SendSyncRequest(true)` as its game
+        // mode starts), and then every twelve seconds (`keep_alive`).
+        self.send_on_map(&packets::tick(now()));
         world::enter(game.map.clone(), (game.x, game.y), figure, hooks);
         // The client's loading screen stands over everything until the map shows.
         loading(Some(self.loadings));
@@ -288,7 +318,7 @@ impl App {
         let title = if sign.title.is_empty() && sign.over.is_empty() { sign.name.as_str() } else { sign.title.as_str() };
         shown.set_inner_html(&format!(
             r#"<img alt="" draggable="false" src="{}" onerror="this.remove()"><div class="over">{}</div><div class="title">{}</div>"#,
-            crate::web::asset_url(&format!("data/texture/유저인터페이스/display_mapname/{picture}.png")),
+            crate::web::asset_url(&format!("{}display_mapname/{picture}.png", crate::web::parts::UI)),
             escape(&sign.over),
             escape(title)
         ));

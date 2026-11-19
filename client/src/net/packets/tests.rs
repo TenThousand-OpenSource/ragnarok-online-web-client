@@ -202,7 +202,10 @@ fn packs_and_reads_moves() {
     packet[9] = ((x1 << 2) | ((y1 >> 8) & 0x03)) as u8;
     packet[10] = y1 as u8;
     packet[11] = 0x88;
-    assert_eq!(player_move(&packet), Some(((156, 191), (163, 1000))));
+    packet[2..6].copy_from_slice(&77_000u32.to_le_bytes());
+    let walk = crate::net::units::Walked { from: (156, 191), to: (163, 1000), within: (8, 8), started: 77_000 };
+    assert_eq!(player_move(&packet), Some(walk));
+    assert_eq!(server_time(&[0x7f, 0, 0xc8, 0x2c, 1, 0]), Some(77_000));
     assert_eq!(player_move(&packet[..10]), None);
 }
 
@@ -272,11 +275,6 @@ fn builds_and_reads_chat() {
     let mut other = vec![0x8d, 0x00, 0, 0, 1, 2, 3, 4];
     other.extend(b"Friend : hey\0");
     assert_eq!(chat_text(ZC_NOTIFY_CHAT, &other).as_deref(), Some("Friend : hey"));
-    let mut loud = vec![0u8; 16];
-    loud[4..8].copy_from_slice(&[0x00, 0xff, 0xff, 0x00]);
-    loud.extend(b"Server restart\0");
-    assert_eq!(chat_text(ZC_BROADCAST2, &loud).as_deref(), Some("Server restart"));
-    assert_eq!(broadcast_colour(&loud), Some([0xff, 0xff, 0x00]));
     assert_eq!(chat_text(0x1234, &own), None);
 }
 

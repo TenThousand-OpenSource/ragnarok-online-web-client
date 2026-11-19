@@ -19,6 +19,8 @@ presses! {
         MapMarks = "map-marks",
         /// The button under Basic Information that folds the menu away and brings it back.
         Menu = "menu",
+        /// The menu's icon of the game's options: the game's menu opens, or closes if it was open.
+        Options = "options",
         /// The game's menu: back to the game.
         EscClose = "esc-close",
         /// The game's menu of one who lies dead: to the save point (it asks first).

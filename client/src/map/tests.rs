@@ -82,40 +82,41 @@ fn finds_no_path_to_walls_closed_rooms_or_too_far() {
 #[test]
 fn a_click_out_of_reach_goes_as_far_as_it_can() {
     let mut gat = Gat::open(60, 6);
-    // Too far: the cell as many steps along the line as a player may ask the server for (its `max_walk_path`).
-    assert_eq!(gat.goal_towards((0, 5), (50, 5)), Some((17, 5)));
-    // And on from there, a stretch at a time, to the place itself.
-    assert_eq!(gat.goal_towards((17, 5), (50, 5)), Some((34, 5)));
-    assert_eq!(gat.goal_towards((34, 5), (50, 5)), Some((50, 5)));
+    // Too far, as the client does it: the place itself is asked for, whatever the server makes of it.
+    assert_eq!(gat.goal_towards((0, 5), (50, 5), |_| false, false), Some((50, 5)));
+    // With the project's far walk: the cell as many steps along the way as a player may ask the server for
+    // (its `max_walk_path`), and on from there, a stretch at a time, to the place itself.
+    assert_eq!(gat.goal_towards((0, 5), (50, 5), |_| false, true), Some((17, 5)));
+    assert_eq!(gat.goal_towards((17, 5), (50, 5), |_| false, true), Some((34, 5)));
+    assert_eq!(gat.goal_towards((34, 5), (50, 5), |_| false, true), Some((50, 5)));
     // Just within reach: the place itself; a step past it: the last cell within.
-    assert_eq!(gat.goal_towards((0, 5), (17, 5)), Some((17, 5)));
-    assert_eq!(gat.goal_towards((0, 5), (18, 5)), Some((17, 5)));
-    // On a wall: the cell before it.
+    assert_eq!(gat.goal_towards((0, 5), (17, 5), |_| false, true), Some((17, 5)));
+    assert_eq!(gat.goal_towards((0, 5), (18, 5), |_| false, true), Some((17, 5)));
+    // On a wall: the first walkable cell beside it in the client's order (east of it first), a way to it found.
     gat.block(5, 0);
-    assert_eq!(gat.goal_towards((0, 0), (5, 0)), Some((4, 0)));
-    assert_eq!(gat.goal_towards((0, 0), (3, 0)), Some((3, 0)));
+    assert_eq!(gat.goal_towards((0, 0), (5, 0), |_| false, false), Some((6, 0)));
+    assert_eq!(gat.goal_towards((0, 0), (3, 0), |_| false, false), Some((3, 0)));
     // Where it stands already: nowhere.
-    assert_eq!(gat.goal_towards((0, 0), (0, 0)), None);
+    assert_eq!(gat.goal_towards((0, 0), (0, 0), |_| false, false), None);
+}
+
+#[test]
+fn a_press_on_a_cell_where_somebody_stands_goes_beside_it() {
+    let gat = Gat::open(20, 20);
+    // Somebody on the cell pressed: the next cell in the client's order, east of it.
+    assert_eq!(gat.goal_towards((2, 10), (10, 10), |cell| cell == (10, 10), false), Some((11, 10)));
+    // That one taken as well: north-east, then south-east.
+    let crowd = [(10, 10), (11, 10), (11, 11)];
+    assert_eq!(gat.goal_towards((2, 10), (10, 10), |cell| crowd.contains(&cell), false), Some((11, 9)));
+    // Everything around taken: the next cell on the line back to the character.
+    let ring = |cell: (i32, i32)| (cell.0 - 10).abs() <= 1 && (cell.1 - 10).abs() <= 1;
+    assert_eq!(gat.goal_towards((2, 10), (10, 10), ring, false), Some((8, 10)));
 }
 
 #[test]
 fn directions_are_numbered_from_south_clockwise() {
     assert_eq!([direction(0, -1), direction(-1, -1), direction(-1, 0), direction(-1, 1)], [0, 1, 2, 3]);
     assert_eq!([direction(0, 1), direction(1, 1), direction(1, 0), direction(1, -1)], [4, 5, 6, 7]);
-}
-
-#[test]
-fn a_walk_takes_longer_on_diagonals() {
-    let walk = Walk::new((0, 0), &[(1, 0), (2, 1), (2, 2)], 150.0);
-    assert_eq!(walk.duration(), 150.0 + 210.0 + 150.0);
-    assert_eq!(walk.goal(), (2, 2));
-    assert_eq!(walk.at(0.0), ((0.0, 0.0), 6));
-    assert_eq!(walk.at(75.0), ((0.5, 0.0), 6));
-    // Half-way along the diagonal, facing north-east.
-    assert_eq!(walk.at(150.0 + 105.0), ((1.5, 0.5), 5));
-    // At the end, and after it, the walker stands on the goal, still facing the way it came.
-    assert_eq!(walk.at(510.0), ((2.0, 2.0), 4));
-    assert_eq!(walk.at(9999.0), ((2.0, 2.0), 4));
 }
 
 /// A GND of one texture and one patch of baked light, 2 by 1 cubes: the west one at height 0, the east one
@@ -188,4 +189,34 @@ fn refuses_files_that_are_not_ground() {
     let mut odd = gnd_bytes();
     odd[5] = 3;
     assert!(Gnd::parse(&odd, name).is_err());
+}
+
+#[test]
+fn a_press_behind_something_goes_round_what_is_near_and_never_across_the_map() {
+    // A short wall between: the client's search finds the way round it.
+    let mut gat = Gat::open(60, 60);
+    for x in 8..13 {
+        gat.block(x, 30);
+    }
+    let way = gat.client_path((10, 27), (10, 33));
+    assert_eq!(way.last(), Some(&(10, 33)));
+    assert!(way.iter().all(|cell| cell.1 != 30 || !(8..13).contains(&cell.0)));
+    assert_eq!(gat.goal_towards((10, 27), (10, 33), |_| false, false), Some((10, 33)));
+    // A wall across the map with one gap far to the side: the search gives up after its 149 cells, and the
+    // press does nothing, as in the client (the place itself is the first walkable cell on the line back).
+    for x in 0..55 {
+        gat.block(x, 30);
+    }
+    assert!(gat.client_path((10, 20), (10, 40)).is_empty());
+    assert_eq!(gat.goal_towards((10, 20), (10, 40), |_| false, false), None);
+    // A press on the wall itself: the client takes the first walkable cell beside it in its fixed order — here
+    // one behind the wall, to which it finds no way — and looks no further.
+    assert_eq!(gat.goal_towards((10, 20), (10, 30), |_| false, false), None);
+    // On a wall two cells thick the cells beside the press are wall too, and the next cell on the line back is
+    // taken, with the cells beside it in the same order: one before the wall.
+    for x in 0..55 {
+        gat.block(x, 31);
+        gat.block(x, 29);
+    }
+    assert_eq!(gat.goal_towards((10, 20), (10, 30), |_| false, false), Some((11, 28)));
 }

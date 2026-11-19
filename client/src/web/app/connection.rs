@@ -50,8 +50,10 @@ impl App {
         self.game = None;
         self.zone = None;
         self.dialog = None;
-        self.deal.shop = None;
-        self.deal.storage = None;
+        self.deal = Deal::default();
+        self.storage.open = None;
+        self.storage.counting = None;
+        self.storage.found = None;
         self.bag.throwing = None;
         self.bag.info = None;
         self.bag.identify = None;
@@ -61,7 +63,6 @@ impl App {
         self.close_taming();
         self.hero.sitting = false;
         self.bag.items.clear();
-        self.deal.basket.clear();
         self.chat.lines.clear();
         self.enter_server();
     }

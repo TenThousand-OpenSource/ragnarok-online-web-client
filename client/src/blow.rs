@@ -1,10 +1,15 @@
 //! When a blow lands: the moment into the striker's swing at which the one struck flinches, stops and the
-//! number rises; and how the digits of that number stand.
+//! number rises; and how the digits of that number stand. The hits a blow is made of are in `landing.rs`, what
+//! each shows and sounds like in `signs.rs`, how the numbers fly in `flight.rs`.
 //!
 //! From the client's `CGameActor::ProcessHitMessage` and `CGameActor::GetAttackMotion`: the blow lands as the
 //! swing reaches the frame that carries the sound event named `atk` (without one, the frame before the last),
 //! each frame taking 24 milliseconds at full speed. The speed is what the server sends with the blow (432 is
 //! full speed; the client takes no more than that).
+
+pub mod flight;
+pub mod landing;
+pub mod signs;
 
 /// The speed of a swing shown as the sprite has it (the client's `g_maxMoveSpeed`).
 const FULL_SPEED: f64 = 432.0;

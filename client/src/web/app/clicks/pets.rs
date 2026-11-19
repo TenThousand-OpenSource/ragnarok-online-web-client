@@ -13,7 +13,7 @@ impl App {
                 if let (Some(taming), Some(socket)) = (&mut self.pets.taming, &self.socket) {
                     if !taming.started {
                         (taming.state, taming.wanted, taming.started, taming.tick) = (1, 7, true, 0);
-                        socket.send(&[&0x019fu16.to_le_bytes()[..], &taming.target.to_le_bytes()].concat());
+                        socket.send(&pets::capture(taming.target));
                     }
                 }
             }
@@ -21,10 +21,10 @@ impl App {
                 self.pets.egg_picked = row;
                 self.render();
             }
-            // CZ_SELECT_PETEGG (0x01a7): `u16 index`. The picked egg is hatched.
+            // The picked egg is hatched.
             Press::EggOk | Press::EggCancel => {
                 if let (true, Some(socket), Some(index)) = (press == Press::EggOk, &self.socket, self.pets.eggs.as_ref().and_then(|eggs| eggs.get(self.pets.egg_picked))) {
-                    socket.send(&[0x01a7u16.to_le_bytes(), index.to_le_bytes()].concat());
+                    socket.send(&pets::hatch(*index));
                 }
                 self.pets.eggs = None;
                 self.render();

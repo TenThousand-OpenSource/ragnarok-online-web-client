@@ -18,7 +18,8 @@ use super::socket::{Socket, SocketEvent};
 use super::view::{HAIR_COLOURS, SLOTS_PER_PAGE, WALLPAPER, hair_styles};
 use super::{asset_url, data, js_error, sound, world};
 use crate::hotkeys::{self, Chord};
-use crate::press::things::{self, Drag, Form, Use};
+use crate::press::things::{self, Drag, Drop, Form, Use};
+use crate::said::{self, colour::*};
 use crate::i18n::{Key, Lang, fill};
 use crate::net::skills;
 use crate::net::items::{self, Hotkey, Item, Skill, Tab};
@@ -33,6 +34,7 @@ mod page;
 mod account;
 mod connection;
 mod actions;
+mod ai;
 mod clicks;
 mod keys;
 mod hotkeys_set;
@@ -41,6 +43,7 @@ mod commands;
 mod incoming;
 mod game;
 mod screen;
+mod screenshot;
 mod windows;
 
 pub(in crate::web) use state::*;
@@ -51,8 +54,10 @@ pub(super) use hotkeys_set::PAGE;
 use account::*;
 
 const LOGIN_PORT: u16 = 6900;
-/// How often the open connection is told the client is still there. The servers drop a silent one after a minute.
-const KEEP_ALIVE_MS: i32 = 10_000;
+/// How often the open connection is told the client is still there, and the map server asked its time: the
+/// client's twelve seconds (its `g_gameTickInterval`, and `nextKeepaliveTime` on the character server). The
+/// servers drop a silent connection after a minute.
+const KEEP_ALIVE_MS: i32 = 12_000;
 /// The WebSocket close code the gateway turns a login away with; the reason is the seconds to wait.
 const TOO_MANY_ATTEMPTS: u16 = 4029;
 /// The original client's least lengths for a login, and rAthena's for a character name.
@@ -100,10 +105,34 @@ pub(super) enum Action {
     /// From the socket of that generation; older sockets' events are dropped.
     Socket(u32, SocketEvent),
     KeepAlive,
+    /// The moment the watch on the connection looks at it, and what is shown for a time is looked over.
+    Watch,
     /// The player pressed a cell of the map to walk to.
     WalkTo(u16, u16),
+    /// The character looked towards a place: how its head is turned, and the direction it faces.
+    Face(u8, u8),
     /// Something was dragged out of its window and let go over the world.
     Thrown(Drag),
+    /// Something was dragged out of its window and let go over the window of a deal between two players.
+    Offered(Drag),
+    /// Something was dragged out of its window and let go over the window of a thing being forged.
+    Forged(Drag),
+    /// Something was dragged out of its window and let go over a window that takes things (`data-drop`).
+    LetGo(Drag, Drop),
+    /// A thing was pressed with the right button while Alt was held, with the storage open: all of it goes
+    /// into the storage, or comes out of it.
+    Stowed(Use),
+    /// A thing of the storage (its place there) was dragged out and let go over the inventory.
+    Unstored(u16),
+    /// Something was dragged out of its window and let go over the letter being written.
+    Mailed(Drag),
+    /// A thing of the cart (its place there) was dragged out and let go over the inventory.
+    Uncarted(u16),
+    /// The first picture of the sprite of a look offered for the cart was read: the kind, the picture, and
+    /// where in it the cart stands.
+    CartLookRead(u8, String, (f32, f32)),
+    /// A thing of the letter being written (where it is carried) was dragged out and let go over the inventory.
+    Unmailed(u16),
     /// A skill was pressed with the right button: show its description.
     SkillInfo(u16),
     /// An item was pressed with the right button: show what is known of it.
@@ -130,16 +159,35 @@ pub(super) enum Action {
     Slid(String, u8),
     /// The right button was pressed on someone on the map: their ID, and where on the page.
     Menu(u32, (f32, f32)),
+    /// The right button was pressed on a thing in a window that has a menu: the thing, and where on the page.
+    MenuOn(things::Menu, (f32, f32)),
     /// The slot machine's pictures were read.
     /// A monster's picture for the Adventure Guide was made: the monster's number, and the picture.
     GuideRead(u32, (String, (usize, usize), (f32, f32))),
     TamingRead(Vec<(String, (usize, usize), (f32, f32))>, Vec<(String, (usize, usize), (f32, f32))>),
+    /// The digits of the standing on a PVP map were read (the pictures of `RankFont`, action by action).
+    PvpRead(Vec<(String, (usize, usize), (f32, f32))>),
+    /// The pictures of the emotions for their window were read: each emotion's picture and its size.
+    EmotionsRead(Vec<(u16, (String, (usize, usize)))>),
+    /// A picture of the screen was made (or could not be): the name of its file.
+    Pictured(Result<String, String>),
     /// A moment of the slot machine has passed.
     TamingTick,
     /// A while after the pet's trick: it may show how it feels standing about.
     PetIdle,
+    /// A second has passed while a state of the character has a time running: the times are written anew.
+    StatusTick,
+    /// A time something of an NPC's script runs by has come: a bar is full, a sound repeats, a mark goes.
+    Scripted,
+    /// A moment has passed while the player has a homunculus or a mercenary: its script may be due.
+    AiTick,
+    /// The mouse commanded the homunculus, or the mercenary (true): to fight someone or to walk to a cell, at
+    /// once or (true) after its other commands.
+    Commanded(bool, Option<u32>, (u16, u16), bool),
     /// The screen has gone dark for a move: the character is put at its new place (a map and a cell).
     Arrive(String, u16, u16),
+    /// Something the guild waited for was read: a member's head, a file picked as the emblem.
+    Guild(GuildEvent),
     /// The account service answered: the HTTP status and, when it says to wait, for how many seconds.
     Answer(Request, Result<(u16, Option<u64>), String>),
 }
@@ -220,10 +268,43 @@ pub(super) struct App {
     pub skills: Skills,
     pub chat: Chat,
     pub deal: Deal,
+    pub storage: Storage,
     pub pets: Pets,
+    pub quests: Quests,
+    pub statuses: Statuses,
+    pub cooldowns: Cooldowns,
+    pub commands: Commands,
     pub keys: Keys,
     pub settings: Settings,
     pub guide: GuideWnd,
+    pub party: Party,
+    pub pvp: Pvp,
+    pub guild: Guild,
+    pub exchange: Exchange,
+    pub mail: Mail,
+    pub cart: Cart,
+    pub vending: Vending,
+    pub friends: Friends,
+    pub whispers: Whispers,
+    pub viewequip: ViewEquip,
+    pub fight: Fight,
+    pub unread: Unread,
+    pub scripted: Scripted,
+    pub chat_rooms: ChatRooms,
+    pub family: Family,
+    pub homunculus: Homunculus,
+    pub mercenary: Mercenary,
+    pub ai: Scripts,
+    pub emotions: Emotions,
+    pub worldmap: WorldMap,
+    pub tips: Tips,
+    pub choosing: Choosing,
+    pub notices: Notices,
+    pub link: Link,
+    pub marks: Marks,
+    pub broadcast: Broadcast,
+    /// The menu on another player, while it is open.
+    pub player_menu: Option<PlayerMenu>,
     /// Which server of the list is picked.
     pub server_picked: usize,
     /// The window of game options: 0 closed, 1 open, 2 asking whether to go back to the save point.

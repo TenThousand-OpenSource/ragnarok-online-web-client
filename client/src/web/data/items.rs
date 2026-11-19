@@ -10,6 +10,8 @@ thread_local! {
     static ABOUT: RefCell<HashMap<u32, (Vec<String>, Vec<(String, String)>)>> = RefCell::new(HashMap::new());
     /// What an item is before it is identified: its name, the name of its pictures, its description.
     static UNIDENTIFIED: RefCell<HashMap<u32, (String, String, Vec<String>)>> = RefCell::new(HashMap::new());
+    /// How many slots for cards an item has (the table's `slotCount`), for those that have any.
+    static SLOTS: RefCell<HashMap<u32, u8>> = RefCell::new(HashMap::new());
     /// Items asked for and not answered yet (or not known to the gateway at all).
     static ITEMS_ASKED: RefCell<std::collections::HashSet<u32>> = RefCell::new(std::collections::HashSet::new());
 }
@@ -27,6 +29,11 @@ pub fn item_as(id: u32, identified: bool) -> Option<(String, String)> {
         return Some(known);
     }
     Some(UNIDENTIFIED.with_borrow(|unknown| unknown.get(&id).filter(|(name, ..)| !name.is_empty()).map(|(name, resource, _)| (name.clone(), resource.clone()))).unwrap_or(known))
+}
+
+/// How many slots for cards an item has: what the client writes as `[n]` after its name.
+pub fn item_slots(id: u32) -> u8 {
+    SLOTS.with_borrow(|slots| slots.get(&id).copied().unwrap_or(0))
 }
 
 /// The description of an item not identified yet.
@@ -70,6 +77,8 @@ pub fn want_items(ids: impl Iterator<Item = u32>, then: fn()) {
                         Some((id, (text_of(&unknown, "name")?, text_of(&unknown, "resource")?, strings(lines))))
                     })
                     .collect();
+                let slots: Vec<(u32, u8)> = entries::<u32>(&answer).into_iter().filter_map(|(id, about)| Some((id, js_sys::Reflect::get(&about, &"slots".into()).ok()?.as_f64().filter(|slots| *slots > 0.0)? as u8))).collect();
+                SLOTS.with_borrow_mut(|all| all.extend(slots));
                 UNIDENTIFIED.with_borrow_mut(|all| all.extend(unknown));
                 ABOUT.with_borrow_mut(|about| about.extend(told));
                 ITEMS.with_borrow_mut(|items| items.extend(found));
@@ -85,5 +94,6 @@ pub(super) fn forget() {
     ITEMS.with_borrow_mut(HashMap::clear);
     ABOUT.with_borrow_mut(HashMap::clear);
     UNIDENTIFIED.with_borrow_mut(HashMap::clear);
+    SLOTS.with_borrow_mut(HashMap::clear);
     ITEMS_ASKED.with_borrow_mut(std::collections::HashSet::clear);
 }

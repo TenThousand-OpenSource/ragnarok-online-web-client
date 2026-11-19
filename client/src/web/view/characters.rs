@@ -27,10 +27,12 @@ impl App {
             .collect();
         let inner = format!(
             r#"{}<div class="a" style="{};background:#fff;border:1px solid #c3c3c3;border-top:0;box-sizing:border-box"></div>
-               <div class="a" style="{};background:#f0f0f0;overflow-y:auto;font:12px Tahoma,Arial,sans-serif;color:#000">{lines}</div>{}{}"#,
+               <div class="a" style="{};background:#f0f0f0;overflow-y:auto;{};color:#000">{lines}</div>{}{}"#,
             super::super::hud::title_bar(280, self.text(Key::SelectServer)),
             at(0, 17, 280, 183),
             at(12, 22, 256, 145),
+            // The list writes the usual text (`UIServerListBox`, a `UIListBox`: (0, 12)).
+            Font(0, 12, false).style(),
             button(&at(189, 176, 42, 20), &states_ab("btn_ok"), &format!("{} autofocus", pressed(Press::ServerOk)), ""),
             button(&at(234, 176, 42, 20), &states_ab("btn_cancel"), &pressed(Press::ServerCancel), ""),
         );
@@ -76,16 +78,19 @@ impl App {
             inner.push_str(&format!(
                 r#"<canvas class="a pass" id="pc{slot}" width="{}" height="{}" style="left:{x}px;top:{y}px"></canvas>
                    <img class="a pass" style="left:{}px;top:{}px" src="{}" alt="" onerror="this.remove()">
-                   <div class="a pass name" style="{}">{}</div>"#,
+                   <div class="a pass name" style="{};{}">{}</div>"#,
                 figure::WIDTH,
                 figure::HEIGHT,
                 x + 118,
                 y + 14,
                 picture(&format!("renewalparty/icon_jobs_{}.bmp", character.job)),
                 at(x, y + 167, 157, 14),
+                // The name: `UINewSelectCharWnd`, `SetFont(0, 0xB, 1, 0)`.
+                Font(0, 11, true).style(),
                 escape(&character.name),
             ));
-            // When a character waiting to be deleted can be: red until then, blue from then on.
+            // When a character waiting to be deleted can be: red until then, blue from then on. Where the
+            // client writes this was not found in its code; the size is the page's (`.small`).
             if let Some(&when) = self.deletions.get(&character.char_id) {
                 let (colour, lines) = if when <= epoch() {
                     ("#00f", [self.text(Key::DeletionReady).to_owned(), String::new()])
@@ -113,8 +118,10 @@ impl App {
             for (index, stat) in character.stats.iter().enumerate() {
                 lines.push((218 + 17 * index as i32, stat.to_string()));
             }
+            // Each a text of its own, 107 by 15, in the smaller text (`m_slotButtons`: `SetFont(0, 0xB, 0, 0)`).
+            let small = SMALL.style();
             for (y, value) in lines {
-                inner.push_str(&format!(r#"<div class="a small value" style="{}">{}</div>"#, at(868, y, 107, 15), escape(&value)));
+                inner.push_str(&format!(r#"<div class="a value" style="{};{small}">{}</div>"#, at(868, y, 107, 15), escape(&value)));
             }
         }
         let info = states_of("select_character_ver3/bt_info");
@@ -136,8 +143,11 @@ impl App {
             let off = "select_character_ver3/bt_gamestart_off.bmp";
             states(off, off, off)
         };
+        // The words on it and the page's number are (0, 18), bold (`AddTextStyle(.., 0x12, .., 1, ..)` and
+        // `m_pageText->SetFont(0, 0x12, 1, 0)`).
+        let large = Font(0, 18, true).style();
         inner.push_str(&format!(
-            r#"<button type="button" class="a b start" style="{};{start}" {} {}>{}</button>"#,
+            r#"<button type="button" class="a b start" style="{};{large};{start}" {} {}>{}</button>"#,
             at(816, 407, 165, 110),
             pressed(Press::Start),
             if chosen.is_some() { "" } else { "disabled" },
@@ -148,7 +158,7 @@ impl App {
             inner.push_str(&format!(r#"<div class="a" style="{};{}"></div>"#, at(x, 558, 21, 28), background(&format!("select_character_ver3/bt_{side}_off.bmp"))));
         }
         inner.push_str(&format!(r#"<div class="a list-title" style="{}">{}</div>"#, at(830, 538, 131, 14), self.text(Key::CharacterList)));
-        inner.push_str(&format!(r#"<div class="a page" style="{}">1 / 1</div>"#, at(851, 560, 88, 22)));
+        inner.push_str(&format!(r#"<div class="a page" style="{};{large}">1 / 1</div>"#, at(851, 560, 88, 22)));
         inner.push_str(&button(&at(945, 5, 17, 18), &states_of("select_character_ver3/bt_close2"), &pressed(Press::Logout), ""));
         inner
     }
@@ -156,7 +166,11 @@ impl App {
     pub(super) fn char_create_window(&self, view: (f64, f64)) -> String {
         let make = &self.make;
         let folder = "make_character_ver2";
-        let mut inner = format!(r#"<div class="a" style="{};color:#5f5f5f">{}</div>"#, at(44, 17, 300, 14), self.text(Key::CharacterCreation));
+        // The window's title is bold, the titles over the hair styles and colours are the smaller text in bold,
+        // and the words on its two buttons are (0, 14), bold (`UINewMakeCharWnd::Paint`, and its `OnCreate`:
+        // `SetFont(0, 0xB, 1, 0)`, `AddTextStyle(.., 0xE, .., 1, ..)`).
+        let (bold, small, large) = (BOLD.style(), Font(0, 11, true).style(), Font(0, 14, true).style());
+        let mut inner = format!(r#"<div class="a" style="{};{bold};color:#5f5f5f">{}</div>"#, at(44, 17, 300, 14), self.text(Key::CharacterCreation));
 
         // The two races: the chosen one is lit. A classic server makes no Doram (rAthena lets one be made only
         // under Renewal's rules: its `allowed_job_flag`), so there the Doram's panel is shown and cannot be
@@ -191,7 +205,7 @@ impl App {
         inner.push_str(&format!(r#"<canvas class="a pass" id="pc-make" width="{}" height="{}" style="left:420px;top:91px"></canvas>"#, figure::WIDTH, figure::HEIGHT));
         inner.push_str(&format!(r#"<input class="a in" id="char-name" maxlength="23" autocomplete="off" autofocus style="{}">"#, at(440, 268, 120, 20)));
 
-        inner.push_str(&format!(r#"<div class="a small" style="{};color:#404040">{}</div>"#, at(609, 44, 150, 14), self.text(Key::HairStyle)));
+        inner.push_str(&format!(r#"<div class="a" style="{};{small};color:#404040">{}</div>"#, at(609, 44, 150, 14), self.text(Key::HairStyle)));
         let thumbnails = match (make.doram, make.sex == 1) {
             (false, true) => "",
             (false, false) => "_girl",
@@ -215,7 +229,7 @@ impl App {
             inner.push_str(&button(&place, &frame, &pressed(Press::Hair(style)), &thumbnail));
         }
 
-        inner.push_str(&format!(r#"<div class="a small" style="{};color:#404040">{}</div>"#, at(609, 285, 150, 14), self.text(Key::HairColor)));
+        inner.push_str(&format!(r#"<div class="a" style="{};{small};color:#404040">{}</div>"#, at(609, 285, 150, 14), self.text(Key::HairColor)));
         for colour in 0..HAIR_COLOURS {
             let base = format!("{folder}/color{:02}", colour + 1);
             let pictures = if colour == make.hair_colour {
@@ -228,8 +242,8 @@ impl App {
         }
 
         let make_pictures = states_of(&format!("{folder}/bt_make"));
-        inner.push_str(&button(&at(25, 379, 152, 27), &make_pictures, &format!(r#"{} data-big"#, pressed(Press::Back)), self.text(Key::Return)));
-        inner.push_str(&format!(r#"<button class="a b" data-big style="{};{make_pictures}">{}</button>"#, at(616, 379, 152, 27), self.text(Key::Create)));
+        inner.push_str(&button(&format!("{};{large}", at(25, 379, 152, 27)), &make_pictures, &format!(r#"{} data-big"#, pressed(Press::Back)), self.text(Key::Return)));
+        inner.push_str(&format!(r#"<button class="a b" data-big style="{};{large};{make_pictures}">{}</button>"#, at(616, 379, 152, 27), self.text(Key::Create)));
         inner.push_str(&button(&at(768, 9, 17, 16), &states_of(&format!("{folder}/bt_close")), &pressed(Press::Back), ""));
 
         let size = (794, 422);

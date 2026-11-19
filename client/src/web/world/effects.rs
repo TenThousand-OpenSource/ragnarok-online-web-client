@@ -99,27 +99,3 @@ pub(super) fn rings(centre: Vector, time: f64, corners: &mut Vec<f32>) {
         }
     }
 }
-
-/// The glitter of First Aid over someone, `frame` frames in (the client's `CRagEffect::FirstAid` and its
-/// `PP_FIRSTAID`, drawn by `RenderFieldPanel`): one square of `pikapika2.bmp` facing the screen, 12 above the
-/// feet, 10 from its middle to its corners and pulsing by a twentieth as an angle goes round 3 degrees a frame,
-/// turned as it started; bluish (150, 150, 250), its light added to what is behind; it comes up over 20 frames
-/// to 80 of 255 and from the hundredth frame goes down by one a frame. Gives back whether anything was drawn.
-pub(super) fn aid_glitter(feet: Vector, right: Vector, up: Vector, frame: f32, turned: f32, pulse: f32, corners: &mut Vec<f32>) -> bool {
-    let alpha = if frame <= 20.0 { 4.0 * frame } else if frame > 100.0 { 80.0 - (frame - 100.0) } else { 80.0 };
-    if alpha <= 0.0 {
-        return false;
-    }
-    let centre = along(feet, [0.0, 1.0, 0.0], 12.0);
-    let reach = 10.0 * (1.0 + 0.05 * (pulse + 3.0 * frame).to_radians().sin());
-    let corner = |quarter: f32| {
-        let angle = (turned + quarter * 90.0).to_radians();
-        along(along(centre, right, reach * angle.cos()), up, reach * angle.sin())
-    };
-    for (quarter, u, v) in [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (2.0, 0.0, 1.0), (2.0, 0.0, 1.0), (0.0, 1.0, 0.0), (3.0, 1.0, 1.0)] {
-        corners.extend(corner(quarter));
-        corners.extend([u, v]);
-        corners.extend([150.0 / 255.0, 150.0 / 255.0, 250.0 / 255.0, alpha / 255.0]);
-    }
-    true
-}

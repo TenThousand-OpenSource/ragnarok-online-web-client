@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Checks what of ARCHITECTURE.md's rules a script can: the two sizes (rules 4 and 10: no source file past about
 500 lines, no function past about 100), and that nothing on the page is named by hand (rule 12: what can be
-pressed, used, dragged or sent is written through `web/parts.rs` from a value of `crate::press`). Run from the
-project's folder; `check.sh` does. Prints what breaks a rule and leaves with 1 if anything does.
+pressed, used, dragged or sent is written through `web/parts.rs` from a value of `crate::press`; and the page's
+style sheet names no window of the game to say how it lies over the others, which the window's entry in
+`hud/windows.rs` says with its `layer`). Run from the project's folder; `check.sh` does. Prints what breaks a
+rule and leaves with 1 if anything does.
 
 A function that only hands work out by kind (rule 10's exception) is named in DISPATCHERS, with its file.
 """
@@ -14,13 +16,17 @@ FILE_LINES = 500
 FUNCTION_LINES = 100
 # Plain dispatchers: a `match` over packets or actions whose arms are a line or two each.
 DISPATCHERS = {
-    ("client/src/web/app/incoming.rs", "packet"),
     ("client/src/web/app/actions.rs", "handle"),
 }
 # A name of a press, a use, a drag or a form written into the page by hand.
 BY_HAND = re.compile(r'data-(click|use|drag|submit)=\\?"[a-z{]')
 # The one file that writes those names, from values.
 WRITES_NAMES = "client/src/web/parts.rs"
+# The page, and where the game's windows are listed: an entry names its element with `id: "…"`, or as the first
+# thing given to what writes entries of one kind (`Window::question("…", …)`, `talk_window!(NAME, "…", …)`).
+PAGE = "client/web/index.html"
+WINDOWS = ["client/src/web/hud/windows.rs", "client/src/web/hud/windows/*.rs"]
+WINDOW_ID = re.compile(r'(?:\bid: |Window::\w+\(\s*|talk_window!\(\w+, )"([a-z0-9-]+)"')
 STARTS = re.compile(r"^(\s*)(?:pub(?:\([^)]*\))? )?(?:const )?(?:async )?fn (\w+)")
 
 
@@ -37,6 +43,18 @@ def functions(lines):
             yield found.group(2), at + 1, end - at + 1
 
 
+def layered_by_name():
+    """The rules of the page's style sheet that lay a window of the game over or under the others by its name."""
+    ids = {name for pattern in WINDOWS for path in glob.glob(pattern) for name in WINDOW_ID.findall(open(path, encoding="utf-8").read())}
+    page = open(PAGE, encoding="utf-8").read()
+    sheet = re.sub(r"/\*.*?\*/", "", "".join(re.findall(r"<style[^>]*>(.*?)</style>", page, re.S)), flags=re.S)
+    for selector, rule in re.findall(r"([^{}]+)\{([^{}]*)\}", sheet):
+        if "z-index" in rule:
+            for name in sorted(ids):
+                if re.search(r"#" + re.escape(name) + r"(?![\w-])", selector):
+                    yield f"{PAGE}: #{name} is laid over the others by its name (give its entry in hud/windows.rs a `layer` instead)"
+
+
 def main():
     over = []
     for path in sorted(glob.glob("client/src/**/*.rs", recursive=True) + glob.glob("gateway/src/**/*.rs", recursive=True)):
@@ -50,6 +68,7 @@ def main():
             for at, line in enumerate(lines):
                 if BY_HAND.search(line) and not line.lstrip().startswith("//"):
                     over.append(f"{path}:{at + 1}: a name of the page written by hand (use `pressed`, `used`, `dragged` or `sent` of web/parts.rs)")
+    over.extend(layered_by_name())
     for line in over:
         print(line)
     if not over:

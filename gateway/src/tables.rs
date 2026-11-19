@@ -11,12 +11,22 @@ use crate::grf::Grf;
 
 // Each kind of table has its file here; what is common to them (running the client's Lua, reading its Korean,
 // putting the browser's tables together) is in this one.
+mod ai;
+mod cards;
+mod figures;
 mod guide;
 mod interface;
 mod items;
 mod maps;
+mod quests;
+mod scenery;
+mod commands;
 mod skills;
+mod statuses;
+mod tips;
+mod worldmap;
 
+pub use ai::scripts as ai_scripts;
 pub use interface::{chat_tabs, emotions, hotkeys, options};
 pub use items::{translated, About, Items, Translated, Unidentified};
 pub use skills::skill_texts;
@@ -179,15 +189,17 @@ pub fn for_client(grf: &Grf) -> serde_json::Value {
     let sprites: serde_json::Map<String, serde_json::Value> =
         names(&lua, "JobNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // The ending of a weapon's sprite files by the kind of weapon (`_단검` for daggers), from `weapontable.lub`.
-    let weapons: serde_json::Map<String, serde_json::Value> =
-        names(&run(grf, &["weapontable"]), "WeaponNameTable").into_iter().filter(|(id, _)| *id > 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    let weapon_table = run(grf, &["weapontable"]);
+    let weapons: serde_json::Map<String, serde_json::Value> = names(&weapon_table, "WeaponNameTable").into_iter().filter(|(id, _)| *id > 0).map(|(id, name)| (id.to_string(), name.into())).collect();
+    // The sound of a blow by the kind of weapon, from the same file (`WeaponHitWaveNameTable`).
+    let weapon_hits: serde_json::Map<String, serde_json::Value> = names(&weapon_table, "WeaponHitWaveNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // The picture of each pet in its window (a file of `유저인터페이스\illust`), by the monster's number: from
     // `petinfo.lub`, whose function `GetPetIllustName_V3` the client asks.
     let pets: serde_json::Map<String, serde_json::Value> =
         names(run_more(&lua, grf, &["petinfo"]), "PetIllustNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
     // Its `PetAccActNameTable`: by the accessory a pet wears (an item), the actions it is then drawn with.
     let pet_acts: serde_json::Map<String, serde_json::Value> = names(&lua, "PetAccActNameTable").into_iter().filter(|(id, _)| *id >= 0).map(|(id, name)| (id.to_string(), name.into())).collect();
-    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "tree": skill_tree(grf), "inherits": job_inherits(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
+    serde_json::json!({ "jobs": jobs, "headgear": headgear, "skills": skills(grf), "sprites": sprites, "weapons": weapons, "weapon_hits": weapon_hits, "tree": skill_tree(grf), "inherits": job_inherits(grf), "pets": pets, "pet_acts": pet_acts, "emotions": emotions(grf), "messages": messages(grf), "hotkeys": hotkeys(grf), "options": options(grf) })
 }
 
 /// The client's message table (`msgstringtable.txt`), line by line: what the client says, by the numbers its code
@@ -229,6 +241,14 @@ pub fn for_browser(grf: &Grf, client_dir: &std::path::Path, database: &std::path
         tables.insert("maps".to_owned(), maps::maps(client_dir));
         tables.insert("towns".to_owned(), maps::towns(client_dir));
         tables.insert("guide".to_owned(), guide::guide(grf, database, client_dir));
+        tables.insert("statuses".to_owned(), statuses::statuses(grf));
+        tables.insert("commands".to_owned(), commands::commands(grf));
+        tables.insert("quests".to_owned(), quests::quests(client_dir, database));
+        tables.insert("cards".to_owned(), cards::cards(grf));
+        tables.insert("sky".to_owned(), scenery::sky(grf));
+        tables.insert("figures".to_owned(), figures::figures(grf));
+        tables.insert("worldmap".to_owned(), worldmap::worldmap(grf));
+        tables.insert("tips".to_owned(), tips::tips(client_dir));
         // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
         // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ
         // in what a player may do.

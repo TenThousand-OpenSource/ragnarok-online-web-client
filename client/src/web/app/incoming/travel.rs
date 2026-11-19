@@ -9,8 +9,13 @@ impl App {
             packets::ZC_ACCEPT_ENTER => self.entered_map(packet),
             packets::ZC_REFUSE_ENTER => self.leave(Some(Key::Rejected.text(self.lang).to_owned())),
             packets::ZC_NOTIFY_PLAYERMOVE => {
-                if let Some((from, to)) = packets::player_move(packet) {
-                    world::walk(from, to);
+                if let Some(walk) = packets::player_move(packet) {
+                    world::walk(&walk);
+                }
+            }
+            packets::ZC_NOTIFY_TIME => {
+                if let Some(time) = packets::server_time(packet) {
+                    world::clock_told(time);
                 }
             }
             packets::ZC_STOPMOVE => {
@@ -28,7 +33,7 @@ impl App {
             // 0x018b: leaving was refused (a fight just now, for one).
             0x018b => {
                 if packet.get(2..4) != Some(&[0, 0]) {
-                    self.chat_line(crate::i18n::tr("You cannot leave the game right now.").to_owned(), "#ff8484");
+                    self.chat_line(crate::i18n::tr("You cannot leave the game right now.").to_owned(), PALE_RED);
                 }
             }
             // Moved to another place, on this map or another: the map is loaded and the server told so.

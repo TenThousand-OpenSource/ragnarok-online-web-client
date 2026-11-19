@@ -46,14 +46,7 @@ impl App {
             at(160, 44, 92, 18),
             pressed(Press::Menu)
         ));
-        window.push_str(&format!(
-            r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" {}></button>"#,
-            at(252, 44, 18, 18),
-            picture("basic_interface/txtbox_btn_a.bmp"),
-            picture("basic_interface/txtbox_btn_b.bmp"),
-            picture("basic_interface/txtbox_btn_c.bmp"),
-            pressed(Press::Menu)
-        ));
+        window.push_str(&pictured(252, 44, (18, 18), ["basic_interface/txtbox_btn_a.bmp", "basic_interface/txtbox_btn_b.bmp", "basic_interface/txtbox_btn_c.bmp"], Press::Menu, ""));
         window.push_str(&text(145, 69, BLACK, tr(hunger_word(pet.hunger))));
         let (close, through) = intimacy_word(pet.intimacy);
         window.push_str(&text(145, 89, BLACK, tr(close)));
@@ -84,7 +77,7 @@ impl App {
     pub(in crate::web) fn pet_menu(&self) -> String {
         [("Check Pet Status", Order::Info), ("Feed Pet", Order::Feed), ("Performance", Order::Perform), ("Unequip Accessory", Order::Unequip), ("Return to Egg", Order::Egg)]
             .iter()
-            .map(|(words, order)| format!(r#"<div class="t opt" style="height:16px;line-height:16px;padding:0 3px;cursor:default;white-space:nowrap" {}>{}</div>"#, pressed(Press::Do(*order)), escape(tr(words))))
+            .map(|(words, order)| menu_row(tr(words), Press::Do(*order)))
             .collect()
     }
 
@@ -96,13 +89,6 @@ impl App {
             2 => tr("Pet name will be changed to {}, do you want to continue?").replace("{}", &self.pets.named),
             _ => return String::new(),
         };
-        format!(
-            r#"{}<div class="a t" style="{};white-space:normal">{}</div>{}{}"#,
-            art("win_msgbox.bmp", 0, 0, 280, 120),
-            at(12, 30, 256, 56),
-            escape(&words),
-            picture_press(189, 96, "btn_ok", Press::Yes),
-            picture_press(235, 96, "btn_cancel", Press::No)
-        )
+        message_box(Asked::Sure, &escape(&words), Press::Yes, Press::No)
     }
 }

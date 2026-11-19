@@ -51,6 +51,11 @@ struct Config {
     /// Whether a proxy or a tunnel stands in front (`--behind-proxy on|off`): then a visitor's address is the
     /// one it reports, not its own.
     behind_proxy: bool,
+    /// A debug delay on everything that goes between a browser and the game server, each way (`--lag
+    /// <milliseconds>`, and `--jitter <milliseconds>` for a random part on top of it): for looking at the game
+    /// as a player far away has it. None unless given. Never for the gateway others play through
+    /// (`public.sh`): it delays everyone.
+    lag: bridge::Lag,
 }
 
 struct App {
@@ -62,6 +67,8 @@ struct App {
     skill_texts: std::collections::HashMap<u32, Vec<String>>,
     /// The skills' names and descriptions in Russian, from the translation files.
     skills_russian: tables::Translated,
+    /// The client's folder: the scripts of a homunculus and a mercenary are read from beside its archives.
+    client_dir: PathBuf,
 }
 
 fn config() -> Result<(Config, Option<String>), String> {
@@ -77,6 +84,7 @@ fn config() -> Result<(Config, Option<String>), String> {
         cache_client: true,
         invite: None,
         behind_proxy: false,
+        lag: bridge::Lag::default(),
         // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.
         accounts: accounts::Config {
             database_url: "mysql://ragnarok:ragnarok@127.0.0.1:3306/ragnarok".into(),
@@ -102,6 +110,9 @@ fn config() -> Result<(Config, Option<String>), String> {
             "--compress" => config.compress = switch(&arg, &value()?)?,
             "--cache-client" => config.cache_client = switch(&arg, &value()?)?,
             "--behind-proxy" => config.behind_proxy = switch(&arg, &value()?)?,
+            // Debug only, never on a gateway others play through: see `Config::lag`.
+            "--lag" => config.lag.fixed = milliseconds(&arg, &value()?)?,
+            "--jitter" => config.lag.jitter = milliseconds(&arg, &value()?)?,
             "--invite-file" => {
                 let file = value()?;
                 let word = std::fs::read_to_string(&file).map_err(|error| format!("--invite-file {file}: {error}"))?;
@@ -132,7 +143,16 @@ fn config() -> Result<(Config, Option<String>), String> {
             _ => return Err(format!("unknown argument {arg}")),
         }
     }
+    // The debug delay is for one's own machine: a gateway opened to others does not start with it.
+    if (!config.lag.fixed.is_zero() || !config.lag.jitter.is_zero()) && (config.invite.is_some() || config.behind_proxy) {
+        return Err("--lag and --jitter are debug options: not with --invite-file or --behind-proxy".to_owned());
+    }
     Ok((config, command))
+}
+
+/// The value of an option that is a time in milliseconds.
+fn milliseconds(option: &str, value: &str) -> Result<std::time::Duration, String> {
+    value.parse().map(std::time::Duration::from_millis).map_err(|error| format!("{option}: {error}"))
 }
 
 /// The value of an option that is either on or off.
@@ -156,6 +176,43 @@ fn worth_compressing() -> impl tower_http::compression::Predicate {
         .and(NotForContentType::SSE)
 }
 
+/// What the gateway was asked on its command line instead of serving: the map cache written, the tables for
+/// the browser, some items, what a Lua file of the client leaves, or the files of the archives whose path has
+/// those words.
+fn told(grf: &grf::Grf, config: &Config, filter: &str) {
+    if let Some(path) = filter.strip_prefix("mapcache:") {
+        let written = std::fs::File::create(path).and_then(|file| mapcache::write(&grf, std::io::BufWriter::new(file)));
+        match written {
+            Ok(count) => println!("{path}: {count} maps"),
+            Err(error) => {
+                eprintln!("{path}: {error}");
+                std::process::exit(1);
+            }
+        }
+    } else if filter == "tables:" {
+        println!("{}", tables::for_browser(&grf, &config.client_dir, &config.item_database));
+    } else if filter == "chat-tabs:" {
+        println!("{}", tables::chat_tabs(&grf));
+    } else if let Some(ids) = filter.strip_prefix("items:") {
+        println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
+    } else if let Some((files, global)) = filter.strip_prefix("dump:").and_then(|dump| dump.rsplit_once(':')) {
+        let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
+        println!("{}", tables::json_of(&lua.globals().get::<mlua::Value>(global).unwrap_or(mlua::Value::Nil)));
+    } else if let Some(files) = filter.strip_prefix("lua:") {
+        let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
+        tables::describe(&lua).iter().for_each(|line| println!("{line}"));
+    } else if filter.is_empty() {
+        println!("{} files", grf.len());
+        for (flags, count) in grf.flag_counts() {
+            println!("flags {flags:#04x}: {count}");
+        }
+    } else {
+        let mut paths: Vec<_> = grf.paths().filter(|path| path.contains(&filter.to_lowercase())).collect();
+        paths.sort();
+        paths.iter().for_each(|path| println!("{path}"));
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let (config, command) = config().unwrap_or_else(|error| {
@@ -168,38 +225,7 @@ async fn main() {
     });
 
     if let Some(filter) = command {
-        if let Some(path) = filter.strip_prefix("mapcache:") {
-            let written = std::fs::File::create(path).and_then(|file| mapcache::write(&grf, std::io::BufWriter::new(file)));
-            match written {
-                Ok(count) => println!("{path}: {count} maps"),
-                Err(error) => {
-                    eprintln!("{path}: {error}");
-                    std::process::exit(1);
-                }
-            }
-        } else if filter == "tables:" {
-            println!("{}", tables::for_browser(&grf, &config.client_dir, &config.item_database));
-        } else if filter == "chat-tabs:" {
-            println!("{}", tables::chat_tabs(&grf));
-        } else if let Some(ids) = filter.strip_prefix("items:") {
-            println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
-        } else if let Some((files, global)) = filter.strip_prefix("dump:").and_then(|dump| dump.rsplit_once(':')) {
-            let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
-            println!("{}", tables::json_of(&lua.globals().get::<mlua::Value>(global).unwrap_or(mlua::Value::Nil)));
-        } else if let Some(files) = filter.strip_prefix("lua:") {
-            let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
-            tables::describe(&lua).iter().for_each(|line| println!("{line}"));
-        } else if filter.is_empty() {
-            println!("{} files", grf.len());
-            for (flags, count) in grf.flag_counts() {
-                println!("flags {flags:#04x}: {count}");
-            }
-        } else {
-            let mut paths: Vec<_> = grf.paths().filter(|path| path.contains(&filter.to_lowercase())).collect();
-            paths.sort();
-            paths.iter().for_each(|path| println!("{path}"));
-        }
-        return;
+        return told(&grf, &config, &filter);
     }
 
     // The first port is the login server's.
@@ -231,8 +257,10 @@ async fn main() {
         .route("/tables/ru/skills/{ids}", get(client_skills_russian))
         .route("/tables/ru/skill-names.json", get(client_skill_names_russian))
         .route("/tables/items.ko/{ids}", get(client_items_korean))
-        .with_state(Arc::new(App { tables: tables::for_browser(&grf, &config.client_dir, &config.item_database).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), grf }))
-        .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60 }))
+        .route("/tables/ai.json", get(client_ai))
+        .route("/tables/ai-user.json", get(client_ai_user))
+        .with_state(Arc::new(App { tables: tables::for_browser(&grf, &config.client_dir, &config.item_database).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), client_dir: config.client_dir.clone(), grf }))
+        .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60, lag: config.lag }))
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
         .merge(client);
@@ -255,6 +283,9 @@ async fn main() {
         std::process::exit(1);
     });
     eprintln!("gateway: http://{}", config.listen);
+    if !config.lag.fixed.is_zero() || !config.lag.jitter.is_zero() {
+        eprintln!("gateway: DEBUG DELAY on everything to and from the game server: {} ms and up to {} ms more, each way", config.lag.fixed.as_millis(), config.lag.jitter.as_millis());
+    }
     axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
 
@@ -287,6 +318,19 @@ async fn image(State(app): State<Arc<App>>, Path(path): Path<String>) -> Respons
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => StatusCode::NOT_FOUND.into_response(),
         Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
     }
+}
+
+/// `GET /tables/ai.json`: the client's own scripts for a homunculus and a mercenary (`tables/ai.rs`), read as
+/// they are asked for: a player changes them while the gateway runs.
+async fn client_ai(State(app): State<Arc<App>>) -> Response {
+    let scripts = tokio::task::spawn_blocking(move || tables::ai_scripts(&app.client_dir, false)).await.unwrap();
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], scripts).into_response()
+}
+
+/// `GET /tables/ai-user.json`: those and the player's own under `USER_AI`.
+async fn client_ai_user(State(app): State<Arc<App>>) -> Response {
+    let scripts = tokio::task::spawn_blocking(move || tables::ai_scripts(&app.client_dir, true)).await.unwrap();
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], scripts).into_response()
 }
 
 async fn client_tables(State(app): State<Arc<App>>) -> Response {

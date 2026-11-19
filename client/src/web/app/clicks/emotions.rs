@@ -18,7 +18,7 @@ impl App {
     }
 
     /// A press of this system (`crate::press::emotions`).
-    pub(super) fn emotion_pressed(&mut self, press: crate::press::emotions::Press) {
+    pub(super) fn emotions_pressed(&mut self, press: crate::press::emotions::Press) {
         use crate::press::emotions::Press;
         match press {
             Press::Window | Press::View => {

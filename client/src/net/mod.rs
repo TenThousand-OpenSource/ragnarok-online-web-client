@@ -1,5 +1,7 @@
-//! The game protocol, without any I/O: cutting the byte stream into packets, and building and reading the packets
-//! of the way in (login server, char server, map server). Everything here runs natively too, where it is tested.
+//! The game protocol, without any I/O: how long each packet is and cutting the byte stream into packets, here;
+//! building and reading the packets, in a file to each system (`packets` for the way in and the basics of the
+//! map server, `bytes` for what they all read and write with). Everything here runs natively too, where it is
+//! tested.
 //!
 //! Protocol facts come from rAthena's source (`src/common/packets.hpp`, `src/char/char_clif.cpp`,
 //! `src/map/clif.cpp`) at PACKETVER 20260219.
@@ -14,6 +16,7 @@ pub mod exchange;
 pub mod fight;
 pub mod friends;
 pub mod viewequip;
+pub mod whispers;
 pub mod guild;
 pub mod homunculus;
 pub mod items;
@@ -30,10 +33,13 @@ pub mod quests;
 pub mod pvp;
 pub mod skills;
 pub mod skill_units;
+pub mod spirits;
 pub mod statuses;
 pub mod storage;
 pub mod cooldowns;
 pub mod commands;
+pub mod companions;
+pub mod config;
 pub mod trade;
 pub mod units;
 pub mod vending;
@@ -55,13 +61,9 @@ static LENGTHS: OnceLock<HashMap<u16, i32>> = OnceLock::new();
 pub fn packet_length(id: u16) -> Option<i32> {
     LENGTHS
         .get_or_init(|| {
-            include_str!("packet_lengths.txt")
-                .lines()
-                .chain(include_str!("packet_lengths_more.txt").lines())
-                .filter_map(|line| {
-                    let (id, length) = line.strip_prefix("0x")?.split_once(' ')?;
-                    Some((u16::from_str_radix(id, 16).ok()?, length.trim().parse().ok()?))
-                })
+            crate::tables::hexed(include_str!("packet_lengths.txt"))
+                .chain(crate::tables::hexed(include_str!("packet_lengths_more.txt")))
+                .filter_map(|(id, length)| Some((id, length.parse().ok()?)))
                 .collect()
         })
         .get(&id)
@@ -118,7 +120,7 @@ impl Framer {
     /// The packet the bytes held so far begin, if they do not make a whole one: its ID, and how many bytes are
     /// held. Many bytes held for long tell of a length that is not the server's.
     pub fn waiting(&self) -> Option<(u16, usize)> {
-        (self.buffer.len() >= 2).then(|| (u16::from_le_bytes([self.buffer[0], self.buffer[1]]), self.buffer.len()))
+        bytes::id(&self.buffer).map(|id| (id, self.buffer.len()))
     }
 
     /// The next whole frame, or `None` until more bytes arrive.
@@ -131,16 +133,13 @@ impl Framer {
             self.raw = 0;
             return Ok(Some(Frame::Raw(raw)));
         }
-        if self.buffer.len() < 2 {
-            return Ok(None);
-        }
-        let id = u16::from_le_bytes([self.buffer[0], self.buffer[1]]);
+        let Some(id) = bytes::id(&self.buffer) else { return Ok(None) };
         let length = match packet_length(id).ok_or(FrameError::UnknownPacket(id))? {
             -1 => {
                 if self.buffer.len() < 4 {
                     return Ok(None);
                 }
-                let length = u16::from_le_bytes([self.buffer[2], self.buffer[3]]);
+                let length = bytes::u16_at(&self.buffer, 2);
                 if length < 4 {
                     return Err(FrameError::BadLength(id, length));
                 }

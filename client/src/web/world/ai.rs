@@ -76,7 +76,7 @@ pub(super) fn commanded(event: &MouseEvent, at: (f32, f32), which: usize) -> boo
     let told = STATE.with_borrow(|state| {
         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
         scene.units.get(&state.ai.units[which]).filter(|_| state.ai.units[which] != 0)?;
-        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+        let view = scene.view(gpu);
         let fought = |id: &u32| scene.units.get(id).is_some_and(|unit| unit.dying.is_none() && ((unit.lively && !unit.companion) || state.pvp.foe(*id, unit)));
         let whom = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).map(|(id, _)| id).filter(fought);
         let cell = match whom.and_then(|id| scene.units.get(&id)) {

@@ -28,8 +28,7 @@ impl Part {
         if self.process == 1 {
             self.turned = angle_of(self.heights[2], self.heights[3]);
         }
-        self.at[0][0] += self.heights[1] * cosine(self.turned as f32);
-        self.at[0][2] += self.heights[1] * sine(self.turned as f32);
+        self.fly_level();
     }
 
     /// `PrimSpiralFade`, for one part: it waits while its count is under one. Its light (`heights[13]`) comes

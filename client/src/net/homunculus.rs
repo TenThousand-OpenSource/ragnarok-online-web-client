@@ -4,8 +4,19 @@
 //! `clif_parse_HomMenu`, `clif_parse_HomMoveTo`, `clif_parse_HomAttack`, `clif_parse_HomMoveToMaster`,
 //! `clif_parse_ChangeHomunculusName`) at PACKETVER 20260219. The skills come laid out as the character's own
 //! (`net::items::skills`, `skill_raised`).
+//!
+//! What its window words and reckons (`intimacy_word`, `hungry_now`, `attack_speed`) is a rule and no packet: it
+//! is in `crate::homunculus`, and named from here as before. What its packets share with a pet's is in
+//! `net/companions.rs`.
 
-use super::bytes::{name24, text, u16_at, u32_at, u64_at};
+use super::bytes::{i64_at, text, u16_at, u32_at, Writer};
+use super::companions;
+use super::packets::parameter as character;
+
+#[cfg(test)]
+mod tests;
+
+pub use crate::homunculus::{attack_speed, hungry_now, intimacy_word};
 
 /// ZC_PROPERTY_HOMUN: everything about the homunculus at once. The server of this PACKETVER sends the last;
 /// the two older layouts are read too, as the client reads them.
@@ -29,10 +40,8 @@ pub const AUTOFEED: u32 = 3;
 
 /// What ZC_CHANGESTATE_MER tells of (its `state`; the client's `HO_*`).
 pub mod change {
-    /// This unit is the player's homunculus.
-    pub const OWN: u8 = 0;
-    pub const INTIMACY: u8 = 1;
-    pub const HUNGER: u8 = 2;
+    /// `OWN`: this unit is the player's homunculus.
+    pub use crate::net::companions::change::{HUNGER, INTIMACY, OWN};
 }
 
 /// The commands of CZ_COMMAND_MER (the client's `MM_COMMAND_HOMUN`).
@@ -42,11 +51,12 @@ pub mod order {
     pub const DELETE: u8 = 2;
 }
 
-/// What ZC_HO_PAR_CHANGE names (the server's `SP_*`).
+/// What ZC_HO_PAR_CHANGE names (the server's `SP_*`, as `net::packets::parameter` has them for the character).
 pub mod parameter {
-    pub const EXP: u16 = 1;
-    pub const HP: u16 = 5;
-    pub const SP: u16 = 7;
+    use super::character;
+    pub const EXP: u16 = character::BASE_EXP;
+    pub const HP: u16 = character::HP;
+    pub const SP: u16 = character::SP;
 }
 
 /// The first and the last skill of a homunculus (the client's `CSession::IsHomunculusSkill`).
@@ -99,7 +109,7 @@ pub fn property(id: u16, packet: &[u8]) -> Option<Homunculus> {
     let (hp, max_hp, sp, max_sp, exp, next_exp, rest) = match id {
         ZC_PROPERTY_HOMUN => (word(after), word(after + 2), word(after + 4), word(after + 6), long(after + 8), long(after + 12), after + 16),
         ZC_PROPERTY_HOMUN_2 => (long(after), long(after + 4), word(after + 8), word(after + 10), long(after + 12), long(after + 16), after + 20),
-        _ => (long(after), long(after + 4), long(after + 8), long(after + 12), u64_at(packet, after + 16) as i64, u64_at(packet, after + 24) as i64, after + 32),
+        _ => (long(after), long(after + 4), long(after + 8), long(after + 12), i64_at(packet, after + 16), i64_at(packet, after + 24), after + 32),
     };
     Some(Homunculus {
         name: text(&packet[2..26]),
@@ -121,171 +131,45 @@ pub fn property(id: u16, packet: &[u8]) -> Option<Homunculus> {
 
 /// ZC_CHANGESTATE_MER (0x0230, 12 bytes): `u8 type` (unused), `u8 state`, `u32 unit`, `i32 value`.
 pub fn changed(packet: &[u8]) -> Option<(u8, u32, i32)> {
-    let packet = packet.get(..12)?;
-    Some((packet[3], u32_at(packet, 4), u32_at(packet, 8) as i32))
+    companions::changed(packet, 3)
 }
 
 /// ZC_HO_PAR_CHANGE (0x07db, 8 bytes: `u16 parameter, i32 value`) and ZC_HO_PAR_CHANGE2 (0x0ba5, 12 bytes:
 /// `u16 parameter, u64 value`).
 pub fn parameter_changed(id: u16, packet: &[u8]) -> Option<(u16, i64)> {
     match id {
-        ZC_HO_PAR_CHANGE => packet.get(..8).map(|packet| (u16_at(packet, 2), i64::from(u32_at(packet, 4) as i32))),
-        ZC_HO_PAR_CHANGE2 => packet.get(..12).map(|packet| (u16_at(packet, 2), u64_at(packet, 4) as i64)),
+        ZC_HO_PAR_CHANGE => super::packets::number_and_value(packet).map(|(parameter, value)| (parameter, i64::from(value))),
+        ZC_HO_PAR_CHANGE2 => packet.get(..12).map(|packet| (u16_at(packet, 2), i64_at(packet, 4))),
         _ => None,
     }
 }
 
 /// ZC_FEED_MER (0x022f, 7 bytes): `u8 fed`, `u32 item`: whether it ate, and the food it eats.
-pub fn fed(packet: &[u8]) -> Option<(bool, u32)> {
-    let packet = packet.get(..7)?;
-    Some((packet[2] != 0, u32_at(packet, 3)))
-}
+pub use companions::fed;
 
 /// CZ_COMMAND_MER (0x022d, 5 bytes): `u16 type` (always 0), `u8 order`.
 pub fn command(order: u8) -> Vec<u8> {
-    vec![0x2d, 0x02, 0, 0, order]
+    Writer::new(0x022d).u16(0).u8(order).done()
 }
 
 /// CZ_RENAME_MER (0x0231, 26 bytes): `char name[24]`.
 pub fn rename(name: &str) -> Vec<u8> {
-    [&0x0231u16.to_le_bytes()[..], &name24(name)].concat()
+    companions::rename(0x0231, name)
 }
 
 /// CZ_REQUEST_MOVENPC (0x0232, 9 bytes): `u32 unit`, then the cell in three bytes, ten bits each way (the
 /// client's `AiMove`). The homunculus, or the mercenary, is asked to walk there.
-pub fn move_to(unit: u32, (x, y): (u16, u16)) -> Vec<u8> {
-    let cell = [(x >> 2) as u8, ((x << 6) | ((y >> 4) & 0x3f)) as u8, (y << 4) as u8];
-    [&0x0232u16.to_le_bytes()[..], &unit.to_le_bytes(), &cell].concat()
+pub fn move_to(unit: u32, cell: (u16, u16)) -> Vec<u8> {
+    Writer::new(0x0232).u32(unit).bytes(&super::packets::cell_packed(cell)).done()
 }
 
 /// CZ_REQUEST_ACTNPC (0x0233, 11 bytes): `u32 unit, u32 target, u8 action` (always 0: one blow; the client's
 /// `AiHomunAttack`).
 pub fn attack(unit: u32, target: u32) -> Vec<u8> {
-    [&0x0233u16.to_le_bytes()[..], &unit.to_le_bytes(), &target.to_le_bytes(), &[0]].concat()
+    Writer::new(0x0233).u32(unit).u32(target).u8(0).done()
 }
 
 /// CZ_REQUEST_MOVETOOWNER (0x0234, 6 bytes): `u32 unit`: it is asked to come to its owner (`AiMoveToOwner`).
 pub fn to_owner(unit: u32) -> Vec<u8> {
-    [&0x0234u16.to_le_bytes()[..], &unit.to_le_bytes()].concat()
-}
-
-/// How close a homunculus is to its owner, as the line of the client's message table that says it and the
-/// English of it (`UIHomunInfoWnd::Paint`: seven stages, and "Unknown" outside them).
-pub fn intimacy_word(intimacy: i32) -> (usize, &'static str) {
-    match intimacy {
-        0..=3 => (1022, "Hate with a Passion"),
-        4..=10 => (1021, "Hate"),
-        11..=100 => (672, "Awkward"),
-        101..=250 => (673, "Shy"),
-        251..=750 => (669, "Neutral"),
-        751..=910 => (674, "Cordial"),
-        911..=1000 => (675, "Loyal"),
-        _ => (676, "Unknown"),
-    }
-}
-
-/// Whether the chat is to say that the homunculus is hungry: at a hunger of 10, 5 and 1, once for each as it
-/// is reached (the client's `ReceiveHomunculusInfo3` and its `m_homunHungerNotified`). Gives the hunger to
-/// remember as told of.
-pub fn hungry_now(hunger: i32, told: i32) -> Option<i32> {
-    (matches!(hunger, 1 | 5 | 10) && told != hunger).then_some(hunger)
-}
-
-/// The number its window shows for the speed of its blows (`UIHomunInfoWnd::Paint`: `(2000 - delay) / 10`).
-pub fn attack_speed(delay: i32) -> i32 {
-    (2000 - delay) / 10
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// A ZC_PROPERTY_HOMUN of the newest layout, field by field.
-    fn newest() -> Vec<u8> {
-        let mut packet = vec![0xa4, 0x0b];
-        packet.extend_from_slice(&name24("Lif"));
-        packet.push(0b101);
-        for word in [12u16, 55, 430] {
-            packet.extend_from_slice(&word.to_le_bytes());
-        }
-        for stat in [31u16, 22, 40, 2, 15, 9, 33, 1400] {
-            packet.extend_from_slice(&stat.to_le_bytes());
-        }
-        for long in [320u32, 410, 60, 75] {
-            packet.extend_from_slice(&long.to_le_bytes());
-        }
-        packet.extend_from_slice(&5_000_000_000i64.to_le_bytes());
-        packet.extend_from_slice(&9_000_000_000i64.to_le_bytes());
-        packet.extend_from_slice(&3u16.to_le_bytes());
-        packet.extend_from_slice(&1u16.to_le_bytes());
-        packet
-    }
-
-    #[test]
-    fn reads_everything_about_a_homunculus() {
-        let packet = newest();
-        assert_eq!(packet.len(), 85);
-        let read = property(ZC_PROPERTY_HOMUN_4, &packet).unwrap();
-        assert_eq!((read.name.as_str(), read.flags, read.level, read.hunger, read.intimacy), ("Lif", 5, 12, 55, 430));
-        assert_eq!(read.stats, [31, 22, 40, 2, 15, 9, 33, 1400]);
-        assert_eq!((read.hp, read.max_hp, read.sp, read.max_sp), (320, 410, 60, 75));
-        assert_eq!((read.exp, read.next_exp, read.skill_points, read.range), (5_000_000_000, 9_000_000_000, 3, 1));
-        assert_eq!(property(ZC_PROPERTY_HOMUN_4, &packet[..84]), None);
-    }
-
-    #[test]
-    fn reads_the_older_layouts_too() {
-        // 0x022e: an accessory after the intimacy, and everything after the stats in 16 and 32 bits.
-        let mut packet = vec![0x2e, 0x02];
-        packet.extend_from_slice(&name24("Amistr"));
-        packet.push(1);
-        for word in [3u16, 20, 900, 0, 1, 2, 3, 4, 5, 6, 7, 8, 100, 200, 30, 40] {
-            packet.extend_from_slice(&word.to_le_bytes());
-        }
-        packet.extend_from_slice(&7u32.to_le_bytes());
-        packet.extend_from_slice(&50u32.to_le_bytes());
-        packet.extend_from_slice(&[2, 0, 1, 0]);
-        assert_eq!(packet.len(), 71);
-        let read = property(ZC_PROPERTY_HOMUN, &packet).unwrap();
-        assert_eq!((read.level, read.intimacy, read.stats, read.hp, read.max_sp, read.exp, read.next_exp, read.skill_points, read.range), (3, 900, [1, 2, 3, 4, 5, 6, 7, 8], 100, 40, 7, 50, 2, 1));
-        // 0x09f7: the same with the life in 32 bits.
-        let mut packet = packet[..51].to_vec();
-        packet[..2].copy_from_slice(&[0xf7, 0x09]);
-        packet.extend_from_slice(&70_000u32.to_le_bytes());
-        packet.extend_from_slice(&80_000u32.to_le_bytes());
-        packet.extend_from_slice(&[30, 0, 40, 0, 7, 0, 0, 0, 50, 0, 0, 0, 2, 0, 1, 0]);
-        assert_eq!(packet.len(), 75);
-        let read = property(ZC_PROPERTY_HOMUN_2, &packet).unwrap();
-        assert_eq!((read.hp, read.max_hp, read.sp, read.max_sp, read.next_exp, read.range), (70_000, 80_000, 30, 40, 50, 1));
-    }
-
-    #[test]
-    fn reads_what_changed() {
-        assert_eq!(changed(&[0x30, 0x02, 0, 1, 0x10, 0x27, 0, 0, 0xb0, 0x01, 0, 0]), Some((change::INTIMACY, 10000, 432)));
-        assert_eq!(changed(&[0x30, 0x02, 0, 0]), None);
-        assert_eq!(parameter_changed(ZC_HO_PAR_CHANGE2, &[0xa5, 0x0b, 5, 0, 0x2c, 1, 0, 0, 0, 0, 0, 0]), Some((parameter::HP, 300)));
-        assert_eq!(parameter_changed(ZC_HO_PAR_CHANGE, &[0xdb, 0x07, 7, 0, 40, 0, 0, 0]), Some((parameter::SP, 40)));
-        assert_eq!(fed(&[0x2f, 0x02, 1, 0x19, 0x02, 0, 0]), Some((true, 537)));
-    }
-
-    #[test]
-    fn asks_for_it_as_the_client_does() {
-        assert_eq!(command(order::FEED), [0x2d, 0x02, 0, 0, 1]);
-        assert_eq!(rename("Mimi").len(), 26);
-        // The cell packed as rAthena's `RBUFPOS` unpacks it: x in the first ten bits, y in the next ten.
-        let packet = move_to(0x01020304, (155, 187));
-        assert_eq!(&packet[..6], &[0x32, 0x02, 4, 3, 2, 1]);
-        let (a, b, c) = (u16::from(packet[6]), u16::from(packet[7]), u16::from(packet[8]));
-        assert_eq!(((a << 2) | (b >> 6), ((b & 0x3f) << 4) | (c >> 4)), (155, 187));
-        assert_eq!(attack(7, 9), [0x33, 0x02, 7, 0, 0, 0, 9, 0, 0, 0, 0]);
-        assert_eq!(to_owner(7), [0x34, 0x02, 7, 0, 0, 0]);
-    }
-
-    #[test]
-    fn words_it_as_its_window_does() {
-        assert_eq!((intimacy_word(0).0, intimacy_word(10).0, intimacy_word(100).0, intimacy_word(250).0, intimacy_word(750).0, intimacy_word(910).0, intimacy_word(1000).0, intimacy_word(1001).0), (1022, 1021, 672, 673, 669, 674, 675, 676));
-        assert_eq!((hungry_now(10, 0), hungry_now(10, 10), hungry_now(5, 10), hungry_now(11, 10)), (Some(10), None, Some(5), None));
-        assert_eq!(attack_speed(1400), 60);
-        assert!(is_skill(8001) && is_skill(8060) && !is_skill(8061) && !is_skill(7999));
-    }
+    Writer::new(0x0234).u32(unit).done()
 }

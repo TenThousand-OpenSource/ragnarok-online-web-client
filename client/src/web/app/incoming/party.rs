@@ -10,7 +10,7 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn party_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            party::ZC_ACK_MAKE_GROUP => self.party_made(packet.get(2).copied().unwrap_or(u8::MAX)),
+            party::ZC_ACK_MAKE_GROUP => self.party_made(party::made_how(packet).unwrap_or(u8::MAX)),
             party::ZC_GROUP_LIST => {
                 if let Some((name, members)) = party::list(packet) {
                     (self.party.name, self.party.members, self.party.picked) = (name, members, None);
@@ -80,17 +80,12 @@ impl App {
             // Whether the player turns invitations down: the client says so each time the server does, which
             // is on entering the game too.
             party::ZC_PARTY_CONFIG => {
-                let refused = packet.get(2).copied().unwrap_or(0) != 0;
+                let refused = party::refuses(packet).unwrap_or(false);
                 self.chat_line(if refused { Self::words(1325, "Block all party invitations.") } else { Self::words(1326, "Allow all party invitations.") }, PALE_YELLOW);
             }
             _ => return false,
         }
         true
-    }
-
-    /// The player's own account, as the party's packets name everyone.
-    pub(in crate::web::app) fn own_account(&self) -> u32 {
-        self.account.as_ref().map_or(0, |account| account.account_id)
     }
 
     /// Whether the player leads the party (the client's `partyLeader`).

@@ -1,7 +1,7 @@
 //! Marks on the minimap that the server tells of: where the members of the guild are on this map, and where
 //! a boss monster is. The layouts are rAthena's for PACKETVER 20260219 (`clif_guild_xy`, `clif_bossmapinfo`).
 
-use super::bytes::{long, name_at, word};
+use super::bytes::{long, name_at, short, word};
 
 /// ZC_NOTIFY_POSITION_TO_GUILDM (0x01eb, 10 bytes): `u32 account, i16 x, i16 y`: where a member of the guild
 /// is on this map; -1, -1 when the member is here no more.
@@ -15,7 +15,7 @@ pub const BOSS_ALARM: u32 = 253;
 
 /// ZC_NOTIFY_POSITION_TO_GUILDM: the member's account, and the cell if there is one.
 pub fn guild_place(packet: &[u8]) -> Option<(u32, Option<(u16, u16)>)> {
-    let (x, y) = (word(packet, 6)? as i16, word(packet, 8)? as i16);
+    let (x, y) = (short(packet, 6)?, short(packet, 8)?);
     Some((long(packet, 2)?, (x >= 0 && y >= 0).then_some((x as u16, y as u16))))
 }
 

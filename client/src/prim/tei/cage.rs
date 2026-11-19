@@ -77,9 +77,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     /// The shield as `KyrieGuard` launches it before one who faces south (an angle of 0).
     fn shield(number: i8) -> Prim {

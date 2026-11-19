@@ -1,5 +1,7 @@
 //! The states someone is in (buffs and debuffs), as the map server tells of them going on and off.
 
+use super::bytes::{id, int, long, u16_at, u32_at, word};
+
 /// ZC_MSG_STATE_CHANGE: a state goes on or off, with nothing more said.
 pub const ZC_MSG_STATE_CHANGE: u16 = 0x0196;
 /// ZC_MSG_STATE_CHANGE2: the same with the time left and three values.
@@ -51,26 +53,27 @@ impl Change {
 /// ZC_EFST_SET_ENTER2 (0x0984, 28 bytes): `u32 who`, `u16 state`, `u32 total`, `u32 remaining`,
 /// `i32 value[3]`: the state is on.
 pub fn changed(packet: &[u8]) -> Option<Change> {
-    let long = |at: usize| super::bytes::long(packet, at);
-    let values = |at: usize| Some([long(at)? as i32, long(at + 4)? as i32, long(at + 8)? as i32]);
-    let id = u16::from_le_bytes(packet.get(..2)?.try_into().ok()?);
+    let values = |at: usize| Some([int(packet, at)?, int(packet, at + 4)?, int(packet, at + 8)?]);
+    let id = id(packet)?;
     if id == ZC_EFST_SET_ENTER2 {
-        return Some(Change { state: super::bytes::word(packet, 6)?, who: long(2)?, on: true, total: long(8)?, remaining: long(12)?, values: values(16)? });
+        let (total, remaining) = (long(packet, 8)?, long(packet, 12)?);
+        return Some(Change { state: word(packet, 6)?, who: long(packet, 2)?, on: true, total, remaining, values: values(16)? });
     }
     let (total, remaining, values) = match id {
         ZC_MSG_STATE_CHANGE => (0, 0, [0; 3]),
-        ZC_MSG_STATE_CHANGE2 => (0, long(9)?, values(13)?),
-        ZC_MSG_STATE_CHANGE3 => (long(9)?, long(13)?, values(17)?),
+        ZC_MSG_STATE_CHANGE2 => (0, long(packet, 9)?, values(13)?),
+        ZC_MSG_STATE_CHANGE3 => (long(packet, 9)?, long(packet, 13)?, values(17)?),
         _ => return None,
     };
-    Some(Change { state: u16::from_le_bytes(packet.get(2..4)?.try_into().ok()?), who: long(4)?, on: *packet.get(8)? != 0, total, remaining, values })
+    Some(Change { state: word(packet, 2)?, who: long(packet, 4)?, on: *packet.get(8)? != 0, total, remaining, values })
 }
 
 /// ZC_STATE_CHANGE (0x0229): `u32 who`, `u16 body state`, `u16 health state`, `u32 effect state`, `u8 pk`: whose
 /// state it is, the body state and the health state (the client's `ApplyStatusIcons` shows states for both).
+/// The effect state of the same packet is read by `net::units::state_changed`, which wants the packet longer.
 pub fn body_and_health(packet: &[u8]) -> Option<(u32, u16, u16)> {
     let packet = packet.get(..10)?;
-    Some((u32::from_le_bytes(packet[2..6].try_into().ok()?), u16::from_le_bytes([packet[6], packet[7]]), u16::from_le_bytes([packet[8], packet[9]])))
+    Some((u32_at(packet, 2), u16_at(packet, 6), u16_at(packet, 8)))
 }
 
 #[cfg(test)]

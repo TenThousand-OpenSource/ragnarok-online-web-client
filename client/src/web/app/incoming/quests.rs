@@ -13,7 +13,7 @@ const KEPT: [&str; 3] = ["roweb.quests.display", "roweb.quests.unlisted", "roweb
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn quest_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn quests_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // The journal on entering (`ReceiveOngoingQuestList`): a quest it has already only has its state
             // set, any other is new to it. Nothing is said of these.
@@ -65,7 +65,7 @@ impl App {
         if std::mem::replace(&mut self.quests.remembered, true) {
             return;
         }
-        let numbers = |name: &str| stored(name).unwrap_or_default().split(',').filter_map(|number| number.parse().ok()).collect();
+        let numbers = |name: &str| crate::kept::numbers::<u32>(&stored(name).unwrap_or_default(), ',').into_iter().collect();
         // The list shows until it is switched off (`QuestDisplayInfo::Reset`).
         self.quests.display_off = stored(KEPT[0]).is_some();
         (self.quests.unlisted, self.quests.passed) = (numbers(KEPT[1]), numbers(KEPT[2]));
@@ -73,7 +73,7 @@ impl App {
 
     /// Keeps in the browser what was set in the journal.
     pub(in crate::web::app) fn quests_keep(&self) {
-        let numbers = |set: &std::collections::BTreeSet<u32>| (!set.is_empty()).then(|| set.iter().map(u32::to_string).collect::<Vec<_>>().join(","));
+        let numbers = |set: &std::collections::BTreeSet<u32>| crate::kept::numbered(set, ',');
         store(KEPT[0], self.quests.display_off.then_some("off"));
         store(KEPT[1], numbers(&self.quests.unlisted).as_deref());
         store(KEPT[2], numbers(&self.quests.passed).as_deref());

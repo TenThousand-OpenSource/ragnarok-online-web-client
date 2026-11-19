@@ -1,8 +1,13 @@
 //! A deal between two players: asking for one, what each side puts into it, closing one's side, the trade
 //! itself and calling it off. The layouts are rAthena's for PACKETVER 20260219 (`clif_trade*` in `clif.cpp`,
-//! `packets.hpp`, `packets_struct.hpp`).
+//! `packets.hpp`, `packets_struct.hpp`). The rules of the zeny put into one are no packets: they are in
+//! `crate::exchange`.
 
-use super::bytes::{text, u32_at};
+use super::bytes::{Writer, text, u16_at, u32_at};
+use super::items::cards;
+
+/// The rules of a deal are named here as before.
+pub use crate::exchange::{MOST_ZENY, zeny_colour, zeny_typed};
 
 /// ZC_REQ_EXCHANGE_ITEM (0x01f4): someone asks for a deal.
 pub const ZC_REQ_EXCHANGE_ITEM: u16 = 0x01f4;
@@ -45,9 +50,6 @@ pub mod added {
     pub const TOO_MANY_OF_IT: u8 = 4;
 }
 
-/// The most zeny one side puts into a deal (the client's `CUIExchangeUI::OnProcess`).
-pub const MOST_ZENY: u32 = 1_000_000_000;
-
 /// What the other side put into the deal: so much zeny, or so many of a thing.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Put {
@@ -59,14 +61,14 @@ pub enum Put {
 /// level.
 pub fn asked(packet: &[u8]) -> Option<(String, u16)> {
     let packet = packet.get(..32)?;
-    Some((text(&packet[2..26]), u16::from_le_bytes([packet[30], packet[31]])))
+    Some((text(&packet[2..26]), u16_at(packet, 30)))
 }
 
 /// ZC_ACK_EXCHANGE_ITEM (0x01f5, 9 bytes): `u8 result` (`answer`), `u32 character`, `u16 level`: the answer, and
 /// the other's level.
 pub fn answered(packet: &[u8]) -> Option<(u8, u16)> {
     let packet = packet.get(..9)?;
-    Some((packet[2], u16::from_le_bytes([packet[7], packet[8]])))
+    Some((packet[2], u16_at(packet, 7)))
 }
 
 /// ZC_ADD_EXCHANGE_ITEM (0x0b42, 62 bytes): `u32 item`, `u8 type`, `i32 amount`, `u8 identified`, `u8 damaged`,
@@ -78,7 +80,7 @@ pub fn put(packet: &[u8]) -> Option<Put> {
     Some(if id == 0 {
         Put::Zeny(amount)
     } else {
-        Put::Item { id, kind: packet[6], amount, identified: packet[11] != 0, refine: packet[60], cards: [u32_at(packet, 13), u32_at(packet, 17), u32_at(packet, 21), u32_at(packet, 25)] }
+        Put::Item { id, kind: packet[6], amount, identified: packet[11] != 0, refine: packet[60], cards: cards(packet, 13) }
     })
 }
 
@@ -86,76 +88,55 @@ pub fn put(packet: &[u8]) -> Option<Put> {
 /// thing is (0 for zeny), and whether it was taken.
 pub fn add_answered(packet: &[u8]) -> Option<(u16, u8)> {
     let packet = packet.get(..5)?;
-    Some((u16::from_le_bytes([packet[2], packet[3]]), packet[4]))
+    Some((u16_at(packet, 2), packet[4]))
+}
+
+/// ZC_CONCLUDE_EXCHANGE_ITEM (0x00ec, 3 bytes): `u8 who`: the side that is closed, the player's own (0) or the
+/// other's (1).
+pub fn concluded(packet: &[u8]) -> Option<u8> {
+    packet.get(2).copied()
+}
+
+/// ZC_EXEC_EXCHANGE_ITEM (0x00f0, 3 bytes): `u8 failed`: nought for a deal that is done, anything else for one
+/// that failed.
+pub fn executed(packet: &[u8]) -> Option<u8> {
+    packet.get(2).copied()
 }
 
 /// CZ_REQ_EXCHANGE_ITEM (0x00e4, 6 bytes): `u32 account`: that player is asked for a deal.
 pub fn request(account: u32) -> Vec<u8> {
-    [&[0xe4, 0x00][..], &account.to_le_bytes()].concat()
+    Writer::new(0x00e4).u32(account).done()
 }
 
 /// CZ_ACK_EXCHANGE_ITEM (0x00e6, 3 bytes): `u8 answer`: `answer::ACCEPT` or `answer::CANCEL`.
 pub fn reply(answer: u8) -> Vec<u8> {
-    vec![0xe6, 0x00, answer]
+    Writer::new(0x00e6).u8(answer).done()
 }
 
 /// CZ_ADD_EXCHANGE_ITEM (0x00e8, 8 bytes): `u16 index`, `u32 amount`: so many of the thing carried there go into
 /// the deal; index 0 is zeny, and the amount all the zeny put in.
 pub fn add(index: u16, amount: u32) -> Vec<u8> {
-    [&[0xe8, 0x00][..], &index.to_le_bytes(), &amount.to_le_bytes()].concat()
+    Writer::new(0x00e8).u16(index).u32(amount).done()
 }
 
 /// CZ_CONCLUDE_EXCHANGE_ITEM (0x00eb): the player's side is closed.
 pub fn conclude() -> Vec<u8> {
-    vec![0xeb, 0x00]
+    Writer::new(0x00eb).done()
 }
 
 /// CZ_CANCEL_EXCHANGE_ITEM (0x00ed): the deal is called off.
 pub fn cancel() -> Vec<u8> {
-    vec![0xed, 0x00]
+    Writer::new(0x00ed).done()
 }
 
 /// CZ_EXEC_EXCHANGE_ITEM (0x00ef): the trade, once both sides are closed.
 pub fn trade() -> Vec<u8> {
-    vec![0xef, 0x00]
-}
-
-/// The zeny typed into the deal's window, as the client reads it (`CUIExchangeUI::SubmitZeny`): digits, with
-/// commas between them or not; more than the character has is all it has; none for anything else.
-pub fn zeny_typed(text: &str, has: u32) -> Option<u32> {
-    let digits: String = text.trim().chars().filter(|letter| *letter != ',').collect();
-    if digits.is_empty() || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
-        return None;
-    }
-    let amount = digits.parse::<u64>().unwrap_or(u64::MAX);
-    Some(if amount > u64::from(has) { has } else { amount as u32 }.min(MOST_ZENY))
-}
-
-/// The colour an amount of zeny is written in, by how large it is (the first colour of the client's
-/// `PriceColor`, which it keeps blue first: written here as the page wants it).
-pub fn zeny_colour(amount: u32) -> &'static str {
-    match amount {
-        1_000_000_000.. => "#ff007f",
-        100_000_000.. => "#c8c864",
-        10_000_000.. => "#ff0000",
-        1_000_000.. => "#00ff00",
-        100_000.. => "#0000ff",
-        10_000.. => "#ff1eff",
-        1_000.. => "#ffff00",
-        100.. => "#00ffff",
-        10.. => "#c800c8",
-        _ => "#00ffff",
-    }
+    Writer::new(0x00ef).done()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn zeny_is_coloured_by_how_much_it_is() {
-        assert_eq!((zeny_colour(0), zeny_colour(99), zeny_colour(5_000), zeny_colour(10_000_000), zeny_colour(999_999)), ("#00ffff", "#c800c8", "#ffff00", "#ff0000", "#0000ff"));
-    }
 
     #[test]
     fn reads_who_asks_and_what_is_answered() {
@@ -202,13 +183,8 @@ mod tests {
     }
 
     #[test]
-    fn zeny_is_digits_with_or_without_commas() {
-        assert_eq!(zeny_typed("1,500", 2000), Some(1500));
-        assert_eq!(zeny_typed(" 0 ", 2000), Some(0));
-        assert_eq!(zeny_typed("5000", 2000), Some(2000));
-        assert_eq!(zeny_typed("2,000,000,000", u32::MAX), Some(MOST_ZENY));
-        assert_eq!(zeny_typed("12a", 2000), None);
-        assert_eq!(zeny_typed("", 2000), None);
-        assert_eq!(zeny_typed("-5", 2000), None);
+    fn reads_which_side_is_closed_and_how_the_deal_ended() {
+        assert_eq!((concluded(&[0xec, 0x00, 1]), concluded(&[0xec, 0x00, 0]), concluded(&[0xec, 0x00])), (Some(1), Some(0), None));
+        assert_eq!((executed(&[0xf0, 0x00, 0]), executed(&[0xf0, 0x00, 1]), executed(&[0xf0, 0x00])), (Some(0), Some(1), None));
     }
 }

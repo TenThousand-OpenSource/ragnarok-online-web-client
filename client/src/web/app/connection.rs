@@ -2,6 +2,15 @@
 
 use super::*;
 
+/// How often the open connection is told the client is still there, and the map server asked its time: the
+/// client's twelve seconds (its `g_gameTickInterval`, and `nextKeepaliveTime` on the character server). The
+/// servers drop a silent connection after a minute.
+pub(super) const KEEP_ALIVE_MS: i32 = 12_000;
+/// The WebSocket close code the gateway turns a login away with; the reason is the seconds to wait.
+pub(super) const TOO_MANY_ATTEMPTS: u16 = 4029;
+/// rAthena's lengths for a character name.
+pub(super) const NAME_LENGTH: std::ops::RangeInclusive<usize> = 4..=23;
+
 impl App {
     /// Sends a packet to the server the client is connected to, if it is connected.
     pub(super) fn send(&self, packet: &[u8]) {
@@ -108,11 +117,8 @@ impl App {
                 if let (Some(account), Some(zone)) = (&self.account, &self.zone) {
                     socket.send(&packets::map_enter(account, zone.char_id, now()));
                     // The levels this character's skills were last set to be used at.
-                    self.skills.use_level = stored(&format!("roweb.skill-levels.{}", zone.char_id))
-                        .unwrap_or_default()
-                        .split(';')
-                        .filter_map(|kept| kept.split_once(':').and_then(|(skill, level)| Some((skill.parse().ok()?, level.parse().ok()?))))
-                        .collect();
+                    let kept = stored(&format!("roweb.skill-levels.{}", zone.char_id)).unwrap_or_default();
+                    self.skills.use_level = crate::kept::pairs(&kept, ':').filter_map(|(skill, level)| Some((skill.parse().ok()?, level.parse().ok()?))).collect();
                 }
             }
             Server::None => {}
@@ -180,5 +186,10 @@ impl App {
             self.wait = Some(Key::PleaseWait);
             self.render();
         }
+    }
+
+    /// The player's own account, as the party's packets name everyone.
+    pub(in crate::web::app) fn own_account(&self) -> u32 {
+        self.account.as_ref().map_or(0, |account| account.account_id)
     }
 }

@@ -48,7 +48,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             let colour = line.get(1).dyn_into::<js_sys::Array>().map_or([255; 3], |colour| [0, 1, 2].map(|part| colour.get(part).as_f64().unwrap_or(255.0) as u8));
             Some((line.get(0).as_string()?, colour))
         });
-        Some((state, StatusText { lines: lines.collect(), time: field(&text, "time").as_f64().unwrap_or(0.0) as usize }))
+        Some((state, StatusText { lines: lines.collect(), time: number(&text, "time").unwrap_or(0.0) as usize }))
     });
     TEXTS.set(texts.collect());
 }

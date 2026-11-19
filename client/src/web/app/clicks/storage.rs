@@ -64,7 +64,7 @@ impl App {
         }
         // The first of that item carried without being worn, as where one is dropped on the ground.
         let Drag::Item(id) = dragged else { return };
-        let Some((index, amount)) = self.bag.items.iter().find(|item| item.id == id && item.worn == 0).map(|item| (item.index, item.amount)) else { return };
+        let Some((index, amount)) = self.bag.first_unworn(id).map(|item| (item.index, item.amount)) else { return };
         self.storage_move(Stowing::In(index), amount);
     }
 
@@ -79,15 +79,10 @@ impl App {
     /// as if it were dragged. This is this client's own: a double click in the client's inventory uses the
     /// thing, and its storage has none (it moves a whole stack with the right button while Alt is held:
     /// `storage_stowed`).
-    pub(in crate::web::app) fn storage_used(&mut self, what: Use) {
-        match what {
-            Use::Put(index) => {
-                if let Some(amount) = self.bag.items.iter().find(|item| item.index == index && item.worn == 0).map(|item| item.amount) {
-                    self.storage_move(Stowing::In(index), amount);
-                }
-            }
-            Use::Take(index) => self.storage_let_out(index),
-            _ => {}
+    /// (One in the storage: `storage_let_out`.)
+    pub(in crate::web::app) fn storage_put_used(&mut self, index: u16) {
+        if let Some(amount) = self.bag.items.iter().find(|item| item.index == index && item.worn == 0).map(|item| item.amount) {
+            self.storage_move(Stowing::In(index), amount);
         }
     }
 

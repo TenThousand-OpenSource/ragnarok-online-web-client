@@ -2,8 +2,6 @@
 //! ending at its right, about its middle, cut to a width), a window's title, a line with the colours written
 //! into it (`^RRGGBB`), and how many of a thing there are in the corner of its cell.
 
-// Not every one is taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
 
 use super::*;
 
@@ -74,6 +72,11 @@ pub(in crate::web) fn titled(x: i32, y: i32, words: &str) -> String {
 /// `DrawAmount` and its other outlined texts): `text-shadow:…`, without a `;` around it.
 pub(in crate::web) fn outlined(rim: &str) -> String {
     format!("text-shadow:-1px 0 {rim},1px 0 {rim},0 -1px {rim},0 1px {rim}")
+}
+
+/// A line of a log of what was said (the chat's, a room's, a talk's), in its colour; `html` is written already.
+pub(in crate::web) fn log_line(colour: &str, html: &str) -> String {
+    format!(r#"<div style="color:{colour}">{html}</div>"#)
 }
 
 /// A line an NPC says, as HTML: `^RRGGBB` in it changes the colour of what follows (`crate::markup`). A line

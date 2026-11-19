@@ -1,8 +1,11 @@
-//! The packets about what the character carries and knows: items, skills, and the hotkey bar.
+//! The packets about what the character carries and knows: items, skills, and the hotkey bar. An item as a
+//! packet tells of it is `Item`, read by `Item::read` from wherever a packet has its record (`Layout`). What
+//! is a rule of the inventory and no packet (its tabs, what goes on the hotkey bar, a count typed, the lines
+//! of weight) is in `crate::inventory`, and named here too for those who look for it under `net::items`.
 //!
 //! Layouts are rAthena's at PACKETVER 20260219 (`src/map/packets_struct.hpp`, `packets.hpp`).
 
-use super::bytes::{u16_at, u32_at};
+use super::bytes::{Writer, long, u16_at, u32_at, word};
 
 pub const ZC_INVENTORY_START: u16 = 0x0b08;
 pub const ZC_INVENTORY_ITEMLIST_NORMAL: u16 = 0x0b09;
@@ -39,54 +42,95 @@ pub struct Item {
     pub cards: [u32; 4],
 }
 
-/// The tabs of the inventory window.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Tab {
-    #[default]
-    Usable,
-    Equipment,
-    Other,
-    /// "Fav": what the player keeps under it, whatever kind it is of (`net::items::favourites`). No thing is
-    /// under it by its kind: `Item::tab` never says it.
-    Favourite,
-}
+pub use crate::inventory::{Tab, WORN_AS_AMMO, count_typed, sort_rank, weight};
 
-/// Where arrows and the like are worn (the client's wear location `0x8000`).
-pub const WORN_AS_AMMO: u32 = 0x8000;
-
-impl Item {
-    /// Whether the inventory window shows it: what is not worn, and the arrows that are. (The client takes what
-    /// is worn out of its list of what is carried, but leaves the arrows in it and only remembers which are
-    /// readied: `CSession::equippedArrowIndex`, looked up among `m_inventoryItems`.)
-    pub fn in_bag(&self) -> bool {
-        self.worn == 0 || self.worn == WORN_AS_AMMO
-    }
-
-    /// Which tab the item is under: what is used up, what is worn, and everything else.
-    pub fn tab(&self) -> Tab {
-        match self.kind {
-            0 | 2 | 11 | 18 => Tab::Usable,
-            4 | 5 | 8 | 12 => Tab::Equipment,
-            _ if self.wearable != 0 && self.kind != 10 => Tab::Equipment,
-            _ => Tab::Other,
-        }
-    }
-
-    pub fn usable(&self) -> bool {
-        self.tab() == Tab::Usable
-    }
-
-    /// Whether it may be put on the hotkey bar (the client's shortcut window, where a drag ends on it): one that
-    /// is identified and is used up (the kinds 0, 1 and 2), shot or thrown (10, 16, 17, 19), or worn (4, 5, 8, 9,
-    /// 11 to 15) with a place to wear it.
-    pub fn fits_hotkeys(&self) -> bool {
-        self.identified && (matches!(self.kind, 0 | 1 | 2 | 10 | 16 | 17 | 19) || (matches!(self.kind, 4 | 5 | 8 | 9 | 11..=15) && self.wearable != 0))
-    }
-}
-
-fn cards(bytes: &[u8], at: usize) -> [u32; 4] {
+/// The four cards of an item, four bytes each from `at`: the one reader of them for every packet that lists items.
+pub(super) fn cards(bytes: &[u8], at: usize) -> [u32; 4] {
     [0, 1, 2, 3].map(|slot| u32_at(bytes, at + slot * 4))
 }
+
+/// Where a packet has each part of an item's record, counted from where `Item::read` is given its bytes: one
+/// for every packet that tells of an item. What a packet does not tell (`None`) is nought.
+pub(super) struct Layout {
+    pub(super) index: Option<usize>,
+    pub(super) id: usize,
+    pub(super) kind: usize,
+    pub(super) amount: Amount,
+    pub(super) wearable: Option<usize>,
+    pub(super) worn: Option<usize>,
+    pub(super) refine: Option<usize>,
+    pub(super) identified: Identified,
+    /// The first of the four cards, four bytes each.
+    pub(super) cards: usize,
+}
+
+/// How a packet tells how many there are of an item.
+pub(super) enum Amount {
+    /// It does not: there is one.
+    One,
+    /// A `u16` there.
+    Word(usize),
+    /// A `u32` there; more than a `u16` holds counts as the most it holds.
+    Long(usize),
+}
+
+/// How a packet tells that an item is identified.
+pub(super) enum Identified {
+    /// A byte of its own there, nought for one that is not.
+    Byte(usize),
+    /// The lowest bit of the byte of flags there.
+    Flag(usize),
+}
+
+impl Item {
+    /// The item a packet has laid out so; none if the bytes end before any part of it.
+    pub(super) fn read(bytes: &[u8], layout: &Layout) -> Option<Item> {
+        let number = |at: Option<usize>| at.map_or(Some(0), |at| long(bytes, at));
+        bytes.get(layout.cards..layout.cards + 16)?;
+        Some(Item {
+            index: layout.index.map_or(Some(0), |at| word(bytes, at))?,
+            id: long(bytes, layout.id)?,
+            kind: *bytes.get(layout.kind)?,
+            amount: match layout.amount {
+                Amount::One => 1,
+                Amount::Word(at) => word(bytes, at)?,
+                Amount::Long(at) => long(bytes, at)?.min(u32::from(u16::MAX)) as u16,
+            },
+            wearable: number(layout.wearable)?,
+            worn: number(layout.worn)?,
+            refine: layout.refine.map_or(Some(0), |at| bytes.get(at).copied())?,
+            identified: match layout.identified {
+                Identified::Byte(at) => *bytes.get(at)? != 0,
+                Identified::Flag(at) => *bytes.get(at)? & 1 != 0,
+            },
+            cards: cards(bytes, layout.cards),
+        })
+    }
+}
+
+/// Which list a ZC_INVENTORY_START (0x0b08: `u16 length, u8 kind`, then the list's name) begins, and which a
+/// list of items that follows it is of: the character's own (0), the cart's (`net::cart::LIST`) or the
+/// storage's (`net::storage::STORAGE`).
+pub fn list_kind(packet: &[u8]) -> Option<u8> {
+    packet.get(4).copied()
+}
+
+/// An item of ZC_INVENTORY_ITEMLIST_NORMAL. Where it is worn is read as the packet has it: `stackable_of`
+/// sees to the ammunition.
+const STACK: Layout = Layout {
+    index: Some(0), id: 2, kind: 6, amount: Amount::Word(7),
+    wearable: None, worn: Some(9), refine: None, identified: Identified::Flag(33), cards: 13,
+};
+/// An item of ZC_INVENTORY_ITEMLIST_EQUIP (rAthena's `EQUIPITEM_INFO`).
+const WORN: Layout = Layout {
+    index: Some(0), id: 2, kind: 6, amount: Amount::One,
+    wearable: Some(7), worn: Some(11), refine: Some(65), identified: Identified::Flag(67), cards: 15,
+};
+/// The item of ZC_ITEM_PICKUP_ACK, counted from the packet's start.
+const GAINED: Layout = Layout {
+    index: Some(2), id: 6, kind: 32, amount: Amount::Word(4),
+    wearable: Some(28), worn: None, refine: Some(68), identified: Identified::Byte(10), cards: 12,
+};
 
 /// ZC_INVENTORY_ITEMLIST_NORMAL (0x0b09): `u16 length, u8 inventory`, then 34 bytes an item: `i16 index, u32 id,
 /// u8 type, i16 count, u32 worn, u32[4] cards, i32 expires, u8 flags`. Items of other inventories give nothing.
@@ -96,23 +140,17 @@ pub fn stackable(packet: &[u8]) -> Vec<Item> {
 
 /// The same list for another inventory: 2 is the storage.
 pub fn stackable_of(packet: &[u8], inventory: u8) -> Vec<Item> {
-    if packet.get(4) != Some(&inventory) {
+    if list_kind(packet) != Some(inventory) {
         return Vec::new();
     }
     packet[5..]
         .chunks_exact(34)
-        .map(|item| Item {
-            index: u16_at(item, 0),
-            id: u32_at(item, 2),
-            kind: item[6],
-            amount: u16_at(item, 7),
+        .filter_map(|item| Item::read(item, &STACK))
+        .map(|item| match item.kind {
             // For ammunition (kind 10) the server puts where it can be worn in the field that holds where a
             // thing is worn; whether it is in use, it says apart (ZC_EQUIP_ARROW).
-            wearable: if item[6] == 10 { u32_at(item, 9) } else { 0 },
-            worn: if item[6] == 10 { 0 } else { u32_at(item, 9) },
-            refine: 0,
-            identified: item[33] & 1 != 0,
-            cards: cards(item, 13),
+            10 => Item { wearable: item.worn, worn: 0, ..item },
+            _ => item,
         })
         .collect()
 }
@@ -125,7 +163,7 @@ pub fn equipment(packet: &[u8]) -> Vec<Item> {
 }
 
 pub fn equipment_of(packet: &[u8], inventory: u8) -> Vec<Item> {
-    if packet.get(4) != Some(&inventory) {
+    if list_kind(packet) != Some(inventory) {
         return Vec::new();
     }
     worn_list(&packet[5..])
@@ -134,20 +172,7 @@ pub fn equipment_of(packet: &[u8], inventory: u8) -> Vec<Item> {
 /// The things of such a list, 68 bytes each (rAthena's `EQUIPITEM_INFO`): the inventory's own, and what the
 /// server shows of another player's equipment (`net/viewequip.rs`).
 pub fn worn_list(items: &[u8]) -> Vec<Item> {
-    items
-        .chunks_exact(68)
-        .map(|item| Item {
-            index: u16_at(item, 0),
-            id: u32_at(item, 2),
-            kind: item[6],
-            amount: 1,
-            wearable: u32_at(item, 7),
-            worn: u32_at(item, 11),
-            refine: item[65],
-            identified: item[67] & 1 != 0,
-            cards: cards(item, 15),
-        })
-        .collect()
+    items.chunks_exact(68).filter_map(|item| Item::read(item, &WORN)).collect()
 }
 
 /// ZC_ITEMIDENTIFY_LIST (0x0177): `u16 length`, then the place in the inventory of each item not identified.
@@ -158,27 +183,17 @@ pub fn unidentified(packet: &[u8]) -> Vec<u16> {
 /// ZC_ACK_ITEMIDENTIFY (0x0179): `u16 index, u8 result`: the item at that place, and whether it was identified
 /// (0) or not (1).
 pub fn identified(packet: &[u8]) -> (u16, Option<u8>) {
-    (super::bytes::word(packet, 2).unwrap_or(0), packet.get(4).copied())
+    (word(packet, 2).unwrap_or(0), packet.get(4).copied())
 }
 
 /// ZC_EQUIP_ARROW (0x013c): `u16 index`. The ammunition in use (0: none).
 pub fn ammunition(packet: &[u8]) -> Option<u16> {
-    super::bytes::word(packet, 2)
-}
-
-/// The number typed into the box that asks how many of a thing carried (`UIItemDropCntWnd`), of which there
-/// are `most`: as the client's box has it, what is no number, nothing, or more than there is counts for
-/// nothing, and the box goes away without a word.
-pub fn count_typed(typed: &str, most: u16) -> Option<u16> {
-    typed.trim().parse::<u32>().ok().filter(|count| (1..=u32::from(most)).contains(count)).map(|count| count as u16)
+    word(packet, 2)
 }
 
 /// CZ_ITEM_THROW (0x0363): `u16 index, u16 count`: drops that many of a thing carried onto the ground.
 pub fn throw(index: u16, count: u16) -> Vec<u8> {
-    let mut packet = 0x0363u16.to_le_bytes().to_vec();
-    packet.extend(index.to_le_bytes());
-    packet.extend(count.to_le_bytes());
-    packet
+    Writer::new(0x0363).u16(index).u16(count).done()
 }
 
 /// ZC_ITEM_PICKUP_ACK (0x0b41): an item came into the inventory (`amount` more of it), or could not (`None`).
@@ -188,17 +203,7 @@ pub fn gained(packet: &[u8]) -> Option<Item> {
     if packet.len() < 70 || packet[33] != 0 {
         return None;
     }
-    Some(Item {
-        index: u16_at(packet, 2),
-        id: u32_at(packet, 6),
-        kind: packet[32],
-        amount: u16_at(packet, 4),
-        wearable: u32_at(packet, 28),
-        worn: 0,
-        refine: packet[68],
-        identified: packet[10] != 0,
-        cards: cards(packet, 12),
-    })
+    Item::read(packet, &GAINED)
 }
 
 /// ZC_USE_ITEM_ACK (0x01c8): `i16 index, u32 id, u32 who, i16 left, u8 ok`. Returns the index, the item, who
@@ -230,32 +235,29 @@ pub fn taken_off(packet: &[u8]) -> Option<u16> {
 
 /// CZ_USE_ITEM (0x0439): `u16 index, u32 on whom` (the character's account ID for itself).
 pub fn use_item(index: u16, account_id: u32) -> Vec<u8> {
-    [&0x0439u16.to_le_bytes()[..], &index.to_le_bytes(), &account_id.to_le_bytes()].concat()
+    Writer::new(0x0439).u16(index).u32(account_id).done()
 }
 
 /// CZ_REQ_WEAR_EQUIP (0x0998): `u16 index, u32 where`.
 pub fn wear(index: u16, wearable: u32) -> Vec<u8> {
-    [&0x0998u16.to_le_bytes()[..], &index.to_le_bytes(), &wearable.to_le_bytes()].concat()
+    Writer::new(0x0998).u16(index).u32(wearable).done()
 }
 
 /// CZ_REQ_TAKEOFF_EQUIP (0x00ab): `u16 index`.
 pub fn take_off(index: u16) -> Vec<u8> {
-    [&0x00abu16.to_le_bytes()[..], &index.to_le_bytes()].concat()
+    Writer::new(0x00ab).u16(index).done()
 }
 
 /// CZ_REQ_ITEMIDENTIFY (0x0178): `u16 index`. Asks to identify the item at that place of the inventory, after a
 /// magnifier listed it; 0xffff (the client's -1) says none was picked.
 pub fn identify(index: u16) -> Vec<u8> {
-    let mut packet = vec![0x78, 0x01];
-    packet.extend_from_slice(&index.to_le_bytes());
-    packet
+    Writer::new(0x0178).u16(index).done()
 }
 
 mod favourites;
 mod hotkeys;
 mod skills;
 mod wearing;
-pub mod weight;
 pub use {favourites::*, hotkeys::*, skills::*, wearing::*};
 
 #[cfg(test)]

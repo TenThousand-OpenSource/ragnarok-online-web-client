@@ -56,16 +56,14 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, feet: Vector, cas
     // The words of units on the ground stand over them as what is said does (`written.rs`).
     for (stands, words) in written::shown(&mut state.written, scene, time) {
         if let Some(over) = view.project(along(stands, [0.0, 1.0, 0.0], 21.0)) {
-            let safe = words.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
-            bars.push_str(&format!(r#"<div class="say" style="left:{:.0}px;top:{:.0}px">{safe}</div>"#, over.0 * width, over.1 * height));
+            bars.push_str(&said(&words, over, (width, height)));
         }
     }
     // What was said hangs over the head of whoever said it for a few seconds.
     for mover in std::iter::once(&scene.player).chain(scene.units.values()) {
         let Some((words, _)) = mover.says.as_ref().filter(|(_, when)| time - when <= 5000.0) else { continue };
         if let Some(over) = view.project(along(on_ground(&scene.gat, mover.at), [0.0, 1.0, 0.0], 21.0)) {
-            let safe = words.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
-            bars.push_str(&format!(r#"<div class="say" style="left:{:.0}px;top:{:.0}px">{safe}</div>"#, over.0 * width, over.1 * height));
+            bars.push_str(&said(words, over, (width, height)));
         }
     }
     if !bars.is_empty() || state.bars {
@@ -84,4 +82,11 @@ fn member_gauge(x: f32, y: f32, left: i32, most: i32) -> String {
     let full = (60 * percent / 100 - 2).clamp(0, 58);
     let low = if percent < 25 { r#" class="low""# } else { "" };
     format!(r#"<div class="life pc" style="left:{x:.0}px;top:{y:.0}px"><i{low} style="width:{full}px"></i></div>"#)
+}
+
+/// Words standing at a place of the screen (parts of a page so wide and high): what someone said, what is
+/// written on a unit on the ground.
+fn said(words: &str, over: (f32, f32), (width, height): (f32, f32)) -> String {
+    let safe = words.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
+    format!(r#"<div class="say" style="left:{:.0}px;top:{:.0}px">{safe}</div>"#, over.0 * width, over.1 * height)
 }

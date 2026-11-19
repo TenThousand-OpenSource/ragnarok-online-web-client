@@ -3,23 +3,13 @@
 use super::*;
 
 /// The Shortcut Settings window, in the middle of the view.
-pub(in crate::web) static KEYS: Window = Window {
-    id: "keys",
-    open: |app| app.keys.open,
-    frame: |_, view| framed(centred(view, 436, 432)),
-    draw: App::key_window,
-    order: ordered(|app| app.keys.open, |app| app.pressed(crate::press::hotkeys::Press::Close)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static KEYS: Window = Window::usual(
+    "keys",
+    |app| app.keys.open,
+    |_, view| framed(centred(view, 436, 432)),
+    App::key_window,
+    |app| app.pressed(crate::press::hotkeys::Press::Close),
+);
 
 /// The Game Settings window, in the middle of the view, as the client puts it.
-pub(in crate::web) static SETTINGS: Window = Window {
-    id: "settings",
-    open: |app| app.settings.open,
-    frame: |_, view| framed(centred(view, 400, 350)),
-    draw: App::settings_window,
-    order: ordered(|app| app.settings.open, switched_off!(settings.open)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static SETTINGS: Window = Window::usual("settings", |app| app.settings.open, |_, view| framed(centred(view, 400, 350)), App::settings_window, switched_off!(settings.open));

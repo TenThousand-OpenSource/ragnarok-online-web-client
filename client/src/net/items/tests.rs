@@ -1,25 +1,17 @@
 //! Tests of the packets of the inventory, the skills known and the hotkey bar.
 
 use super::*;
+use crate::net::bytes::testing::assert_lengths;
 use crate::net::packet_length;
 
 #[test]
 fn requests_have_the_length_the_server_expects() {
-    for request in [use_item(2, 2_000_000), wear(3, 2), take_off(3), raise_skill(142), use_skill(1, 142, 2_000_000), set_hotkey(0, Hotkey { skill: true, id: 142, count: 1 })] {
-        let id = u16_at(&request, 0);
-        assert_eq!(packet_length(id), Some(request.len() as i32), "{id:#06x}");
-    }
+    let hotkey = Hotkey { skill: true, id: 142, count: 1 };
+    assert_lengths(&[use_item(2, 2_000_000), wear(3, 2), take_off(3), raise_skill(142), use_skill(1, 142, 2_000_000), set_hotkey(0, hotkey)]);
     // And the fixed-length replies are as long as they are read here.
     for (id, length) in [(ZC_ITEM_PICKUP_ACK, 70), (ZC_USE_ITEM_ACK, 15), (ZC_DELETE_ITEM_FROM_BODY, 8), (ZC_ITEM_THROW_ACK, 6), (ZC_REQ_WEAR_EQUIP_ACK, 11), (ZC_REQ_TAKEOFF_EQUIP_ACK, 9), (ZC_SKILLINFO_UPDATE, 11), (ZC_ADD_SKILL, 39), (ZC_SHORTCUT_KEY_LIST, 5 + 7 * HOTKEYS as i32)] {
         assert_eq!(packet_length(id), Some(length), "{id:#06x}");
     }
-}
-
-#[test]
-fn a_count_typed_is_a_number_of_what_there_is() {
-    assert_eq!((count_typed("1", 30), count_typed(" 30 ", 30)), (Some(1), Some(30)));
-    // Nothing, no number, none at all, more than there is, more than a count can be: nothing is done.
-    assert_eq!([count_typed("", 30), count_typed("ten", 30), count_typed("0", 30), count_typed("31", 30), count_typed("70000", u16::MAX), count_typed("-1", 30)], [None; 6]);
 }
 
 fn stack(index: u16, id: u32, kind: u8, amount: u16) -> Vec<u8> {
@@ -138,19 +130,6 @@ fn reads_and_sets_the_hotkey_bar() {
     packet[3] = 1;
     assert_eq!(hotkeys_bar(&packet), Some(1));
     assert_eq!(set_hotkey_of(1, 9, bar[0]), [0x21, 0x0b, 1, 0, 9, 0, 1, 142, 0, 0, 0, 1, 0]);
-}
-
-#[test]
-fn only_what_is_used_shot_or_worn_goes_on_the_hotkey_bar() {
-    let item = |kind: u8, wearable: u32, identified: bool| Item { index: 2, id: 501, kind, amount: 1, wearable, worn: 0, refine: 0, identified, cards: [0; 4] };
-    // A potion and an arrow do; loot does not.
-    assert!(item(0, 0, true).fits_hotkeys());
-    assert!(item(10, 0, true).fits_hotkeys());
-    assert!(!item(3, 0, true).fits_hotkeys());
-    // A weapon does if it has a place to be worn, and nothing does until it is identified.
-    assert!(item(5, 2, true).fits_hotkeys());
-    assert!(!item(5, 0, true).fits_hotkeys());
-    assert!(!item(5, 2, false).fits_hotkeys());
 }
 
 #[test]

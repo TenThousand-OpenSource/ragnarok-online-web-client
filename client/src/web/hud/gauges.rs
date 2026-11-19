@@ -5,8 +5,6 @@
 //! A window draws the back of its gauge itself (the backs differ), and decides itself when a gauge shows
 //! nothing: these write only what they are asked for.
 
-// Not taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
 
 use super::*;
 
@@ -52,7 +50,7 @@ pub(in crate::web) fn plain_bar(x: i32, y: i32, width: i32, now: i64, most: i64,
         return String::new();
     }
     let ratio = if most > 0 { now.max(0) as f64 / most as f64 } else { 0.0 };
-    let colour = if warns && ratio * 100.0 < 25.0 { "#f00" } else { "#567fcf" };
+    let colour = if warns && ratio * 100.0 < 25.0 { RED } else { "#567fcf" };
     format!(
         r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf;box-sizing:border-box"><div style="width:{}px;height:{}px;background:{colour}"></div></div>"#,
         at(x, y, width, 6),

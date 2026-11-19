@@ -31,7 +31,7 @@ const EMOTION_MESSAGES: &[(&str, usize)] = &[
 /// The names are what is typed after a slash to show one: first the name from the message table (`/!`), then the
 /// others the list gives (`/delight`).
 pub fn emotions(grf: &Grf) -> serde_json::Value {
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let lua = state();
     let messages = messages(grf);
     // What the scripts call in the client, written to gather what they tell; the list's names come back from
     // the function that takes them, as in the client.
@@ -74,7 +74,7 @@ pub fn emotions(grf: &Grf) -> serde_json::Value {
     for (id, emotion) in emotions.pairs::<i64, Table>().flatten() {
         let (Ok(action), Ok(sprite)) = (emotion.get::<i64>("action"), emotion.get::<mlua::String>("sprite")) else { continue };
         let sprite = korean(&sprite.as_bytes()).replace('\\', "/");
-        let names: Vec<String> = named.get::<Table>(id).map(|names| names.sequence_values::<mlua::String>().flatten().map(|name| korean(&name.as_bytes())).collect()).unwrap_or_default();
+        let names: Vec<String> = named.get::<Table>(id).map(|names| lines(&names)).unwrap_or_default();
         found.insert(id.to_string(), serde_json::json!({ "action": action, "sprite": sprite.trim_end_matches(".spr"), "names": names }));
     }
     found.into()
@@ -85,7 +85,7 @@ pub fn emotions(grf: &Grf) -> serde_json::Value {
 /// place (the client's code knows them by table and place); the keys are Windows' key numbers, the second the
 /// key held with the first (0 for none); `names` is how the client writes each key.
 pub fn hotkeys(grf: &Grf) -> serde_json::Value {
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let lua = state();
     run_in(&lua, grf, &["\\common", "\\msgstring_kr", "\\hotkey"]);
     let number = |table: &Table, field: &str| table.get::<Option<i64>>(field).ok().flatten().unwrap_or(0);
     let tables: Vec<serde_json::Value> = (1..=4)
@@ -95,8 +95,7 @@ pub fn hotkeys(grf: &Grf) -> serde_json::Value {
             (0..=last)
                 .map(|place| match table.get::<Option<Table>>(place).ok().flatten() {
                     Some(entry) => {
-                        let name = entry.get::<Option<mlua::String>>("EXE").ok().flatten().map(|name| korean(&name.as_bytes())).unwrap_or_default();
-                        serde_json::json!({ "name": name, "keys": [number(&entry, "KEY1"), number(&entry, "KEY2")] })
+                        serde_json::json!({ "name": text(&entry, "EXE").unwrap_or_default(), "keys": [number(&entry, "KEY1"), number(&entry, "KEY2")] })
                     }
                     None => serde_json::json!({ "name": "", "keys": [0, 0] }),
                 })
@@ -113,30 +112,41 @@ pub fn hotkeys(grf: &Grf) -> serde_json::Value {
 /// (1 effects, 2 controls, 4 the rest); `run` is a thing done at a press instead of switched on and off; `on`
 /// is how it starts; the ID is the client's name for the option.
 pub fn options(grf: &Grf) -> serde_json::Value {
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
-    // The pages and kinds as the client numbers them; every other name (the options' own) stands for itself.
-    let prepared = lua.load("EFFECT, CONTROL, ETC, ONOFF, EXE = 1, 2, 4, 0, 1 setmetatable(_G, { __index = function(_, name) return name end })").exec();
-    if let Err(error) = prepared {
-        eprintln!("tables: options: {error}");
-    }
-    run_in(&lua, grf, &["optioninfo\\gamesettings"]);
-    let Ok(table) = lua.globals().raw_get::<Table>("OptionTbl") else { return serde_json::json!([]) };
-    let text = |entry: &Table, field: &str| entry.raw_get::<Option<mlua::String>>(field).ok().flatten().map(|text| korean(&text.as_bytes())).unwrap_or_default();
-    table
-        .sequence_values::<Table>()
-        .flatten()
+    let lua = game_settings(grf);
+    let words = |entry: &Table, field: &str| text(entry, field).unwrap_or_default();
+    option_entries(&lua)
+        .iter()
         .map(|entry| {
             serde_json::json!({
-                "id": text(&entry, "ID"),
+                "id": words(entry, "ID"),
                 "tab": entry.raw_get::<Option<i64>>("Tab").ok().flatten().unwrap_or(0),
                 "run": entry.raw_get::<Option<i64>>("Type").ok().flatten().unwrap_or(0) == 1,
-                "title": text(&entry, "Title"),
-                "command": text(&entry, "Tooltip"),
-                "description": text(&entry, "Description"),
+                "title": words(entry, "Title"),
+                "command": words(entry, "Tooltip"),
+                "description": words(entry, "Description"),
                 "on": entry.raw_get::<Option<bool>>("Default").ok().flatten().unwrap_or(false),
             })
         })
         .collect()
+}
+
+/// The client's `Lua Files\OptionInfo\GameSettings` run in a state of its own: the one reading of the file,
+/// for the options (`options`) and for what they say when a command switches one (`commands::commands`). The
+/// pages and kinds are numbered as the client numbers them; every other name the file uses (the options' own,
+/// the messages') stands for itself.
+pub(super) fn game_settings(grf: &Grf) -> Lua {
+    let lua = state();
+    let prepared = exec(&lua, b"EFFECT, CONTROL, ETC, ONOFF, EXE = 1, 2, 4, 0, 1", None).and_then(|()| names_stand_for_themselves(&lua));
+    if let Err(error) = prepared {
+        eprintln!("tables: options: {error}");
+    }
+    run_in(&lua, grf, &["optioninfo\\gamesettings"]);
+    lua
+}
+
+/// The options that file leaves (`OptionTbl`), in its order.
+pub(super) fn option_entries(settings: &Lua) -> Vec<Table> {
+    settings.globals().raw_get::<Table>("OptionTbl").map(|table| table.sequence_values::<Table>().flatten().collect()).unwrap_or_default()
 }
 
 /// The chat window's tabs as the client starts with them (`Lua Files\\ChatWndInfo\\ChatWndInfo.lub`): `[{"name":
@@ -147,7 +157,7 @@ pub fn options(grf: &Grf) -> serde_json::Value {
 /// The file names the messages it uses by the client's own names for them (`MsgStrID.…`, a table the client makes
 /// for it); here each such name stands for itself.
 pub fn chat_tabs(grf: &Grf) -> serde_json::Value {
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let lua = state();
     let _ = lua.load("MsgStrID = setmetatable({}, { __index = function(_, name) return name end })").exec();
     run_in(&lua, grf, &["chatwndinfo\\chatwndinfo"]);
     (1..=10)

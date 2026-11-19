@@ -2,6 +2,14 @@
 
 use super::*;
 
+/// The form fields whose content survives a redraw of the same window.
+const KEPT_FIELDS: [&str; 13] =
+    ["user", "password", "reg-id", "reg-password", "reg-repeat", "reg-email", "reg-sex", "rec-id", "rec-email", "new-password", "new-repeat", "char-name", "birthdate"];
+/// The action of a sitting character, facing south: how one waiting to be deleted is shown.
+const SITTING: usize = 16;
+/// The narrowest view the client is used in, for now: the width of the original client's smallest screen.
+const MIN_WIDTH: f64 = 1024.0;
+
 impl App {
     pub(super) fn show(&mut self, screen: Screen) {
         self.screen = screen;
@@ -104,6 +112,49 @@ impl App {
                 figure::paint("pc-make", figure);
             }
             _ => {}
+        }
+    }
+
+    /// The client's chime (`버튼소리.wav`). The original plays it in a few places only: on logging in, on choosing
+    /// a server, on entering the game with a character (and for a notice, a whisper window, someone joining a
+    /// chat room). Its buttons, tabs and items make no sound.
+    pub(super) fn chime(&self) {
+        if self.sound {
+            sound::button();
+        }
+    }
+
+    /// The player's own character as a figure, standing and facing the screen, with the weapon it holds.
+    pub(in crate::web) fn own_figure(&self) -> Figure {
+        let character = self.zone.as_ref().and_then(|zone| self.characters.iter().find(|character| character.char_id == zone.char_id));
+        Figure {
+            job: character.map_or(0, |character| character.job),
+            sex: character.map_or(1, |character| character.sex),
+            hair_style: character.map_or(1, |character| character.hair_style),
+            hair_colour: character.map_or(0, |character| u16::from(character.hair_color)),
+            headgear: character.map_or([0; 3], |character| character.headgear),
+            body_palette: character.map_or(0, |character| character.body_palette),
+            weapon: self.bag.items.iter().find(|item| item.worn & 2 != 0).map_or(0, |item| item.id),
+            // What is worn on the left hand alone: a weapon of two hands is not a shield.
+            shield: self.bag.items.iter().find(|item| item.worn & 0x22 == 0x20).map_or(0, |item| item.id),
+            action: 0,
+            frame: 0,
+        }
+    }
+
+    /// The same as the windows show it: on its mount, in its machine, by the state it is in.
+    pub(in crate::web) fn shown_figure(&self) -> Figure {
+        let figure = self.own_figure();
+        Figure { job: crate::mounts::drawn_job(figure.job, self.hero.state), ..figure }
+    }
+
+    /// A moment after the music was asked for: whether the browser holds it back until the page is pressed.
+    pub(super) fn music_checked(&mut self) {
+        let hidden = crate::web::document().is_some_and(|document| document.hidden());
+        let held = self.sound && !hidden && !matches!(self.screen, Screen::Game) && !sound::music_playing();
+        if held != self.music_held {
+            self.music_held = held;
+            self.render();
         }
     }
 }

@@ -50,7 +50,7 @@ impl Slot {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
+    use crate::prim::testing::RIGHT;
     const UP: [f32; 3] = [0.0, 0.6, -0.8];
 
     fn rays(wide: bool) -> Prim {

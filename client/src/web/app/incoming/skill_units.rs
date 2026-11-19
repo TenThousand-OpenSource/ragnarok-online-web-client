@@ -6,7 +6,7 @@ use crate::net::skill_units;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn skill_unit_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn skill_units_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // (A trap that is not for everyone to see is seen by the one who laid it: the client's
             // `AM_SKILLSTANDENTRY`.)
@@ -34,7 +34,7 @@ impl App {
             // effect plays at the place. (The client also turns the caster to the place, which is not done.)
             skills::ZC_NOTIFY_GROUNDSKILL => {
                 if let Some((skill, who, _, cell)) = skills::on_ground(packet) {
-                    let own = self.account.as_ref().map_or(0, |account| account.account_id);
+                    let own = self.own_account();
                     world::cast_over(who, own, false);
                     world::uses_skill(who, own, effect_tables::skill_state(skill));
                     world::ground_skill(skill, cell, (who != own).then_some(who));

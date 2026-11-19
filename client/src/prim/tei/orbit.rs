@@ -73,12 +73,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
-
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::{RIGHT, UP, close};
 
     /// A coin as `TexturedSpray` launches one (`number` 1), or a thing as `TexturedSprayKind` does (2).
     fn coins(number: i8, wait: i32) -> Prim {

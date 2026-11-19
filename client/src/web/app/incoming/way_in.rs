@@ -14,10 +14,7 @@ impl App {
             self.server = Server::None;
             self.account = None;
             let generation = self.generation;
-            let retry = Closure::once_into_js(move || dispatch(Action::RetryLogin(generation)));
-            if let Some(window) = web_sys::window() {
-                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(retry.unchecked_ref(), LOGIN_RETRY_MS);
-            }
+            after(LOGIN_RETRY_MS, Action::RetryLogin(generation));
             return;
         }
         // The reason, in the client's words for it (`incoming/link.rs`).

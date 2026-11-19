@@ -35,8 +35,7 @@ impl Part {
             self.over_once_gone();
         }
         self.at[0][1] += self.heights[2];
-        self.at[0][0] += self.heights[1] * cosine(self.turned as f32);
-        self.at[0][2] += self.heights[1] * sine(self.turned as f32);
+        self.fly_level();
     }
 }
 
@@ -44,9 +43,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     /// A spark as `TEIHIT2` launches one from a place 10 to the east of the striker, 8 over the ground.
     fn spark(wait: i32) -> Prim {

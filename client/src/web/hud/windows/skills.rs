@@ -12,22 +12,12 @@ pub(in crate::web) static HOTKEYS: Window = Window {
     drawn: None,
 };
 
-pub(in crate::web) static SKILLS: Window = Window {
-    id: "skills",
-    open: |app| app.skills.open,
-    frame: |_, _| framed(at(230, 60, 560, 400)),
-    draw: App::skill_window,
-    order: ordered(|app| app.skills.open, switched_off!(skills.open)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static SKILLS: Window = Window::usual("skills", |app| app.skills.open, |_, _| framed(at(230, 60, 560, 400)), App::skill_window, switched_off!(skills.open));
 
-pub(in crate::web) static SKILL_INFO: Window = Window {
-    id: "skillinfo",
-    open: |app| app.skills.info.is_some(),
-    frame: |_, _| framed("left:330px;top:110px;width:304px".to_owned()),
-    draw: App::skill_info_window,
-    order: ordered(|app| app.skills.info.is_some(), |app| app.pressed(crate::press::skills::Press::InfoClose)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static SKILL_INFO: Window = Window::usual(
+    "skillinfo",
+    |app| app.skills.info.is_some(),
+    |_, _| framed("left:330px;top:110px;width:304px".to_owned()),
+    App::skill_info_window,
+    |app| app.pressed(crate::press::skills::Press::InfoClose),
+);

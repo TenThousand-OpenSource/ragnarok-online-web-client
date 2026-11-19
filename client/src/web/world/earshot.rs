@@ -18,7 +18,12 @@ pub(super) fn heard(scene: &Scene, name: &str, on: Option<u32>) {
 
 /// Plays a sound that starts at a place of the map, in cells.
 pub(super) fn heard_at(scene: &Scene, name: &str, at: (f32, f32)) {
-    sound::at(name, (at.0 - scene.player.at.0) * CELL, (at.1 - scene.player.at.1) * CELL);
+    heard_from(name, at, scene.player.at);
+}
+
+/// Plays a sound that starts at a place of the map, the player's own character being at `own`, both in cells.
+pub(super) fn heard_from(name: &str, at: (f32, f32), own: (f32, f32)) {
+    sound::at(name, (at.0 - own.0) * CELL, (at.1 - own.1) * CELL);
 }
 
 /// The sounds whose moment has come are played, each from where the one it starts on is now.

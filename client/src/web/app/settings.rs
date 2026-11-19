@@ -12,8 +12,8 @@ pub(super) const FAR_WALK: &str = "ROWEB_FAR_WALK";
 impl App {
     /// Reads what the browser keeps.
     pub(super) fn load_settings(&mut self) {
-        self.settings.set = stored(OPTIONS_KEPT).unwrap_or_default().split(';').filter_map(|entry| entry.split_once('=')).map(|(name, on)| (name.to_owned(), on == "1")).collect();
-        let levels: Vec<u8> = stored(SOUND_KEPT).unwrap_or_default().split(',').filter_map(|number| number.parse().ok()).collect();
+        self.settings.set = crate::kept::pairs(&stored(OPTIONS_KEPT).unwrap_or_default(), '=').map(|(name, on)| (name.to_owned(), on == "1")).collect();
+        let levels: Vec<u8> = crate::kept::numbers(&stored(SOUND_KEPT).unwrap_or_default(), ',');
         (self.settings.music, self.settings.effects, self.settings.music_off, self.settings.effects_off) = match levels[..] {
             [music, effects, music_off, effects_off] => (music.min(100), effects.min(100), music_off != 0, effects_off != 0),
             _ => (100, 100, false, false),
@@ -42,8 +42,7 @@ impl App {
         } else {
             self.settings.set.insert(id.to_owned(), on);
         }
-        let kept: Vec<String> = self.settings.set.iter().map(|(name, on)| format!("{name}={}", u8::from(*on))).collect();
-        store(OPTIONS_KEPT, (!kept.is_empty()).then(|| kept.join(";")).as_deref());
+        store(OPTIONS_KEPT, crate::kept::paired(self.settings.set.iter().map(|(name, on)| (name, u8::from(*on))), '=').as_deref());
         self.apply_options();
         // What the server is told of (`CZ_CONFIG`): whether the guild's Emergency Call may take the character
         // (`/call`, the setting 1), and whether the pet's window opens by itself when the pet is unhappy (the
@@ -90,7 +89,7 @@ impl App {
     pub(super) fn sound_levels(&self) {
         let level = |level: u8, off: bool| if off { 0.0 } else { f64::from(level) / 100.0 };
         sound::levels(level(self.settings.music, self.settings.music_off), level(self.settings.effects, self.settings.effects_off));
-        store(SOUND_KEPT, Some(&format!("{},{},{},{}", self.settings.music, self.settings.effects, u8::from(self.settings.music_off), u8::from(self.settings.effects_off))));
+        store(SOUND_KEPT, crate::kept::numbered([self.settings.music, self.settings.effects, u8::from(self.settings.music_off), u8::from(self.settings.effects_off)], ',').as_deref());
     }
 
     /// Reset in the window: every option as the client's table starts it, the sound at full.

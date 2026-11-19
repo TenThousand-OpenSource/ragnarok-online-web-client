@@ -15,7 +15,7 @@
 //! What falls stays in the world where it is as the player walks on: a flake where it was launched, a petal
 //! until it is down, and then it comes again round where the player is by then.
 
-use super::launched::{of_parts, part};
+use super::launched::{SAKURA, of_parts, part};
 use super::*;
 use crate::prim::{PUT_ANEW, Tei};
 
@@ -26,7 +26,6 @@ const CLOUDS: [&str; 3] = ["cloud4.tga", "cloud1.tga", "cloud2.tga"];
 const STARS: [&str; 6] = ["star01.bmp", "star02.bmp", "star03.bmp", "star04.bmp", "star05.bmp", "star06.bmp"];
 
 const SNOW: &str = "이팩트/ef_snow";
-const SAKURA: &str = "이팩트/sakura01";
 const MAPLE: &str = "이팩트/단풍";
 
 /// The sprites the effects here show, among the client's sprites.

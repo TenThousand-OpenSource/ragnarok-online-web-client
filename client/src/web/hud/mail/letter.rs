@@ -14,16 +14,14 @@ fn places() -> String {
 /// pointed at. `drag` is what taking it out of its place carries, if it can be taken.
 fn thing(place: usize, item: &Item, drag: Option<Drag>) -> String {
     let x = 30 + 34 * place as i32;
-    let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
     format!(
-        r#"{}<div class="a" style="{}" {} data-info="{}{}" title="{}">{}{}</div>"#,
+        r#"{}<div class="a" style="{}" {} {} title="{}">{}{}</div>"#,
         art(&rodex("shadow_item_on"), x - 4, 319, 32, 18),
         at(x, 309, 24, 24),
         drag.map(dragged).unwrap_or_default(),
-        item.id,
-        if item.identified { "" } else { "?" },
+        item_marks(item.id, item.identified),
         escape(&App::item_name(item)),
-        App::icon(resource.as_deref()),
+        App::icon_of(item),
         count(item.amount)
     )
 }
@@ -34,8 +32,8 @@ fn frame(close: Press) -> String {
     format!(
         "{}{}{}",
         art(&rodex("bg_rodex_read"), 0, 0, 300, 400),
-        art("basic_interface/sys_base_off.bmp", 3, 3, 11, 11),
-        press_button(286, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", close)
+        base_button(3, 3),
+        cross(300, close)
     )
 }
 
@@ -51,12 +49,12 @@ impl App {
     pub(in crate::web) fn mail_read_window(&self) -> String {
         let Some((kind, letter)) = self.mail.reading.and_then(|(kind, id)| Some((kind, self.mail.store.get(kind, id)?))) else { return String::new() };
         let mut window = frame(Press::ReadClose);
-        window.push_str(&format!(r#"<div class="a t titled" style="left:17px;top:1px">{}</div>"#, escape(&Self::words(2727, "RODEX"))));
+        window.push_str(&titled(17, 1, &Self::words(2727, "RODEX")));
         window.push_str(&text_in(BOLD, 8, 29, "#0f3395", &letter.sender));
         window.push_str(&text(9, 52, "#313131", &letter.title));
         let from_player = kind == tab::NORMAL && letter.has & has::NPC == 0;
         if from_player && !letter.known {
-            window.push_str(&basic_button(224, 29, 70, &Self::words(3548, "Return"), Some(Press::ReadGiveBack)));
+            window.push_str(&basic_button(224, 29, 70, &Self::words(3548, "Return"), Some(Press::ReadGiveBack.into())));
         }
         window.push_str(&format!(
             r#"<div class="a t viewer" style="{};white-space:pre-wrap;overflow-wrap:anywhere;color:#313131;user-select:text">{}</div>"#,
@@ -76,12 +74,12 @@ impl App {
         }
         window.push_str(&art(&rodex("icon_zeny"), 19, 342, 28, 25));
         if letter.zeny > 0 {
-            window.push_str(&text_in(Font(0, 11, true), 50, 350, "#737373", &format!("{} Zeny", grouped(letter.zeny))));
+            window.push_str(&text_in(SMALL_BOLD, 50, 350, "#737373", &format!("{} Zeny", grouped(letter.zeny))));
             window.push_str(&take(345, self.mail.taking.1, Press::TakeZeny));
         }
-        window.push_str(&basic_button(6, 376, 50, &Self::words(3542, "Delete"), Some(Press::ReadDelete)));
+        window.push_str(&basic_button(6, 376, 50, &Self::words(3542, "Delete"), Some(Press::ReadDelete.into())));
         if from_player {
-            window.push_str(&basic_button(224, 376, 70, &Self::words(3543, "Reply"), Some(Press::Reply)));
+            window.push_str(&basic_button(224, 376, 70, &Self::words(3543, "Reply"), Some(Press::Reply.into())));
         }
         window
     }
@@ -93,7 +91,7 @@ impl App {
     /// takes; the things, dragged in from the inventory and out to it; the zeny to send beside what the
     /// character has; the fee at the bottom left and Send at the right.
     ///
-    /// What is typed is taken from the fields on the page as the window is drawn anew (`mail_typed`). The count
+    /// What is typed is taken from the fields on the page as the window is drawn anew (`app::written`). The count
     /// of letters and the fee follow the typing by a line of the page's own script each, since nothing else
     /// listens to these fields; the colours of the fee and the zeny (red when the character cannot pay) are
     /// those of the last time the window was drawn.
@@ -102,13 +100,13 @@ impl App {
     /// (`CSession::ShortcutFilename`); the tags of items and skills the client lets be put into the text.
     pub(in crate::web) fn mail_write_window(&self) -> String {
         let Some(writing) = &self.mail.writing else { return String::new() };
-        let typed = |id: &str, kept: &str| Self::mail_typed(id).unwrap_or_else(|| kept.to_owned());
+        let typed = |id: &str, kept: &str| crate::web::app::written(id).unwrap_or_else(|| kept.to_owned());
         let mut window = frame(Press::WriteClose);
-        let field = "border:1px solid #a6a6a6;background:#fff;box-sizing:border-box";
+        let rim = "border:1px solid #a6a6a6;background:#fff;box-sizing:border-box";
         match &writing.receiver {
             Some(receiver) => {
                 window.push_str(&format!(
-                    r#"<div class="a t" style="{};{field};padding:0 3px;line-height:16px;color:#0f3395;overflow:hidden;{}">{}</div>"#,
+                    r#"<div class="a t" style="{};{rim};padding:0 3px;line-height:16px;color:#0f3395;overflow:hidden;{}">{}</div>"#,
                     at(8, 26, 150, 18),
                     BOLD.style(),
                     escape(&receiver.name)
@@ -118,18 +116,14 @@ impl App {
                 window.push_str(&text_in(SMALL, 172, 37, "#c62828", &data::job_name(receiver.job)));
             }
             None => {
-                window.push_str(&format!(
-                    r#"<input id="mail-to" class="a in" style="{};{field};color:#313131" type="text" maxlength="50" autocomplete="off" value="{}">"#,
-                    at(8, 26, 150, 18),
-                    escape(&typed("mail-to", &writing.to))
-                ));
+                window.push_str(&field("mail-to", (8, 26, 150, 18), &typed("mail-to", &writing.to), 50, &format!("{rim};color:#313131")));
                 window.push_str(&format!(
                     r#"<button type="button" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}');color:#313131;{}" {}>{}</button>"#,
                     at(162, 26, 70, 18),
                     picture(&rodex("btn_confirm_id_empty_out")),
                     picture(&rodex("btn_confirm_id_empty_over")),
                     picture(&rodex("btn_confirm_id_empty_press")),
-                    Font(0, 12, false).style(),
+                    USUAL.style(),
                     pressed(Press::Validate),
                     escape(&Self::words(3545, "Validate"))
                 ));
@@ -158,7 +152,7 @@ impl App {
             window.push_str(&thing(place, item, Some(Drag::Attached(item.index))));
         }
         window.push_str(&self.mail_write_zeny(writing.items.len(), &typed("mail-zeny", &writing.zeny)));
-        window.push_str(&basic_button(226, 376, 70, &Self::words(3544, "Send"), Some(Press::Send)));
+        window.push_str(&basic_button(226, 376, 70, &Self::words(3544, "Send"), Some(Press::Send.into())));
         window
     }
 
@@ -170,7 +164,6 @@ impl App {
         let sent = mail::zeny_typed(typed);
         let fee = mail::fee(things, sent);
         let short = sent.saturating_add(fee) > has;
-        let grey = Font(0, 11, false);
         let mut zeny = format!(r#"<div class="a" style="{};background:#fff;border:1px solid #a6a6a6;box-sizing:border-box"></div>"#, at(35, 347, 95, 16));
         zeny.push_str(&art(&rodex("icon_zeny"), 19, 342, 28, 25));
         // The fee follows the typing: 2500 a thing and two hundredths of the zeny, as `mail::fee` counts it.
@@ -180,10 +173,10 @@ impl App {
             if short && !typed.is_empty() { "#ff0000" } else { "#000" },
             escape(typed)
         ));
-        zeny.push_str(&text_in(grey, 135, 350, "#737373", "/"));
-        zeny.push_str(&text_in(Font(0, 11, true), 144, 350, "#737373", &format!("{} Zeny", grouped(has))));
+        zeny.push_str(&text_in(SMALL, 135, 350, "#737373", "/"));
+        zeny.push_str(&text_in(SMALL_BOLD, 144, 350, "#737373", &format!("{} Zeny", grouped(has))));
         zeny.push_str(&art(&rodex("bg_tax"), 9, 377, 112, 18));
-        zeny.push_str(&format!(r#"<div id="mail-fee" class="a t" style="right:196px;top:382px;color:{};{}">{}</div>"#, if short { "#cf714e" } else { "#000" }, grey.style(), grouped(fee)));
+        zeny.push_str(&format!(r#"<div id="mail-fee" class="a t" style="right:196px;top:382px;color:{};{}">{}</div>"#, if short { "#cf714e" } else { "#000" }, SMALL.style(), grouped(fee)));
         zeny
     }
 }

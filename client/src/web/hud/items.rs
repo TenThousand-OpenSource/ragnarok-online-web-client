@@ -1,13 +1,10 @@
 //! What the windows show of an item or a skill, written once: its picture by its number, and the grid of
 //! cells the windows made of the client's `UIItemBaseWnd` keep their things in (the cart, one's own shop).
 //!
-//! (A row of a list is `hud/lists.rs`; `App::icon`, `item_name` and `carried` are still in
-//! `hud/inventory.rs`, and `item_marks` in `hud/lists.rs`.)
-
-// Not taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
+//! (A row of a list is `hud/lists.rs`.)
 
 use super::*;
+use crate::item_names::Named;
 
 /// A thing in a cell of a grid (`UIItemBaseWnd::Paint`): its picture with how many there are, in the cell at
 /// that `place` of a grid `columns` wide; `marks` is what the cell's tag says more (what it does when
@@ -37,7 +34,45 @@ pub(in crate::web) fn grid_of(columns: i32, rows: i32, cells: &[String]) -> Stri
     )
 }
 
+/// What a cell or a row says of the item in it for the right button and for the picture that follows the
+/// pointer when it is dragged (`data-info`: the item, with a `?` while it is not identified).
+pub(in crate::web) fn item_marks(id: u32, identified: bool) -> String {
+    format!(r#"data-info="{id}{}""#, if identified { "" } else { "?" })
+}
+
+/// What a thing says when pointed at where there may be several of it: its name and how many there are.
+pub(in crate::web) fn amount_tip(name: &str, amount: impl std::fmt::Display) -> String {
+    format!("{name} : {amount} {}", tr("ea"))
+}
+
+/// What an item is called by its number alone, as the client names the rows of these lists
+/// (`item.SetItemId(id)`, identified, `DisplayName(0)`).
+pub(in crate::web) fn called(id: u32) -> String {
+    data::item_title(&Named { id, identified: true, ..Named::default() }, false)
+}
+
 impl App {
+    /// The picture of an item or a skill, or nothing while its name is not known.
+    pub(in crate::web) fn icon(resource: Option<&str>) -> String {
+        match resource {
+            // An item this client's tables do not have is shown as the original shows it: an apple.
+            Some(resource) if resource.is_empty() => Self::icon(Some("사과")),
+            Some(resource) => format!(r#"<img src="{}" alt="" draggable="false" onerror="this.remove()">"#, picture(&format!("item/{resource}.bmp"))),
+            None => String::new(),
+        }
+    }
+
+    /// How many of an item the character carries without wearing them (arrows readied are carried still).
+    pub(in crate::web) fn carried(&self, id: u32) -> u32 {
+        self.bag.items.iter().filter(|item| item.id == id && item.in_bag()).map(|item| u32::from(item.amount)).sum()
+    }
+
+    /// An item's name as the client writes it everywhere (`ITEM_INFO::DisplayName`: `data::item_title`,
+    /// `crate::item_names`): its refinement, its cards' words, its slots, who made it.
+    pub(in crate::web) fn item_name(item: &Item) -> String {
+        data::item_title(&item.into(), false)
+    }
+
     /// The picture of an item by its number: the one it has while it is not identified, if it is not; nothing
     /// while the tables do not know the item.
     pub(in crate::web) fn item_icon(id: u32, identified: bool) -> String {

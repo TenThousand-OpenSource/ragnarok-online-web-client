@@ -1,5 +1,5 @@
 //! The inventory and what belongs to its items: the description window, the note of a thing just picked up,
-//! and the window that asks how many to drop.
+//! the window that asks how many to drop, and the list of what a magnifier can identify.
 
 use super::*;
 use crate::item_names::Named;
@@ -68,7 +68,7 @@ impl App {
             if identified { BLACK } else { "#808080" },
             escape(&data::item_title(&named, false)),
             at(91, 31, 182, 80),
-            press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::InfoClose),
+            cross(280, Press::InfoClose),
         )
     }
 
@@ -102,7 +102,7 @@ impl App {
                         r#"<div class="a" style="{}" data-info="{card}" title="{}">{}</div>"#,
                         at(x, top + 2, 24, 24),
                         escape(&data::item(card).map(|(name, _)| name).unwrap_or_default()),
-                        Self::icon(data::item(card).map(|(_, resource)| resource).as_deref())
+                        Self::item_icon(card, true)
                     ),
                 }
             })
@@ -120,29 +120,8 @@ impl App {
             title_bar(300, ""),
             text(10, 3, BLACK, &name),
             picture(&format!("cardbmp/{file}.bmp")),
-            press_button(286, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::IllustClose)
+            cross(300, Press::IllustClose)
         )
-    }
-
-    /// The picture of an item or a skill, or nothing while its name is not known.
-    pub(in crate::web) fn icon(resource: Option<&str>) -> String {
-        match resource {
-            // An item this client's tables do not have is shown as the original shows it: an apple.
-            Some(resource) if resource.is_empty() => Self::icon(Some("사과")),
-            Some(resource) => format!(r#"<img src="{}" alt="" draggable="false" onerror="this.remove()">"#, picture(&format!("item/{resource}.bmp"))),
-            None => String::new(),
-        }
-    }
-
-    /// How many of an item the character carries without wearing them (arrows readied are carried still).
-    pub(in crate::web) fn carried(&self, id: u32) -> u32 {
-        self.bag.items.iter().filter(|item| item.id == id && item.in_bag()).map(|item| u32::from(item.amount)).sum()
-    }
-
-    /// An item's name as the client writes it everywhere (`ITEM_INFO::DisplayName`: `data::item_title`,
-    /// `crate::item_names`): its refinement, its cards' words, its slots, who made it.
-    pub(in crate::web) fn item_name(item: &Item) -> String {
-        data::item_title(&item.into(), false)
     }
 
     /// The words of the inventory's four tabs (`UIItemWnd::OnCreate`: the client's lines 1465, 2050, 1471 and
@@ -158,24 +137,39 @@ impl App {
         tabs::side_tabs_tall(&Self::inventory_tabs(), 10, true)
     }
 
+    /// The inventory (`UIItemWnd`): its title, its body with the four tabs at its left, the cells of what is
+    /// carried under the open tab, and the bar at its bottom.
     pub(in crate::web) fn inventory_window(&self) -> String {
         let width = 40 + 32 * ITEM_COLUMNS + 16;
         let body = Self::inventory_body();
         let mut window = title_bar(width, "Inventory");
-        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
+        window.push_str(&cross(width, Press::Window));
+        window.push_str(&self.inventory_ground(width, body));
+        window.push_str(&grid_of(ITEM_COLUMNS, body / 32, &self.inventory_cells()));
+        window.push_str(&self.inventory_bar(width, 17 + body));
+        window
+    }
+
+    /// The inventory's body and its tabs.
+    fn inventory_ground(&self, width: i32, body: i32) -> String {
         // The body (`UIItemWnd::Paint`): the piece at its left, white from 20 in to the cells and under their
         // last whole row, a grey line down at 20, and the piece at its right.
-        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(0, 17, 20, body), picture("basic_interface/itemwin_left.bmp")));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c0c0c0;box-sizing:border-box"></div>"#, at(20, 17, width - 24, body)));
-        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(width - 20, 17, 20, body), picture("basic_interface/itemwin_right.bmp")));
+        let mut ground = format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(0, 17, 20, body), picture("basic_interface/itemwin_left.bmp"));
+        ground.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c0c0c0;box-sizing:border-box"></div>"#, at(20, 17, width - 24, body)));
+        ground.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(width - 20, 17, 20, body), picture("basic_interface/itemwin_right.bmp")));
         // The four tabs (`UIItemWnd::OnCreate`: a `UITabControl` at 3, 18, with 10 round each tab's letters
         // and every tab as tall as the tallest; `hud/tabs.rs`), the last on the ground the client gives it
         // (`colorchip.bmp`, the cell 5, 2). A thing dragged onto one is kept under "Fav" from then, or no
         // more (`UIItemWnd::DragAndDrop`).
         let open = [Tab::Usable, Tab::Equipment, Tab::Other, Tab::Favourite].iter().position(|tab| *tab == self.bag.tab).unwrap_or(0);
         let tabs: Vec<(String, Option<&str>, String)> = Self::inventory_tabs().into_iter().enumerate().map(|(index, words)| (words, (index == 3).then_some("#cedeff"), format!("{} {}", pressed(Press::Tab(index)), dropped(Drop::InventoryTab(index))))).collect();
-        window.push_str(&tabs::side_tabs(3, 18, 10, true, open, &tabs));
-        let mut cells = String::new();
+        ground.push_str(&tabs::side_tabs(3, 18, 10, true, open, &tabs));
+        ground
+    }
+
+    /// The cells of what is carried under the open tab (the grid shows rows of empty cells below the last
+    /// item, so the window is never shorter than it shows).
+    fn inventory_cells(&self) -> Vec<String> {
         // What is worn is in the Equipment window, as in the original; the arrows readied stay here too
         // (`Item::in_bag`). What is kept under "Fav" is on that tab
         // alone (`UIItemWnd::SendMsg`, `UM_REFRESHITEM`), in the order of its kinds and names while "Align
@@ -185,45 +179,37 @@ impl App {
         if self.bag.tab == Tab::Favourite && self.bag.aligned {
             shown.sort_by_cached_key(|item| (crate::net::items::sort_rank(item.kind), Self::item_name(item)));
         }
-        for (place, item) in shown.iter().enumerate() {
-            let (column, row) = (place as i32 % ITEM_COLUMNS, place as i32 / ITEM_COLUMNS);
-            let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
-            cells.push_str(&format!(
-                r#"<div class="a cell" style="left:{}px;top:{}px" {} {} data-info="{info}" title="{} : {} {}">{}{}</div>"#,
-                column * 32,
-                row * 32,
-                dragged(Drag::Item(item.id)),
+        shown
+            .iter()
+            .enumerate()
+            .map(|(place, item)| {
                 // With the storage open a double click puts the thing into it.
-                used(if self.storage.open.is_some() { Use::Put(item.index) } else { Use::Item(item.index) }),
-                escape(&Self::item_name(item)),
-                item.amount,
-                tr("ea"),
-                Self::icon(resource.as_deref()),
-                count(item.amount),
-                info = if item.identified { item.id.to_string() } else { format!("{}?", item.id) }
-            ));
-        }
-        // Rows of empty cells below the last item, so the window is never shorter than it shows.
-        let rows = (shown.len().div_ceil(ITEM_COLUMNS as usize) as i32).max(body / 32);
-        window.push_str(&format!(
-            r#"<div class="a scroll" style="{};background:url('{}')"><div style="position:relative;height:{}px">{cells}</div></div>"#,
-            at(40, 17, 32 * ITEM_COLUMNS, body / 32 * 32),
-            picture("basic_interface/itemwin_mid.bmp"),
-            rows * 32
-        ));
-        let footer = 17 + body;
-        window.push_str(&art("basic_interface/btnbar_left.bmp", 0, footer, 21, 21));
-        window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, footer, width - 42, 21));
-        window.push_str(&art("basic_interface/btnbar_right.bmp", width - 21, footer, 21, 21));
+                let marks = format!("{} {}", dragged(Drag::Item(item.id)), used(if self.storage.open.is_some() { Use::Put(item.index) } else { Use::Item(item.index) }));
+                grid_cell(place, ITEM_COLUMNS, item, item.amount, &marks, &amount_tip(&Self::item_name(item), item.amount))
+            })
+            .collect()
+    }
+
+    /// The bar at the inventory's bottom, `footer` down: how many kinds are carried, and "Align items".
+    fn inventory_bar(&self, width: i32, footer: i32) -> String {
+        let mut bar = button_bar(width, footer + 21);
         let kinds = self.bag.items.iter().filter(|item| item.in_bag()).count();
         // How many kinds of thing are carried, of how many there is room for: the smaller text
         // (`UIItemWnd::Paint`, (0, 11) at 35 in and 15 from the bottom).
-        window.push_str(&text_in(SMALL, 35, footer + 5, if kinds >= 100 { "#f00" } else { "#232323" }, &format!("{kinds} / 100")));
+        bar.push_str(&text_in(SMALL, 35, footer + 5, if kinds >= 100 { RED } else { "#232323" }, &format!("{kinds} / 100")));
         // "Align items" (`UIItemWnd::RefreshSortButton`: `inventory\bt_sort.bmp` on and `bt_sort_off.bmp` off, 25
         // by 17, 157 in and 19 from the bottom; it says the client's line 3007 with ON or OFF).
         let align = if self.bag.aligned { "inventory/bt_sort" } else { "inventory/bt_sort_off" };
         let says = format!(r#" title="{} {}""#, escape(&Self::words(3007, "Align items")), if self.bag.aligned { "ON" } else { "OFF" });
-        window.push_str(&pictured(157, footer + 2, (25, 17), [&format!("{align}.bmp"), &format!("{align}_over.bmp"), &format!("{align}_press.bmp")], Press::Align, &says));
-        window
+        bar.push_str(&pictured_by(Convention::OverPress, 157, footer + 2, (25, 17), align, Press::Align, &says));
+        bar
+    }
+
+    /// The items a magnifier can identify (the client's `UIItemIdentifyWnd`, titled with its message 521): the
+    /// picked one is identified with OK (or with a double click); none is picked at first.
+    pub(in crate::web) fn identify_window(&self) -> String {
+        let Some(items) = &self.bag.identify else { return String::new() };
+        let does = Picking { pick: |row| Press::IdentifyPick(row).into(), used: Use::Identify, ok: Press::IdentifyOk.into(), cancel: Press::IdentifyCancel.into() };
+        pick_list("Identify Item", &self.carried_rows(items), self.bag.identify_picked, does)
     }
 }

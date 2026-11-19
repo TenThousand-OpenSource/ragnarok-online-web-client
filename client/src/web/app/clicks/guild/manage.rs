@@ -204,7 +204,7 @@ impl App {
     pub(super) fn guild_skill_used(&mut self) {
         let picked = self.guild.skill.and_then(|row| self.guild_skills_listed().get(row).map(|skill| (skill.id, skill.level)));
         if let Some((id, 1..)) = picked {
-            self.use_it(Use::Skill(id));
+            self.used(Use::Skill(id));
         }
     }
 

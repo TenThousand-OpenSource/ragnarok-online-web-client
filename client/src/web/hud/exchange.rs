@@ -10,7 +10,7 @@ use crate::press::exchange::Press;
 fn deal_button(x: i32, name: &str, off: Option<&str>, press: Press) -> String {
     match off {
         Some(off) => art(&format!("{off}.bmp"), x, 354, 42, 20),
-        None => pictured(x, 354, (42, 20), [&format!("{name}.bmp"), &format!("{name}_b.bmp"), &format!("{name}_a.bmp")], press, ""),
+        None => pictured_by(Convention::BA, x, 354, (42, 20), name, press, ""),
     }
 }
 
@@ -32,10 +32,7 @@ impl App {
         if deal.closed.0 {
             window.push_str(&Self::exchange_zeny(70, deal.zeny.0));
         } else {
-            window.push_str(&format!(
-                r#"<input id="exchange-zeny" class="a in" style="{};background:#e8e8e8;border:1px solid #c6c6c6;box-sizing:border-box" type="text" inputmode="numeric" maxlength="13" autocomplete="off" value="0">"#,
-                at(140, 330, 100, 16)
-            ));
+            window.push_str(&numeric_field("exchange-zeny", (140, 330, 100, 16), "0", 13, &format!("background:{FIELD_GROUND};border:1px solid #c6c6c6;box-sizing:border-box")));
         }
         window.push_str(&Self::exchange_zeny(350, deal.zeny.1));
         window.push_str(&deal_button(3, "btn_ok", (deal.locking || deal.closed.0).then_some("btn_ok_dis"), Press::Lock));
@@ -60,19 +57,12 @@ impl App {
         for row in 0..10 {
             let y = 21 + row * 30;
             if closed {
-                side.push_str(&format!(r#"<div class="a" style="{};background:#d2d2d2"></div>"#, at(x, y, 272, 30)));
+                side.push_str(&fill(x, y, 272, 30, "#d2d2d2"));
             } else {
                 side.push_str(&art("basic_interface/itemwin_mid.bmp", x + 9, y, 32, 32));
             }
             let Some(item) = items.get(row as usize) else { continue };
-            let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
-            side.push_str(&format!(
-                r#"<div class="a" style="{}" data-info="{}{}">{}</div>"#,
-                at(x + 13, y + 1, 24, 24),
-                item.id,
-                if item.identified { "" } else { "?" },
-                Self::icon(resource.as_deref())
-            ));
+            side.push_str(&format!(r#"<div class="a" style="{}" {}>{}</div>"#, at(x + 13, y + 1, 24, 24), item_marks(item.id, item.identified), Self::icon_of(item)));
             side.push_str(&text_in(SMALL, x + 25, y + 15, BLACK, &item.amount.to_string()));
             side.push_str(&format!(
                 r#"<div class="a t" style="{};line-height:30px;overflow:hidden;white-space:nowrap">{}</div>"#,

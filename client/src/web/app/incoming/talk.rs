@@ -1,4 +1,4 @@
-//! What is said: NPC dialogs, the chat, whispers.
+//! What is said: NPC dialogs and the chat. (Whispers: `incoming/whispers.rs`.)
 
 use super::*;
 
@@ -8,9 +8,6 @@ impl App {
         match id {
             npc::ZC_SAY_DIALOG | npc::ZC_SAY_DIALOG2 | npc::ZC_WAIT_DIALOG | npc::ZC_WAIT_DIALOG2 | npc::ZC_CLOSE_DIALOG | npc::ZC_MENU_LIST | npc::ZC_CLEAR_DIALOG | npc::ZC_OPEN_EDITDLG | npc::ZC_OPEN_EDITDLGSTR => self.npc_spoke(id, packet),
             packets::ZC_NOTIFY_PLAYERCHAT | packets::ZC_NOTIFY_CHAT => self.chat_heard(id, packet),
-            // Whispers go to the window of the talk with that player, or to the chat (`incoming/whispers.rs`).
-            npc::ZC_WHISPER => self.whisper_heard(packet),
-            npc::ZC_ACK_WHISPER => self.whisper_answered(packet),
             // A line in a colour of its own (`CGameMode::ReceiveActorColorChat`): into the chat, and over the
             // head of whoever says it when they are in sight. The server refuses some things this way.
             npc::ZC_NPC_CHAT => {
@@ -66,7 +63,7 @@ impl App {
     fn chat_heard(&mut self, id: u16, packet: &[u8]) {
         if let Some(words) = packets::chat_text(id, packet) {
             // What is said near also hangs over the head of whoever says it.
-            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            let own = self.own_account();
             match id {
                 packets::ZC_NOTIFY_PLAYERCHAT => world::said(own, own, &words),
                 packets::ZC_NOTIFY_CHAT => world::said(npc::npc(id, packet).unwrap_or(0), own, &words),

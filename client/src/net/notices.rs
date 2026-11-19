@@ -2,9 +2,16 @@
 //! packets, and the client's rules for which line of its message table is said and in which colour. The layouts
 //! are rAthena's for PACKETVER 20260219 (`packets.hpp`, `clif.cpp`); the rules are the client's handlers, each
 //! named where it is written out.
+//!
+//! Writing what a line asks for into it is `crate::figures::filled`, and the answer to raising a stat is read
+//! with the character's values (`net/packets/zone.rs`): both are still named from here, where they were.
 
-use super::bytes::{long, name_at, u64_at, word};
-use crate::said::colour::{PALE_CYAN, RED, YELLOW};
+use super::bytes::{i64_at, int, long, word};
+use super::packets::number_and_value;
+
+pub use super::packets::{stat_raised, ZC_STATUS_CHANGE_ACK};
+pub use crate::figures::filled;
+use crate::said::colour::{hex, PALE_CYAN, RED, YELLOW};
 
 /// ZC_ACTION_FAILURE (0x013b, 4 bytes): `u16 kind`: no ammunition, too heavy, or ammunition put on.
 pub const ZC_ACTION_FAILURE: u16 = 0x013b;
@@ -25,19 +32,19 @@ pub const ZC_NOTIFY_EXP2: u16 = 0x0acc;
 pub const ZC_RECOVER_PENALTY_OVERWEIGHT: u16 = 0x0ade;
 /// ZC_PAR_CHANGE_USER (0x01ab, 12 bytes): `u32 who, u16 kind, u32 value`: a value of someone in sight.
 pub const ZC_PAR_CHANGE_USER: u16 = 0x01ab;
-/// ZC_STATUS_CHANGE_ACK (0x00bc, 6 bytes): `u16 stat, u8 done, u8 value`: the answer to raising a stat.
-pub const ZC_STATUS_CHANGE_ACK: u16 = 0x00bc;
 /// ZC_EQUIPITEM_DAMAGED (0x02bb, 8 bytes): `u16 place, u32 who`: something worn was damaged.
 pub const ZC_EQUIPITEM_DAMAGED: u16 = 0x02bb;
 /// ZC_CASH_TIME_COUNTER (0x0298, 10 bytes): `u32 item, u32 seconds`: how long a rented item still lasts.
 pub const ZC_CASH_TIME_COUNTER: u16 = 0x0298;
 /// ZC_CASH_ITEM_DELETE (0x0299, 8 bytes): `u16 index, u32 item`: a rented item is gone.
 pub const ZC_CASH_ITEM_DELETE: u16 = 0x0299;
-/// ZC_ACK_REQNAME_BYGID (0x0af7, 32 bytes): `u16 flag, u32 character, char name[24]`: what a character is
-/// called, by its own number.
-pub const ZC_ACK_REQNAME_BYGID: u16 = 0x0af7;
+/// What a character is called, by its own number, is read with everyone's names, in `net/units.rs`.
+pub use super::units::{ZC_ACK_REQNAME_BYGID, character_name};
 /// ZC_NOTIFY_BIND_ON_EQUIP (0x02d3, 4 bytes): `u16 index`: a thing put on is bound to the character.
 pub const ZC_NOTIFY_BIND_ON_EQUIP: u16 = 0x02d3;
+/// ZC_MSG (0x0291, 4 bytes): a line of the client's message table is said. That the other does not let their
+/// equipment be looked at comes so (`MSI_OPEN_EQUIPEDITEM_REFUSED`; rAthena's `clif_msg`).
+pub const ZC_MSG: u16 = 0x0291;
 /// ZC_ACK_PVPPOINT (0x0210, 22 bytes): the answer to a request the client no longer makes; its
 /// `CGameMode` has no reader for it.
 pub const ZC_ACK_PVPPOINT: u16 = 0x0210;
@@ -92,14 +99,20 @@ pub fn map_info(kind: u16) -> Option<(usize, &'static str)> {
 /// (`CGameMode::ReceiveFormattedMessage`).
 pub const NAMES_AN_ITEM: usize = 3278;
 
+/// ZC_MSG: `u16 line`: which line of the message table.
+pub fn said(packet: &[u8]) -> Option<usize> {
+    word(packet, 2).map(usize::from)
+}
+
 /// ZC_MSG_VALUE: the line and the number to write into it.
 pub fn value(packet: &[u8]) -> Option<(usize, i32)> {
-    Some((usize::from(word(packet, 2)?), long(packet, 4)? as i32))
+    number_and_value(packet).map(|(line, value)| (usize::from(line), value))
 }
 
 /// ZC_MSG_SKILL: the skill and the line said of it.
 pub fn skill(packet: &[u8]) -> Option<(u16, usize)> {
-    Some((word(packet, 2)?, usize::try_from(long(packet, 4)? as i32).ok()?))
+    let (skill, line) = number_and_value(packet)?;
+    Some((skill, usize::try_from(line).ok()?))
 }
 
 /// ZC_MSG_COLOR: the line and the colour it is said in, as the page takes it. Five lines are red whatever
@@ -108,7 +121,7 @@ pub fn skill(packet: &[u8]) -> Option<(u16, usize)> {
 pub fn coloured(packet: &[u8]) -> Option<(usize, String)> {
     let line = usize::from(word(packet, 2)?);
     let colour = packet.get(4..8)?;
-    let named = if matches!(line, 1221 | 1222 | 1879 | 1880 | 2182) { RED.to_owned() } else { format!("#{:02x}{:02x}{:02x}", colour[0], colour[1], colour[2]) };
+    let named = if matches!(line, 1221 | 1222 | 1879 | 1880 | 2182) { RED.to_owned() } else { hex([colour[0], colour[1], colour[2]]) };
     Some((line, named))
 }
 
@@ -138,7 +151,7 @@ pub struct Experience {
 /// ZC_NOTIFY_EXP2 (0x0acc, 18 bytes): `u32 who, i64 amount, u16 kind, u16 quest`.
 pub fn experience(packet: &[u8]) -> Option<Experience> {
     let packet = packet.get(..18)?;
-    Some(Experience { who: long(packet, 2)?, amount: u64_at(packet, 6) as i64, kind: word(packet, 14)?, quest: word(packet, 16)? == 1 })
+    Some(Experience { who: long(packet, 2)?, amount: i64_at(packet, 6), kind: word(packet, 14)?, quest: word(packet, 16)? == 1 })
 }
 
 impl Experience {
@@ -171,14 +184,7 @@ pub const MANNER: u16 = 4;
 
 /// ZC_PAR_CHANGE_USER: who, which value, and the value.
 pub fn user_value(packet: &[u8]) -> Option<(u32, u16, i32)> {
-    Some((long(packet, 2)?, word(packet, 6)?, long(packet, 8)? as i32))
-}
-
-/// ZC_STATUS_CHANGE_ACK: the stat that was raised (`packets::parameter::STR` and the five after it) and what
-/// it is now; nothing when the server did not raise it (`CGameMode::ReceiveStatusChangeAck`).
-pub fn stat_raised(packet: &[u8]) -> Option<(u16, u8)> {
-    let packet = packet.get(..6)?;
-    (packet[4] != 0).then_some((word(packet, 2)?, packet[5]))
+    Some((long(packet, 2)?, word(packet, 6)?, int(packet, 8)?))
 }
 
 /// ZC_EQUIPITEM_DAMAGED: the place of what was damaged (the bits of where a thing is worn) and whose it is;
@@ -218,48 +224,6 @@ pub fn rental_lines(seconds: u32) -> (usize, u32, Option<usize>) {
 /// ZC_CASH_ITEM_DELETE: where the item was carried, and which it is.
 pub fn rental_over(packet: &[u8]) -> Option<(u16, u32)> {
     Some((word(packet, 2)?, long(packet, 4)?))
-}
-
-/// ZC_ACK_REQNAME_BYGID: the character's number and its name, as `CGameMode::ReceivePlayerNameUpdate` keeps
-/// it: for flag 3 the name told, for flag 4 nothing (the client then writes line 581 of its message table,
-/// `MSI_NAMELESS_USER`); any other flag is not read.
-pub fn character_name(packet: &[u8]) -> Option<(u32, Option<String>)> {
-    let packet = packet.get(..32)?;
-    match word(packet, 2)? {
-        3 => Some((long(packet, 4)?, Some(name_at(packet, 8, 24)))),
-        4 => Some((long(packet, 4)?, None)),
-        _ => None,
-    }
-}
-
-/// A line of the message table with what it asks for written into it, as the client's `sprintf` does: each
-/// `%s`, `%d`, `%u` and `%lld` in turn takes the next of `with`, set to the width the line names between
-/// (`%02d`: with noughts before it; `%3d`: with blanks); `%%` is a percent sign.
-pub fn filled(line: &str, with: &[&str]) -> String {
-    let mut out = String::with_capacity(line.len());
-    let mut with = with.iter();
-    let mut rest = line;
-    while let Some(at) = rest.find('%') {
-        out.push_str(&rest[..at]);
-        rest = &rest[at + 1..];
-        let width = rest.len() - rest.trim_start_matches(|digit: char| digit.is_ascii_digit()).len();
-        let asked = &rest[width..];
-        match ["lld", "I64d", "s", "d", "u"].into_iter().find(|kind| asked.starts_with(kind)) {
-            Some(kind) => {
-                let value = with.next().copied().unwrap_or_default();
-                let (noughts, wide) = (rest.starts_with('0'), rest[..width].parse().unwrap_or(0));
-                out.push_str(&if noughts { format!("{value:0>wide$}") } else { format!("{value:>wide$}") });
-                rest = &asked[kind.len()..];
-            }
-            None if rest.starts_with('%') => {
-                out.push('%');
-                rest = &rest[1..];
-            }
-            None => out.push('%'),
-        }
-    }
-    out.push_str(rest);
-    out
 }
 
 #[cfg(test)]

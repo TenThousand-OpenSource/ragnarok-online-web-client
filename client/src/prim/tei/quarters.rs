@@ -56,9 +56,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     /// The first quarter as `GrandCrossRings` launches it.
     fn first() -> Part {

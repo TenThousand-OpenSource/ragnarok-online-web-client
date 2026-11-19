@@ -7,6 +7,7 @@
 //! rodecomp Source/Contents/Models and Source/Resource/Models.
 
 use super::*;
+use crate::vector::{cross, subtract};
 
 #[derive(Debug)]
 struct Face {
@@ -73,7 +74,7 @@ impl Rsm {
     /// Reads a RSM of versions 1.1 to 1.5, the models of the classic maps. Names are EUC-KR and given to `name` to
     /// decode.
     pub fn parse(bytes: &[u8], name: impl Fn(&[u8]) -> String) -> Result<Self, String> {
-        let mut reader = Reader { bytes, at: 0, version: 0 };
+        let mut reader = Reader::new(bytes);
         if reader.take(4)? != b"GRSM" {
             return Err("not a RSM file".to_owned());
         }
@@ -203,10 +204,6 @@ fn between(from: [f32; 4], to: [f32; 4], amount: f32) -> [f32; 4] {
     std::array::from_fn(|part| from[part] * first + to[part] * second)
 }
 
-fn cross(a: Vector, b: Vector) -> Vector {
-    [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
-}
-
 /// The ways a node's faces look out, in the space of its mesh: of each face, and of each corner of each face
 /// with the faces of its smoothing group about that corner (`ModelMesh::CalculateNormals`; the client's own
 /// point into the model, and it lights a face by the way the light goes: here they point out, to be lit by the
@@ -218,7 +215,7 @@ fn normals(node: &Node, mesh: &[Vector]) -> (Vec<Vector>, Vec<[Vector; 3]>) {
         .iter()
         .map(|face| {
             let (a, b, c) = (corner(face, 0), corner(face, 1), corner(face, 2));
-            unit(cross([a[0] - c[0], a[1] - c[1], a[2] - c[2]], [b[0] - c[0], b[1] - c[1], b[2] - c[2]]))
+            unit(cross(subtract(a, c), subtract(b, c)))
         })
         .collect();
     let mut about: std::collections::HashMap<u16, Vec<usize>> = std::collections::HashMap::new();

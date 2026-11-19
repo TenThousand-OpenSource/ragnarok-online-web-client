@@ -8,15 +8,13 @@ use crate::web::parts::menued;
 /// lies in the order of windows as any other, and Escape closes it as its cross does.
 macro_rules! talk_window {
     ($name:ident, $id:literal, $place:literal) => {
-        pub(in crate::web) static $name: Window = Window {
-            id: $id,
-            open: |app| app.whispers.talks[$place].is_some(),
-            frame: |app, _| format!("{} {}", framed(app.whisper_style($place)), menued(crate::press::things::Menu::Whisper($place))),
-            draw: |app| app.whisper_window($place),
-            order: ordered(|app| app.whispers.talks[$place].is_some(), |app| app.pressed(crate::press::whispers::Press::Close($place))),
-            layer: Layer::Usual,
-            drawn: None,
-        };
+        pub(in crate::web) static $name: Window = Window::usual(
+            $id,
+            |app| app.whispers.talks[$place].is_some(),
+            |app, _| format!("{} {}", framed(app.whisper_style($place)), menued(crate::press::things::Menu::Whisper($place))),
+            |app| app.whisper_window($place),
+            |app| app.pressed(crate::press::whispers::Press::Close($place)),
+        );
     };
 }
 

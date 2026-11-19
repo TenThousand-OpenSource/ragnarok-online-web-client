@@ -3,7 +3,7 @@
 //! `clif_Adopt_reply` in `src/map/clif.cpp`); what the client does with each is `CGameMode`'s
 //! (`GameModePackets.cpp`, `GameModeNotices.cpp`) and its `UIBabyAcceptWnd`.
 
-use super::bytes::{long, text_at};
+use super::bytes::{Writer, long, text_at};
 
 /// ZC_CONGRATULATION (0x01ea, 6 bytes): `u32 who`: the wedding's confetti falls on that one.
 pub const ZC_CONGRATULATION: u16 = 0x01ea;
@@ -30,11 +30,8 @@ pub fn partner(packet: &[u8]) -> Option<String> {
     text_at(packet, 2, 24)
 }
 
-/// ZC_DIVORCE's line (the client's line 836, with the player's own name and the other's;
-/// `ReceiveDivorceNotice`).
-pub fn divorce_line(line: &str, own: &str, other: &str) -> String {
-    line.replacen("%s", own, 1).replacen("%s", other, 1)
-}
+/// The rules that are no packet, kept at the path they had: ZC_DIVORCE's line.
+pub use crate::family::divorce_line;
 
 /// Who asks to adopt: the account, the character, and the name.
 #[derive(Debug, Clone, PartialEq)]
@@ -52,22 +49,13 @@ pub fn adoption_asked(packet: &[u8]) -> Option<Parent> {
 /// ZC_BABYMSG: the line of the client's message table for it, and the words until the table is read
 /// (`ReceiveBabyMessage`: 0, 1 and 2).
 pub fn adoption_refused(packet: &[u8]) -> Option<(usize, &'static str)> {
-    match long(packet, 2)? {
-        0 => Some((899, "You cannot adopt more than 1 child.")),
-        1 => Some((900, "You must be at least character level 70 in order to adopt someone.")),
-        2 => Some((916, "You cannot adopt a married person.")),
-        _ => None,
-    }
+    crate::family::adoption_refusal(long(packet, 2)?)
 }
 
 /// CZ_JOIN_BABY (0x01f7, 14 bytes): `u32 account, u32 character, u32 answer`: the answer to the one who asked
 /// (`MM_JOIN_BABY`): 1 to be adopted, 0 not to be.
 pub fn adoption_answer(parent: &Parent, accepted: bool) -> Vec<u8> {
-    let mut packet = 0x01f7u16.to_le_bytes().to_vec();
-    packet.extend(parent.account.to_le_bytes());
-    packet.extend(parent.character.to_le_bytes());
-    packet.extend(u32::from(accepted).to_le_bytes());
-    packet
+    Writer::new(0x01f7).u32(parent.account).u32(parent.character).u32(u32::from(accepted)).done()
 }
 
 #[cfg(test)]

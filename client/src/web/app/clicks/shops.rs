@@ -7,7 +7,7 @@ use crate::net::trade::{Asked, MOST_BOUGHT};
 
 impl App {
     /// A press of this system (`crate::press::shops`).
-    pub(super) fn trade_pressed(&mut self, press: crate::press::shops::Press) {
+    pub(super) fn shops_pressed(&mut self, press: crate::press::shops::Press) {
         use crate::press::shops::Press;
         match press {
             Press::Buy | Press::Sell | Press::Cancel | Press::Ok => self.shop_answered(press),
@@ -56,7 +56,7 @@ impl App {
     /// How many of a row of the list of what is sold to the shop are carried.
     fn shop_carried(&self, row: usize) -> u32 {
         let Some(Shop::Sell(bids)) = &self.deal.shop else { return 0 };
-        bids.get(row).and_then(|bid| self.bag.items.iter().find(|item| item.index == bid.index)).map_or(0, |item| u32::from(item.amount))
+        bids.get(row).and_then(|bid| self.bag.at(bid.index)).map_or(0, |item| u32::from(item.amount))
     }
 
     /// A row was dragged out of the list and let go over the basket, or out of the basket and let go over
@@ -86,15 +86,11 @@ impl App {
     /// A double click on a row: the client's two windows do something with it only while something is sold
     /// and the box "Toggle Item Amount" is ticked (`UIItemShopWnd::OnLBtnDblClk`, `UIItemSellWnd::OnLBtnDblClk`):
     /// then the row goes across as if it were dragged.
-    pub(in crate::web::app) fn shop_used(&mut self, what: Use) {
+    pub(in crate::web::app) fn shop_used(&mut self, dragged: Drag, onto: Drop) {
         if !self.deal.whole_stacks || !matches!(self.deal.shop, Some(Shop::Sell(_))) {
             return;
         }
-        match what {
-            Use::ShopAdd(row) => self.shop_let_go(Drag::Offer(row), Drop::Basket),
-            Use::ShopRemove(row) => self.shop_let_go(Drag::Basket(row), Drop::Shop),
-            _ => {}
-        }
+        self.shop_let_go(dragged, onto);
     }
 
     /// The box that asks how many is opened, with that number in it.
@@ -149,7 +145,7 @@ impl App {
                 self.chat_line(Self::words(1704, "It is not possible to purchase the same item more than %d pieces at a time").replace("%d", &MOST_BOUGHT.to_string()), RED);
             }
             amount = fits;
-            if amount > 0 && self.hero.params.get(&packets::parameter::ZENY).copied().unwrap_or(0) < total + i64::from(amount) * i64::from(offer.discounted) {
+            if amount > 0 && self.hero.zeny() < total + i64::from(amount) * i64::from(offer.discounted) {
                 return self.chat_line(Self::words(55, "You do not have enough zeny."), RED);
             }
         }

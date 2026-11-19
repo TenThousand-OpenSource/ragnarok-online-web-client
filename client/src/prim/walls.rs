@@ -82,8 +82,7 @@ impl Slot {
     /// for the walls numbered 22); further out it goes down by 3, and having gone it begins anew, 3.37 out and
     /// rising at 74 degrees (64 for those numbered 22), unless its primitive has 30 ticks or fewer left.
     fn cast_as_wall(&mut self, index: i32, duration: i32) {
-        self.process += 1;
-        if self.process <= 0 {
+        if self.waits() {
             return;
         }
         self.out += 0.07;
@@ -141,8 +140,7 @@ impl Slot {
     /// turns 3 degrees; over its first 29 ticks it comes up by 3 a tick, to 100 at most, and over the last 46
     /// of its primitive it goes down by 2 a tick.
     fn wave_as_wall(&mut self, index: i32, duration: i32) {
-        self.process += 1;
-        if self.process <= 0 {
+        if self.waits() {
             return;
         }
         self.turned += 3;
@@ -171,8 +169,7 @@ impl Slot {
     /// a hundred further every tick, comes up by 2 a tick over its first ten (by 6 if `quick`) and goes down
     /// by 1 a tick after them.
     fn grow_as_square(&mut self, quick: bool) {
-        self.process += 1;
-        if self.process <= 0 {
+        if self.waits() {
             return;
         }
         if self.process <= 10 {

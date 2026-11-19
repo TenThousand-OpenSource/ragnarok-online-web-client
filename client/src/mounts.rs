@@ -9,11 +9,10 @@
 /// table has nothing for it.
 pub fn drawn_job(job: u16, state: u32) -> u16 {
     let set = |bit: u32| state >> bit & 1 == 1;
-    include_str!("job_mounts.txt")
-        .lines()
-        .filter_map(|line| {
-            let mut fields = line.split('\t');
-            Some((fields.next()?.parse::<u32>().ok()?, fields.next()?, fields.next()?.parse::<u16>().ok()?))
+    crate::tables::tabbed(include_str!("job_mounts.txt"))
+        .filter_map(|(bit, rest)| {
+            let mut fields = rest.split('\t');
+            Some((bit.parse::<u32>().ok()?, fields.next()?, fields.next()?.parse::<u16>().ok()?))
         })
         // What a character is dressed as (a line for any job) gives way to one in the air (bit 15), as in the
         // client.
@@ -32,7 +31,7 @@ pub fn drawn_job(job: u16, state: u32) -> u16 {
 /// by an effect (its `render.flags & 0x10`, which makes all of these smaller).
 pub fn name_offset(drawn: u16, doram: bool) -> f32 {
     // `IsBabyJob`, the ranges of the client's `JT_…_B`.
-    let baby = matches!(drawn, 4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4238 | 4241 | 4242 | 4244 | 4247 | 4248 | 4352 | 4354);
+    let baby = crate::jobs::baby(drawn);
     match drawn {
         // `JT_CHICKEN`, `JT_CHICKEN2` and theirs of the high jobs; the third jobs' mounts from `JT_RUNE_CHICKEN`
         // to `JT_RUNE_CHICKEN5_H`; `JT_WOLF_WINDHAWK` to `JT_IMPERIAL_GUARD_CHICKEN`.

@@ -7,7 +7,7 @@ use crate::net::notices::filled;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn mark_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn marks_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // Where a member of the guild is; the player's own place is not kept (`case
             // ID_ZC_NOTIFY_POSITION_TO_GUILDM`). A place of -1, -1 is one the client keeps and never draws:

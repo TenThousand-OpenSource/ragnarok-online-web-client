@@ -57,7 +57,7 @@ impl App {
         if !self.exchange.open || self.exchange.locking || self.exchange.closed.0 {
             return;
         }
-        let has = self.hero.params.get(&packets::parameter::ZENY).copied().unwrap_or(0).clamp(0, i64::from(u32::MAX)) as u32;
+        let has = self.hero.zeny().clamp(0, i64::from(u32::MAX)) as u32;
         match exchange::zeny_typed(&field("exchange-zeny"), has) {
             Some(zeny) => {
                 (self.exchange.locking, self.exchange.adding) = (true, Some((0, zeny)));

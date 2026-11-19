@@ -13,15 +13,10 @@ impl App {
     pub(in crate::web) fn view_equip_window(&self) -> String {
         let Some(seen) = &self.viewequip.seen else { return String::new() };
         let mut window = title_bar(280, &Self::words(1361, "%s's Equipment").replace("%s", &seen.name));
-        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Close));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 280, 20)));
+        window.push_str(&cross(280, Press::Close));
+        window.push_str(&side_rimmed(0, 17, 280, 20));
         window.push_str(&art("basic_interface/equipwin_bg.bmp", 0, 37, 280, 130));
-        window.push_str(&format!(
-            r#"<div class="a" style="{};overflow:hidden;pointer-events:none"><canvas id="pc-viewequip" width="{}" height="{}" style="position:absolute;left:0;top:-25px"></canvas></div>"#,
-            at(61, 37, super::super::figure::WIDTH as i32, 130),
-            super::super::figure::WIDTH,
-            super::super::figure::HEIGHT
-        ));
+        window.push_str(&figure_canvas("pc-viewequip", (61, 37, crate::web::figure::WIDTH as i32, 130), (0, -25)));
         window.push_str(&Self::worn_places(&seen.items, false));
         window
     }

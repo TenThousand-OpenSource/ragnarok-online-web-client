@@ -12,6 +12,9 @@
 //!
 //! On the login server's port the bridge also counts failed logins (`LoginGuard`): the game server sees every
 //! player coming from the gateway's address, so only the gateway can tell who is guessing passwords.
+//!
+//! Here: the route, and the copying of bytes both ways. The guard is in `bridge/guard.rs`, the delay in
+//! `bridge/lag.rs`.
 
 use std::net::{IpAddr, SocketAddr};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -30,73 +33,16 @@ use tokio::net::TcpStream;
 
 use crate::limiter::Limiter;
 
+mod guard;
+mod lag;
+
+use guard::{CA_LOGIN, Watch, judge, login_name, turn_away};
+pub use guard::{LoginGuard, TOO_MANY_ATTEMPTS};
+pub use lag::Lag;
+
 /// The largest WebSocket message taken from a browser. A game packet is at most 64 KiB.
 const MAX_MESSAGE: usize = 256 * 1024;
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
-
-/// The WebSocket close code for "too many failed logins"; the reason is how many seconds to wait.
-pub const TOO_MANY_ATTEMPTS: u16 = 4029;
-
-const CA_LOGIN: [u8; 2] = [0x64, 0x00];
-const AC_ACCEPT_LOGIN: [u8; 2] = [0xc4, 0x0a];
-const AC_REFUSE_LOGIN: [u8; 2] = [0x3e, 0x08];
-
-/// Stops password guessing on the login server's port: failed logins are counted per address and per account
-/// name, and whoever runs out of attempts is turned away until the oldest ones are old enough.
-pub struct LoginGuard {
-    pub port: u16,
-    by_address: Limiter,
-    by_account: Limiter,
-}
-
-impl LoginGuard {
-    /// Ten failures per address and thirty per account name in ten minutes. An account's limit is the wider one:
-    /// it only has to stop guessing spread over many addresses, and a tight one would let anyone lock a player
-    /// out by failing on purpose.
-    pub fn new(port: u16) -> Self {
-        Self::with_limits(port, 10, 30, Duration::from_secs(600))
-    }
-
-    pub fn with_limits(port: u16, per_address: usize, per_account: usize, window: Duration) -> Self {
-        Self { port, by_address: Limiter::new(per_address, window), by_account: Limiter::new(per_account, window) }
-    }
-
-    /// Gives an account its attempts back: its password was just reset by its owner.
-    pub fn forgive_account(&self, name: &str) {
-        self.by_account.clear(&name.to_ascii_lowercase());
-    }
-}
-
-/// A debug delay on everything the bridge passes, each way: a fixed time and a random part up to `jitter` more,
-/// drawn anew for every piece that comes. What comes later is never passed on sooner than what came before
-/// it, as on a TCP connection. None by default: it is for looking at walking and fighting as a player far away
-/// has them, on one's own machine, and makes the game worse for everyone who plays through the gateway.
-#[derive(Clone, Copy, Default)]
-pub struct Lag {
-    pub fixed: Duration,
-    pub jitter: Duration,
-}
-
-impl Lag {
-    /// When a piece that comes at `now` is passed on, the one before it being due at `last`. `chance` is any
-    /// number: it picks the random part.
-    fn due(&self, now: Instant, last: Option<Instant>, chance: u64) -> Instant {
-        let random = Duration::from_millis(chance % (self.jitter.as_millis() as u64 + 1));
-        let due = now + self.fixed + random;
-        last.map_or(due, |last| due.max(last))
-    }
-
-    /// The same with a number drawn here; at once when there is no delay.
-    fn due_now(&self, last: Option<Instant>) -> Instant {
-        let now = Instant::now();
-        if self.fixed.is_zero() && self.jitter.is_zero() {
-            return now;
-        }
-        let mut chance = [0u8; 8];
-        let _ = getrandom::fill(&mut chance);
-        self.due(now, last, u64::from_le_bytes(chance))
-    }
-}
 
 /// How many pieces may wait to be passed on, each way, before the side they come from is made to wait.
 const WAITING: usize = 1024;
@@ -126,14 +72,6 @@ struct Shared {
 pub fn router(bridge: Bridge) -> Router {
     let connections = Limiter::new(bridge.connections_per_minute, Duration::from_secs(60));
     Router::new().route("/ws/{port}", get(connect)).with_state(Arc::new(Shared { bridge, connections }))
-}
-
-/// One login connection as the guard sees it.
-struct Watch {
-    guard: Arc<LoginGuard>,
-    address: String,
-    /// The account name of the login request, once it has passed.
-    account: Mutex<Option<String>>,
 }
 
 async fn connect(
@@ -194,22 +132,6 @@ pub(crate) fn same_origin(headers: &HeaderMap) -> bool {
 /// An IPv4 address as it is, also when it arrives mapped into IPv6.
 pub(crate) fn address_key(address: IpAddr) -> String {
     address.to_canonical().to_string()
-}
-
-async fn turn_away<S>(socket: &mut S, wait: Duration)
-where
-    S: SinkExt<Message> + Unpin,
-{
-    let frame = CloseFrame { code: TOO_MANY_ATTEMPTS, reason: wait.as_secs().max(1).to_string().into() };
-    let _ = socket.send(Message::Close(Some(frame))).await;
-}
-
-/// The account name in a login request (CA_LOGIN: `u16 id, u32 version, char[24] name, ...`), lowercased as the
-/// login server compares it.
-fn login_name(request: &[u8]) -> String {
-    let name = &request[6..30];
-    let end = name.iter().position(|&byte| byte == 0).unwrap_or(name.len());
-    String::from_utf8_lossy(&name[..end]).to_ascii_lowercase()
 }
 
 /// What waits to be passed on one way: each piece and when it is due.
@@ -346,57 +268,4 @@ async fn pump(socket: WebSocket, tcp: TcpStream, watch: Option<Watch>, lag: Lag)
         turn_away(&mut ws_tx, wait).await;
     }
     (from_player.into_inner(), to_player.into_inner())
-}
-
-/// Counts the login server's answer once enough of it has arrived. Returns whether it is done with it.
-fn judge(watch: &Watch, answer: &[u8]) -> bool {
-    if answer.len() < 2 {
-        return false;
-    }
-    let account = watch.account.lock().unwrap().clone();
-    let now = Instant::now();
-    if answer[..2] == AC_ACCEPT_LOGIN {
-        watch.guard.by_address.clear(&watch.address);
-        if let Some(account) = &account {
-            watch.guard.by_account.clear(account);
-        }
-    } else if answer[..2] == AC_REFUSE_LOGIN {
-        // `u32 error`: 0 is an unknown account and 1 a wrong password. Other refusals (a ban, an expired account)
-        // are not guesses.
-        if answer.len() < 6 {
-            return false;
-        }
-        if answer[2..6] == [0, 0, 0, 0] || answer[2..6] == [1, 0, 0, 0] {
-            watch.guard.by_address.hit(&watch.address, now);
-            if let Some(account) = &account {
-                watch.guard.by_account.hit(account, now);
-            }
-        }
-    }
-    true
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_delayed_piece_is_due_after_the_fixed_time_and_a_part_of_the_jitter() {
-        let lag = Lag { fixed: Duration::from_millis(150), jitter: Duration::from_millis(100) };
-        let now = Instant::now();
-        assert_eq!(lag.due(now, None, 0), now + Duration::from_millis(150));
-        assert_eq!(lag.due(now, None, 100), now + Duration::from_millis(250));
-        assert_eq!(lag.due(now, None, 101), now + Duration::from_millis(150));
-        assert_eq!(Lag::default().due(now, None, 12_345), now);
-    }
-
-    #[test]
-    fn what_comes_later_is_never_due_sooner() {
-        let lag = Lag { fixed: Duration::from_millis(150), jitter: Duration::from_millis(100) };
-        let now = Instant::now();
-        let first = lag.due(now, None, 100);
-        // Ten milliseconds later a piece draws no jitter at all: it waits for the one before it.
-        assert_eq!(lag.due(now + Duration::from_millis(10), Some(first), 0), first);
-        assert_eq!(lag.due(now + Duration::from_millis(200), Some(first), 0), now + Duration::from_millis(350));
-    }
 }

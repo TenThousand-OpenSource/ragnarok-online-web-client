@@ -1,6 +1,8 @@
-//! What is done to the things in the windows other than pressing them: a double click on one (`data-use`),
-//! one dragged out of its place (`data-drag`), a form sent (`data-submit`). Each is written on the page as its
-//! name, then a colon and what goes with it, and read back from that.
+//! What is done to the things in the windows other than pressing them: a double click on one (`Use`,
+//! `data-use`), one dragged out of its place (`Drag`, `data-drag`) and the window it is let go over (`Drop`,
+//! `data-drop`), the right button on one that has a menu (`Menu`, `data-menu`), a form sent (`Form`,
+//! `data-submit`). Each is written on the page as its name, then a colon and what goes with it, and read back
+//! from that.
 
 use super::Named;
 
@@ -199,23 +201,29 @@ pub fn read<Thing: Named>(text: &str) -> Option<Thing> {
 mod tests {
     use super::*;
 
+    /// One thing of every name of a kind, made from the kind's own list of names: with nothing beside it, or
+    /// with what the things here take (a number, a skill and its level).
+    fn every<Thing: Named>() -> Vec<Thing> {
+        Thing::NAMES.iter().map(|name| ["", "7", "19:10"].iter().find_map(|with| Thing::parse(name, with)).unwrap_or_else(|| panic!("{name} takes nothing this test knows of"))).collect()
+    }
+
+    /// Each is read back as itself, and no two of a kind share a name.
+    fn read_back<Thing: Named + PartialEq + std::fmt::Debug>() {
+        let things = every::<Thing>();
+        assert!(!things.is_empty());
+        for (at, thing) in things.iter().enumerate() {
+            assert_eq!(read::<Thing>(&written(thing)).as_ref(), Some(thing));
+            assert_eq!(things.iter().position(|other| other == thing), Some(at), "two things of a kind have one name");
+        }
+    }
+
     #[test]
     fn each_is_read_back_from_what_it_is_written_as() {
-        for thing in [Use::Item(7), Use::Skill(28), Use::Slot(35), Use::ShopAdd(2), Use::ShopRemove(0), Use::Put(3), Use::Take(9), Use::Egg(1), Use::Identify(4), Use::Friend(6), Use::Choice(2), Use::Emotion(18), Use::Sign(2_000_001)] {
-            assert_eq!(read::<Use>(&written(&thing)), Some(thing));
-        }
-        for thing in [Drag::Item(501), Drag::Skill(Leveled { id: 19, level: 10 }), Drag::Slot(8), Drag::Worn(4), Drag::Attached(6), Drag::Offer(3), Drag::Basket(1), Drag::Stored(9), Drag::Carted(3), Drag::Stock(3), Drag::Stalled(1), Drag::Vended(2), Drag::Wanted(2)] {
-            assert_eq!(read::<Drag>(&written(&thing)), Some(thing));
-        }
-        for thing in [Menu::Member(2), Menu::GuildMember(4), Menu::GuildRelated(2), Menu::Friend(1), Menu::Whisper(7)] {
-            assert_eq!(read::<Menu>(&written(&thing)), Some(thing));
-        }
-        for thing in [Drop::Shop, Drop::Basket, Drop::Storage, Drop::InventoryTab(3), Drop::Cart, Drop::Stall, Drop::Stock, Drop::Vendor, Drop::Wants] {
-            assert_eq!(read::<Drop>(&written(&thing)), Some(thing));
-        }
-        for thing in [Form::Login, Form::Register, Form::Recover, Form::Reset, Form::Create, Form::Throw, Form::Chat, Form::Offer, Form::Attach, Form::MailSearch, Form::Whisper(2), Form::ShopCount, Form::StorageCount, Form::StorageSearch, Form::CartCount, Form::VendingCount, Form::Stall] {
-            assert_eq!(read::<Form>(&written(&thing)), Some(thing));
-        }
+        read_back::<Use>();
+        read_back::<Drag>();
+        read_back::<Menu>();
+        read_back::<Drop>();
+        read_back::<Form>();
     }
 
     #[test]

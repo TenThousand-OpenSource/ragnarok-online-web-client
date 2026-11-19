@@ -2,7 +2,10 @@
 //! builds: `ParseLink`, `SplitLinkInfo` and `BuildWindows` of `NavigationLink.cpp`): a tag, the words shown,
 //! and between `<INFO>` and `</INFO>` what the link leads to, divided by commas —
 //! `<ITEM>[Apple]<INFO>512</INFO></ITEM>`, `<NAVI>[Kafra]<INFO>prontera,150,180</INFO></NAVI>`,
-//! `<URL>site<INFO>http://…</INFO></URL>`.
+//! `<URL>site<INFO>http://…</INFO></URL>`. The links to items in a line of chat, which are written otherwise,
+//! are `items.rs`.
+
+pub mod items;
 
 /// The kinds of link the viewer shows.
 #[derive(Debug, Clone, Copy, PartialEq)]

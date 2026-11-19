@@ -24,11 +24,11 @@ impl App {
     /// here they stand in the order of their numbers.
     pub(in crate::web) fn emotion_window(&self) -> String {
         let mut window = title_bar(298, &Self::words(542, "Emoji List"));
-        window.push_str(&press_button(284, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;box-sizing:border-box"></div>"#, at(0, 17, 298, 363)));
+        window.push_str(&cross(298, Press::Window));
+        window.push_str(&panel_ground(0, 17, 298, 363));
         window.push_str(&art("cashemotion/tap_basic_press.bmp", 0, 46, 30, 66));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#cecece"></div>"#, at(29, 46, 268, 1)));
-        window.push_str(&pictured(252, 22, (37, 18), ["cashemotion/btn_shortui_normal.bmp", "cashemotion/btn_shortui_over.bmp", "cashemotion/btn_shortui_press.bmp"], Press::Shortcuts, r#" data-tip="Alt+M""#));
+        window.push_str(&fill(29, 46, 268, 1, "#cecece"));
+        window.push_str(&pictured_by(Convention::NormalOverPress, 252, 22, (37, 18), "cashemotion/btn_shortui", Press::Shortcuts, r#" data-tip="Alt+M""#));
         let cells: String = data::emotions()
             .into_iter()
             .enumerate()
@@ -61,7 +61,7 @@ impl App {
     /// when the window closes, and at Enter.
     pub(in crate::web) fn shortcut_window(&self) -> String {
         let mut window = title_bar(375, &Self::words(574, "Shortcut List"));
-        window.push_str(&press_button(361, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Shortcuts));
+        window.push_str(&cross(375, Press::Shortcuts));
         window.push_str(&panel(375, 260));
         let rows: String = (0..10)
             .map(|place| {
@@ -77,7 +77,7 @@ impl App {
             })
             .collect();
         window.push_str(&format!(r#"<form {}>{rows}<button type="submit" hidden></button></form>"#, sent(Form::Shortcuts)));
-        window.push_str(&pictured(375 - 50, 260 - 25, (42, 20), ["btn_view.bmp", "btn_view_a.bmp", "btn_view_b.bmp"], Press::View, ""));
+        window.push_str(&picture_press(375 - 50, 260 - 25, "btn_view", Press::View));
         window
     }
 }

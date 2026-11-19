@@ -47,8 +47,7 @@ fn untagged(text: &[u8]) -> Vec<u8> {
 
 /// Six letters of a colour written `RRGGBB`.
 fn hex(letters: Option<&[u8]>) -> Option<[u8; 3]> {
-    let value = u32::from_str_radix(std::str::from_utf8(letters?).ok()?, 16).ok()?;
-    Some([(value >> 16) as u8, (value >> 8) as u8, value as u8])
+    Some(crate::said::colour::parts(u32::from_str_radix(std::str::from_utf8(letters?).ok()?, 16).ok()?))
 }
 
 /// The text of a field up to its first nought.

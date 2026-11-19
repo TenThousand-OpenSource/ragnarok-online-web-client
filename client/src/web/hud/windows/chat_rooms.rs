@@ -1,25 +1,19 @@
 //! The entries of the list of windows for chat rooms: the window that makes or changes one, the room's own
-//! window and its menu, the box that asks a room's password, and the place of the signs over heads.
+//! window and its menu, and the box that asks a room's password.
 
 use super::*;
 use crate::press::chat_rooms::Press;
 use crate::web::parts::menued;
 
-/// Where the signs over heads are kept (`world/signs.rs` writes and moves them, frame after frame): the whole
-/// stage, under the windows, itself letting the pointer through.
-pub(in crate::web) static SIGNS: Window = Window { id: "signs", open: ALWAYS, frame: |_, _| r#"class="a" style="left:0;top:0;width:0;height:0""#.to_owned(), draw: |_| String::new(), order: None, layer: Layer::Under, drawn: None };
-
 /// The window that makes a room or changes one (`WID_CHATROOMMAKEWND`, `WID_CHATROOMCHANGEWND`): 280 by 120,
 /// 185 across the client's stage and 300 of 480 down. Its title has the keyboard as it opens.
-pub(in crate::web) static ROOM_MAKE: Window = Window {
-    id: "room-make",
-    open: |app| app.chat_rooms.making.is_some(),
-    frame: |_, view| staged(view, 185, 300, 280, 120),
-    draw: App::room_make_window,
-    order: ordered(|app| app.chat_rooms.making.is_some(), |app| app.pressed(Press::MakeClose)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static ROOM_MAKE: Window = Window::usual(
+    "room-make",
+    |app| app.chat_rooms.making.is_some(),
+    |_, view| staged(view, 185, 300, 280, 120),
+    App::room_make_window,
+    |app| app.pressed(Press::MakeClose),
+);
 
 /// The room the character sits in (`WID_CHATROOMWND`): 280 by 120 where the client has it at first (500,
 /// 180: `ChatRoomWndInfo`), with the right button's menu on all of it. Escape does not close it: leaving a

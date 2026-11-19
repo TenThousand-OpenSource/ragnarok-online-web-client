@@ -2,19 +2,28 @@
 
 use super::*;
 
+/// The pictures of the marks of who stands where in a town, by the kind of each (`information\<name>.bmp`).
+pub(in super::super) const TOWN_PICTURES: [&str; 8] = ["store", "weaponshop", "armorshops", "smithy", "guide", "inn", "kafra", "style"];
+
+/// The picture of a map as the minimap shows it (`map\<name>.bmp`). A map's name goes into a URL: only what
+/// map names are made of passes.
+pub(in super::super) fn map_picture(map: &str) -> String {
+    let map: String = map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
+    picture(&format!("map/{map}.bmp"))
+}
+
 /// The minimap's marks of who stands where in a town (the client's `CGameMode::DrawMiniMap` and
 /// `UIMinimapZoomWnd::AddTownButton`): each a small picture by its kind, its middle on the cell, with the name
 /// shown under the pointer. Those outside the part of the map shown are left out. (In the client a press on one
 /// starts the navigation there; this client has no navigation yet.)
 pub(in super::super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> String {
-    const PICTURES: [&str; 8] = ["store", "weaponshop", "armorshops", "smithy", "guide", "inn", "kafra", "style"];
     if hidden {
         return String::new();
     }
     data::town_marks(&game.map)
         .iter()
         .filter_map(|(name, x, y, kind)| {
-            let picture_name = PICTURES.get(usize::try_from(*kind).ok()?)?;
+            let picture_name = TOWN_PICTURES.get(usize::try_from(*kind).ok()?)?;
             minimap_spot(game, zoom, (*x as f32, *y as f32)).map(|(x, y)| {
                 format!(
                     r#"<img class="mark" src="{}" alt="" title="{}" draggable="false" style="left:{x:.2}%;top:{y:.2}%" onerror="this.remove()">"#,
@@ -27,35 +36,21 @@ pub(in super::super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> S
 }
 
 /// Where a cell of the map is on the minimap, in hundredths of its width and height: none for one outside the
-/// part of the map shown (which follows the character when the map is shown nearer than whole).
+/// part of the map shown (which follows the character when the map is shown nearer than whole). The rule is
+/// `crate::minimap::spot`.
 pub(in super::super) fn minimap_spot(game: &Game, zoom: f32, cell: (f32, f32)) -> Option<(f32, f32)> {
-    let (width, height) = game.map_size?;
-    let zoom = zoom.clamp(1.0, 4.0);
-    let scale = 100.0 / width.max(height) as f32;
-    let on_picture = |x: f32, y: f32| (50.0 + (x - width as f32 / 2.0) * scale, 50.0 - (y - height as f32 / 2.0) * scale);
-    let (own_x, own_y) = on_picture(f32::from(game.x), f32::from(game.y));
-    let shown = 100.0 / zoom;
-    let from = |at: f32| (at - shown / 2.0).clamp(0.0, 100.0 - shown);
-    let (x, y) = on_picture(cell.0, cell.1);
-    let (x, y) = ((x - from(own_x)) * zoom, (y - from(own_y)) * zoom);
-    ((0.0..=100.0).contains(&x) && (0.0..=100.0).contains(&y)).then_some((x, y))
+    crate::minimap::spot(game.map_size?, (f32::from(game.x), f32::from(game.y)), zoom, cell)
 }
 
 /// How the minimap's picture and the character's mark on it are placed, as styles. The minimap is a square
 /// picture with the map in its middle, north up; nearer than whole (the client's zoom, 1 to 4) it shows the
-/// part around the character, as much of it as fits, never past the picture's edge (`CGameMode::DrawMiniMap`).
+/// part around the character, as much of it as fits, never past the picture's edge (`CGameMode::DrawMiniMap`:
+/// `crate::minimap::placed`).
 pub(in super::super) fn minimap_place(game: &Game, zoom: f32) -> Option<(String, String)> {
-    let (width, height) = game.map_size?;
-    let zoom = zoom.clamp(1.0, 4.0);
-    let scale = 100.0 / width.max(height) as f32;
-    let (x, y) = (50.0 + (f32::from(game.x) - width as f32 / 2.0) * scale, 50.0 - (f32::from(game.y) - height as f32 / 2.0) * scale);
-    // What is shown is a square of the picture, this many hundredths of it a side, from here.
-    let shown = 100.0 / zoom;
-    let from = |at: f32| (at - shown / 2.0).clamp(0.0, 100.0 - shown);
-    let (left, top) = (from(x), from(y));
+    let placed = crate::minimap::placed(game.map_size?, (f32::from(game.x), f32::from(game.y)), zoom);
     Some((
-        format!("position:absolute;width:{:.2}%;height:{:.2}%;left:{:.2}%;top:{:.2}%", zoom * 100.0, zoom * 100.0, -left * zoom, -top * zoom),
-        format!("left:{:.2}%;top:{:.2}%", (x - left) * zoom, (y - top) * zoom),
+        format!("position:absolute;width:{:.2}%;height:{:.2}%;left:{:.2}%;top:{:.2}%", placed.side, placed.side, placed.corner.0, placed.corner.1),
+        format!("left:{:.2}%;top:{:.2}%", placed.mark.0, placed.mark.1),
     ))
 }
 
@@ -64,8 +59,6 @@ impl App {
     /// place under it.
     pub(super) fn game_window(&self, view: (f64, f64)) -> String {
         let Some(game) = &self.game else { return String::new() };
-        // A map name goes into a URL: only what map names are made of passes.
-        let map: String = game.map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
         // Under the minimap, as the original has it (`UIMinimapZoomWnd`): the character's cell, and the
         // minimap's buttons: the first shows and hides the marks of who stands where in a town, plus and minus
         // bring the map nearer and take it back, "mini" opens the large window of the map one is on
@@ -96,7 +89,7 @@ impl App {
         format!(
             r#"<div class="minimap" style="overflow:hidden{faint}"><img id="minimap" src="{}" alt="" style="{pictured}" onerror="this.remove()"><i id="marker" style="{}"></i><div id="map-marks">{marks}</div><div id="party-marks">{party}</div><div id="quest-marks">{quests}</div><div id="compass-marks">{compass}</div></div>
                <div class="mapname" style="{away}"><span id="position" style="{}"> {}  {}</span>{buttons}</div>{}"#,
-            picture(&format!("map/{map}.bmp")),
+            map_picture(&game.map),
             marked,
             // The character's cell is written in the usual text (`UIMinimapZoomWnd::Paint`: (0, 12) at 19, 128).
             Font(0, 12, false).style(),

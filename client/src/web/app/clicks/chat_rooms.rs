@@ -12,7 +12,7 @@ const ENTER_WAIT: f64 = 1000.0;
 
 impl App {
     /// A press of this system (`crate::press::chat_rooms`).
-    pub(super) fn chat_room_pressed(&mut self, press: Press) {
+    pub(super) fn chat_rooms_pressed(&mut self, press: Press) {
         match press {
             Press::MakeClose => {
                 self.chat_rooms.making = None;
@@ -20,17 +20,9 @@ impl App {
             }
             Press::MakeOk => self.room_made(),
             Press::PasswordOk => self.room_password_typed(),
-            Press::Public(_) | Press::Limits | Press::Limit(_) => {
-                self.room_lines_read();
-                if let Some(making) = &mut self.chat_rooms.making {
-                    match press {
-                        Press::Public(public) => making.public = public,
-                        Press::Limit(limit) => (making.limit, making.limits_open) = (limit, false),
-                        _ => making.limits_open = !making.limits_open,
-                    }
-                }
-                self.redraw(&[&wnd::ROOM_MAKE]);
-            }
+            Press::Public(public) => self.room_set(|making| making.public = public),
+            Press::Limit(limit) => self.room_set(|making| (making.limit, making.limits_open) = (limit, false)),
+            Press::Limits => self.room_set(|making| making.limits_open = !making.limits_open),
             // The cross of the room's window, and `/q` (`MM_REQ_EXIT_ROOM`): the window goes when the server
             // says the character has left.
             Press::Leave => self.room_left(),
@@ -190,6 +182,16 @@ impl App {
             }
             _ => {}
         }
+    }
+
+    /// A button of the window that makes or changes a room sets something of the room being made: what is
+    /// typed there is kept first, and the window drawn anew.
+    fn room_set(&mut self, set: impl FnOnce(&mut Making)) {
+        self.room_lines_read();
+        if let Some(making) = &mut self.chat_rooms.making {
+            set(making);
+        }
+        self.redraw(&[&wnd::ROOM_MAKE]);
     }
 
     /// Puts the menu of the room's window away, if it is open.

@@ -74,7 +74,7 @@ impl App {
             amount,
             name: &line.name,
             name_at: (36, name_width(line.prices.0, line.prices.0 != line.prices.1, usual)),
-            price: Some((&priced(line.prices, unit), 3)),
+            aside: Some(Aside { html: &escape(&priced(line.prices, unit)), inset: 3, colour: "inherit" }),
             marks: &format!("{marks} {}", item_marks(line.id, line.identified)),
         })
     }
@@ -134,7 +134,7 @@ impl App {
             dropped(Drop::Basket),
             list_frame(280, 152, &title),
             list_of(40, 225, 3, &rows, ""),
-            text(12, 131, BLACK, &format!("Total : {} Zeny", grouped(total))),
+            total_line(131, total),
             picture_press(174, 128, deal, Press::Ok),
             picture_press(219, 128, "btn_cancel", Press::Cancel),
         )

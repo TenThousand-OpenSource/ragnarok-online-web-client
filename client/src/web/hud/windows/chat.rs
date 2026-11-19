@@ -38,12 +38,10 @@ pub(in crate::web) static CHAT_OWN: [&Window; crate::chat_tabs::MOST] = [&CHAT_O
 
 /// The window that sets what a tab lists (`UIBattleMsgOptionWnd`): 280 by 200, 400 across the client's stage
 /// and 200 of 480 down.
-pub(in crate::web) static CHAT_OPTIONS: Window = Window {
-    id: "chat-options",
-    open: |app| app.chat.options.is_some(),
-    frame: |_, view| staged(view, 400, 200, 280, 200),
-    draw: App::chat_options_window,
-    order: ordered(|app| app.chat.options.is_some(), |app| app.pressed(crate::press::chat::Press::OptionsClose)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static CHAT_OPTIONS: Window = Window::usual(
+    "chat-options",
+    |app| app.chat.options.is_some(),
+    |_, view| staged(view, 400, 200, 280, 200),
+    App::chat_options_window,
+    |app| app.pressed(crate::press::chat::Press::OptionsClose),
+);

@@ -11,11 +11,9 @@ impl App {
     /// Reads what the browser keeps: the player's own keys, and what kind of keyboard this is.
     pub(super) fn load_keys(&mut self) {
         self.keys.mac = web_sys::window().and_then(|window| window.navigator().platform().ok()).is_some_and(|platform| platform.starts_with("Mac") || platform.starts_with("iP"));
-        self.keys.own = stored(KEPT)
-            .unwrap_or_default()
-            .split(';')
+        self.keys.own = crate::kept::entries(&stored(KEPT).unwrap_or_default())
             .filter_map(|entry| {
-                let numbers: Vec<u16> = entry.split(':').filter_map(|number| number.parse().ok()).collect();
+                let numbers: Vec<u16> = crate::kept::numbers(entry, ':');
                 (numbers.len() == 4).then(|| ((usize::from(numbers[0]), usize::from(numbers[1])), Chord { key: numbers[2], with: numbers[3] }))
             })
             .collect();
@@ -121,8 +119,8 @@ impl App {
                 self.keys.own.insert((table, place), chord);
             }
         }
-        let kept: Vec<String> = self.keys.own.iter().map(|((table, place), chord)| format!("{table}:{place}:{}:{}", chord.key, chord.with)).collect();
-        store(KEPT, (!kept.is_empty()).then(|| kept.join(";")).as_deref());
+        // An entry to a key, four numbers each (`kept::entries`).
+        store(KEPT, crate::kept::numbered(self.keys.own.iter().map(|((table, place), chord)| format!("{table}:{place}:{}:{}", chord.key, chord.with)), ';').as_deref());
     }
 
     /// Reset in the window: every entry of every table goes back to the keys it has unset. OK keeps that.

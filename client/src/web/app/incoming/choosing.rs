@@ -5,7 +5,7 @@
 
 use super::*;
 use crate::net::choosing::{self, effect};
-use crate::net::notices::{self, filled};
+use crate::net::notices;
 
 /// The colours of these lines only (the client's `0xBBGGRR` turned): a refining that failed (`0xCDCD00`),
 /// one that could not be tried (`0xC8C8FF`).
@@ -13,11 +13,17 @@ const REFINE_FAILED: &str = "#00cdcd";
 const REFINE_REFUSED: &str = "#ffc8c8";
 
 impl App {
-    /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn choosing_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    /// Asks the server for the names of the makers of things that a window looked up in vain
+    /// (`data::makers_wanted`): done as any packet arrives, whosever it is.
+    fn ask_names_wanted(&mut self) {
         for maker in data::makers_wanted() {
             self.send_on_map(&choosing::ask_name(maker));
         }
+    }
+
+    /// Reads a packet of this kind from the map server; `false` for any other.
+    pub(super) fn choosing_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+        self.ask_names_wanted();
         match id {
             // The client's own last row "cancel" follows the places (`case ID_ZC_WARPLIST`).
             choosing::ZC_WARPLIST => {
@@ -68,8 +74,8 @@ impl App {
                 }
             }
             choosing::ZC_ACK_ITEMREPAIR => match choosing::repaired(packet) {
-                Some(true) => self.choice_said(813, &[], CYAN),
-                Some(false) => self.choice_said(814, &[], RED),
+                Some(true) => self.say_filled(said::GENERAL, 813, &[], CYAN),
+                Some(false) => self.say_filled(said::GENERAL, 814, &[], RED),
                 None => {}
             },
             choosing::ZC_ACK_WEAPONREFINE => {
@@ -77,7 +83,7 @@ impl App {
                     let name = data::item_title(&crate::item_names::Named { id: item, identified: true, ..Default::default() }, false);
                     let said = [(911, CYAN), (912, REFINE_FAILED), (913, REFINE_REFUSED), (914, REFINE_REFUSED)];
                     if let Some((line, colour)) = said.get(result as usize) {
-                        self.choice_said(*line, &[&name], colour);
+                        self.say_filled(said::GENERAL, *line, &[&name], colour);
                     }
                 }
             }
@@ -91,13 +97,6 @@ impl App {
             _ => return false,
         }
         true
-    }
-
-    /// A line of the client's message table in the chat, with what it asks for written into it.
-    fn choice_said(&mut self, line: usize, with: &[&str], colour: &str) {
-        if let Some(words) = data::message(line).filter(|words| !words.is_empty()) {
-            self.chat_line(filled(crate::i18n::tr(&words), with), colour);
-        }
     }
 
     /// Opens a list, with the row picked in it at first: a list box of the client's has its first line
@@ -132,10 +131,10 @@ impl App {
     /// known (216), the place cannot be kept (2535), these in red.
     fn warp_remembered(&mut self, packet: &[u8]) {
         match choosing::remembered(packet) {
-            Some(0) => self.choice_said(217, &[], CYAN),
-            Some(1) => self.choice_said(214, &[], RED),
-            Some(2) => self.choice_said(216, &[], RED),
-            Some(3) => self.choice_said(2535, &[], RED),
+            Some(0) => self.say_filled(said::GENERAL, 217, &[], CYAN),
+            Some(1) => self.say_filled(said::GENERAL, 214, &[], RED),
+            Some(2) => self.say_filled(said::GENERAL, 216, &[], RED),
+            Some(3) => self.say_filled(said::GENERAL, 2535, &[], RED),
             _ => {}
         }
     }
@@ -146,13 +145,13 @@ impl App {
     fn card_set(&mut self, packet: &[u8]) {
         let Some((equipment, card, done)) = choosing::compounded(packet) else { return };
         if !done {
-            return self.choice_said(494, &[], RED);
+            return self.say_filled(said::GENERAL, 494, &[], RED);
         }
-        self.choice_said(493, &[], CYAN);
-        let Some(id) = self.bag.items.iter().find(|item| item.index == card).map(|item| item.id) else { return };
-        let Some(thing) = self.bag.items.iter_mut().find(|item| item.index == equipment) else { return };
+        self.say_filled(said::GENERAL, 493, &[], CYAN);
+        let Some(id) = self.bag.at(card).map(|item| item.id) else { return };
+        let Some(thing) = self.bag.at_mut(equipment) else { return };
         choosing::set_card(&mut thing.cards, id);
-        if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == card) {
+        if let Some(item) = self.bag.at_mut(card) {
             item.amount = item.amount.saturating_sub(1);
         }
         self.bag.items.retain(|item| item.amount > 0);
@@ -164,13 +163,13 @@ impl App {
     /// on the character, and the chat says it (lines 498, 499 and 1537, all in the client's 0xFFFF00).
     fn item_refined(&mut self, packet: &[u8]) {
         let Some((result, index, refine)) = choosing::item_refined(packet) else { return };
-        if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+        if let Some(item) = self.bag.at_mut(index) {
             item.refine = refine;
         }
         let said = [(effect::REFINE_OK, 498), (effect::REFINE_FAIL, 499), (effect::REFINE_FAIL, 1537)];
         if let Some((shown, line)) = said.get(usize::from(result)) {
             world::burst(*shown, None, None, 0.0);
-            self.choice_said(*line, &[], CYAN);
+            self.say_filled(said::GENERAL, *line, &[], CYAN);
         }
         self.refresh_items();
     }

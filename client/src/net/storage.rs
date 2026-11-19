@@ -1,14 +1,15 @@
 //! The Kafra's storage and a guild's, which the server opens, fills and closes with the same packets (rAthena,
 //! `clif_storagelist`, `clif_updatestorageamount`, `clif_storageitemadded`, `clif_storageitemremoved`,
 //! `clif_storageclose`, `clif_parse_MoveToKafra` and its neighbours in `src/map/clif.cpp`, at PACKETVER
-//! 20260219), and the rules of the client's window of it (`UIItemStoreWnd`): which tab a thing is under.
+//! 20260219). The rules of the client's window of it (`UIItemStoreWnd`: which tab a thing is under, the orders
+//! of its lists) are in `crate::storage`, and named here too for those who look for them under `net::storage`.
 //!
 //! A storage's list comes as the inventory's does (`net::items`: ZC_INVENTORY_START with the storage's name,
 //! then the lists of the kind `STORAGE`); the server tells a guild's storage as that kind too, under the name
 //! "Guild Storage".
 
-use super::bytes::{u16_at, u32_at};
-use super::items::Item;
+use super::bytes::{Writer, u16_at, u32_at};
+use super::items::{Amount, Identified, Item, Layout};
 
 /// ZC_NOTIFY_STOREITEM_COUNTINFO (0x00f2): `u16 kinds, u16 most`: the storage is open, and how full it is.
 pub const ZC_NOTIFY_STOREITEM_COUNTINFO: u16 = 0x00f2;
@@ -35,19 +36,18 @@ pub fn storage_count(packet: &[u8]) -> Option<(u16, u16)> {
     (packet.len() >= 6).then(|| (u16_at(packet, 2), u16_at(packet, 4)))
 }
 
+/// The item of ZC_ADD_ITEM_TO_STORE, counted from the packet's start.
+const STORED: Layout = Layout {
+    index: Some(2), id: 8, kind: 12, amount: Amount::Long(4),
+    wearable: None, worn: None, refine: Some(56), identified: Identified::Byte(13), cards: 15,
+};
+
 /// What ZC_ADD_ITEM_TO_STORE puts into the storage.
 pub fn stored(packet: &[u8]) -> Option<Item> {
-    (packet.len() >= 58).then(|| Item {
-        index: u16_at(packet, 2),
-        amount: u32_at(packet, 4).min(u32::from(u16::MAX)) as u16,
-        id: u32_at(packet, 8),
-        kind: packet[12],
-        identified: packet[13] != 0,
-        cards: [0, 1, 2, 3].map(|slot| u32_at(packet, 15 + slot * 4)),
-        refine: packet[56],
-        wearable: 0,
-        worn: 0,
-    })
+    if packet.len() < 58 {
+        return None;
+    }
+    Item::read(packet, &STORED)
 }
 
 /// `(index, amount)` of ZC_DELETE_ITEM_FROM_STORE.
@@ -55,11 +55,10 @@ pub fn taken(packet: &[u8]) -> Option<(u16, u32)> {
     (packet.len() >= 8).then(|| (u16_at(packet, 2), u32_at(packet, 4)))
 }
 
-fn moved(id: u16, index: u16, amount: u32) -> Vec<u8> {
-    let mut packet = id.to_le_bytes().to_vec();
-    packet.extend(index.to_le_bytes());
-    packet.extend(amount.to_le_bytes());
-    packet
+/// A request that moves so many of the thing kept at that place from one of the inventory, the cart and the
+/// storage to another, 8 bytes: `u16 index, u32 amount` (the cart's own two are in `net::cart`).
+pub(super) fn moved(id: u16, index: u16, amount: u32) -> Vec<u8> {
+    Writer::new(id).u16(index).u32(amount).done()
 }
 
 /// CZ_MOVE_ITEM_FROM_BODY_TO_STORE (0x0364): `u16 index, u32 amount`: so many of a thing carried go into the
@@ -88,88 +87,21 @@ pub fn storage_to_cart(index: u16, amount: u32) -> Vec<u8> {
 
 /// CZ_CLOSE_STORE (0x0193).
 pub fn close_storage() -> Vec<u8> {
-    0x0193u16.to_le_bytes().to_vec()
+    Writer::new(0x0193).done()
 }
 
-/// How many tabs the storage's window has: things used, of the cash shop, armour, weapons, costumes,
-/// ammunition, cards, and the rest.
-pub const TABS: usize = 8;
-
-/// The line of the client's message table each tab is called by (what its button says when pointed at, and
-/// the title of the window that shows the tab alone: `UIItemStoreWnd::OnCreate`, `UIWindowMgr`), with the
-/// English of it.
-pub const TAB_LINES: [(usize, &str); TABS] = [(1465, "Use"), (1466, "Cash"), (1467, "Armors"), (1468, "Weapons"), (3151, "Costumes"), (1469, "Ammo"), (1470, "Card"), (1471, "Etc")];
-
-/// The places a costume is worn in (the server's `EQP_COSTUME_HEAD_TOP`, `_MID`, `_LOW` and `_GARMENT`).
-pub const COSTUME_PLACES: u32 = 0x400 | 0x800 | 0x1000 | 0x2000;
-
-/// Which tab a thing is under (`UIItemStoreWnd::SendMsg`, `UM_REFRESHITEM`), by its type and whether it is a
-/// costume: `None` for a type the window lists nowhere. The client asks its item table whether a thing is a
-/// costume; here it is one that is worn in a costume's place, which the server tells with the thing.
-pub fn tab_of(item: &Item) -> Option<usize> {
-    if item.wearable & COSTUME_PLACES != 0 {
-        return Some(4);
-    }
-    match item.kind {
-        0..=2 => Some(0),
-        18 => Some(1),
-        4 | 11..=14 => Some(2),
-        5 | 8 | 9 | 15 => Some(3),
-        10 | 16 | 17 | 19 => Some(5),
-        6 => Some(6),
-        3 | 7 => Some(7),
-        _ => None,
-    }
-}
-
-/// How the storage's lists are ordered (the window's box of three choices): as the server told them, or by
-/// name, forwards or backwards.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Sorted {
-    #[default]
-    AsTold,
-    Ascending,
-    Descending,
-}
-
-impl Sorted {
-    pub const ALL: [Sorted; 3] = [Sorted::AsTold, Sorted::Ascending, Sorted::Descending];
-
-    /// The line of the client's message table the choice is called by, with the English the table has.
-    pub fn line(self) -> (usize, &'static str) {
-        match self {
-            Sorted::AsTold => (3276, "Base"),
-            Sorted::Ascending => (3274, "Upgrade"),
-            Sorted::Descending => (3275, "Downgrade"),
-        }
-    }
-
-    /// Puts names (each with what it names) into this order.
-    pub fn order<Thing>(self, things: &mut [(String, Thing)]) {
-        match self {
-            Sorted::AsTold => {}
-            Sorted::Ascending => things.sort_by(|one, other| one.0.cmp(&other.0)),
-            Sorted::Descending => things.sort_by(|one, other| other.0.cmp(&one.0)),
-        }
-    }
-}
+pub use crate::storage::{COSTUME_PLACES, Sorted, TABS, TAB_LINES, tab_of};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn thing(kind: u8, wearable: u32) -> Item {
-        Item { index: 1, id: 501, kind, amount: 1, wearable, worn: 0, refine: 0, identified: true, cards: [0; 4] }
-    }
+    use crate::net::bytes::testing::assert_lengths;
 
     #[test]
     fn the_requests_have_the_lengths_the_server_expects() {
         assert_eq!(to_storage(3, 7), [0x64, 0x03, 3, 0, 7, 0, 0, 0]);
         assert_eq!(from_storage(3, 7), [0x65, 0x03, 3, 0, 7, 0, 0, 0]);
-        for packet in [to_storage(1, 1), from_storage(1, 1), cart_to_storage(1, 1), storage_to_cart(1, 1), close_storage()] {
-            let id = u16::from_le_bytes([packet[0], packet[1]]);
-            assert_eq!(crate::net::packet_length(id), Some(packet.len() as i32), "{id:#06x}");
-        }
+        assert_lengths(&[to_storage(1, 1), from_storage(1, 1), cart_to_storage(1, 1), storage_to_cart(1, 1), close_storage()]);
         for (id, length) in [(ZC_ADD_ITEM_TO_STORE, 58), (ZC_DELETE_ITEM_FROM_STORE, 8), (ZC_CLOSE_STORE, 2), (ZC_NOTIFY_STOREITEM_COUNTINFO, 6)] {
             assert_eq!(crate::net::packet_length(id), Some(length), "{id:#06x}");
         }
@@ -191,25 +123,5 @@ mod tests {
         start.extend(b"Guild Storage\0");
         assert_eq!(list_name(&start).as_deref(), Some("Guild Storage"));
         assert_eq!(list_name(&[0x08, 0x0b, 6, 0, 0, 0]), None);
-    }
-
-    #[test]
-    fn a_thing_is_under_the_tab_of_its_kind() {
-        let tabs: Vec<Option<usize>> = [0, 2, 18, 4, 12, 5, 8, 15, 10, 16, 6, 3, 7, 20].iter().map(|kind| tab_of(&thing(*kind, 0))).collect();
-        assert_eq!(tabs, [Some(0), Some(0), Some(1), Some(2), Some(2), Some(3), Some(3), Some(3), Some(5), Some(5), Some(6), Some(7), Some(7), None]);
-        // A costume is under its own tab, whatever it is worn as.
-        assert_eq!(tab_of(&thing(4, 0x400)), Some(4));
-        assert_eq!(tab_of(&thing(4, 0x100)), Some(2));
-    }
-
-    #[test]
-    fn the_lists_are_ordered_by_name() {
-        let mut things = vec![("Jellopy".to_owned(), 1), ("Apple".to_owned(), 2), ("Red Potion".to_owned(), 3)];
-        Sorted::AsTold.order(&mut things);
-        assert_eq!(things[0].1, 1);
-        Sorted::Ascending.order(&mut things);
-        assert_eq!([things[0].1, things[1].1, things[2].1], [2, 1, 3]);
-        Sorted::Descending.order(&mut things);
-        assert_eq!([things[0].1, things[1].1, things[2].1], [3, 1, 2]);
     }
 }

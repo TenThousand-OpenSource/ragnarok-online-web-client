@@ -86,8 +86,7 @@ impl Prim {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// A light as `CRagEffect::ThunderFreeze` launches it: 15 over the feet, its squares begun 20 ticks apart.
     fn light(round: f32) -> Prim {

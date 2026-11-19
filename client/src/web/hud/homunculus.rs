@@ -7,24 +7,6 @@ use crate::web::app::HomunculusAsk;
 use crate::net::homunculus::{attack_speed, intimacy_word};
 use crate::press::homunculus::{Order, Press};
 
-/// A bar that is a plain colour in a rim (the client's `UIINT64BarGraph` and `UIBarGraph4`): `now` of `most`
-/// filled, in red under a quarter when `warns`. The rim, the ground and the fill are colours of the client's
-/// skin (its `colorchip.bmp`, 26,2, 30,2 and 2,6); they are written here as Basic Information's experience
-/// bar has them.
-fn plain_bar(x: i32, y: i32, width: i32, now: i64, most: i64, warns: bool) -> String {
-    if most < now {
-        return String::new();
-    }
-    let ratio = if most > 0 { now.max(0) as f64 / most as f64 } else { 0.0 };
-    let colour = if warns && ratio * 100.0 < 25.0 { "#f00" } else { "#567fcf" };
-    format!(
-        r#"<div class="a" style="{};background:#fff;border:1px solid #afafaf;box-sizing:border-box"><div style="width:{}px;height:{}px;background:{colour}"></div></div>"#,
-        at(x, y, width, 6),
-        ((width - 2) as f64 * ratio) as i32,
-        4
-    )
-}
-
 /// A gauge of the homunculus window (`UIBarGraphHomun::Paint`), `width` by 9: the back with its ends, the
 /// fill up to `now` of `most` (red under a quarter), and the two numbers in the middle, 2 above, as (1, 13).
 fn gauge(x: i32, y: i32, width: i32, now: i64, most: i64) -> String {
@@ -33,14 +15,10 @@ fn gauge(x: i32, y: i32, width: i32, now: i64, most: i64) -> String {
     }
     let mut gauge = format!("{}{}{}", art("basic_interface/gze_bg_left.bmp", x, y, 2, 9), art("basic_interface/gze_bg_mid.bmp", x + 2, y, width - 6, 9), art("basic_interface/gze_bg_right.bmp", x + width - 4, y, 4, 9));
     if most > 0 && now > 0 {
-        let colour = if now * 4 < most { "red" } else { "blue" };
-        let fill = ((width - 8) as f64 * now as f64 / most as f64) as i32;
-        gauge.push_str(&art(&format!("basic_interface/gze{colour}_left.bmp"), x, y, 4, 8));
-        gauge.push_str(&art(&format!("basic_interface/gze{colour}_mid.bmp"), x + 4, y, fill, 8));
-        gauge.push_str(&art(&format!("basic_interface/gze{colour}_right.bmp"), x + 4 + fill, y, 4, 8));
+        gauge.push_str(&filling(x, y, width - 8, now, most, Red::UnderQuarter));
     }
     if most > 0 {
-        gauge.push_str(&format!(r#"<div class="a t centre" style="{};{};white-space:pre">{now:3}  /  {most:3}</div>"#, at(x, y - 2, width, 13), Font(1, 13, false).style()));
+        gauge.push_str(&numbers_over(x, y, width, now, most));
     }
     gauge
 }
@@ -49,7 +27,7 @@ fn gauge(x: i32, y: i32, width: i32, now: i64, most: i64) -> String {
 /// Atk, Matk, Hit, Critical, Def, Mdef, Flee, Aspd): each ends 79 across, 18 under the last, as (1, 14); the
 /// last is the speed of its blows as the client reckons it from their delay.
 pub(super) fn companion_numbers(stats: &[i32; 8]) -> String {
-    stats.iter().enumerate().map(|(row, stat)| text_ending_in(Font(1, 14, false), 79, 280, 24 + row as i32 * 18, BLACK, &if row == 7 { attack_speed(*stat) } else { *stat }.to_string())).collect()
+    stats.iter().enumerate().map(|(row, stat)| text_ending_in(FIGURES, 79, 280, 24 + row as i32 * 18, BLACK, &if row == 7 { attack_speed(*stat) } else { *stat }.to_string())).collect()
 }
 
 impl App {
@@ -64,18 +42,13 @@ impl App {
         // `DrawFilledRoundedOutline(0, height - 40, width, 40, white)`; its rim is the plain windows' grey.
         window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-radius:3px;box-sizing:border-box"></div>"#, at(0, 168, 280, 40)));
         window.push_str(&text(5, 2, BLACK, &Self::words(936, "Homunculus Info")));
-        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
+        window.push_str(&cross(280, Press::Window));
         for (y, line, otherwise) in [(24, 407, "Name"), (47, 408, "Level"), (105, 1019, "EXP"), (131, 585, "Hunger"), (159, 586, "Intimacy")] {
             window.push_str(&text(100, y, BLACK, &Self::words(line, otherwise)));
         }
         window.push_str(&text(140, 159, BLACK, ":"));
         window.push_str(&companion_numbers(&info.stats));
-        window.push_str(&format!(
-            r#"<input id="{}" class="a in" style="{};background:#e8e8e8;box-sizing:border-box" type="text" maxlength="50" autocomplete="off" value="{}">"#,
-            wnd().field(),
-            at(135, 22, 80, 16),
-            escape(&info.name)
-        ));
+        window.push_str(&field(&windows::HOMUNCULUS.field(), (135, 22, 80, 16), &info.name, 50, &format!("background:{FIELD_GROUND};box-sizing:border-box")));
         window.push_str(&picture_press(232, 21, "btn_rewrite", Press::Rename));
         window.push_str(&text(135, 47, BLACK, &info.level.to_string()));
         window.push_str(&picture_press(187, 44, "btn_del", Press::Delete));
@@ -83,12 +56,12 @@ impl App {
         window.push_str(&gauge(117, 73, 157, info.hp, info.max_hp));
         window.push_str(&gauge(117, 88, 157, info.sp, info.max_sp));
         // The experience the next level takes, ending 205 across, over the bar of how far it is.
-        window.push_str(&text_ending_in(Font(1, 14, false), 205, 280, 104, BLACK, &info.next_exp.to_string()));
+        window.push_str(&text_ending_in(FIGURES, 205, 280, 104, BLACK, &info.next_exp.to_string()));
         window.push_str(&plain_bar(101, 119, 102, info.exp, info.next_exp, false));
-        window.push_str(&text_ending_in(Font(1, 14, false), 200, 280, 130, BLACK, &format!("{} / 100", info.hunger)));
+        window.push_str(&text_ending_in(FIGURES, 200, 280, 130, BLACK, &format!("{} / 100", info.hunger)));
         window.push_str(&plain_bar(101, 145, 102, i64::from(info.hunger), 100, true));
         // Feed is 64 wide: the client makes it at 210, 155 and moves it to 210, 105.
-        window.push_str(&pictured(210, 105, (64, 20), ["btn_feed.bmp", "btn_feed_a.bmp", "btn_feed_b.bmp"], Press::Feed, ""));
+        window.push_str(&picture_press_sized(210, 105, (64, 20), "btn_feed", Press::Feed));
         // The box of feeding by itself, 12 by 12 at 210, 142, and its words from 225, 136 (line 3279, whose
         // `\n` breaks the line).
         window.push_str(&check_words(210, 142, self.homunculus.autofeed, "", Press::AutoFeed));
@@ -124,9 +97,4 @@ impl App {
     pub(in crate::web) fn homunculus_menu(&self) -> String {
         [(1112, "View Info", Order::Info), (1113, "Feed", Order::Feed), (1114, "Stand By", Order::StandBy)].iter().map(|(line, otherwise, order)| menu_row(&Self::words(*line, otherwise), Press::Do(*order))).collect()
     }
-}
-
-/// The window's entry in the list of windows: its field is named from it.
-fn wnd() -> &'static windows::Window {
-    &windows::HOMUNCULUS
 }

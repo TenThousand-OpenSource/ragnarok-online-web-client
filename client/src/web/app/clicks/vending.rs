@@ -69,10 +69,8 @@ impl App {
     }
 
     /// A double click on a vendor's sign asks what the shop sells (`UIMerchantShopTitle::OnLBtnDblClk`).
-    pub(in crate::web::app) fn vending_used(&mut self, what: Use) {
-        if let Use::Sign(vendor) = what {
-            self.vending_ask(vendor);
-        }
+    pub(in crate::web::app) fn vending_used(&mut self, vendor: u32) {
+        self.vending_ask(vendor);
     }
 
     /// CZ_REQ_BUY_FROMMC, as `MM_REQ_BUY_FROMMC` sends it: not of oneself, not while a vendor's list is open,
@@ -233,7 +231,7 @@ impl App {
             amount = MOST_AMOUNT.saturating_sub(kept);
             said.push(Self::words(1704, "It is not possible to purchase the same item more than %d pieces at a time").replacen("%d", &MOST_AMOUNT.to_string(), 1));
         }
-        let zeny = self.hero.params.get(&packets::parameter::ZENY).copied().unwrap_or(0).max(0) as u64;
+        let zeny = self.hero.zeny().max(0) as u64;
         if zeny < price * u64::from(amount) + basket {
             amount = 0;
             said.push(Self::words(55, "You do not have enough zeny."));
@@ -264,7 +262,7 @@ impl App {
         let Some(making) = &self.vending.making else { return };
         let prices: Option<Vec<u32>> = making.rows.iter().map(|stalled| vending::price_typed(&stalled.price)).collect();
         let unidentified = making.rows.iter().any(|stalled| self.cart.items.iter().any(|item| item.index == stalled.index && !item.identified));
-        let zeny = self.hero.params.get(&packets::parameter::ZENY).copied().unwrap_or(0).max(0) as u64;
+        let zeny = self.hero.zeny().max(0) as u64;
         let refused = match &prices {
             None => Some((602, "Only the numbers (0~9) are available.")),
             Some(prices) if prices.is_empty() => Some((2494, "This item you want to sell is not registered. Please register the item first.")),

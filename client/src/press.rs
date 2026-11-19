@@ -34,17 +34,15 @@ macro_rules! presses {
         impl $crate::press::Named for $name {
             const NAMES: &'static [&'static str] = &[$($text),*];
 
-            #[allow(unused_variables)]
             fn name(&self) -> (&'static str, String) {
                 match *self {
                     $(presses!(@seen $variant value $($with)?) => ($text, presses!(@written value $($with)?)),)*
                 }
             }
 
-            #[allow(unused_variables)]
-            fn parse(what: &str, arg: &str) -> Option<Self> {
+            fn parse(what: &str, _arg: &str) -> Option<Self> {
                 match what {
-                    $($text => presses!(@read $variant arg $($with)?),)*
+                    $($text => presses!(@read $variant _arg $($with)?),)*
                     _ => None,
                 }
             }

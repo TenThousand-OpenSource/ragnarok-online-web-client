@@ -69,16 +69,7 @@ pub fn leave() {
         state.held = None;
         state.chase = None;
         state.fetch = None;
-        state.flying.clear();
-        state.arrows.clear();
-        state.effects_due.clear();
-        state.sounds_due.clear();
-        state.heard.clear();
-        state.effects.clear();
-        state.blows.clear();
-        state.scopes.clear();
-        state.bursts.clear();
-        state.copies.clear();
+        state.forget_fights();
     });
     // What the game drew over the page goes with it: the bars, the names, the numbers of blows.
     if let Some(document) = crate::web::document() {
@@ -195,16 +186,7 @@ pub fn jump(cell: (u16, u16)) {
         state.reach = None;
         state.held = None;
         state.target_at = [None; 2];
-        state.flying.clear();
-        state.arrows.clear();
-        state.effects_due.clear();
-        state.sounds_due.clear();
-        state.heard.clear();
-        state.effects.clear();
-        state.blows.clear();
-        state.scopes.clear();
-        state.bursts.clear();
-        state.copies.clear();
+        state.forget_fights();
     });
 }
 

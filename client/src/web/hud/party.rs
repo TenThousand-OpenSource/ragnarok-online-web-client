@@ -1,7 +1,8 @@
 //! The party's windows: the list of members with the bar of buttons under it (the Party side of the client's
-//! `UIMessengerGroupWnd`), the menu on a member, the window that sets the party up or makes one
-//! (`UIPartySettingWnd`), the one that asks whom to invite (`UIPartyInvitationToWnd`), what the party asks in a
-//! message box (`UIJoinPartyAcceptWnd` and the client's `Confirm`), and the members' marks on the minimap.
+//! `UIMessengerGroupWnd`), the menu on a member, what the party asks in a message box (`UIJoinPartyAcceptWnd`
+//! and the client's `Confirm`), and the members' marks on the minimap. What the window shares with its Friend
+//! side is `party/messenger.rs`; the windows beside it, which set a party up and invite into it, are
+//! `party/side.rs`.
 
 use super::*;
 use crate::net::party::{Member, map_name};
@@ -9,6 +10,11 @@ use crate::press::party::{Entry, Press};
 use crate::press::things::Menu;
 use crate::web::app::{PartyAsk, PartySide};
 use crate::web::parts::menued;
+
+mod messenger;
+mod side;
+
+pub(super) use messenger::{bar_back, bar_button};
 
 /// How the party window is laid out in its two forms (`UIMessengerGroupWnd::OnCreate`, `UM_RESIZE`): the
 /// large one is 273 by 326 less what is left over of a row, the small one 243 by 179 less the same; a row is
@@ -24,61 +30,7 @@ struct Layout {
 const LARGE: Layout = Layout { width: 273, height: 296, row: 34, rows: 7, icon: (5, 5) };
 const SMALL_FORM: Layout = Layout { width: 243, height: 166, row: 27, rows: 4, icon: (4, 1) };
 
-/// A button of the bar under the list: 26 by 20, its three pictures `name.bmp`, `name_a.bmp`, `name_b.bmp`.
-pub(super) fn bar_button(x: i32, y: i32, name: &str, press: impl Into<crate::press::Press>, tip: &str) -> String {
-    let file = |state: &str| format!("basic_interface/{name}{state}.bmp");
-    pictured(x, y, (26, 20), [&file(""), &file("_a"), &file("_b")], press, &format!(r#" data-tip="{}""#, escape(tip)))
-}
-
-/// One of the client's round buttons with its words 13 to the right (`UIRadioBtn::Paint`): on or off, and grey
-/// when it cannot be pressed; `press` is what pressing it does, if anything.
-fn radio(x: i32, y: i32, on: bool, enabled: bool, words: &str, press: Option<Press>) -> String {
-    radio_marked(x, y, on, enabled, words, &press.map(pressed).unwrap_or_default())
-}
-
-/// The same button with what marks it as pressable written already (`pressed`), or nothing: for the Friend
-/// side of the window, whose presses are its own (`hud/friends.rs`).
-pub(super) fn radio_marked(x: i32, y: i32, on: bool, enabled: bool, words: &str, mark: &str) -> String {
-    format!(
-        r#"<div class="a t" style="left:{x}px;top:{y}px;height:12px;padding-left:13px;white-space:nowrap;cursor:default;color:{};background:url('{}') 0 0 no-repeat" {mark}>{}</div>"#,
-        if enabled { BLACK } else { "#b5b5b5" },
-        picture(if on { "radiobtn_on.bmp" } else { "radiobtn_off.bmp" }),
-        escape(words)
-    )
-}
-
-/// The strip the bar's buttons stand on, `y` down a window that wide (`UIMessengerGroupWnd::Paint`: its two
-/// ends 7 wide and the middle between them).
-pub(super) fn bar_back(width: i32, y: i32) -> String {
-    format!(
-        r#"{}<div class="a" style="{};background:url('{}') 0 0 repeat-x"></div>{}"#,
-        art("basic_interface/mesbtn_left.bmp", 0, y, 7, 20),
-        at(7, y, width - 14, 20),
-        picture("basic_interface/mesbtn_mid.bmp"),
-        art("basic_interface/mesbtn_right.bmp", width - 7, y, 7, 20)
-    )
-}
-
 impl App {
-    /// What the window has under its title on both of its sides, the Party one and the Friend one
-    /// (`hud/friends.rs`): the button by the cross that makes it small, or large again (`ID_MINI`,
-    /// `ID_RESTORE_PARTY_LIST`), the cross, the white ground of the list, and the bar its tabs stand on.
-    pub(super) fn messenger_frame(&self, width: i32, height: i32) -> String {
-        [
-            if self.party.small {
-                pictured(width - 28, 3, (10, 10), ["renewalparty/btn_titlebar_maximum_out.bmp", "renewalparty/btn_titlebar_maximum_over.bmp", "renewalparty/btn_titlebar_maximum_press.bmp"], Press::Size, "")
-            } else {
-                press_button(width - 28, 3, 11, "basic_interface/sys_base_off.bmp", "basic_interface/sys_base_on.bmp", Press::Size)
-            },
-            press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window),
-            format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c0c0c0;box-sizing:border-box"></div>"#, at(0, 17, width, height - 38)),
-            art("basic_interface/btnbar_left.bmp", 0, height - 21, 21, 21),
-            art("basic_interface/btnbar_mid.bmp", 21, height - 21, width - 42, 21),
-            art("basic_interface/btnbar_right.bmp", width - 21, height - 21, 21, 21),
-        ]
-        .concat()
-    }
-
     fn party_layout(&self) -> &'static Layout {
         if self.party.small { &SMALL_FORM } else { &LARGE }
     }
@@ -110,7 +62,7 @@ impl App {
         window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-x:hidden">{rows}</div>"#, at(1, 17, width - 2, layout.rows * layout.row)));
         window.push_str(&self.party_bar(layout));
         // The tabs: the Friend one turns the window to the list of friends (`hud/friends.rs`).
-        window.push_str(&radio(4, height - 16, false, true, &Self::words(102, "Friend"), Some(Press::Friends)));
+        window.push_str(&radio(4, height - 16, false, true, &Self::words(102, "Friend"), Some(Press::Friends.into())));
         window.push_str(&radio(64, height - 16, true, true, &party, None));
         // How many are in the party, of the twelve it holds: written only when someone is.
         if !self.party.members.is_empty() {
@@ -132,7 +84,7 @@ impl App {
         let dead = self.party.dead.contains(&member.account) || (own && self.hero.dead);
         let mut inside = String::new();
         if self.party.picked == Some(row) {
-            inside.push_str(&format!(r#"<div class="a" style="{};background:#c6d6f7"></div>"#, at(0, 2, layout.width, layout.row)));
+            inside.push_str(&fill(0, 2, layout.width, layout.row, "#c6d6f7"));
         }
         // How the client draws the picture of a member who is offline was not read (`UIJobIconButton`): it is
         // faded here.
@@ -150,11 +102,7 @@ impl App {
             (false, true) => ("#373a49", "#6f3007"),
             (false, false) => ("#373a49", "#493a37"),
         };
-        let name = match data::map_sign(map_name(&member.map)).filter(|_| !member.offline && !member.map.is_empty()) {
-            Some(sign) => format!("{}({})", member.name, sign.name),
-            None if !member.offline && !member.map.is_empty() => format!("{}({})", member.name, map_name(&member.map)),
-            None => member.name.clone(),
-        };
+        let name = if !member.offline && !member.map.is_empty() { format!("{}({})", member.name, data::map_name(map_name(&member.map))) } else { member.name.clone() };
         inside.push_str(&format!(
             r#"<div class="a t" style="left:{}px;top:{}px;white-space:nowrap;{}"><span style="color:{level_colour}">Lv.{}</span><span style="display:inline-block;vertical-align:top;margin-left:5px;max-width:{}px;overflow:hidden;color:{name_colour}">{}</span></div>"#,
             x + 28,
@@ -222,66 +170,6 @@ impl App {
             rows.push_str(&menu_row(&Self::words(3102, "Remove small party window"), Press::Do(Entry::RemoveSmall)));
         }
         rows
-    }
-
-    /// How large the window beside the party window is now: the setup 130 by 245, the making of a party 130
-    /// by 220 with a name to type or 130 by 180 without, the invitation 150 by 100 (`UIWindowMgr::
-    /// EnsureWindow`).
-    pub(in crate::web) fn party_side_size(&self) -> (i32, i32) {
-        match self.party.side {
-            Some(PartySide::Setup) => (130, 245),
-            Some(PartySide::Create) => (130, 220),
-            Some(PartySide::Invite) => (150, 100),
-            Some(PartySide::Named) | None => (130, 180),
-        }
-    }
-
-    /// The window beside the party window: the setup, or the invitation.
-    pub(in crate::web) fn party_side_window(&self) -> String {
-        let Some(side) = self.party.side else { return String::new() };
-        let (width, height) = self.party_side_size();
-        if side == PartySide::Invite {
-            // `UIPartyInvitationToWnd`: the words 10,22, the name typed 20,42 on grey 230, OK and Cancel.
-            return format!(
-                r#"{}{}{}<input id="party-invitee" class="a in" style="{};background:#e6e6e6;box-sizing:border-box" type="text" maxlength="23" autocomplete="off">{}{}"#,
-                title_bar(width, &Self::words(2056, "Party Invitation")),
-                panel(width, height),
-                text(10, 22, BLACK, &Self::words(2058, "Player Name:")),
-                at(20, 42, 120, 20),
-                picture_press(width - 92, height - 24, "btn_ok", Press::InviteOk),
-                picture_press(width - 46, height - 24, "btn_cancel", Press::InviteCancel)
-            );
-        }
-        // `UIPartySettingWnd`: what its rows stand under is its `m_mode`, 70 for a party there is (with how
-        // experience is shared on top), 50 for one being made (with its name on top), 5 for one whose name is
-        // given already.
-        let mode = match side {
-            PartySide::Setup => 70,
-            PartySide::Create => 50,
-            _ => 5,
-        };
-        let draft = self.party.draft;
-        let (leads, new) = (self.leads_party(), self.party.members.is_empty());
-        let mut window = title_bar(width, &if side == PartySide::Create { Self::words(2054, "Create Party") } else { Self::words(291, "Party Setup") });
-        window.push_str(&panel(width, height));
-        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::SetupCancel));
-        if side == PartySide::Setup {
-            window.push_str(&text(10, 22, BLACK, &Self::words(292, "How to share EXP")));
-            window.push_str(&radio(20, 42, draft.experience == 0, leads, &Self::words(287, "Each Take "), Some(Press::Experience(0))));
-            window.push_str(&radio(20, 62, draft.experience == 1, leads, &Self::words(288, "Even Share"), Some(Press::Experience(1))));
-        } else if side == PartySide::Create {
-            window.push_str(&text(10, 22, BLACK, &Self::words(2057, "Party Name:")));
-            window.push_str(&format!(r#"<input id="party-name" class="a in" style="{};background:#e6e6e6;box-sizing:border-box" type="text" maxlength="23" autocomplete="off" value="{}">"#, at(20, 38, 100, 20), escape(&self.party.making)));
-        }
-        window.push_str(&text(10, mode + 17, BLACK, &Self::words(293, "How to share Items")));
-        window.push_str(&radio(20, mode + 37, !draft.pickup, new || leads, &Self::words(289, "Each Take"), Some(Press::Pickup(0))));
-        window.push_str(&radio(20, mode + 57, draft.pickup, new || leads, &Self::words(290, "Party Share"), Some(Press::Pickup(1))));
-        // The one way items are handed out: the client has this single button, always on.
-        window.push_str(&text(10, mode + 82, BLACK, &Self::words(738, "Item sharing type")));
-        window.push_str(&radio(20, mode + 102, true, new || leads, &Self::words(739, "Individual"), None));
-        window.push_str(&picture_press(width - 92, height - 24, "btn_ok", Press::SetupOk));
-        window.push_str(&picture_press(width - 46, height - 24, "btn_cancel", Press::SetupCancel));
-        window
     }
 
     /// What the party asks, in the client's message box (280 by 120, the words 10,22, OK 189,96 and Cancel

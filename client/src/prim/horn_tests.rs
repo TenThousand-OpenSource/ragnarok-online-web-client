@@ -2,9 +2,7 @@
 
 use super::*;
 
-fn close(a: f32, b: f32) -> bool {
-    (a - b).abs() < 0.001
-}
+use crate::prim::testing::close;
 
 #[test]
 fn a_spike_is_pushed_up_and_stops_at_its_tick() {

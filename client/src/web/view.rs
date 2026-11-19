@@ -16,6 +16,7 @@ use crate::net::packets::Character;
 
 mod accounts;
 mod characters;
+mod creation;
 mod game;
 
 pub(super) use game::*;
@@ -37,7 +38,6 @@ pub const HAIR_COLOURS: u16 = 9;
 const SPEAKER_ON: &str = r#"<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8"/></svg>"#;
 const SPEAKER_OFF: &str = r#"<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M11.2 6l3.6 4M14.8 6l-3.6 4"/></svg>"#;
 
-/// The URL of one of the interface's pictures, as a PNG.
 /// One of the eight pictures of the frame around a chosen character.
 pub(super) fn chosen_frame(frame: u8) -> String {
     picture(&format!("select_character_ver3/img_slot_select{frame}.bmp"))
@@ -120,14 +120,12 @@ impl App {
             if self.sound { SPEAKER_ON } else { SPEAKER_OFF }
         );
         let hint = if self.music_held { format!(r#"<span class="hint">{}</span>"#, self.text(Key::SoundHint)) } else { String::new() };
-        // Leaving the game: the original has this in its Esc menu, which is not made yet.
-        let leave = if matches!(self.screen, Screen::Game) { format!(r#"<button type="button" {}>{}</button>"#, pressed(crate::press::account::Press::Logout), self.text(Key::LogOut)) } else { String::new() };
         // In the game the corner is the minimap's, as in the client: leaving is in the window of game options
         // (Escape), the sound and the language in Game Settings.
         if matches!(self.screen, Screen::Game) {
             return format!("{window}{}", self.overlay(view));
         }
-        format!(r#"{title}<div class="lang">{hint}{leave}{speaker}{languages}</div>{window}{}"#, self.overlay(view))
+        format!(r#"{title}<div class="lang">{hint}{speaker}{languages}</div>{window}{}"#, self.overlay(view))
     }
 
     /// The box over everything else: a message to confirm, or the wait for a server.
@@ -174,5 +172,4 @@ impl App {
         };
         format!(r#"<div class="veil"></div>{}"#, window(view, (280, 120), place, "top", "win_msgbox.bmp", &inner))
     }
-
 }

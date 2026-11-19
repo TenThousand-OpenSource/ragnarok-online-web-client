@@ -17,21 +17,32 @@ impl App {
             return false;
         }
         if self.ask.is_some() {
-            return match key {
-                "Enter" => {
-                    self.answer(true);
-                    true
-                }
-                "Escape" => {
-                    self.answer(false);
-                    true
-                }
-                _ => false,
-            };
+            return self.ask_key(key);
         }
         if matches!(self.screen, Screen::Game) {
             return self.game_key(key, code, with);
         }
+        self.way_in_key(key)
+    }
+
+    /// A key while a question waits over the window: Enter is its OK, Escape its Cancel.
+    fn ask_key(&mut self, key: &str) -> bool {
+        match key {
+            "Enter" => {
+                self.answer(true);
+                true
+            }
+            "Escape" => {
+                self.answer(false);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// A key on the windows before the game: the arrows pick a server or a character, Enter enters, Escape
+    /// goes back.
+    fn way_in_key(&mut self, key: &str) -> bool {
         match (&self.screen, key) {
             (Screen::CharSelect, "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown") => {
                 let step: i16 = match key {
@@ -118,7 +129,7 @@ impl App {
             }
             // A slot of the hotkey bar: the first table's places are the bar's slots, row after row.
             (Some((hotkeys::table::BAR, slot)), _) => {
-                self.use_it(Use::Slot(slot));
+                self.used(Use::Slot(slot));
                 true
             }
             (_, "Escape") if self.bag.throwing.is_some() => {
@@ -179,15 +190,12 @@ impl App {
     /// whether the key was used.
     fn interface_key(&mut self, place: usize) -> bool {
         match place {
-            hotkeys::interface::BASIC_INFO => self.hero.basic_small = !self.hero.basic_small,
-            hotkeys::interface::STATUS => self.hero.status_open = !self.hero.status_open,
-            hotkeys::interface::INVENTORY => self.bag.open = !self.bag.open,
-            hotkeys::interface::EQUIPMENT => self.bag.equipment_open = !self.bag.equipment_open,
-            hotkeys::interface::SKILLS => self.skills.open = !self.skills.open,
-            hotkeys::interface::GUILD => {
-                self.pressed(crate::press::guild::Press::Window);
-                return true;
-            }
+            hotkeys::interface::BASIC_INFO => return self.pressed_key(crate::press::status::Press::BasicSize),
+            hotkeys::interface::STATUS => return self.pressed_key(crate::press::status::Press::Window),
+            hotkeys::interface::INVENTORY => return self.pressed_key(crate::press::inventory::Press::Window),
+            hotkeys::interface::EQUIPMENT => return self.pressed_key(crate::press::inventory::Press::Equipment),
+            hotkeys::interface::SKILLS => return self.pressed_key(crate::press::skills::Press::Window),
+            hotkeys::interface::GUILD => return self.pressed_key(crate::press::guild::Press::Window),
             // The pet window opens only for one who has a pet out (the client's `WID_PETINFOWND`).
             hotkeys::interface::PET => self.pets.open = !self.pets.open && self.pets.pet.is_some(),
             // The windows of the homunculus and of the mercenary open only while that one is out, and the
@@ -209,15 +217,7 @@ impl App {
             }
             // The bar runs through its sizes, as the client's does: a row more each time, then away, then
             // one row again.
-            hotkeys::interface::HOTKEY_BAR => {
-                if self.skills.hotkeys_hidden {
-                    self.skills.hotkeys_hidden = false;
-                } else if self.skills.hotkey_rows >= 3 {
-                    (self.skills.hotkey_rows, self.skills.hotkeys_hidden) = (0, true);
-                } else {
-                    self.skills.hotkey_rows += 1;
-                }
-            }
+            hotkeys::interface::HOTKEY_BAR => self.hotkey_bar_stepped(),
             hotkeys::interface::CHAT_SIZE => self.chat_resize(),
             hotkeys::interface::QUESTS => return self.quest_key(),
             hotkeys::interface::CHAT_ROOM => {

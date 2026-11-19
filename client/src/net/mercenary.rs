@@ -4,8 +4,14 @@
 //! `clif_parse_mercenary_action`) at PACKETVER 20260219. Its skills come laid out as the character's own
 //! (`net::items::skills`), and it is moved and made to strike with the homunculus's requests
 //! (`net::homunculus::{move_to, attack, to_owner}`).
+//!
+//! The title of its window, its kind to its script and the time its contract ends (`title`, `kind`, `expiry`)
+//! are rules and no packets: they are in `crate::mercenary`, and named from here as before.
 
-use super::bytes::{text, u16_at, u32_at};
+use super::bytes::{i16_at, i32_at, text, u16_at, u32_at, Writer};
+use super::packets::parameter as character;
+
+pub use crate::mercenary::{expiry, kind, title};
 
 /// ZC_MER_INIT: everything about the mercenary at once.
 pub const ZC_MER_INIT: u16 = 0x029b;
@@ -22,14 +28,16 @@ pub mod order {
 }
 
 /// What ZC_MER_PAR_CHANGE names (the server's `SP_*`), those the client reads (`CGameMode::Zc_Mer_Par_Change`).
+/// The first seven are the character's own (`net::packets::parameter`); the last three it does not have.
 pub mod parameter {
-    pub const HP: u16 = 5;
-    pub const MAX_HP: u16 = 6;
-    pub const SP: u16 = 7;
-    pub const MAX_SP: u16 = 8;
-    pub const ATTACK: u16 = 41;
-    pub const HIT: u16 = 49;
-    pub const ATTACK_DELAY: u16 = 53;
+    use super::character;
+    pub const HP: u16 = character::HP;
+    pub const MAX_HP: u16 = character::MAX_HP;
+    pub const SP: u16 = character::SP;
+    pub const MAX_SP: u16 = character::MAX_SP;
+    pub const ATTACK: u16 = character::ATK;
+    pub const HIT: u16 = character::HIT;
+    pub const ATTACK_DELAY: u16 = character::ATTACK_DELAY;
     pub const FLEE: u16 = 165;
     pub const KILLS: u16 = 189;
     pub const FAITH: u16 = 190;
@@ -69,28 +77,26 @@ pub struct Mercenary {
 /// `i16 faith`, `i32 calls`, `i32 kills`, `u16 range`.
 pub fn init(packet: &[u8]) -> Option<Mercenary> {
     let packet = packet.get(..80)?;
-    let long = |at: usize| u32_at(packet, at) as i32;
     Some(Mercenary {
         unit: u32_at(packet, 2),
         stats: std::array::from_fn(|stat| i32::from(u16_at(packet, 6 + stat * 2))),
         name: text(&packet[22..46]),
         level: u16_at(packet, 46),
-        hp: long(48),
-        max_hp: long(52),
-        sp: long(56),
-        max_sp: long(60),
+        hp: i32_at(packet, 48),
+        max_hp: i32_at(packet, 52),
+        sp: i32_at(packet, 56),
+        max_sp: i32_at(packet, 60),
         expires: u32_at(packet, 64),
-        faith: i32::from(u16_at(packet, 68) as i16),
-        calls: long(70),
-        kills: long(74),
+        faith: i32::from(i16_at(packet, 68)),
+        calls: i32_at(packet, 70),
+        kills: i32_at(packet, 74),
         range: u16_at(packet, 78),
     })
 }
 
 /// ZC_MER_PAR_CHANGE (0x02a2, 8 bytes): `u16 parameter, i32 value`.
 pub fn parameter_changed(packet: &[u8]) -> Option<(u16, i32)> {
-    let packet = packet.get(..8)?;
-    Some((u16_at(packet, 2), u32_at(packet, 4) as i32))
+    super::packets::number_and_value(packet)
 }
 
 impl Mercenary {
@@ -115,32 +121,7 @@ impl Mercenary {
 
 /// CZ_MER_COMMAND (0x029f, 3 bytes): `u8 order`.
 pub fn command(order: u8) -> Vec<u8> {
-    vec![0x9f, 0x02, order]
-}
-
-/// The title of its window, as the line of the client's message table and the English of it, by the job it is
-/// (`UIMerInfoWnd::Paint`: ten archers from 6017, ten spearmen from 6027, ten swordsmen from 6037, and a
-/// monster otherwise).
-pub fn title(job: u16) -> (usize, &'static str) {
-    match job {
-        6017..=6026 => (1181, "Mercenary: Archer"),
-        6037..=6046 => (1182, "Mercenary: Swordman"),
-        6027..=6036 => (1183, "Mercenary: Spearman"),
-        _ => (1367, "Mercenary Info - Monster Type"),
-    }
-}
-
-/// Which mercenary a job is to its script (`AiMercenaryGetV`, `V_MERTYPE`): the hirelings count from 1 (the
-/// client takes the job modulo 6017 and adds one, for the jobs its `IsHirelingJob` holds for: 6018 to 6052),
-/// anything else is 1.
-pub fn kind(job: u16) -> i32 {
-    if (6018..=6052).contains(&job) { i32::from(job % 6017) + 1 } else { 1 }
-}
-
-/// The time its contract ends, written as the client writes it (its line 1260, `%m/%d %H:%M`, through
-/// `strftime`): `month`, `day`, `hour` and `minute` are the local ones of that moment, which the page knows.
-pub fn expiry(format: &str, (month, day, hour, minute): (u32, u32, u32, u32)) -> String {
-    format.replace("%m", &format!("{month:02}")).replace("%d", &format!("{day:02}")).replace("%H", &format!("{hour:02}")).replace("%M", &format!("{minute:02}"))
+    Writer::new(0x029f).u8(order).done()
 }
 
 #[cfg(test)]
@@ -186,9 +167,6 @@ mod tests {
 
     #[test]
     fn names_it_by_its_job() {
-        assert_eq!((title(6017).0, title(6026).0, title(6027).0, title(6037).0, title(6046).0, title(1002).0), (1181, 1181, 1183, 1182, 1182, 1367));
-        assert_eq!((kind(6017), kind(6018), kind(6046), kind(1002)), (1, 2, 30, 1));
         assert!(is_skill(8201) && is_skill(8400) && !is_skill(8001) && !is_skill(8242));
-        assert_eq!(expiry("%m/%d %H:%M", (3, 9, 7, 5)), "03/09 07:05");
     }
 }

@@ -66,7 +66,8 @@ thread_local! {
     static SOUNDS: RefCell<Sounds> = RefCell::new(Sounds::default());
 }
 
-fn now() -> f64 {
+/// The time everything under `web/` that is drawn or heard goes by: the page's milliseconds.
+pub(super) fn now() -> f64 {
     web_sys::window().and_then(|window| window.performance()).map_or(0.0, |performance| performance.now())
 }
 

@@ -33,14 +33,12 @@ impl App {
     pub(super) fn skill_list(&self, title: &str, skills: &[Skill], picked: Option<usize>, points: Option<u16>, does: Listed) -> String {
         let (width, height) = (280, list_height(skills.len()));
         let mut window = title_bar(width, title);
-        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", does.close.clone()));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff"></div>"#, at(0, 17, width, height - 38)));
+        window.push_str(&cross(width, does.close.clone()));
+        window.push_str(&fill(0, 17, width, height - 38, WHITE));
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#, at(0, 17, 20, height - 38), picture("basic_interface/itemwin_left.bmp")));
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#, at(width - 20, 17, 20, height - 38), picture("basic_interface/itemwin_right.bmp")));
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') repeat-y"></div>"#, at(40, 17, 32, height - 38), picture("basic_interface/itemwin_mid.bmp")));
-        window.push_str(&art("basic_interface/btnbar_left.bmp", 0, height - 21, 21, 21));
-        window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, height - 21, width - 42, 21));
-        window.push_str(&art("basic_interface/btnbar_right.bmp", width - 21, height - 21, 21, 21));
+        window.push_str(&button_bar(width, height));
         for (row, skill) in skills.iter().take(7).enumerate() {
             window.push_str(&self.skill_row(row, skill, picked == Some(row), points.unwrap_or(0) > 0, &does));
         }
@@ -56,8 +54,7 @@ impl App {
     /// (`CSkillInfo::UsesLevel`); those tables are not read here, and every skill that is used has the arrows.
     fn skill_row(&self, row: usize, skill: &Skill, picked: bool, points: bool, does: &Listed) -> String {
         let top = row as i32 * 32;
-        let known = data::skill(skill.id);
-        let name = known.as_ref().map_or_else(|| format!("{} {}", tr("Skill"), skill.id), |(_, name, _)| name.clone());
+        let name = data::skill_name(skill.id, || format!("{} {}", tr("Skill"), skill.id));
         let usable = skill.level > 0 && !skill.passive();
         let used = self.skills.use_level.get(&skill.id).copied().filter(|used| (1..=skill.level).contains(used)).unwrap_or(skill.level);
         let mut line = String::new();
@@ -67,14 +64,14 @@ impl App {
             line.push_str(&format!(r#"<div class="a" style="{};background:#c6d6f7;pointer-events:none"></div>"#, at(104, top + 19, 164, 28)));
         }
         let handles = if usable { format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(skill.id), level: used })), super::used(Use::Skill(skill.id))) } else { String::new() };
-        let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
+        let icon = Self::skill_icon(skill.id);
         line.push_str(&format!(r#"<div class="a" style="{}" {handles} {} data-skill="{}" title="{}">{icon}</div>"#, at(44, top + 21, 24, 24), pressed((does.pick)(row)), skill.id, escape(&name)));
         // A skill not learned yet is named in grey (120) and says nothing more.
         line.push_str(&format!(r#"<div class="a t" style="{};color:{};white-space:nowrap;overflow:hidden;pointer-events:none">{}</div>"#, at(112, top + 22, 148, 14), if skill.level == 0 { "#787878" } else { BLACK }, escape(&name)));
         if skill.level > 0 {
             if usable {
                 line.push_str(&text(124, top + 34, BLACK, "Lv :"));
-                line.push_str(&format!(r#"<div class="a t" style="left:149px;top:{}px;color:{};white-space:pre;pointer-events:none">{used:2}</div>"#, top + 34, if used == skill.level { BLACK } else { "#f00" }));
+                line.push_str(&format!(r#"<div class="a t" style="left:149px;top:{}px;color:{};white-space:pre;pointer-events:none">{used:2}</div>"#, top + 34, if used == skill.level { BLACK } else { RED }));
                 line.push_str(&format!(r#"<div class="a t" style="left:168px;top:{}px;white-space:pre;pointer-events:none">/ {:2}</div>"#, top + 34, skill.level));
                 for (arrow, step, x) in [("arw_left", Step::Less, 112), ("arw_right", Step::More, 192)] {
                     let file = format!("basic_interface/{arrow}.bmp");
@@ -87,7 +84,7 @@ impl App {
             line.push_str(&text(212, top + 34, BLACK, &costs));
         }
         if let (Some(raise), true, true) = (does.raise, points, skill.raisable) {
-            line.push_str(&pictured(78, top + 21, (24, 24), ["basic_interface/skill_up_a.bmp", "basic_interface/skill_up_b.bmp", "basic_interface/skill_up_c.bmp"], raise(skill.id), ""));
+            line.push_str(&pictured_by(Convention::ABC, 78, top + 21, (24, 24), "basic_interface/skill_up", raise(skill.id), ""));
         }
         line
     }

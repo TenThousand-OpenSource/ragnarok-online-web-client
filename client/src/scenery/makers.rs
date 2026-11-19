@@ -44,7 +44,7 @@ impl EffectMaker {
 /// (`CSoundMaker::OnProcess`); none when it is not played at all. The sound comes from the edge of what sounds
 /// (so wide and so deep) on the player's side. It is heard within its `range`, in full within a sixth of it
 /// and by that sixth over the distance farther off (`CSoundMgr::PlayWave` with the range and its sixth as the
-/// farthest and the nearest; that rule itself is `crate::earshot`'s, written here for other distances).
+/// farthest and the nearest: `crate::earshot::loudness_within`).
 pub fn heard(east: f32, north: f32, (wide, deep): (i32, i32), range: f32, volume: f32) -> Option<f64> {
     if wide == 0 {
         return None;
@@ -67,14 +67,7 @@ pub fn heard(east: f32, north: f32, (wide, deep): (i32, i32), range: f32, volume
     if away - range > 75.0 {
         return None;
     }
-    let (farthest, nearest) = (range.trunc(), (range / 6.0).trunc());
-    if away >= farthest {
-        None
-    } else if away <= nearest {
-        Some(f64::from(volume))
-    } else {
-        Some(f64::from(volume * nearest / away))
-    }
+    crate::earshot::loudness_within(away, range.trunc(), (range / 6.0).trunc(), volume)
 }
 
 #[cfg(test)]
@@ -109,5 +102,60 @@ mod tests {
         assert!((far - 0.5).abs() < 1e-6, "{far}");
         assert_eq!(heard(100.5, 0.0, (1, 1), 100.0, 1.0), None);
         assert_eq!(heard(1.0, 0.0, (0, 0), 100.0, 1.0), None);
+    }
+
+    /// `heard` as it was written before its last rule became `earshot::loudness_within`, kept whole to hold
+    /// the two to the same answers.
+    fn heard_as_it_was(east: f32, north: f32, (wide, deep): (i32, i32), range: f32, volume: f32) -> Option<f64> {
+        if wide == 0 {
+            return None;
+        }
+        let radius = ((wide * wide + deep * deep) as f32).sqrt();
+        if f32::hypot(east, north) - (radius + range) > 130.0 {
+            return None;
+        }
+        let (sign_east, sign_north) = (if east < 0.0 { -1.0 } else { 1.0 }, if north < 0.0 { -1.0 } else { 1.0 });
+        let slope = north / east.max(0.001);
+        // (The client divides the two whole numbers before it compares.)
+        let (out_east, out_north) = if ((deep / wide) as f32) < slope.abs() {
+            let out_north = deep as f32 * sign_north * 0.5;
+            (out_north / slope.max(0.001), out_north)
+        } else {
+            let out_east = wide as f32 * sign_east * 0.5;
+            (out_east, slope * out_east)
+        };
+        let away = f32::hypot(east - out_east, north - out_north);
+        if away - range > 75.0 {
+            return None;
+        }
+        let (farthest, nearest) = (range.trunc(), (range / 6.0).trunc());
+        if away >= farthest {
+            None
+        } else if away <= nearest {
+            Some(f64::from(volume))
+        } else {
+            Some(f64::from(volume * nearest / away))
+        }
+    }
+
+    #[test]
+    fn a_sound_is_as_loud_as_before_the_rule_was_shared() {
+        let steps = [-400.0, -131.5, -75.0, -32.5, -10.5, -3.0, -0.5, 0.0, 0.001, 0.5, 2.0, 10.5, 16.0, 17.0, 32.5, 60.0, 99.5, 100.5, 180.0, 400.0];
+        let (sizes, ranges, volumes) = ([(0, 0), (1, 1), (3, 1), (1, 4), (10, 20), (40, 7)], [0.0, 5.0, 6.0, 59.9, 100.0, 250.5], [0.0, 0.3, 1.0]);
+        let mut heard_at_all = 0;
+        for east in steps {
+            for north in steps {
+                for size in sizes {
+                    for range in ranges {
+                        for volume in volumes {
+                            let (now, before) = (heard(east, north, size, range, volume), heard_as_it_was(east, north, size, range, volume));
+                            assert_eq!(now.map(f64::to_bits), before.map(f64::to_bits), "{east} {north} {size:?} {range} {volume}");
+                            heard_at_all += usize::from(now.is_some());
+                        }
+                    }
+                }
+            }
+        }
+        assert!(heard_at_all > 1000, "{heard_at_all}");
     }
 }

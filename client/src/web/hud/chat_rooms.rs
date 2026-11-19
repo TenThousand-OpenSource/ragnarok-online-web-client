@@ -3,7 +3,6 @@
 //! the box that asks a password (`UIPasswordWnd`).
 
 use super::*;
-use super::party::radio_marked;
 use crate::net::chat_rooms::{LIMITS, OWNER, Room, kind};
 use crate::press::chat_rooms::Press;
 use crate::press::things::Menu;
@@ -51,7 +50,7 @@ impl App {
             String::new()
         };
         format!(
-            r#"{}{}<div class="a t titled" style="left:8px;top:3px">{}</div>{}
+            r#"{}{}{}{}
                <form {} class="a" style="{}">
                  <input id="room-title" class="a in" maxlength="36" autocomplete="off" autofocus value="{}" style="{};{field}">
                  <div class="a t" style="{};background:#f2f2f2;overflow:hidden;white-space:nowrap">{}</div>{}
@@ -62,15 +61,15 @@ impl App {
                </form>"#,
             art("basic_interface/titlebar_fix.bmp", 0, 0, 280, 17),
             art("basic_interface/chatwin0_bg.bmp", 0, 17, 280, 103),
-            escape(&title),
-            press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::MakeClose),
+            titled(8, 3, &title),
+            cross(280, Press::MakeClose),
             sent(Form::RoomMake),
             at(0, 0, 280, 120),
             escape(&making.title),
             at(45, 24, 228, 16),
             at(48, 49, 68, 14),
             escape(&people(making.limit)),
-            pictured(119, 46, (16, 18), ["basic_interface/txtbox_btn_a.bmp", "basic_interface/txtbox_btn_b.bmp", "basic_interface/txtbox_btn_c.bmp"], Press::Limits, ""),
+            pictured_by(Convention::ABC, 119, 46, (16, 18), "basic_interface/txtbox_btn", Press::Limits, ""),
             at(187, 49, 68, 14),
             escape(&Self::words(130, "Chat Room")),
             format!(r#"<img class="a" src="{}" alt="" draggable="false" style="left:256px;top:46px" onerror="this.remove()">"#, picture("basic_interface/txtbox_btn_a.bmp")),
@@ -95,7 +94,7 @@ impl App {
         let (width, height) = (280, 120);
         let list = width * 56 / 280;
         let heading = sitting.room.heading(&if sitting.room.kind == kind::PRIVATE { Self::words(89, "Private: ") } else { Self::words(90, "Public: ") });
-        let lines: String = sitting.lines.iter().map(|(words, colour)| format!(r#"<div style="color:{colour}">{}</div>"#, escape(words))).collect();
+        let lines: String = sitting.lines.iter().map(|(words, colour)| log_line(colour, &escape(words))).collect();
         let members: String = sitting
             .members
             .iter()
@@ -116,7 +115,7 @@ impl App {
                <div class="a t" style="{};background:#fff;padding:0 2px;box-sizing:border-box;display:flex;flex-direction:column-reverse;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;white-space:normal;line-height:14px;user-select:text"><div>{lines}</div></div>
                <div class="a" style="{};background:#c8c8c8"></div>
                <div class="a scroll" style="{};background:#fff;padding-top:3px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin">{members}</div>
-               <form {} class="a" style="{}"><input id="room-input" class="a in" maxlength="70" autocomplete="off" style="{};background:#f2f2f2;border:0;padding:0 2px;box-sizing:border-box"><button type="submit" hidden></button></form>"#,
+               {}"#,
             art("basic_interface/titlebar_left.bmp", 0, 0, 12, 17),
             art("basic_interface/titlebar_mid.bmp", 12, 0, width - 24, 17),
             art("basic_interface/titlebar_right.bmp", width - 12, 0, 12, 17),
@@ -127,9 +126,7 @@ impl App {
             at(1, 17, width - list - 3, height - 38),
             at(width - list - 2, 17, 1, height - 38),
             at(width - list - 1, 17, list, height - 38),
-            sent(Form::Room),
-            at(0, height - 21, width, 21),
-            at(3, 3, width - 30, 16),
+            typed_line(&sent(Form::Room), &at(0, height - 21, width, 21), "room-input", &at(3, 3, width - 30, 16), "background:#f2f2f2;border:0;padding:0 2px;box-sizing:border-box"),
         )
     }
 

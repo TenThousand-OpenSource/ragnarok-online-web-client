@@ -16,10 +16,7 @@ pub const KINDS: u8 = 5;
 
 /// The lines of `statuses.txt` of one sort, each as its fields after the first.
 fn lines(sort: &'static str) -> impl Iterator<Item = Vec<&'static str>> {
-    include_str!("statuses.txt").lines().filter_map(move |line| {
-        let mut fields = line.split('\t');
-        (fields.next() == Some(sort)).then(|| fields.collect())
-    })
+    crate::tables::sorted(include_str!("statuses.txt"), sort)
 }
 
 /// The picture the client itself has for a state listed under a kind (`CSession::GetEFSTImgFileName`, where
@@ -31,10 +28,8 @@ pub fn compiled_icon(state: u32, kind: u8, taekwon: bool) -> Option<&'static str
 }
 
 /// Whether a job is of the Taekwon line, by the job the character is drawn as (the client's
-/// `IsTaekwonDisplayJob`).
-pub fn taekwon(job: u16) -> bool {
-    matches!(job, 4046..=4049 | 4225 | 4226 | 4238 | 4227 | 4239..=4244 | 4302 | 4303 | 4316)
-}
+/// `IsTaekwonDisplayJob`): the rule is with the other things known of a job by its number.
+pub use crate::jobs::taekwon;
 
 /// The state shown for a body state (stone, frozen, stunned, asleep…), as the server's state packet names it
 /// (`BuildStatusLevelEffects`).

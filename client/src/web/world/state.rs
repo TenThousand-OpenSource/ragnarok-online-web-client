@@ -166,3 +166,21 @@ pub(super) struct State {
     /// What an NPC's script shows in the world: the bars that fill over someone (`scripted.rs`).
     pub(super) scripted: scripted::Scripted,
 }
+
+impl State {
+    /// Forgets what was under way in the fights and effects of the place left: the numbers flying, the arrows,
+    /// the effects and sounds due and playing, the blows on their way, the circles of skills aimed, the copies
+    /// left standing (`session.rs`: leaving the world, and a jump to another place).
+    pub(super) fn forget_fights(&mut self) {
+        self.flying.clear();
+        self.arrows.clear();
+        self.effects_due.clear();
+        self.sounds_due.clear();
+        self.heard.clear();
+        self.effects.clear();
+        self.blows.clear();
+        self.scopes.clear();
+        self.bursts.clear();
+        self.copies.clear();
+    }
+}

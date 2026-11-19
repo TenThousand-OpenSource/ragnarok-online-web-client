@@ -15,7 +15,7 @@ const EF_ELECTRIC: u32 = 432;
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn fight_packet(&mut self, id: u16, packet: &[u8]) -> bool {
-        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        let own = self.own_account();
         match id {
             // The one who did the most to bring a boss down stands in the client's light (`AM_MVP`: `EF_MVP`).
             fight::ZC_MVP => {

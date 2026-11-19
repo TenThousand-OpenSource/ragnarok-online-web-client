@@ -102,8 +102,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// A part as `TexturedForkBolt` launches one towards a place to the north (90 degrees), 5 over the feet.
     fn bolt(look: i8) -> Part {

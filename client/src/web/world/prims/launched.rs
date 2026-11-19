@@ -24,6 +24,7 @@ pub(super) const PARTICLE4: &str = "이팩트/particle4";
 pub(super) const FIREBALL: &str = "이팩트/fireball";
 pub(super) const SPEAR: &str = "이팩트/창";
 pub(super) const SIGHT: &str = "이팩트/sight";
+pub(super) const SAKURA: &str = "이팩트/sakura01";
 pub(super) const SHADOW: &str = "shadow";
 
 /// A sprite turned by a longitude and then tipped by a latitude, put so far along its own forward from a place

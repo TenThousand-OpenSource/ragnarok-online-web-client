@@ -112,6 +112,15 @@ fn russian_line(line: &str) -> String {
     line
 }
 
+/// The text in a field of an item, read by `read` (`korean` for the client's own table, `latin` for the
+/// translated one); none when the field holds no text: a number there is not taken for one.
+fn words(item: &Table, field: &str, read: fn(&[u8]) -> String) -> Option<String> {
+    match item.get::<Value>(field) {
+        Ok(Value::String(text)) => Some(read(&text.as_bytes())),
+        _ => None,
+    }
+}
+
 /// What the client's own (Korean) table calls each item and says of it, kept apart from what is shown: the name
 /// and the description's lines, by item ID.
 type Korean = std::collections::HashMap<u32, (String, Vec<String>)>;
@@ -175,17 +184,13 @@ impl Items {
         let mut unidentified = Unidentified::new();
         if let Ok(table) = lua.globals().get::<Table>("tbl") {
             for (id, item) in table.pairs::<i64, Table>().flatten() {
-                let field = |name: &str| match item.get::<Value>(name) {
-                    Ok(Value::String(text)) => korean(&text.as_bytes()),
-                    _ => String::new(),
-                };
+                let field = |name: &str| words(&item, name, korean).unwrap_or_default();
                 if let Ok(id) = u32::try_from(id) {
                     items.insert(id, (field("identifiedDisplayName"), field("identifiedResourceName")));
-                    let lines: Vec<String> = item.get::<Table>("unidentifiedDescriptionName").map(|lines| lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect()).unwrap_or_default();
-                    unidentified.insert(id, (field("unidentifiedDisplayName"), field("unidentifiedResourceName"), lines));
-                    if let Ok(lines) = item.get::<Table>("identifiedDescriptionName") {
-                        let description: Vec<String> = lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect();
-                        about.insert(id, About { description, facts: Vec::new(), slots: 0 });
+                    let unknown: Vec<String> = item.get::<Table>("unidentifiedDescriptionName").map(|unknown| lines(&unknown)).unwrap_or_default();
+                    unidentified.insert(id, (field("unidentifiedDisplayName"), field("unidentifiedResourceName"), unknown));
+                    if let Ok(description) = item.get::<Table>("identifiedDescriptionName") {
+                        about.insert(id, About { description: lines(&description), facts: Vec::new(), slots: 0 });
                     }
                     if let Ok(slots @ 1..) = item.get::<u8>("slotCount") {
                         about.entry(id).or_default().slots = slots;
@@ -206,25 +211,19 @@ impl Items {
             eprintln!("tables: no English item table at {}", path.display());
             return self;
         };
-        let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
-        if let Err(error) = lua.load(bytes).set_mode(mlua::ChunkMode::Text).set_name("itemInfo").exec() {
+        let lua = state();
+        if let Err(error) = exec(&lua, &bytes, Some("itemInfo")) {
             eprintln!("tables: {}: {error}", path.display());
             return self;
         }
-        // The translation is plain text; the few bytes beyond ASCII in it are Latin letters and signs.
-        let english = |bytes: &[u8]| match std::str::from_utf8(bytes) {
-            Ok(text) => text.to_owned(),
-            Err(_) => encoding_rs::WINDOWS_1252.decode_without_bom_handling(bytes).0.into_owned(),
-        };
+        // The translation is plain text; the few bytes beyond ASCII in it are Latin letters and signs (`latin`).
+        let english = |lines: Table| lines.sequence_values::<mlua::String>().flatten().map(|line| latin(&line.as_bytes())).collect::<Vec<String>>();
         let mut translated = 0;
         if let Ok(table) = lua.globals().get::<Table>("tbl") {
             for (id, item) in table.pairs::<i64, Table>().flatten() {
                 let Ok(id) = u32::try_from(id) else { continue };
-                let name = match item.get::<Value>("identifiedDisplayName") {
-                    Ok(Value::String(text)) => english(&text.as_bytes()),
-                    _ => String::new(),
-                };
-                let description: Vec<String> = item.get::<Table>("identifiedDescriptionName").map(|lines| lines.sequence_values::<mlua::String>().flatten().map(|line| english(&line.as_bytes())).collect()).unwrap_or_default();
+                let name = words(&item, "identifiedDisplayName", latin).unwrap_or_default();
+                let description = item.get::<Table>("identifiedDescriptionName").map(english).unwrap_or_default();
                 if name.is_empty() && description.is_empty() {
                     continue;
                 }
@@ -236,8 +235,8 @@ impl Items {
                 }
                 // An item the client's own table lacks takes its pictures' name from this one.
                 if entry.1.is_empty() {
-                    if let Ok(Value::String(resource)) = item.get::<Value>("identifiedResourceName") {
-                        entry.1 = korean(&resource.as_bytes());
+                    if let Some(resource) = words(&item, "identifiedResourceName", korean) {
+                        entry.1 = resource;
                     }
                 }
                 if !description.is_empty() {
@@ -249,15 +248,15 @@ impl Items {
                 }
                 // What the item is before it is identified, in English too.
                 let unknown = self.4.entry(id).or_default();
-                if let Ok(Value::String(text)) = item.get::<Value>("unidentifiedDisplayName") {
-                    unknown.0 = english(&text.as_bytes());
+                if let Some(name) = words(&item, "unidentifiedDisplayName", latin) {
+                    unknown.0 = name;
                 }
                 if unknown.1.is_empty() {
-                    if let Ok(Value::String(resource)) = item.get::<Value>("unidentifiedResourceName") {
-                        unknown.1 = korean(&resource.as_bytes());
+                    if let Some(resource) = words(&item, "unidentifiedResourceName", korean) {
+                        unknown.1 = resource;
                     }
                 }
-                let lines: Vec<String> = item.get::<Table>("unidentifiedDescriptionName").map(|lines| lines.sequence_values::<mlua::String>().flatten().map(|line| english(&line.as_bytes())).collect()).unwrap_or_default();
+                let lines = item.get::<Table>("unidentifiedDescriptionName").map(english).unwrap_or_default();
                 if !lines.is_empty() {
                     unknown.2 = lines;
                 }
@@ -278,20 +277,25 @@ impl Items {
     /// The items with these IDs in Russian, as `json` gives them in English: an item with a translation of its
     /// own is shown by it; any other keeps its English name, with the labels of its description in Russian.
     pub fn russian_json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
-        let found: serde_json::Map<String, serde_json::Value> = ids
-            .filter_map(|id| {
-                let (name, resource) = self.0.get(&id)?;
-                let (description, facts, slots) = self.1.get(&id).map_or((&[][..], &[][..], 0), |about| (&about.description[..], &about.facts[..], about.slots));
-                let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
-                let (name, description) = match self.3.get(&id) {
-                    Some((russian, lines)) => (if russian.is_empty() { name.clone() } else { russian.clone() }, if lines.is_empty() { description.iter().map(|line| russian_line(line)).collect() } else { lines.clone() }),
-                    None => (name.clone(), description.iter().map(|line| russian_line(line)).collect()),
-                };
-                let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": lines.iter().map(|line| russian_line(line)).collect::<Vec<String>>() }));
-                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified, "slots": slots })))
-            })
-            .collect();
-        found.into()
+        let labelled = |lines: &[String]| lines.iter().map(|line| russian_line(line)).collect::<Vec<String>>();
+        let shown = |id: u32, name: &str, description: &[String]| match self.3.get(&id) {
+            Some((russian, lines)) => (if russian.is_empty() { name.to_owned() } else { russian.clone() }, if lines.is_empty() { labelled(description) } else { lines.clone() }),
+            None => (name.to_owned(), labelled(description)),
+        };
+        ids.filter_map(|id| self.given(id, &shown, &labelled)).collect::<serde_json::Map<String, serde_json::Value>>().into()
+    }
+
+    /// One item as the browser is given it, with its ID as the key it goes under: `{"name", "resource",
+    /// "description", "facts", "unidentified": {"name", "resource", "description"} or null, "slots"}`. `shown`
+    /// gives the name and the description it is shown by (from its ID and those of the table), `unknown` the
+    /// description of it unidentified. None for an ID the table lacks.
+    fn given(&self, id: u32, shown: &dyn Fn(u32, &str, &[String]) -> (String, Vec<String>), unknown: &dyn Fn(&[String]) -> Vec<String>) -> Option<(String, serde_json::Value)> {
+        let (name, resource) = self.0.get(&id)?;
+        let (description, facts, slots) = self.1.get(&id).map_or((&[][..], &[][..], 0), |about| (&about.description[..], &about.facts[..], about.slots));
+        let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
+        let (name, description) = shown(id, name, description);
+        let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": unknown(lines) }));
+        Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified, "slots": slots })))
     }
 
     /// The Korean names and descriptions of the items with these IDs, as JSON: `{"<id>": {"name": …,
@@ -312,15 +316,10 @@ impl Items {
     /// The items with these IDs, as JSON: `{"<id>": {"name": …, "resource": …}}`. IDs the table lacks are left
     /// out.
     pub fn json(&self, ids: impl Iterator<Item = u32>) -> serde_json::Value {
-        let found: serde_json::Map<String, serde_json::Value> =
-            ids.filter_map(|id| {
-                let (name, resource) = self.0.get(&id)?;
-                let (description, facts, slots) = self.1.get(&id).map_or((&[][..], &[][..], 0), |about| (&about.description[..], &about.facts[..], about.slots));
-                let facts: Vec<[&str; 2]> = facts.iter().map(|(key, value)| [key.as_str(), value.as_str()]).collect();
-                let unidentified = self.4.get(&id).map(|(name, resource, lines)| serde_json::json!({ "name": name, "resource": resource, "description": lines }));
-                Some((id.to_string(), serde_json::json!({ "name": name, "resource": resource, "description": description, "facts": facts, "unidentified": unidentified, "slots": slots })))
-            })
-            .collect();
-        found.into()
+        let as_it_is = |_: u32, name: &str, description: &[String]| (name.to_owned(), description.to_vec());
+        ids.filter_map(|id| self.given(id, &as_it_is, &<[String]>::to_vec)).collect::<serde_json::Map<String, serde_json::Value>>().into()
     }
 }
+
+#[cfg(test)]
+mod tests;

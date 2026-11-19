@@ -7,7 +7,7 @@ use crate::net::friends;
 
 impl App {
     /// A press of this system (`crate::press::friends`).
-    pub(super) fn friend_pressed(&mut self, press: crate::press::friends::Press) {
+    pub(super) fn friends_pressed(&mut self, press: crate::press::friends::Press) {
         use crate::press::friends::Press;
         match press {
             Press::Party => self.messenger_turned(false),

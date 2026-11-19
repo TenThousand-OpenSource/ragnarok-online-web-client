@@ -2,6 +2,11 @@
 
 use super::*;
 
+/// The sprite numbers of things that are there without being seen: portals' touch areas and invisible NPCs.
+pub(super) const UNSEEN: [u16; 3] = [111, 139, 32767];
+/// The sprite number of a portal: drawn as rings of light, not as a sprite.
+pub(super) const PORTAL: u16 = 45;
+
 /// Someone comes into sight, or someone in sight starts to walk.
 pub fn unit_shown(unit: &Unit) {
     STATE.with_borrow_mut(|state| {
@@ -118,10 +123,7 @@ pub fn unit_walk(id: u32, told: &Walked) {
 pub fn slid(id: Option<u32>, cell: (u16, u16)) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        let mover = match id {
-            None => Some(&mut scene.player),
-            Some(id) => scene.units.get_mut(&id),
-        };
+        let mover = scene.mover_mut(id);
         if let Some(mover) = mover {
             mover.put((i32::from(cell.0), i32::from(cell.1)));
         }
@@ -193,10 +195,7 @@ pub fn looked(id: Option<u32>, kind: u8, value: u32, second: u32) {
             (state.weapon, state.shield) = (value, second);
         }
         let Some(scene) = &mut state.scene else { return };
-        let mover = match id {
-            None => Some(&mut scene.player),
-            Some(id) => scene.units.get_mut(&id),
-        };
+        let mover = scene.mover_mut(id);
         let Some(mover) = mover else { return };
         // The body itself: the job changed (the server's `LOOK_BASE`).
         if kind == 0 {
@@ -227,10 +226,7 @@ pub fn stated(id: Option<u32>, bits: u32, mask: Option<u32>) {
             state.own_state = merged(state.own_state);
         }
         let Some(scene) = &mut state.scene else { return false };
-        let mover = match id {
-            None => Some(&mut scene.player),
-            Some(id) => scene.units.get_mut(&id),
-        };
+        let mover = scene.mover_mut(id);
         let Some(mover) = mover else { return false };
         let now_in = merged(mover.state);
         let was = std::mem::replace(&mut mover.state, now_in);
@@ -245,7 +241,7 @@ pub fn stated(id: Option<u32>, bits: u32, mask: Option<u32>) {
 pub fn said(id: u32, own: u32, words: &str) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
+        if let Some(mover) = scene.one_mut(id, own) {
             mover.says = Some((words.to_owned(), now()));
         }
     });
@@ -263,7 +259,7 @@ pub fn emotes(id: u32, own: u32, emotion: u16) {
     let Some((sprite, action)) = data::emotion(emotion) else { return };
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
+        if let Some(mover) = scene.one_mut(id, own) {
             mover.emotion = Some((sprite, action, now()));
         }
     });
@@ -273,7 +269,7 @@ pub fn emotes(id: u32, own: u32, emotion: u16) {
 pub fn sat(id: u32, own: u32, down: bool) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
+        if let Some(mover) = scene.one_mut(id, own) {
             mover.sitting = down;
             mover.pose.at_ease();
         }
@@ -286,7 +282,7 @@ pub fn sat(id: u32, own: u32, down: bool) {
 pub fn plays_dead(id: u32, own: u32, down: bool) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(mover) = if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) } {
+        if let Some(mover) = scene.one_mut(id, own) {
             mover.dead = down;
             if down {
                 mover.walk = None;

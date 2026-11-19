@@ -3,17 +3,28 @@
 //!
 //! A trap comes in the same ZC_SKILL_ENTRY5 as every unit, under its own kind (143 to 153); the server makes
 //! another kind of it with ZC_SPRITE_CHANGE of its base (`net/units.rs`) when it springs, and a trap that was
-//! not to be seen is shown with ZC_SKILL_UPDATE (0x01ac, `seen`; its number is `net/fight.rs`'s). The packet
-//! Graffiti's unit comes in (0x01c9) is `net/fight.rs`'s too. A unit of Ice Wall comes with a
-//! ZC_UPDATE_MAPINFO (0x0192) that closes its cell to walking.
+//! not to be seen is shown with ZC_SKILL_UPDATE (0x01ac, `seen`). A unit that carries words, Graffiti, comes
+//! in a packet of its own (ZC_SKILL_ENTRY2, 0x01c9, `written`), and a talkie box says its words in another
+//! (ZC_TALKBOX_CHATCONTENTS, 0x0191, `talkie`). A unit of Ice Wall comes with a ZC_UPDATE_MAPINFO (0x0192)
+//! that closes its cell to walking.
 
-use super::bytes::{long, word};
+use super::bytes::{long, name_at, word};
 
 /// ZC_SKILL_ENTRY5 (0x09ca, 23 bytes): `u16 length, u32 id, u32 creator, u16 x, u16 y, u32 unit, u8 range,
 /// u8 visible, u8 level`. A unit stands on a cell: one that comes into sight, or a new one.
 pub const ZC_SKILL_ENTRY5: u16 = 0x09ca;
 /// ZC_SKILL_DISAPPEAR (0x0120, 6 bytes): `u32 id`. A unit is gone.
 pub const ZC_SKILL_DISAPPEAR: u16 = 0x0120;
+/// ZC_UPDATE_MAPINFO (0x0192, 24 bytes): `u16 x, u16 y, u16 type, char map[16]`: a cell of the map is of another
+/// type from now on (rAthena's `clif_changemapcell`: an Ice Wall makes its cells type 5 and gives them their own
+/// type back when it is gone).
+pub const ZC_UPDATE_MAPINFO: u16 = 0x0192;
+/// ZC_SKILL_UPDATE (0x01ac): `u32 unit`: a unit on the ground changes (a trap sprung is seen).
+pub const ZC_SKILL_UPDATE: u16 = 0x01ac;
+/// ZC_TALKBOX_CHATCONTENTS (0x0191): `u32 unit, char words[80]`: a talkie box says its words.
+pub const ZC_TALKBOX_CHATCONTENTS: u16 = 0x0191;
+/// ZC_SKILL_ENTRY2 (0x01c9): a unit on the ground that carries words: Graffiti (`written`).
+pub const ZC_SKILL_ENTRY2: u16 = 0x01c9;
 
 /// A unit on the ground.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,12 +49,7 @@ pub fn entry(packet: &[u8]) -> Option<Entry> {
     Some(Entry { id: long(packet, 4)?, creator: long(packet, 8)?, cell: (word(packet, 12)?, word(packet, 14)?), unit: long(packet, 16)?, range: packet[20], visible: packet[21] != 0, level: packet[22] })
 }
 
-/// ZC_UPDATE_MAPINFO (0x0192, 24 bytes): `u16 x, u16 y, u16 type, char map[16]`: a cell of the map is of another
-/// type from now on (rAthena's `clif_changemapcell`: an Ice Wall makes its cells type 5 and gives them their own
-/// type back when it is gone).
-pub const ZC_UPDATE_MAPINFO: u16 = 0x0192;
-
-/// The cell and its new type.
+/// Reads ZC_UPDATE_MAPINFO: the cell and its new type.
 pub fn cell_changed(packet: &[u8]) -> Option<((u16, u16), u16)> {
     Some(((word(packet, 2)?, word(packet, 4)?), word(packet, 6)?))
 }
@@ -59,9 +65,40 @@ pub fn gone(packet: &[u8]) -> Option<u32> {
     long(packet.get(..6)?, 2)
 }
 
+/// What a talkie box says: `(unit, words)`.
+pub fn talkie(packet: &[u8]) -> Option<(u32, String)> {
+    Some((long(packet, 2)?, name_at(packet.get(..86)?, 6, 80)))
+}
+
+/// A unit on the ground with words (ZC_SKILL_ENTRY2: `u32 id, u32 maker, i16 x, i16 y, u8 kind, u8 seen,
+/// u8 has words, char words[80]`).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Written {
+    pub id: u32,
+    pub maker: u32,
+    pub cell: (u16, u16),
+    pub kind: u8,
+    pub seen: bool,
+    /// What is written; nothing for a unit that carries no words.
+    pub words: String,
+}
+
+pub fn written(packet: &[u8]) -> Option<Written> {
+    let has_words = *packet.get(16)? != 0;
+    Some(Written {
+        id: long(packet, 2)?,
+        maker: long(packet, 6)?,
+        cell: (word(packet, 10)?, word(packet, 12)?),
+        kind: *packet.get(14)?,
+        seen: *packet.get(15)? != 0,
+        words: if has_words { name_at(packet.get(..97)?, 17, 80) } else { String::new() },
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::net::bytes::testing::packet;
 
     #[test]
     fn reads_a_unit_on_the_ground() {
@@ -125,5 +162,15 @@ mod tests {
         assert_eq!(crate::net::packet_length(ZC_SKILL_DISAPPEAR), Some(6));
         assert_eq!(gone(&[0x20, 0x01, 0xe8, 0x03, 0, 0]), Some(1000));
         assert_eq!(gone(&[0x20, 0x01, 0xe8]), None);
+    }
+
+    #[test]
+    fn the_words_of_a_talkie_box_and_of_graffiti() {
+        let mut said = packet(ZC_TALKBOX_CHATCONTENTS, &[&77u32.to_le_bytes(), b"beware"]);
+        said.resize(86, 0);
+        assert_eq!(talkie(&said), Some((77, "beware".to_owned())));
+        let mut wall = packet(ZC_SKILL_ENTRY2, &[&77u32.to_le_bytes(), &5u32.to_le_bytes(), &150u16.to_le_bytes(), &160u16.to_le_bytes(), &[0xb0, 1, 1], b"hello"]);
+        wall.resize(97, 0);
+        assert_eq!(written(&wall), Some(Written { id: 77, maker: 5, cell: (150, 160), kind: 0xb0, seen: true, words: "hello".to_owned() }));
     }
 }

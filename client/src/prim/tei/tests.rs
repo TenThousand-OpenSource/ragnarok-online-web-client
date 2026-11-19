@@ -1,12 +1,6 @@
 use super::*;
 
-/// The screen's two directions for a camera that looks north and level.
-const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-const UP: [f32; 3] = [0.0, 1.0, 0.0];
-
-fn close(a: f32, b: f32) -> bool {
-    (a - b).abs() < 0.001
-}
+use crate::prim::testing::{RIGHT, UP, close};
 
 /// A primitive of a kind of this file with one part.
 fn with_part(kind: Tei, part: Part) -> Prim {

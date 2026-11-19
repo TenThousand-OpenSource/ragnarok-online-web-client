@@ -55,7 +55,7 @@ pub(super) struct Picking {
 /// and its name.
 pub(super) fn pick_list(title: &str, rows: &[(String, String)], picked: Option<usize>, does: Picking) -> String {
     let mut window = title_bar(200, title);
-    window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 200, 162)));
+    window.push_str(&side_rimmed(0, 17, 200, 162));
     let rows: String = rows
         .iter()
         .enumerate()
@@ -70,9 +70,7 @@ pub(super) fn pick_list(title: &str, rows: &[(String, String)], picked: Option<u
         })
         .collect();
     window.push_str(&format!(r#"<div class="a scroll" style="{}">{rows}</div>"#, at(1, 31, 198, 128)));
-    window.push_str(&art("basic_interface/btnbar_left.bmp", 0, 179, 21, 21));
-    window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, 179, 158, 21));
-    window.push_str(&art("basic_interface/btnbar_right.bmp", 179, 179, 21, 21));
+    window.push_str(&button_bar(200, 200));
     window.push_str(&picture_press(108, 176, "btn_ok", does.ok));
     window.push_str(&picture_press(154, 176, "btn_cancel", does.cancel));
     window
@@ -86,20 +84,32 @@ pub(super) fn count_box_of(window: &windows::Window, name: &str, shown: u32, for
     format!(
         r#"{}<form {} class="a" style="{}">
              <div class="a t" style="left:15px;top:6px;width:104px;overflow:hidden;white-space:nowrap">{}</div>
-             <input id="{}" class="a in" style="{};background:#e8e8e8" type="text" inputmode="numeric" maxlength="6" autocomplete="off" value="{shown}">
+             {}
              {}
            </form>"#,
         system_box(0, 182, 46),
         sent(form),
         at(0, 0, 182, 46),
         escape(name),
-        window.field(),
-        at(15, 22, 80, 16),
-        picture_press(127, 14, "btn_ok", ok).replace(r#"type="button""#, r#"type="submit""#)
+        numeric_field(&window.field(), (15, 22, 80, 16), &shown.to_string(), 6, &format!("background:{FIELD_GROUND}")),
+        submit_press(127, 14, "btn_ok", ok)
     )
 }
 
 impl App {
+    /// The rows of a list with pictures (`pick_list`) for things carried, by where each is: its picture and
+    /// its name. A thing that is no longer carried keeps its row, empty, so that the rows stay those of the
+    /// list.
+    pub(super) fn carried_rows(&self, places: &[u16]) -> Vec<(String, String)> {
+        places
+            .iter()
+            .map(|index| {
+                let Some(item) = self.bag.items.iter().find(|item| item.index == *index) else { return Default::default() };
+                (Self::icon_of(item), Self::item_name(item))
+            })
+            .collect()
+    }
+
     /// The box that asks how many of a thing carried (`count_box_of`): all of them in it at first. `counting`
     /// is the thing's place in the inventory and how many there are; `form` is what is sent when the number is
     /// given, read back with `App::counted`.

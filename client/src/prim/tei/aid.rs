@@ -39,8 +39,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// The glitter as `CRagEffect::FirstAid` launches it: 10 to a corner, 12 over the feet.
     fn glitter() -> Prim {

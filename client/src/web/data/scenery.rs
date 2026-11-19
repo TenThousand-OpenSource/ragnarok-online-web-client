@@ -23,13 +23,13 @@ pub fn sky(map: &str) -> Option<Sky> {
 
 /// Reads the skies out of the gateway's tables: `{"<map>": {"colour": [r, g, b], "stars": true, "clouds": [1]}}`.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
-    let numbers = |list: wasm_bindgen::JsValue| js_sys::Array::from(&list).iter().filter_map(|number| number.as_f64()).collect::<Vec<f64>>();
+    let numbers = |listed: wasm_bindgen::JsValue| list(&listed).iter().filter_map(|number| number.as_f64()).collect::<Vec<f64>>();
     let skies = entries::<String>(&field(tables, "sky"))
         .into_iter()
         .map(|(map, about)| {
             let colour = numbers(field(&about, "colour"));
             let colour = std::array::from_fn(|part| colour.get(part).map_or(0.0, |part| (*part / 255.0) as f32));
-            (map, Sky { colour, stars: field(&about, "stars").as_bool().unwrap_or(false), clouds: numbers(field(&about, "clouds")).into_iter().map(|kind| kind as i32).collect() })
+            (map, Sky { colour, stars: flag(&about, "stars"), clouds: numbers(field(&about, "clouds")).into_iter().map(|kind| kind as i32).collect() })
         })
         .collect();
     SKIES.set(skies);

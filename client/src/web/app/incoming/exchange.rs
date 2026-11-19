@@ -35,7 +35,7 @@ impl App {
             exchange::ZC_ACK_ADD_EXCHANGE_ITEM => self.exchange_added(packet),
             // A side is closed: nothing more goes into it, and with both closed the trade can be made.
             exchange::ZC_CONCLUDE_EXCHANGE_ITEM => {
-                match packet.get(2) {
+                match exchange::concluded(packet) {
                     Some(0) => self.exchange.closed.0 = true,
                     Some(1) => self.exchange.closed.1 = true,
                     _ => {}
@@ -49,7 +49,7 @@ impl App {
             }
             exchange::ZC_EXEC_EXCHANGE_ITEM => {
                 self.exchange = Exchange::default();
-                match packet.get(2) {
+                match exchange::executed(packet) {
                     Some(0) => self.chat_line(Self::words(75, "The deal has successfully completed."), CYAN),
                     _ => self.chat_line(Self::words(76, "The deal has failed."), RED),
                 }
@@ -94,7 +94,7 @@ impl App {
             // called off the server gives it back as a thing gained (rAthena's `trade_tradecancel`).
             (DONE, Some((_, amount))) => {
                 let amount = amount.min(u32::from(u16::MAX)) as u16;
-                if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                if let Some(item) = self.bag.at_mut(index) {
                     self.exchange.mine.push(Item { amount, ..item.clone() });
                     item.amount = item.amount.saturating_sub(amount);
                 }

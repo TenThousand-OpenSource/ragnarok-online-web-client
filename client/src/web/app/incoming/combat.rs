@@ -5,7 +5,7 @@ use super::*;
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn combat_packet(&mut self, id: u16, packet: &[u8]) -> bool {
-        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        let own = self.own_account();
         match id {
             // The server has one of the client's effects shown on someone: an NPC's script, an item, some
             // skills, a GM's `@effect` (the client's `ReceiveNotifyEffect`: `LaunchEffect` on that actor).
@@ -126,7 +126,7 @@ impl App {
     /// `CGameActor::ProcessHitMessage`; it reads the kinds 0, 4, 8, 9, 10, 11 and 13 as blows and shows no
     /// other).
     fn act_seen(&mut self, packet: &[u8]) {
-        let own = self.account.as_ref().map_or(0, |account| account.account_id);
+        let own = self.own_account();
         match units::act(packet) {
             Some(act) if crate::blow::landing::is_blow(act.kind) => {
                 // The hits it is made of, each with what it shows and sounds like as it lands (a monster's
@@ -152,7 +152,7 @@ impl App {
     /// nothing here. The rings are those of the cast's element (`GetSkillActionInfo`).
     fn cast_begun(&mut self, packet: &[u8]) {
         if let Some(cast) = skills::casting(packet).filter(|cast| cast.milliseconds > 0) {
-            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            let own = self.own_account();
             let effect = match cast.element {
                 1 => 54,
                 2 => 56,
@@ -175,7 +175,7 @@ impl App {
     fn skill_landed(&mut self, packet: &[u8]) {
         // (A kind of blow the client does not show gives no hits, and nothing is shown of the skill.)
         if let Some((landed, blows)) = skills::landing(packet).map(|landed| (landed, crate::blow::landing::of_skill(landed.skill, landed.action, landed.damage, i32::from(landed.hits)))).filter(|(_, blows)| !blows.is_empty()) {
-            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            let own = self.own_account();
             world::cast_over(landed.source, own, false);
             // The hits as the client counts them, and when each lands after the first.
             let hits = blows.len() as i32;
@@ -235,7 +235,7 @@ impl App {
 
     fn skill_used(&mut self, packet: &[u8]) {
         if let Some((skill, level, target, who, _)) = skills::used(packet) {
-            let own = self.account.as_ref().map_or(0, |account| account.account_id);
+            let own = self.own_account();
             world::cast_over(who, own, false);
             // The one who used it goes through the motion the client has for that skill.
             world::uses_skill(who, own, effect_tables::skill_state(skill));

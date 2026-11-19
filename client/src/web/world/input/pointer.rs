@@ -72,7 +72,7 @@ pub(super) fn released(event: &MouseEvent) {
         let menu = STATE.with_borrow_mut(|state| {
             let at = state.right_at.take().filter(|at| (at.0 - event.client_x() as f32).abs().max((at.1 - event.client_y() as f32).abs()) <= 4.0)?;
             let (gpu, scene) = (state.gpu.as_ref()?, state.scene.as_ref()?);
-            let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+            let view = scene.view(gpu);
             let (id, _) = pointed_at(gpu, scene, &view, at)?;
             state.hooks.as_ref().map(|hooks| (hooks.menu, id, at))
         });

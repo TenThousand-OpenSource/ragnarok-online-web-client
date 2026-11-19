@@ -10,18 +10,7 @@ static NAMES: OnceLock<HashMap<u16, &'static str>> = OnceLock::new();
 
 /// What rAthena calls the packet of that number, where its headers give it a name.
 pub fn name(id: u16) -> Option<&'static str> {
-    NAMES
-        .get_or_init(|| {
-            include_str!("packet_names.txt")
-                .lines()
-                .filter_map(|line| {
-                    let (id, name) = line.strip_prefix("0x")?.split_once(' ')?;
-                    Some((u16::from_str_radix(id, 16).ok()?, name.trim()))
-                })
-                .collect()
-        })
-        .get(&id)
-        .copied()
+    NAMES.get_or_init(|| crate::tables::hexed(include_str!("packet_names.txt")).collect()).get(&id).copied()
 }
 
 /// One kind of packet that came and was not read.

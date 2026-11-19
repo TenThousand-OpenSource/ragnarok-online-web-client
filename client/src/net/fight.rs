@@ -1,8 +1,14 @@
 //! What the server says of a fight beside the blows themselves: the monk's combo window and blade stop, the
 //! threads of Devotion, the MVP and its reward, what Sense tells of a monster, the Star Gladiator's places and
-//! missions, a skill changed or taken away, what a talkie box says and what Graffiti writes.
+//! missions.
 
-use super::bytes::{long, name_at, word};
+use super::bytes::{long, name_at, short, word, Writer};
+
+// A skill changed or taken away is told with the skills known (`net/items/skills.rs`), a talkie box's words and
+// what Graffiti writes with the units on the ground (`net/skill_units.rs`); they were here once, and are still
+// named so.
+pub use super::items::{skill_changed, skill_taken, ZC_SKILLINFO_DELETE, ZC_SKILLINFO_UPDATE2};
+pub use super::skill_units::{talkie, written, Written, ZC_SKILL_ENTRY2, ZC_SKILL_UPDATE, ZC_TALKBOX_CHATCONTENTS};
 
 /// ZC_COMBODELAY (0x01d2): `u32 who, u32 milliseconds`: how long the one who struck may follow with the next
 /// blow of a combo.
@@ -26,17 +32,6 @@ pub const ZC_MONSTER_INFO: u16 = 0x018c;
 pub const ZC_STARPLACE: u16 = 0x0253;
 /// ZC_STARSKILL (0x020e): what a Star Gladiator's or a Taekwon's skill tells (`star_told`).
 pub const ZC_STARSKILL: u16 = 0x020e;
-/// ZC_SKILLINFO_UPDATE2 (0x07e1): a skill of the character's changed (`skill_changed`).
-pub const ZC_SKILLINFO_UPDATE2: u16 = 0x07e1;
-/// ZC_SKILLINFO_DELETE (0x0441): `u16 skill`: a skill is taken from the character (one copied by Plagiarism).
-pub const ZC_SKILLINFO_DELETE: u16 = 0x0441;
-/// ZC_SKILL_UPDATE (0x01ac): `u32 unit`: a unit on the ground changes (a trap sprung is seen).
-pub const ZC_SKILL_UPDATE: u16 = 0x01ac;
-/// ZC_TALKBOX_CHATCONTENTS (0x0191): `u32 unit, char words[80]`: a talkie box says its words.
-pub const ZC_TALKBOX_CHATCONTENTS: u16 = 0x0191;
-/// ZC_SKILL_ENTRY2 (0x01c9): a unit on the ground that carries words: Graffiti (`written`).
-pub const ZC_SKILL_ENTRY2: u16 = 0x01c9;
-
 /// The window of a combo: `(who, milliseconds)`.
 pub fn combo_delay(packet: &[u8]) -> Option<(u32, u32)> {
     Some((long(packet, 2)?, long(packet, 6)?))
@@ -84,9 +79,9 @@ pub fn sensed(packet: &[u8]) -> Option<Sensed> {
         level: word(packet, 4)?,
         size: word(packet, 6)?,
         life: long(packet, 8)?,
-        defence: word(packet, 12)? as i16,
+        defence: short(packet, 12)?,
         race: word(packet, 14)?,
-        magic_defence: word(packet, 16)? as i16,
+        magic_defence: short(packet, 16)?,
         element: word(packet, 18)?,
         taken: packet.get(20..29)?.try_into().ok()?,
     })
@@ -104,7 +99,7 @@ pub fn star_place(packet: &[u8]) -> Option<u8> {
 
 /// CZ_AGREE_STARPLACE (0x0254): `u8 which`: the map is to be that place.
 pub fn agree_star_place(which: u8) -> Vec<u8> {
-    vec![0x54, 0x02, which]
+    Writer::new(0x0254).u8(which).done()
 }
 
 /// What ZC_STARSKILL tells: `char name[24], u32 value, u8 which, u8 kind`. The name is a map's or a monster's,
@@ -161,58 +156,10 @@ impl StarTold {
     }
 }
 
-/// ZC_SKILLINFO_UPDATE2: `u16 id, i32 target, u16 level, u16 sp, u16 range, u8 raisable`: a skill as it is now
-/// (the fields of `crate::net::items::Skill`).
-pub fn skill_changed(packet: &[u8]) -> Option<super::items::Skill> {
-    Some(super::items::Skill { id: word(packet, 2)?, target: long(packet, 4)?, level: word(packet, 8)?, sp: word(packet, 10)?, range: word(packet, 12)?, raisable: *packet.get(14)? != 0 })
-}
-
-/// The skill ZC_SKILLINFO_DELETE takes away.
-pub fn skill_taken(packet: &[u8]) -> Option<u16> {
-    word(packet, 2)
-}
-
-/// What a talkie box says: `(unit, words)`.
-pub fn talkie(packet: &[u8]) -> Option<(u32, String)> {
-    Some((long(packet, 2)?, name_at(packet.get(..86)?, 6, 80)))
-}
-
-/// A unit on the ground with words (ZC_SKILL_ENTRY2: `u32 id, u32 maker, i16 x, i16 y, u8 kind, u8 seen,
-/// u8 has words, char words[80]`).
-#[derive(Debug, Clone, PartialEq)]
-pub struct Written {
-    pub id: u32,
-    pub maker: u32,
-    pub cell: (u16, u16),
-    pub kind: u8,
-    pub seen: bool,
-    /// What is written; nothing for a unit that carries no words.
-    pub words: String,
-}
-
-pub fn written(packet: &[u8]) -> Option<Written> {
-    let has_words = *packet.get(16)? != 0;
-    Some(Written {
-        id: long(packet, 2)?,
-        maker: long(packet, 6)?,
-        cell: (word(packet, 10)?, word(packet, 12)?),
-        kind: *packet.get(14)?,
-        seen: *packet.get(15)? != 0,
-        words: if has_words { name_at(packet.get(..97)?, 17, 80) } else { String::new() },
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn packet(id: u16, parts: &[&[u8]]) -> Vec<u8> {
-        let mut packet = id.to_le_bytes().to_vec();
-        for part in parts {
-            packet.extend_from_slice(part);
-        }
-        packet
-    }
+    use crate::net::bytes::testing::packet;
 
     #[test]
     fn the_window_of_a_combo_and_a_blade_caught() {
@@ -262,23 +209,5 @@ mod tests {
         assert_eq!(StarTold { kind: 5, ..star }.line(), None);
         assert_eq!(star_place(&[0x53, 0x02, 1]), Some(1));
         assert_eq!(agree_star_place(2), [0x54, 0x02, 2]);
-    }
-
-    #[test]
-    fn a_skill_changed_and_one_taken_away() {
-        let told = packet(ZC_SKILLINFO_UPDATE2, &[&14u16.to_le_bytes(), &1u32.to_le_bytes(), &5u16.to_le_bytes(), &20u16.to_le_bytes(), &9u16.to_le_bytes(), &[0]]);
-        assert_eq!(told.len(), 15);
-        assert_eq!(skill_changed(&told), Some(crate::net::items::Skill { id: 14, target: 1, level: 5, sp: 20, range: 9, raisable: false }));
-        assert_eq!(skill_taken(&packet(ZC_SKILLINFO_DELETE, &[&14u16.to_le_bytes()])), Some(14));
-    }
-
-    #[test]
-    fn the_words_of_a_talkie_box_and_of_graffiti() {
-        let mut said = packet(ZC_TALKBOX_CHATCONTENTS, &[&77u32.to_le_bytes(), b"beware"]);
-        said.resize(86, 0);
-        assert_eq!(talkie(&said), Some((77, "beware".to_owned())));
-        let mut wall = packet(ZC_SKILL_ENTRY2, &[&77u32.to_le_bytes(), &5u32.to_le_bytes(), &150u16.to_le_bytes(), &160u16.to_le_bytes(), &[0xb0, 1, 1], b"hello"]);
-        wall.resize(97, 0);
-        assert_eq!(written(&wall), Some(Written { id: 77, maker: 5, cell: (150, 160), kind: 0xb0, seen: true, words: "hello".to_owned() }));
     }
 }

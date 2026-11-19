@@ -138,7 +138,7 @@ impl App {
     /// its colours, drawn by the page). (Enter in the search does not search: its button does.)
     pub(in crate::web) fn quest_window(&self) -> String {
         let mut window = format!(r#"<div class="a" style="{}">{}</div>"#, at(29, 0, 352, 17), title_bar(352, &Self::words(3400, "Quest information")));
-        window.push_str(&art("basic_interface/sys_base_off.bmp", 32, 3, 11, 11));
+        window.push_str(&base_button(32, 3));
         window.push_str(&art("renew_questui/bg_quest.bmp", 29, 17, 352, 449));
         for (place, name) in ["tab_process", "tab_recommended", "tab_hold", "tab_wait"].into_iter().enumerate() {
             window.push_str(&tab_button(0, 17 + place as i32 * 101, (30, 100), name, self.quests.tab == place, "", Press::Tab(place)));
@@ -151,12 +151,8 @@ impl App {
         for (place, (number, name)) in [(0, "btn_all"), (2, "btn_normal"), (3, "btn_sub"), (4, "btn_daily"), (5, "btn_event"), (1, "btn_etc")].into_iter().enumerate() {
             window.push_str(&tab_button(35 + place as i32 * 31, 414, (26, 22), name, self.quests.filter == number, &data::quest_filter_name(number), Press::Filter(number)));
         }
-        window.push_str(&format!(
-            r#"<input id="quest-search" class="a in" style="{};border:1px solid #c6c6c6;background:transparent;box-sizing:border-box" type="text" maxlength="20" autocomplete="off" value="{}">"#,
-            at(223, 417, 119, 16),
-            escape(&self.quests.search)
-        ));
-        window.push_str(&pictured(342, 416, (23, 18), ["renew_questui/btn_search_normal.bmp", "renew_questui/btn_search_over.bmp", "renew_questui/btn_search_press.bmp"], Press::Search, ""));
+        window.push_str(&field("quest-search", (223, 417, 119, 16), &self.quests.search, 20, "border:1px solid #c6c6c6;background:transparent;box-sizing:border-box"));
+        window.push_str(&pictured_by(Convention::NormalOverPress, 342, 416, (23, 18), "renew_questui/btn_search", Press::Search, ""));
         window.push_str(&check_box(38, 448, (10, 10), if self.quests.display_off { "checkbox_off" } else { "checkbox_on" }, "", Press::Display));
         window.push_str(&text(52, 447, BLACK, &Self::words(2019, "Show Quest")));
         window.push_str(&picture_press(327, 442, "basic_interface/btn_close", Press::Window));

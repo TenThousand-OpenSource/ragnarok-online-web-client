@@ -39,22 +39,7 @@ pub fn favourite_moved(packet: &[u8]) -> Option<(u16, bool)> {
 /// CZ_INVENTORY_TAB (0x0907): `u16 index, u8 off`: a thing dragged onto the inventory's tabs. Let go on the
 /// "Fav" tab it is kept under it (0), on any other it is taken from under it (1) (`UIItemWnd::DragAndDrop`).
 pub fn move_to_tab(index: u16, favourite: bool) -> Vec<u8> {
-    [&0x0907u16.to_le_bytes()[..], &index.to_le_bytes(), &[u8::from(!favourite)]].concat()
-}
-
-/// The order the things under the tab are put in while its "Align items" button is on (`ItemTypeNameLess`):
-/// by this rank of their kind (`ItemTypeSortRank`), then by name.
-pub fn sort_rank(kind: u8) -> u8 {
-    match kind {
-        0..=2 => 0,
-        18 => 1,
-        4 | 11..=14 => 2,
-        5 | 8 | 9 | 15 => 3,
-        10 | 16 | 17 | 19 => 4,
-        6 => 5,
-        3 | 7 => 6,
-        _ => 10,
-    }
+    Writer::new(0x0907).u16(index).u8(u8::from(!favourite)).done()
 }
 
 #[cfg(test)]
@@ -83,11 +68,6 @@ mod tests {
         // The storage's list says nothing of the inventory.
         worn[4] = 2;
         assert_eq!(favourite_equipment(&worn), []);
-    }
-
-    #[test]
-    fn the_kinds_are_ranked_as_the_client_orders_them() {
-        assert_eq!([0, 18, 4, 5, 10, 6, 3, 20].map(sort_rank), [0, 1, 2, 3, 4, 5, 6, 10]);
     }
 
     #[test]

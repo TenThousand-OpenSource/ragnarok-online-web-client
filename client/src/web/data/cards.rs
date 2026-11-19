@@ -103,5 +103,5 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .collect(),
     );
     MOVES.set(entries::<u32>(&field(&cards, "moves")).into_iter().filter_map(|(id, bits)| Some((id, bits.as_f64()? as u8))).collect());
-    MATERIALS.set(entries::<u32>(&field(&cards, "materials")).into_iter().map(|(id, lines)| (id, js_sys::Array::from(&lines).iter().filter_map(|line| line.as_string()).collect())).collect());
+    MATERIALS.set(entries::<u32>(&field(&cards, "materials")).into_iter().map(|(id, lines)| (id, texts(&lines))).collect());
 }

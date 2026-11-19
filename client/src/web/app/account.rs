@@ -2,6 +2,17 @@
 
 use super::*;
 
+pub(super) const LOGIN_PORT: u16 = 6900;
+/// The original client's least lengths for a login.
+pub(super) const LOGIN_ID_MIN: usize = 4;
+pub(super) const LOGIN_PASSWORD_MIN: usize = 6;
+/// A login on an account that is in use elsewhere throws the other session out, which takes the servers a
+/// moment: the login is tried again this often, this far apart, before the player is told to wait.
+pub(super) const LOGIN_RETRIES: u8 = 6;
+pub(super) const LOGIN_RETRY_MS: i32 = 1500;
+/// The servers' "the last login is not forgotten yet".
+pub(super) const STILL_LOGGED_IN: u8 = 8;
+
 /// Sends a form to the account service. Gives back the status and the seconds to wait, if it names any.
 pub(super) async fn post_form(path: &'static str, fields: Vec<(&'static str, String)>) -> Result<(u16, Option<u64>), String> {
     let window = web_sys::window().ok_or("no window")?;
@@ -174,6 +185,15 @@ impl App {
             (Request::Reset, 400) => self.say(Key::LinkInvalid),
             (_, 400) => self.say(Key::CheckForm),
             _ => self.say(Key::ServiceUnavailable),
+        }
+    }
+
+    /// The moment to try a login again, if nothing else has happened since (the generation is the same).
+    pub(super) fn login_retried(&mut self, generation: u32) {
+        if let Some(credentials) = self.relogin.clone().filter(|_| generation == self.generation) {
+            self.login_tries += 1;
+            self.credentials = Some(credentials);
+            self.connect(Server::Login, LOGIN_PORT);
         }
     }
 }

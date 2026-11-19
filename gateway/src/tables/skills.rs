@@ -9,9 +9,9 @@ pub(super) fn skill_tree(grf: &Grf) -> serde_json::Map<String, serde_json::Value
     let lua = run(grf, &["skillinfoz\\jobinheritlist", "skillinfoz\\skillid", "skillinfoz\\skilltreeview"]);
     let mut tree = serde_json::Map::new();
     let Ok(views) = lua.globals().get::<Table>("SKILL_TREEVIEW_FOR_JOB") else { return tree };
-    // Which job each grew out of, as the client reads it (`job_inherits`): the high form of a third job, which
+    // Which job each grew out of, as the client reads it (`inherits_of`): the high form of a third job, which
     // has no page of its own, gives way to the plain one.
-    let inherits = job_inherits(grf);
+    let inherits = inherits_of(&lua);
     for (job, slots) in views.pairs::<i64, Table>().flatten() {
         let slots: serde_json::Map<String, serde_json::Value> = slots.pairs::<i64, i64>().flatten().map(|(place, skill)| (place.to_string(), skill.into())).collect();
         let from = inherits.get(&job.to_string()).and_then(serde_json::Value::as_i64);
@@ -24,16 +24,15 @@ pub(super) fn skill_tree(grf: &Grf) -> serde_json::Map<String, serde_json::Value
 /// As the client's `CSession::InheritedJob` reads it: the job of `JOB_INHERIT_LIST`, and in its place the one
 /// `JOB_INHERIT_LIST2` gives for that, where it gives one.
 pub(super) fn job_inherits(grf: &Grf) -> serde_json::Map<String, serde_json::Value> {
-    let lua = run(grf, &["skillinfoz\\jobinheritlist"]);
+    inherits_of(&run(grf, &["skillinfoz\\jobinheritlist"]))
+}
+
+/// The same, of a state `jobinheritlist.lub` has run in.
+fn inherits_of(lua: &Lua) -> serde_json::Map<String, serde_json::Value> {
     let mut inherits = serde_json::Map::new();
     let Ok(list) = lua.globals().get::<Table>("JOB_INHERIT_LIST") else { return inherits };
     let instead = lua.globals().get::<Table>("JOB_INHERIT_LIST2").ok();
-    // The table's numbers are whole, but not all of them are kept as whole numbers.
-    let whole = |value: &Value| match value {
-        Value::Integer(number) => Some(*number),
-        Value::Number(number) => Some(*number as i64),
-        _ => None,
-    };
+    // The table's numbers are whole, but not all of them are kept as whole numbers (`whole`).
     let replaced: std::collections::HashMap<i64, i64> = instead.map(|instead| instead.pairs::<Value, Value>().flatten().filter_map(|(job, from)| Some((whole(&job)?, whole(&from)?))).collect()).unwrap_or_default();
     for (job, from) in list.pairs::<Value, Value>().flatten() {
         let (Some(job), Some(from)) = (whole(&job), whole(&from)) else { continue };
@@ -49,7 +48,7 @@ pub fn skill_texts(grf: &Grf) -> std::collections::HashMap<u32, Vec<String>> {
     table
         .pairs::<i64, Table>()
         .flatten()
-        .filter_map(|(id, lines)| Some((u32::try_from(id).ok()?, lines.sequence_values::<mlua::String>().flatten().map(|line| korean(&line.as_bytes())).collect())))
+        .filter_map(|(id, described)| Some((u32::try_from(id).ok()?, lines(&described))))
         .collect()
 }
 

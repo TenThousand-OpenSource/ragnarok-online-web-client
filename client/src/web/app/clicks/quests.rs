@@ -6,7 +6,7 @@ use crate::press::quests::{Press, Row};
 
 impl App {
     /// A press of this system (`crate::press::quests`).
-    pub(super) fn quest_pressed(&mut self, press: Press) {
+    pub(super) fn quests_pressed(&mut self, press: Press) {
         self.quests_remembered();
         match press {
             // The journal is opened or closed (the client's `ID_QUEST` of its menu): opened, the button that

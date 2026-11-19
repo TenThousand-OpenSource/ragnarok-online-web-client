@@ -45,51 +45,14 @@
 //! is; that is not done here: only the arrival.)
 
 mod kept;
+mod numbers;
+mod own;
+mod seen;
 
 pub use kept::Kept;
-
-/// The client's numbers of the effects named here.
-const EF_DECAGILITY: u32 = 38;
-const EF_LEXDIVINA: u32 = 87;
-const EF_GUMGANG: u32 = 203;
-const EF_STEELBODY: u32 = 254;
-const EF_AURABLADE: u32 = 367;
-const EF_REDBODY: u32 = 368;
-const EF_LKCONCENTRATION: u32 = 369;
-const EF_ASSUMPTIO: u32 = 375;
-const EF_LIGHTBLADE: u32 = 382;
-const EF_SPHEREWIND2: u32 = 394;
-const EF_LINELINK3: u32 = 395;
-const EF_PINKBODY: u32 = 396;
-const EF_DOUBLEGUMGANG: u32 = 418;
-const EF_REFLECTBODY: u32 = 419;
-const EF_BABYBODY: u32 = 420;
-const EF_ASURABODY: u32 = 424;
-const EF_QUAKEBODY: u32 = 426;
-const EF_ASURABODY_MONSTER: u32 = 427;
-const EF_RUN: u32 = 442;
-const EF_STOPRUN: u32 = 443;
-const EF_STOPEFFECT: u32 = 444;
-const EF_NPC_STOP: u32 = 453;
-const EF_GUMGANGNPC: u32 = 455;
-const EF_AGIUP: u32 = 456;
-const EF_AURABLADE2: u32 = 474;
-const EF_REDLIGHTBODY: u32 = 544;
-const EF_STASIS: u32 = 799;
-const EF_LINELINK4: u32 = 819;
-const EF_CHOOKGI_N: u32 = 833;
-const EF_CIRCLEPOWER2: u32 = 861;
-const EF_ENERVATION7: u32 = 864;
-const EF_ALL_RAY_OF_PROTECTION: u32 = 1019;
-const EF_GC_DARKCROW: u32 = 1040;
-const EF_WL_TELEKINESIS_INTENSE: u32 = 1048;
-const EF_GN_ILLUSIONDOPING: u32 = 1049;
-const EF_NPC_CHILL: u32 = 1055;
-const EF_AB_OFFERTORIUM_RING: u32 = 1057;
-const EF_ESCAPE: u32 = 1081;
-const EF_SU_STOOP: u32 = 1132;
-
-const EF_MAKEBLUR: u32 = 166;
+use numbers::*;
+pub use own::reapplied;
+pub use seen::{Seen, seen};
 
 /// What `EF_MAKEBLUR` is told as a state launches it (`AM_SETCOUNT` with 0xFFFF and the state's own number,
 /// which `CRagEffect::SendMsg` turns into the colour of the body and of its afterimages; with 0xFFFE, Fury's,
@@ -201,49 +164,6 @@ pub fn changed(state: u32, on: bool) -> Change {
     }
 }
 
-/// The effects launched anew on the player's own character for a state it is in, as it arrives on a map
-/// (`CPlayer::ReapplySkillEffects`): not always what the state began with (Aura Blade's walls are not launched
-/// again, only the light of the weapon). The states whose effects are not drawn are left out, with the
-/// darkened sky of a Soul Link; `EFST_DUPLELIGHT`'s lights the client tells a size of 2 there (`AM_SETPOS`),
-/// which is not told here.
-pub fn reapplied(state: u32) -> &'static [u32] {
-    match state {
-        // The quickenings, Overthrust and Energy Coat: the blur (`blur`).
-        2 | 25 | 31 | 68 | 161 | 188 => &[EF_MAKEBLUR],
-        // `EFST_EXPLOSIONSPIRITS`, `EFST_STEELBODY`.
-        86 => &[EF_GUMGANG],
-        87 => &[EF_STEELBODY, EF_SU_STOOP],
-        // `EFST_AURABLADE`, `EFST_LKCONCENTRATION`, `EFST_BERSERK` and `EFST_BLOOD_SUCKER`.
-        103 => &[EF_AURABLADE2],
-        105 => &[EF_LKCONCENTRATION],
-        107 | 464 => &[EF_REDBODY],
-        // `EFST_ASSUMPTIO`, `EFST_ASSUMPTIO2`, `EFST_ASSUMPTIO_BUFF`.
-        110 | 473 | 1121 => &[EF_ASSUMPTIO],
-        // `EFST_MAGICPOWER`, `EFST_MOON`.
-        113 => &[EF_LIGHTBLADE],
-        123 => &[EF_SPHEREWIND2],
-        // `EFST_SOULLINK` and the soul states after it.
-        149 | 1056..=1059 => &[EF_ASURABODY],
-        // `EFST_KAITE`.
-        153 => &[EF_REFLECTBODY],
-        // `EFST_SG_SUN_WARM`, `EFST_SG_MOON_WARM`, `EFST_SG_STAR_WARM`, `EFST_DAURA`.
-        165..=167 | 232 => &[EF_DOUBLEGUMGANG, EF_REDLIGHTBODY],
-        // `EFST_DUPLELIGHT`.
-        350 => &[EF_CHOOKGI_N],
-        // `EFST_SATURDAY_NIGHT_FEVER`, `EFST_MELODYOFSINK`, `EFST_BEYOND_OF_WARCRY`.
-        448 => &[EF_ENERVATION7],
-        452 => &[EF_LEXDIVINA],
-        453 => &[EF_STASIS],
-        // `EFST_OFFERTORIUM`, `EFST_TELEKINESIS_INTENSE`.
-        716 => &[EF_AB_OFFERTORIUM_RING],
-        717 => &[EF_WL_TELEKINESIS_INTENSE],
-        // `EFST_DARKCROW`, three times as the state begins it; `EFST_CHILL`.
-        730 => &[EF_GC_DARKCROW; 3],
-        736 => &[EF_NPC_CHILL],
-        _ => &[],
-    }
-}
-
 /// Whether an effect that a skill shows is launched, `running` saying which effects run on the one it is for:
 /// some the client launches only if they do not run already (`HasId` in its handler of the skill), and the
 /// two of `TK_RUN` by whether `EF_STOPRUN` runs: the blades of a stop (`EF_STOPEFFECT`) if it does, the
@@ -257,140 +177,5 @@ pub fn begins(effect: u32, running: impl Fn(u32) -> bool) -> bool {
     }
 }
 
-/// What the third option of one coming into sight does to the effects on it.
-#[derive(Debug, Default, PartialEq)]
-pub struct Seen {
-    /// The effects ended.
-    pub ends: Vec<u32>,
-    /// The effects begun, each unless another runs already (the client's `HasId`): the one begun, and the one
-    /// asked after.
-    pub begins: Vec<(u32, u32)>,
-}
-
-/// The third option of someone in sight (`CGameMode::ApplyActorStatusEffects`): `hidden` is whether its
-/// state says it hides or is cloaked (the bits 2 and 4 of the effect state), `character` whether it is of a
-/// player's job. A character's bits only begin effects, and each only if it does not run; a monster's begin
-/// an effect or end it. The bits whose effects are not drawn are left out: the blurs (1, 2, 4), the copies
-/// (0x4000), 0x10000 (`EF_UNDEADBODY`), 0x20000 (`EF_M04`), 0x40000 (`EF_CLOAKING2`), a monster's 0x8000
-/// (`EF_DA_SPACE`), and the effect a monster grows back with (`EF_BABYBODY_BACK`).
-pub fn seen(third: u32, hidden: bool, character: bool) -> Seen {
-    let mut seen = Seen::default();
-    if hidden {
-        seen.ends.extend([EF_GUMGANG, EF_STEELBODY, EF_SU_STOOP, EF_DOUBLEGUMGANG]);
-        return seen;
-    }
-    if character {
-        const BITS: [(u32, &[u32]); 11] = [
-            (0x8, &[EF_GUMGANG]),
-            (0x10, &[EF_STEELBODY, EF_SU_STOOP]),
-            (0x1000, &[EF_DOUBLEGUMGANG, EF_REDLIGHTBODY]),
-            (0x2000, &[EF_REFLECTBODY]),
-            (0x8000, &[EF_ASURABODY]),
-            (0x40, &[EF_AURABLADE2]),
-            (0x100, &[EF_LIGHTBLADE]),
-            (0x80, &[EF_REDBODY]),
-            (0x200, &[EF_SPHEREWIND2]),
-            (0x400, &[EF_PINKBODY]),
-            (0x800, &[EF_ASSUMPTIO]),
-        ];
-        for (bit, effects) in BITS {
-            if third & bit != 0 {
-                seen.begins.extend(effects.iter().map(|effect| (*effect, effects[0])));
-            }
-        }
-        return seen;
-    }
-    for (bit, effects) in [(0x2, &[EF_BABYBODY][..]), (0x4, &[EF_ASURABODY_MONSTER]), (0x10, &[EF_STEELBODY, EF_SU_STOOP]), (0x800, &[EF_ASSUMPTIO])] {
-        if third & bit != 0 {
-            seen.begins.extend(effects.iter().map(|effect| (*effect, effects[0])));
-        } else {
-            seen.ends.extend(effects);
-        }
-    }
-    seen
-}
-
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_blur_is_told_its_colour_by_the_state() {
-        assert_eq!((changed(2, true).begins, changed(2, false)), (&[EF_MAKEBLUR][..], Change { ends: &[EF_MAKEBLUR], ..Change::default() }));
-        assert_eq!(changed(86, true).begins, &[EF_GUMGANG, EF_MAKEBLUR][..]);
-        assert_eq!((blur(2), blur(68), blur(161)), (Some([200.0, 200.0, 0.0]), Some([200.0, 200.0, 0.0]), Some([200.0, 200.0, 0.0])));
-        assert_eq!((blur(25), blur(31), blur(86), blur(87)), (Some([250.0, 150.0, 150.0]), Some([180.0, 180.0, 250.0]), Some([-1.0; 3]), None));
-    }
-
-    #[test]
-    fn a_state_going_on_ends_its_effect_and_begins_it_anew() {
-        assert_eq!(changed(107, true), Change { ends: &[EF_REDBODY], begins: &[EF_REDBODY], ..Change::default() });
-        assert_eq!(changed(107, false), Change { ends: &[EF_REDBODY], ..Change::default() });
-        assert_eq!(changed(166, true).begins, &[EF_DOUBLEGUMGANG, EF_REDLIGHTBODY][..]);
-        // Aura Blade's walls and the light of the weapon; Mystical Amplification's weapon; the two lights.
-        assert_eq!(changed(103, true).begins, &[EF_AURABLADE, EF_AURABLADE2][..]);
-        assert_eq!((changed(113, true).begins, changed(113, false).ends), (&[EF_LIGHTBLADE][..], &[EF_LIGHTBLADE][..]));
-        assert_eq!(changed(350, true).begins, &[EF_CHOOKGI_N][..]);
-        assert_eq!(changed(730, true).begins.len(), 3);
-    }
-
-    #[test]
-    fn some_states_only_end_what_a_skill_began() {
-        assert_eq!(changed(95, true), Change { ends: &[EF_NPC_STOP], ..Change::default() });
-        assert_eq!(changed(149, true), Change::default());
-        assert_eq!(changed(149, false).ends, &[EF_ASURABODY][..]);
-        assert_eq!(changed(121, false).ends, &[EF_LINELINK3, EF_PINKBODY][..]);
-    }
-
-    #[test]
-    fn running_ends_with_a_stop_and_a_wall_shakes_the_runner() {
-        // Whichever way the state goes: the footprints end, and what follows them begins if there were any.
-        for on in [true, false] {
-            assert_eq!(changed(133, on), Change { ends: &[EF_RUN], after: Some((EF_RUN, EF_STOPRUN)), ..Change::default() });
-            assert_eq!((changed(134, on).begins, changed(134, on).sound), (&[EF_QUAKEBODY][..], "effect/t_벽튕김.wav"));
-        }
-        // The skill shows the footprints, or the blades of a stop while what follows the footprints runs.
-        assert!(begins(EF_RUN, |_| false) && !begins(EF_STOPEFFECT, |_| false));
-        assert!(!begins(EF_RUN, |effect| effect == EF_STOPRUN) && begins(EF_STOPEFFECT, |effect| effect == EF_STOPRUN));
-        assert!(!begins(EF_RUN, |effect| effect == EF_RUN));
-        assert!(begins(EF_CHOOKGI_N, |_| false) && !begins(EF_CHOOKGI_N, |effect| effect == EF_CHOOKGI_N));
-        assert!(begins(EF_REDBODY, |_| true));
-    }
-
-    #[test]
-    fn any_other_state_has_none() {
-        assert_eq!(changed(10, true), Change::default());
-    }
-
-    #[test]
-    fn one_who_comes_into_sight_shows_the_states_of_its_third_option() {
-        // A player with Fury and Steel Body on: each effect unless it runs already, the sound of Steel Body
-        // going by its body.
-        let player = seen(0x18, false, true);
-        assert_eq!(player.begins, [(EF_GUMGANG, EF_GUMGANG), (EF_STEELBODY, EF_STEELBODY), (EF_SU_STOOP, EF_STEELBODY)]);
-        assert!(player.ends.is_empty());
-        assert_eq!(seen(0x140, false, true).begins, [(EF_AURABLADE2, EF_AURABLADE2), (EF_LIGHTBLADE, EF_LIGHTBLADE)]);
-        assert_eq!(seen(0x800, false, true).begins, [(EF_ASSUMPTIO, EF_ASSUMPTIO)]);
-        // One who hides shows none of them.
-        assert_eq!(seen(0x18, true, true), Seen { ends: vec![EF_GUMGANG, EF_STEELBODY, EF_SU_STOOP, EF_DOUBLEGUMGANG], begins: Vec::new() });
-        // A monster's bits are others, and one not set ends its effect.
-        let monster = seen(0x6, false, false);
-        assert_eq!(monster.begins, [(EF_BABYBODY, EF_BABYBODY), (EF_ASURABODY_MONSTER, EF_ASURABODY_MONSTER)]);
-        assert_eq!(monster.ends, [EF_STEELBODY, EF_SU_STOOP, EF_ASSUMPTIO]);
-    }
-
-    #[test]
-    fn the_players_own_states_launch_their_effects_anew_on_arrival() {
-        assert_eq!(reapplied(86), &[EF_GUMGANG][..]);
-        assert_eq!((reapplied(2), reapplied(188)), (&[EF_MAKEBLUR][..], &[EF_MAKEBLUR][..]));
-        assert_eq!(reapplied(87), &[EF_STEELBODY, EF_SU_STOOP][..]);
-        // Aura Blade: the light of the weapon alone, not the walls the state began with.
-        assert_eq!((reapplied(103), changed(103, true).begins), (&[EF_AURABLADE2][..], &[EF_AURABLADE, EF_AURABLADE2][..]));
-        assert_eq!((reapplied(166), reapplied(232)), (&[EF_DOUBLEGUMGANG, EF_REDLIGHTBODY][..], &[EF_DOUBLEGUMGANG, EF_REDLIGHTBODY][..]));
-        // A Soul Link's body, which the state itself does not begin; Dark Crow three times over.
-        assert_eq!((reapplied(149), changed(149, true).begins), (&[EF_ASURABODY][..], &[][..]));
-        assert_eq!(reapplied(730).len(), 3);
-        // A state that is only ended as it changes, or one not drawn, launches nothing.
-        assert_eq!((reapplied(95), reapplied(133), reapplied(10)), (&[][..], &[][..], &[][..]));
-    }
-}
+mod tests;

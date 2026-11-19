@@ -1,21 +1,13 @@
-//! The inventory: what is carried, picked up, used, dropped, worn and taken off, and the hotkey bar.
+//! The inventory: what is carried, picked up, used, dropped, worn and taken off. (The hotkey bar:
+//! `incoming/hotkeys.rs`.)
 
 use super::*;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn item_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn inventory_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            // What the character carries. A list starts over with the packet that announces it.
-            items::ZC_INVENTORY_START => {
-                if packet.get(4) == Some(&0) {
-                    self.bag.items.clear();
-                    self.bag.favourites.clear();
-                }
-                if packet.get(4) == Some(&crate::net::storage::STORAGE) {
-                    self.storage_begun(packet);
-                }
-            }
+            items::ZC_INVENTORY_START => self.inventory_begun(packet),
             items::ZC_INVENTORY_ITEMLIST_NORMAL => {
                 self.bag.items.extend(items::stackable(packet));
                 self.bag.favourites.extend(items::favourite_stacks(packet));
@@ -28,64 +20,71 @@ impl App {
                 self.storage_listed(id, packet);
                 self.items_changed();
             }
-            // ZC_ITEMIDENTIFY_LIST (0x0177): `u16 length`, then the place in the inventory of each item not
-            // identified. A magnifier was used: they are listed to pick the one to identify (the client's
-            // `UIItemIdentifyWnd`).
-            0x0177 => {
-                self.bag.identify = Some(items::unidentified(packet));
-                self.bag.identify_picked = None;
-                self.render();
-            }
+            0x0177 => self.identify_listed(packet),
             0x0179 => self.identified(packet),
             items::ZC_ITEM_PICKUP_ACK => self.picked_up(packet),
             items::ZC_USE_ITEM_ACK => self.item_used(packet),
             items::ZC_DELETE_ITEM_FROM_BODY | items::ZC_ITEM_THROW_ACK => self.item_lost(id, packet),
             items::ZC_REQ_WEAR_EQUIP_ACK => self.put_on(packet),
-            items::ZC_REQ_TAKEOFF_EQUIP_ACK => {
-                if let Some(index) = items::taken_off(packet) {
-                    if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
-                        item.worn = 0;
-                    }
-                    self.items_changed();
-                } else {
-                    self.wearing_refused(items::take_off_refused(packet), false);
-                }
-            }
-            // A thing is kept under the inventory's tab "Fav" now, or no more.
-            items::ZC_INVENTORY_TAB => {
-                if let Some((index, kept)) = items::favourite_moved(packet) {
-                    self.bag.favourites.retain(|favourite| *favourite != index);
-                    if kept {
-                        self.bag.favourites.push(index);
-                    }
-                    self.redraw(&[&wnd::INVENTORY]);
-                }
-            }
-            // The server sends the list twice on coming in: the hotkey bar (tab 0), then the second bar (tab 1),
-            // which this client does not show yet. Only the first is this bar; taking the second for it too
-            // emptied the bar at every login.
-            items::ZC_SHORTCUT_KEY_LIST => {
-                if packet.get(3..5) == Some(&[0, 0]) {
-                    self.skills.hotkeys = items::hotkeys(packet);
-                    // What the bar's skills are called and which pictures are theirs.
-                    for hotkey in self.skills.hotkeys.clone().iter().filter(|hotkey| hotkey.skill && hotkey.id != 0) {
-                        data::want_skill(hotkey.id as u16, || dispatch(Action::ItemsKnown));
-                    }
-                    self.items_changed();
-                }
-            }
-            // ZC_EQUIP_ARROW (0x013c): the ammunition in use.
-            0x013c => {
-                if let Some(index) = items::ammunition(packet) {
-                    for item in self.bag.items.iter_mut().filter(|item| item.kind == 10) {
-                        item.worn = if item.index == index { 0x8000 } else { 0 };
-                    }
-                    self.refresh_items();
-                }
-            }
+            items::ZC_REQ_TAKEOFF_EQUIP_ACK => self.taken_off(packet),
+            items::ZC_INVENTORY_TAB => self.favourite_moved(packet),
+            0x013c => self.ammunition_told(packet),
             _ => return false,
         }
         true
+    }
+
+    /// What the character carries. A list starts over with the packet that announces it.
+    fn inventory_begun(&mut self, packet: &[u8]) {
+        if items::list_kind(packet) == Some(0) {
+            self.bag.items.clear();
+            self.bag.favourites.clear();
+        }
+        if items::list_kind(packet) == Some(crate::net::storage::STORAGE) {
+            self.storage_begun(packet);
+        }
+    }
+
+    /// ZC_ITEMIDENTIFY_LIST (0x0177): `u16 length`, then the place in the inventory of each item not
+    /// identified. A magnifier was used: they are listed to pick the one to identify (the client's
+    /// `UIItemIdentifyWnd`).
+    fn identify_listed(&mut self, packet: &[u8]) {
+        self.bag.identify = Some(items::unidentified(packet));
+        self.bag.identify_picked = None;
+        self.render();
+    }
+
+    /// ZC_REQ_TAKEOFF_EQUIP_ACK: a thing was taken off, or the server would not have it.
+    fn taken_off(&mut self, packet: &[u8]) {
+        if let Some(index) = items::taken_off(packet) {
+            if let Some(item) = self.bag.at_mut(index) {
+                item.worn = 0;
+            }
+            self.items_changed();
+        } else {
+            self.wearing_refused(items::take_off_refused(packet), false);
+        }
+    }
+
+    /// A thing is kept under the inventory's tab "Fav" now, or no more.
+    fn favourite_moved(&mut self, packet: &[u8]) {
+        if let Some((index, kept)) = items::favourite_moved(packet) {
+            self.bag.favourites.retain(|favourite| *favourite != index);
+            if kept {
+                self.bag.favourites.push(index);
+            }
+            self.redraw(&[&wnd::INVENTORY]);
+        }
+    }
+
+    /// ZC_EQUIP_ARROW (0x013c): the ammunition in use.
+    fn ammunition_told(&mut self, packet: &[u8]) {
+        if let Some(index) = items::ammunition(packet) {
+            for item in self.bag.items.iter_mut().filter(|item| item.kind == 10) {
+                item.worn = if item.index == index { 0x8000 } else { 0 };
+            }
+            self.refresh_items();
+        }
     }
 
     /// ZC_ACK_ITEMIDENTIFY (0x0179): `u16 index, u8 result`. Identified (0): the client says so in yellow
@@ -118,7 +117,7 @@ impl App {
             // What was picked up is told in the chat and shown for a moment, as the original does.
             self.bag.obtained = Some((gained.id, gained.amount, gained.identified));
             self.bag.obtained_at = js_sys::Date::now();
-            match self.bag.items.iter_mut().find(|item| item.index == gained.index) {
+            match self.bag.at_mut(gained.index) {
                 Some(item) if item.id == gained.id => item.amount += gained.amount,
                 // Another thing in a place the server has given anew: what lay there is gone without a word
                 // (what was given away in a deal that is being made: `incoming/exchange.rs`).
@@ -140,7 +139,7 @@ impl App {
                 world::burst(effect, (!own).then_some(who), None, 0.0);
             }
             if own {
-                if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+                if let Some(item) = self.bag.at_mut(index) {
                     item.amount = left;
                 }
                 self.bag.items.retain(|item| item.amount > 0);
@@ -158,7 +157,7 @@ impl App {
             if let Some((name, line)) = thrown.and_then(|item| Some((data::item_as(item.id, item.identified)?.0, data::message(1609)?))) {
                 self.chat_line_of(said::ITEM, crate::i18n::tr(&line).replacen("%s", &name, 1).replacen("%d", &count.to_string(), 1), CYAN);
             }
-            if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+            if let Some(item) = self.bag.at_mut(index) {
                 item.amount = item.amount.saturating_sub(count);
             }
             self.bag.items.retain(|item| item.amount > 0);
@@ -168,7 +167,7 @@ impl App {
 
     fn put_on(&mut self, packet: &[u8]) {
         if let Some((index, place)) = items::put_on(packet) {
-            if let Some(item) = self.bag.items.iter_mut().find(|item| item.index == index) {
+            if let Some(item) = self.bag.at_mut(index) {
                 item.worn = place;
             }
             self.items_changed();
@@ -213,5 +212,45 @@ impl App {
             let words = if said.with_share { words.replace("%d", &self.notices.overweight.to_string()) } else { words };
             self.chat_line_of(said::STATUS, words, if said.warning { RED } else { CYAN });
         }
+    }
+
+    /// Asks what the items carried and on the bar are called, and redraws their windows.
+    pub(in crate::web::app) fn items_changed(&self) {
+        let stored = self.storage.open.iter().flat_map(|storage| storage.items.iter().map(|item| item.id));
+        let ids = self.bag.items.iter().map(|item| item.id).chain(self.skills.hotkeys.iter().filter(|hotkey| !hotkey.skill).map(|hotkey| hotkey.id)).chain(stored);
+        data::want_items(ids, || dispatch(Action::ItemsKnown));
+        // The weapon in hand (bit 2 of where a thing is worn) is drawn on the character.
+        world::own_weapon(self.bag.items.iter().find(|item| item.worn & 2 != 0).map_or(0, |item| item.id));
+        self.refresh_items();
+        self.paint_figures();
+    }
+
+    /// Tells of the thing just picked up, once its name is known: a line in the chat, and a note on the screen.
+    pub(in crate::web::app) fn tell_obtained(&mut self) {
+        let Some((id, amount, identified)) = self.bag.obtained.filter(|_| !self.bag.told_obtained) else { return };
+        let Some((name, _)) = data::item_as(id, identified) else { return };
+        self.bag.told_obtained = true;
+        self.chat_line_of(said::ITEM, format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), YELLOW);
+        if let Some(note) = element("obtained") {
+            note.set_inner_html(&self.obtained_note());
+        }
+    }
+
+    /// The gateway told what some items are called: whatever names an item is written anew.
+    pub(in crate::web::app) fn items_known(&mut self) {
+        self.chat_links_named();
+        self.tell_obtained();
+        self.mvp_item_said();
+        self.tell_fed();
+        self.tell_homunculus_fed();
+        self.refresh_items();
+        self.redraw(&[&wnd::TRADE]);
+        self.redraw(&[&wnd::GUIDE]);
+        self.redraw(&[&wnd::QUEST_PANE]);
+        self.redraw(&[&wnd::MAIL_READ, &wnd::MAIL_WRITE]);
+        self.vending_redrawn();
+        self.redraw(&[&wnd::VIEW_EQUIP]);
+        self.redraw(&[&wnd::CHOOSE_PICTURED, &wnd::CHOOSE_LINE]);
+        self.paint_figures();
     }
 }

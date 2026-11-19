@@ -73,8 +73,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     #[test]
     fn a_scrap_waits_goes_out_lifting_and_fades() {

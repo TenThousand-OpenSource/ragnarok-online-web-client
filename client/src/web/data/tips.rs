@@ -28,9 +28,9 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         .unwrap_or_default()
         .into_iter()
         .map(|tip| Tip {
-            id: field(&tip, "id").as_f64().unwrap_or(0.0) as u32,
+            id: number(&tip, "id").unwrap_or(0.0) as u32,
             title: text_of(&tip, "title").unwrap_or_default(),
-            pages: js_sys::Array::from(&field(&tip, "pages")).iter().filter_map(|page| page.as_string()).collect(),
+            pages: texts(&field(&tip, "pages")),
         })
         .collect();
     TIPS.set(std::rc::Rc::new(tips));

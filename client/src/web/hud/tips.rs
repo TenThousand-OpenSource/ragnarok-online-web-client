@@ -90,7 +90,7 @@ impl App {
             pressed(Press::Startup),
             escape(&Self::words(3939, "Open on Startup"))
         ));
-        window.push_str(&pictured(415, 341, (60, 20), ["tipbox/btn_close_normal.bmp", "tipbox/btn_close_over.bmp", "tipbox/btn_close_press.bmp"], Press::Window, ""));
+        window.push_str(&pictured_by(Convention::NormalOverPress, 415, 341, (60, 20), "tipbox/btn_close", Press::Window, ""));
         window.push_str(&format!(r#"<div class="a t" style="{};text-align:center;line-height:20px;pointer-events:none;color:{BLACK}">{}</div>"#, at(415, 341, 60, 20), escape(&Self::words(1299, "Close"))));
         window
     }

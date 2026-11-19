@@ -66,6 +66,17 @@ mod tei;
 mod tint;
 mod turn;
 mod walls;
+/// What the tests of the primitives share.
+#[cfg(test)]
+pub(crate) mod testing {
+    /// The screen's two directions for a camera that looks north and level.
+    pub(crate) const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
+    pub(crate) const UP: [f32; 3] = [0.0, 1.0, 0.0];
+
+    pub(crate) fn close(a: f32, b: f32) -> bool {
+        (a - b).abs() < 0.001
+    }
+}
 #[cfg(test)]
 mod horn_tests;
 #[cfg(test)]

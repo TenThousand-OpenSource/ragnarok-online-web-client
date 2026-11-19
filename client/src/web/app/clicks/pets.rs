@@ -5,7 +5,7 @@ use crate::net::pets;
 
 impl App {
     /// A press of this system (`crate::press::pets`).
-    pub(super) fn pet_pressed(&mut self, press: crate::press::pets::Press) {
+    pub(super) fn pets_pressed(&mut self, press: crate::press::pets::Press) {
         use crate::press::pets::Press;
         match press {
             // A press on the slot machine starts its reels and asks the server for the catch.
@@ -95,5 +95,13 @@ impl App {
             socket.send(&pets::command(order));
         }
         self.redraw(&[&wnd::PET, &wnd::PET_ASKS]);
+    }
+
+    /// Three seconds after its trick the pet, one time in four, shows how it feels standing about (the
+    /// client's `CGameActor::ProcessState`).
+    pub(in crate::web::app) fn pet_idles(&mut self) {
+        if js_sys::Math::random() < 0.25 {
+            self.pet_feels(pets::moment::IDLE, None);
+        }
     }
 }

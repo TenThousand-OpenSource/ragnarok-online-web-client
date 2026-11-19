@@ -2,8 +2,6 @@
 //! white ground under it, the bar the buttons stand on, the frame of the system boxes, the cross in the
 //! corner, and the canvas a character is drawn into.
 
-// Not every one is taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
 
 use super::*;
 

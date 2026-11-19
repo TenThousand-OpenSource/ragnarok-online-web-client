@@ -89,7 +89,7 @@ impl App {
         match dragged {
             // The first of that item carried without being worn, as where one is dropped on the ground.
             Drag::Item(id) => {
-                if let Some((index, amount)) = self.bag.items.iter().find(|item| item.id == id && item.worn == 0).map(|item| (item.index, item.amount)) {
+                if let Some((index, amount)) = self.bag.first_unworn(id).map(|item| (item.index, item.amount)) {
                     self.cart_move(Carting::In(index), amount);
                 }
             }

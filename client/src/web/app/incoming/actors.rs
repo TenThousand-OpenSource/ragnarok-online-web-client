@@ -4,23 +4,10 @@ use super::*;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn unit_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn actors_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // Everyone else on the map: coming into sight, walking, and leaving it.
-            units::ZC_NOTIFY_STANDENTRY | units::ZC_NOTIFY_NEWENTRY | units::ZC_NOTIFY_MOVEENTRY => {
-                if let Some(unit) = units::unit(id, packet) {
-                    world::unit_shown(&unit);
-                    // A player that comes into being in sight (logged in, teleported in) arrives in the walls
-                    // of light of `EF_ENTRY2`, unless it is invisible (the client's reader of the packet).
-                    if id == units::ZC_NOTIFY_NEWENTRY && unit.kind == units::Kind::Player && unit.state & 0x40 == 0 {
-                        world::burst(344, Some(unit.id), None, 0.0);
-                    }
-                    // A player of a guild: its name and emblem are asked for (`incoming/guild.rs`).
-                    if unit.kind == units::Kind::Player {
-                        self.guild_looked_up(unit.id, unit.guild, u32::from(unit.emblem));
-                    }
-                }
-            }
+            units::ZC_NOTIFY_STANDENTRY | units::ZC_NOTIFY_NEWENTRY | units::ZC_NOTIFY_MOVEENTRY => self.unit_entered(id, packet),
             units::ZC_HP_INFO => {
                 if let Some((id, left, most)) = units::life(packet) {
                     world::unit_life(id, left, most);
@@ -65,33 +52,51 @@ impl App {
                 }
             }
             units::ZC_STATE_CHANGE => self.unit_stated(packet),
-            // ZC_NPCSPRITE_CHANGE (0x01b0): `u32 who, u8 kind, u32 class`. A monster becomes another (the server has
-            // a Fabre turn into a Pupa and a Pupa into a Creamy by itself, as a skill of theirs).
-            0x01b0 => {
-                if packet.len() >= 11 {
-                    let who = u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]);
-                    let class = u32::from_le_bytes([packet[7], packet[8], packet[9], packet[10]]);
+            // A monster becomes another (the server has a Fabre turn into a Pupa and a Pupa into a Creamy by
+            // itself, as a skill of theirs).
+            units::ZC_NPCSPRITE_CHANGE => {
+                if let Some((who, class)) = units::became(packet) {
                     world::unit_becomes(who, class as u16);
                 }
             }
-            0x0adf => Self::unit_named(packet),
+            units::ZC_ACK_REQNAMEALL_NPC => Self::unit_named(packet),
             units::ZC_SPRITE_CHANGE => self.look_changed(packet),
-            // The player's own character stands up again, and the window that offered the save point goes;
-            // another who lay dead stands up where it lay.
-            units::ZC_RESURRECTION => match units::risen(packet) {
-                Some(who) if Some(who) == self.account.as_ref().map(|account| account.account_id) => {
-                    self.hero.dead = false;
-                    self.esc = 0;
-                    world::own_dead(false);
-                    self.redraw(&[&wnd::DIALOG]);
-                    self.refresh_values();
-                }
-                Some(who) => world::risen(who),
-                None => {}
-            },
+            units::ZC_RESURRECTION => self.unit_risen(packet),
             _ => return false,
         }
         true
+    }
+
+    /// Someone comes into sight, standing, walking or coming into being there.
+    fn unit_entered(&mut self, id: u16, packet: &[u8]) {
+        if let Some(unit) = units::unit(id, packet) {
+            world::unit_shown(&unit);
+            // A player that comes into being in sight (logged in, teleported in) arrives in the walls
+            // of light of `EF_ENTRY2`, unless it is invisible (the client's reader of the packet).
+            if id == units::ZC_NOTIFY_NEWENTRY && unit.kind == units::Kind::Player && unit.state & 0x40 == 0 {
+                world::burst(344, Some(unit.id), None, 0.0);
+            }
+            // A player of a guild: its name and emblem are asked for (`incoming/guild.rs`).
+            if unit.kind == units::Kind::Player {
+                self.guild_looked_up(unit.id, unit.guild, u32::from(unit.emblem));
+            }
+        }
+    }
+
+    /// ZC_RESURRECTION: the player's own character stands up again, and the window that offered the save point
+    /// goes; another who lay dead stands up where it lay.
+    fn unit_risen(&mut self, packet: &[u8]) {
+        match units::risen(packet) {
+            Some(who) if Some(who) == self.account.as_ref().map(|account| account.account_id) => {
+                self.hero.dead = false;
+                self.esc = 0;
+                world::own_dead(false);
+                self.redraw(&[&wnd::DIALOG]);
+                self.refresh_values();
+            }
+            Some(who) => world::risen(who),
+            None => {}
+        }
     }
 
     /// ZC_STATE_CHANGE: the state someone is in changed: what they ride, whether they hide, how they ail.
@@ -152,7 +157,7 @@ impl App {
                 // The player's pet is out of sight (not teleported with its master: type 0): it is back
                 // in its egg, or it ran away. The server (rAthena) tells it no other way: its word of
                 // the egg, ZC_CHANGESTATE_PET type 6, says 0 only of a pet about to run away.
-                if id == self.pets.unit && packet.get(6) == Some(&0) {
+                if id == self.pets.unit && units::vanished_how(packet) == Some(0) {
                     (self.pets.pet, self.pets.unit, self.pets.open, self.pets.menu, self.pets.asks) = (None, 0, false, false, 0);
                     self.render();
                 }

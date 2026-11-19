@@ -33,15 +33,12 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     let commands = field(tables, "commands");
     // A gateway older than this table gives none: then there is no help and the options say nothing.
     HELP.set(field(&commands, "help").dyn_into::<js_sys::Array>().map(|lines| lines.iter().filter_map(|line| line.as_string()).collect()).unwrap_or_default());
-    let says = field(&commands, "says");
-    let Ok(says) = says.dyn_into::<js_sys::Object>() else { return };
     SAYS.set(
-        js_sys::Object::entries(&says)
-            .iter()
-            .filter_map(|entry| {
-                let entry: js_sys::Array = entry.dyn_into().ok()?;
-                let messages: js_sys::Array = entry.get(1).dyn_into().ok()?;
-                Some((entry.get(0).as_string()?, (messages.get(0).as_string()?, messages.get(1).as_string()?)))
+        entries::<String>(&field(&commands, "says"))
+            .into_iter()
+            .filter_map(|(option, messages)| {
+                let messages: js_sys::Array = messages.dyn_into().ok()?;
+                Some((option, (messages.get(0).as_string()?, messages.get(1).as_string()?)))
             })
             .collect(),
     );

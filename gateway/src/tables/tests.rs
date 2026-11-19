@@ -83,3 +83,33 @@ fn a_hash_table_is_its_fields_line_by_line() {
     let table = "// cards\n4001#Lucky#\n\n  4002#of Vitality#1#  \n4003##\n#\n";
     assert_eq!(hash_fields(table), [vec!["4001", "Lucky"], vec!["4002", "of Vitality", "1"], vec!["4003"], vec![""]]);
 }
+
+#[test]
+fn a_lua_value_becomes_json_a_list_or_an_object() {
+    let lua = ran("T = { list = { 'a', 2, 2.5, true }, object = { [1] = 'one', [3] = 'three', name = '\\187\\231\\176\\250', [2.5] = 'half' }, empty = {}, whole = 7.0, call = print }");
+    let json = json_of(&lua.globals().get::<Value>("T").unwrap());
+    assert_eq!(json["list"], serde_json::json!(["a", 2, 2.5, true]));
+    // A table with a gap or a name among its keys is an object, its keys written as texts.
+    assert_eq!(json["object"], serde_json::json!({ "1": "one", "3": "three", "name": "사과", "2.5": "half" }));
+    // An empty table is an object too; a whole number kept with a fraction is written whole; a function is nothing.
+    assert_eq!((&json["empty"], &json["whole"], &json["call"]), (&serde_json::json!({}), &serde_json::json!(7), &serde_json::Value::Null));
+    assert_eq!(json_of(&Value::Nil), serde_json::Value::Null);
+}
+
+#[test]
+fn korean_is_read_also_when_every_byte_was_widened() {
+    // "사과" as converted bytecode leaves it: each byte of the EUC-KR a character of its own.
+    let widened: String = [0xbbu8, 0xe7, 0xb0, 0xfa].iter().map(|byte| char::from(*byte)).collect();
+    assert_eq!(korean(widened.as_bytes()), "사과");
+    assert_eq!(korean(b"plain"), "plain");
+    assert_eq!(korean(b""), "");
+}
+
+#[test]
+fn the_global_tables_of_a_state_are_described() {
+    let lua = ran("B = { 1, 2, 3 } A = { name = 'x' } function F() end N = 5");
+    let lines = describe(&lua);
+    let own: Vec<&String> = lines.iter().filter(|line| line.starts_with("A:") || line.starts_with("B:") || line.starts_with("F:")).collect();
+    assert_eq!(own, ["A: 1 entries; \"name\" = \"x\"", "B: 3 entries; 1 = 1, 2 = 2, 3 = 3", "F: function"]);
+    assert!(!lines.iter().any(|line| line.starts_with("N:") || line.starts_with("print:") || line.starts_with("string:")));
+}

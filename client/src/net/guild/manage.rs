@@ -3,7 +3,7 @@
 //! (`clif_parse_GuildChangePositionInfo`, `clif_parse_GuildChangeMemberPosition`, `clif_parse_GuildChangeEmblem`,
 //! `clif_parse_GuildRequestAlliance`, `clif_parse_GuildOpposition`, `clif_parse_GuildDelAlliance` in `clif.cpp`).
 
-use super::{Position, field, long, text_at};
+use super::{Position, Writer, long, text_at};
 
 /// ZC_REQ_ALLY_GUILD (0x0171, 30 bytes): `u32 account, char guild[24]`: another guild's master asks for an
 /// alliance.
@@ -55,53 +55,46 @@ pub fn related_added(packet: &[u8]) -> Option<(u32, String, bool)> {
 /// CZ_REQ_ALLY_GUILD (0x0170, 14 bytes): `u32 account, u32 own_account, u32 own_character`: asks the master in
 /// sight for an alliance.
 pub fn ask_ally(account: u32, own_account: u32, own_character: u32) -> Vec<u8> {
-    [&[0x70, 0x01][..], &account.to_le_bytes(), &own_account.to_le_bytes(), &own_character.to_le_bytes()].concat()
+    Writer::new(0x0170).u32(account).u32(own_account).u32(own_character).done()
 }
 
 /// CZ_ALLY_GUILD (0x0172, 10 bytes): `u32 account, u32 answer`: the alliance that master asked for is taken (1)
 /// or not (0).
 pub fn answer_ally(account: u32, accept: bool) -> Vec<u8> {
-    [&[0x72, 0x01][..], &account.to_le_bytes(), &u32::from(accept).to_le_bytes()].concat()
+    Writer::new(0x0172).u32(account).u32(u32::from(accept)).done()
 }
 
 /// CZ_REQ_HOSTILE_GUILD (0x0180, 6 bytes): `u32 account`: the guild of that player in sight is opposed.
 pub fn oppose(account: u32) -> Vec<u8> {
-    [&[0x80, 0x01][..], &account.to_le_bytes()].concat()
+    Writer::new(0x0180).u32(account).done()
 }
 
 /// CZ_REQ_DELETE_RELATED_GUILD (0x0183, 10 bytes): `u32 guild, u32 relation`: an alliance (0) or an opposition
 /// (1) is ended.
 pub fn unrelate(guild: u32, opposed: bool) -> Vec<u8> {
-    [&[0x83, 0x01][..], &guild.to_le_bytes(), &u32::from(opposed).to_le_bytes()].concat()
+    Writer::new(0x0183).u32(guild).u32(u32::from(opposed)).done()
 }
 
 /// CZ_REG_CHANGE_GUILD_POSITIONINFO (0x0161): `u16 length`, then `u32 position, u32 mode, u32 ranking, u32 tax,
 /// char name[24]` each, as the client writes them (`MM_REQ_CHANGE_GUILD_POSITIONINFO`: the ranking is the
 /// position's own number, the name 23 letters at most).
 pub fn change_positions(positions: &[Position]) -> Vec<u8> {
-    let mut packet = vec![0x61, 0x01];
-    packet.extend(((4 + 40 * positions.len()) as u16).to_le_bytes());
+    let mut packet = Writer::sized(0x0161);
     for position in positions {
         let mode = u32::from(position.invites) | u32::from(position.expels) << 4 | u32::from(position.storage) << 8;
-        for number in [position.id, mode, position.id, position.tax] {
-            packet.extend(number.to_le_bytes());
-        }
-        packet.extend(field::<24>(&position.name));
+        packet = packet.u32(position.id).u32(mode).u32(position.id).u32(position.tax).field_whole_chars::<24>(&position.name);
     }
-    packet
+    packet.done()
 }
 
 /// CZ_REQ_CHANGE_MEMBERPOS (0x0155): `u16 length`, then `u32 account, u32 character, u32 position` each. The
 /// first position (0) hands the guild to that member (rAthena's `guild_gm_change`).
 pub fn move_members(moves: &[(u32, u32, u32)]) -> Vec<u8> {
-    let mut packet = vec![0x55, 0x01];
-    packet.extend(((4 + 12 * moves.len()) as u16).to_le_bytes());
+    let mut packet = Writer::sized(0x0155);
     for (account, character, position) in moves {
-        for number in [account, character, position] {
-            packet.extend(number.to_le_bytes());
-        }
+        packet = packet.u32(*account).u32(*character).u32(*position);
     }
-    packet
+    packet.done()
 }
 
 /// Why a file is not taken as an emblem.
@@ -151,12 +144,13 @@ pub fn emblem_packed(file: &[u8]) -> Result<Vec<u8>, EmblemFault> {
 
 /// CZ_REGISTER_GUILD_EMBLEM_IMG (0x0153): `u16 length`, then the emblem: a BMP packed with zlib.
 pub fn set_emblem(packed: &[u8]) -> Vec<u8> {
-    [&[0x53, 0x01][..], &((packed.len() + 4) as u16).to_le_bytes(), packed].concat()
+    Writer::sized(0x0153).bytes(packed).done()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::net::bytes::testing::field;
 
     /// A BMP of 24 by 24 at 24 bits, every pixel of one colour (blue first).
     fn bitmap(pixel: [u8; 3]) -> Vec<u8> {
@@ -175,10 +169,10 @@ mod tests {
 
     #[test]
     fn the_relations_are_read_and_written() {
-        let asked = [&[0x71, 0x01][..], &2_000_005u32.to_le_bytes(), &field::<24>("Owls")].concat();
+        let asked = [&[0x71, 0x01][..], &2_000_005u32.to_le_bytes(), &field("Owls", 24)].concat();
         assert_eq!(ally_asked(&asked), Some((2_000_005, "Owls".to_owned())));
         assert_eq!(unrelated(&[0x84, 0x01, 7, 0, 0, 0, 1, 0, 0, 0]), Some((7, true)));
-        let added = [&[0x85, 0x01][..], &[0, 0, 0, 0, 9, 0, 0, 0], &field::<24>("Owls")].concat();
+        let added = [&[0x85, 0x01][..], &[0, 0, 0, 0, 9, 0, 0, 0], &field("Owls", 24)].concat();
         assert_eq!(added.len(), 34);
         assert_eq!(related_added(&added), Some((9, "Owls".to_owned(), false)));
         assert_eq!(ask_ally(5, 6, 7), [0x70, 0x01, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0]);

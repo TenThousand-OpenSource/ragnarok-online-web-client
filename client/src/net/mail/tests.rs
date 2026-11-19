@@ -1,22 +1,27 @@
 use super::*;
+use crate::net::bytes::testing::{field, packet};
+
+/// A packet of a number, a letter's kind and its number, as the server answers about a letter.
+fn about(id: u16, tab: u8, letter: i64) -> Vec<u8> {
+    packet(id, &[&[tab], &letter.to_le_bytes()])
+}
+
+/// A packet of a number and a name of 24 bytes, with so many bytes more after it.
+fn named(id: u16, name: &str, more: usize) -> Vec<u8> {
+    packet(id, &[&field(name, 24), &vec![0; more]])
+}
 
 /// A row of the mailbox as the server writes it.
 fn row(tab: u8, id: i64, read: bool, has: u8, sender: &str, expires_in: u32, title: &str) -> Vec<u8> {
     let mut row = vec![tab];
     row.extend_from_slice(&id.to_le_bytes());
     row.extend_from_slice(&[u8::from(read), has]);
-    let mut name = [0u8; 24];
-    name[..sender.len()].copy_from_slice(sender.as_bytes());
-    row.extend_from_slice(&name);
+    row.extend_from_slice(&field(sender, 24));
     row.extend_from_slice(&expires_in.to_le_bytes());
     row.extend_from_slice(&(title.len() as u16 + 1).to_le_bytes());
     row.extend_from_slice(title.as_bytes());
     row.push(0);
     row
-}
-
-fn listed(tab: u8, id: i64, read: bool, sender: &str, title: &str) -> Listed {
-    Listed { tab, id, read, has: 0, sender: sender.to_owned(), expires_in: 600, title: title.to_owned() }
 }
 
 #[test]
@@ -85,9 +90,7 @@ fn reads_who_the_receiver_is() {
     packet.extend_from_slice(&150001u32.to_le_bytes());
     packet.extend_from_slice(&4008u16.to_le_bytes());
     packet.extend_from_slice(&99u16.to_le_bytes());
-    let mut name = [0u8; 24];
-    name[..3].copy_from_slice(b"Bob");
-    packet.extend_from_slice(&name);
+    packet.extend_from_slice(&field("Bob", 24));
     assert_eq!(receiver(&packet), Some(Receiver { character: 150001, job: 4008, level: 99, name: "Bob".to_owned() }));
 }
 
@@ -156,72 +159,6 @@ fn every_packet_of_the_mail_has_its_length() {
 }
 
 #[test]
-fn keeps_a_letter_it_has_as_it_is() {
-    let mut store = Store::default();
-    assert!(store.add(listed(0, 1, false, "Alice", "First"), 100.0, true));
-    assert!(!store.add(listed(0, 2, true, "Bob", "Second"), 100.0, false));
-    // The same letter listed again, now read, changes nothing and is not counted again.
-    assert!(!store.add(listed(0, 1, true, "Alice", "First"), 200.0, true));
-    assert_eq!(store.get(0, 1).map(|letter| (letter.read, letter.expires)), Some((false, 700.0)));
-    assert_eq!(store.get(1, 1), None);
-    // A kind the mailbox has not is not taken.
-    assert!(!store.add(listed(3, 9, false, "", ""), 100.0, true));
-}
-
-#[test]
-fn lists_what_is_not_read_first_and_then_the_newer() {
-    let mut store = Store::default();
-    for (id, read) in [(1, true), (2, false), (3, true), (4, false)] {
-        store.add(listed(0, id, read, "Alice", "Hello"), 0.0, true);
-    }
-    assert_eq!(store.listed(0, 1.0), [(0, 4), (0, 2), (0, 3), (0, 1)]);
-    // One whose time has run out is listed no more.
-    assert_eq!(store.listed(0, 600.0), []);
-    assert_eq!(store.last(0), 1);
-    assert_eq!(store.last(2), 0);
-    store.get_mut(0, 3).unwrap().gone = true;
-    store.purge();
-    assert_eq!(store.listed(0, 1.0), [(0, 4), (0, 2), (0, 1)]);
-}
-
-#[test]
-fn searches_every_kind_by_title_or_sender() {
-    let mut store = Store::default();
-    store.add(listed(0, 1, true, "Alice", "About the guild"), 0.0, true);
-    store.add(listed(1, 2, false, "Notice", "Guild war"), 0.0, true);
-    store.add(listed(2, 3, true, "Alice", "Returned"), 0.0, true);
-    assert_eq!(store.search(false, "uild", 1.0), [(1, 2), (0, 1)]);
-    assert_eq!(store.search(true, "Alice", 1.0), [(2, 3), (0, 1)]);
-    assert_eq!(store.search(true, "alice", 1.0), []);
-}
-
-#[test]
-fn colours_a_title_by_who_sent_it_and_whether_it_was_read() {
-    let letter = |known, read, gone| Letter { known, read, gone, ..Letter::default() };
-    assert_eq!(title_colour(tab::NORMAL, &letter(false, false, false)), "#ff0000");
-    assert_eq!(title_colour(tab::NORMAL, &letter(false, true, false)), "#e6c8c8");
-    assert_eq!(title_colour(tab::NORMAL, &letter(true, false, false)), "#000000");
-    assert_eq!(title_colour(tab::NORMAL, &letter(true, true, false)), "#c8c8c8");
-    assert_eq!(title_colour(tab::ACCOUNT, &letter(false, false, false)), "#000000");
-    assert_eq!(title_colour(tab::NORMAL, &letter(false, false, true)), "#c8c8c8");
-}
-
-#[test]
-fn says_how_long_a_letter_still_lies_there() {
-    assert_eq!(time_left(3 * 86400 + 5), (2852, "%d day", 3));
-    assert_eq!(time_left(86399), (2851, "%d hour", 23));
-    assert_eq!(time_left(3599), (2850, "%d minute", 59));
-    assert_eq!(time_left(30), (2850, "%d minute", 0));
-}
-
-#[test]
-fn counts_the_fee_and_reads_the_zeny_typed() {
-    assert_eq!(fee(0, 0), 0);
-    assert_eq!(fee(2, 1000), 5020);
-    assert_eq!(fee(0, 49), 0);
-    assert_eq!(zeny_typed("1,234,567"), 1234567);
-    assert_eq!(zeny_typed(" 50 "), 50);
-    assert_eq!(zeny_typed("12abc"), 12);
-    assert_eq!(zeny_typed("abc"), 0);
-    assert_eq!(zeny_typed(""), 0);
+fn reads_what_became_of_a_letter_sent() {
+    assert_eq!((sent(&[0xed, 0x09, 0]), sent(&[0xed, 0x09, 4]), sent(&[0xed, 0x09])), (Some(0), Some(4), None));
 }

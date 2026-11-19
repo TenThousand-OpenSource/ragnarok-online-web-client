@@ -26,7 +26,6 @@ impl App {
         for (place, column, row) in shown.iter().copied() {
             // A thing worn in two places (a two-handed weapon) shows in both.
             let Some(item) = items.iter().find(|item| item.worn & place != 0) else { continue };
-            let resource = data::item(item.id).map(|(_, resource)| resource);
             let (icon_x, name_x) = if column == 0 { (6, 33) } else { (251, 172) };
             places.push_str(&format!(
                 r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" {} data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
@@ -37,7 +36,7 @@ impl App {
                 if own { format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))) } else { String::new() },
                 item.id,
                 escape(&Self::item_name(item)),
-                Self::icon(resource.as_deref()),
+                Self::item_icon(item.id, true),
                 40 + row * 26,
                 if column == 0 { "" } else { "text-align:right" },
                 escape(&Self::item_name(item)),
@@ -49,9 +48,26 @@ impl App {
     /// What the character wears, laid out as the original's window (its sizes as rustnarok-client lists them):
     /// two columns of five places, the character between them. A double click on a place takes the thing off.
     pub(in crate::web) fn equipment_window(&self) -> String {
+        let mut window = self.equipment_frame();
+        if self.bag.costumes {
+            // On the page of costumes the client switches the "off" button off; here it is not drawn there.
+            window.push_str(&Self::worn_in(&self.bag.items, true, &COSTUMES));
+            return window;
+        }
+        window.push_str(&self.equipment_off_button());
+        // One who pushes a cart has the button of the cart's window here too (`hud/cart.rs`).
+        window.push_str(&self.cart_equipment_button());
+        window.push_str(&Self::worn_places(&self.bag.items, true));
+        window.push_str(&self.equipment_ammunition());
+        window
+    }
+
+    /// What both pages of the window have: the title, the row of the pages' tabs, the picture with the
+    /// character on it, and the box that lets others look.
+    fn equipment_frame(&self) -> String {
         let mut window = title_bar(280, "Equipment");
-        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Equipment));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;box-sizing:border-box"></div>"#, at(0, 17, 280, 20)));
+        window.push_str(&cross(280, Press::Equipment));
+        window.push_str(&side_rimmed(0, 17, 280, 20));
         window.push_str(&art("basic_interface/equipwin_bg2.bmp", 0, 37, 280, 150));
         // The pages (`UIEquipWnd::OnCreate`: a row of tabs 15 high under the title, the client's lines 1805
         // and 2419; its third, "Title", belongs to the achievements, which the classic game does not have).
@@ -73,65 +89,53 @@ impl App {
         }
         // Under it the window is 20 taller than the one that shows another's equipment (`UIEquipWnd::OnCreate`),
         // for the box that lets others look at this one (`hud/viewequip.rs`).
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;box-sizing:border-box"></div>"#, at(0, 187, 280, 20)));
+        window.push_str(&panel_ground(0, 187, 280, 20));
         window.push_str(&self.equipment_open_box(192));
         // The character stands on the shadow drawn into the picture.
-        window.push_str(&format!(
-            r#"<div class="a" style="{};overflow:hidden;pointer-events:none"><canvas id="pc-equip" width="{}" height="{}" style="position:absolute;left:0;top:-25px"></canvas></div>"#,
-            at(61, 37, super::super::figure::WIDTH as i32, 150),
-            super::super::figure::WIDTH,
-            super::super::figure::HEIGHT
-        ));
-        // The "off" button under the character (the client's `UIEquipWnd`: `btn_off.bmp`, 36 square, 18 left of the
-        // window's middle and 40 above its 167): it takes the character off its mount or out of its machine, or
-        // lets its falcon go, and says which when pointed at. It is there only while there is one of those to
-        // take away (the client's `IsEquipViewHidden` moves it out of the window otherwise).
-        // With a cart the client shows it too and it says "Take off Cart" (its line 223), or "Mounting/
-        // Dismounting" (3636) when there is a mount or a falcon as well (`UIEquipWnd::OnCreate`). On the page of
-        // costumes the client switches the button off; here it is not drawn there.
+        window.push_str(&figure_canvas("pc-equip", (61, 37, crate::web::figure::WIDTH as i32, 150), (0, -25)));
+        window
+    }
+
+    /// The "off" button under the character (the client's `UIEquipWnd`: `btn_off.bmp`, 36 square, 18 left of the
+    /// window's middle and 40 above its 167): it takes the character off its mount or out of its machine, or
+    /// lets its falcon go, and says which when pointed at. It is there only while there is one of those to
+    /// take away (the client's `IsEquipViewHidden` moves it out of the window otherwise).
+    /// With a cart the client shows it too and it says "Take off Cart" (its line 223), or "Mounting/
+    /// Dismounting" (3636) when there is a mount or a falcon as well (`UIEquipWnd::OnCreate`).
+    fn equipment_off_button(&self) -> String {
         let cart = self.pushes_cart();
         let says = match crate::mounts::off(self.hero.state).1 {
             Some(_) if cart => Some(3636),
             None if cart => Some(223),
             says => says,
         };
-        if self.bag.costumes {
-            window.push_str(&Self::worn_in(&self.bag.items, true, &COSTUMES));
-            return window;
-        }
-        if let Some(says) = says {
-            let tip = data::message(says).map(|line| format!(r#" data-tip="{}""#, escape(tr(&line)))).unwrap_or_default();
-            window.push_str(&format!(
-                r#"<button type="button" class="a" style="{};border:0;padding:0;background:url('{}') no-repeat" {}{tip}></button>"#,
-                at(122, 127, 36, 36),
-                picture("basic_interface/btn_off.bmp"),
-                pressed(Press::MountOff)
-            ));
-        }
-        // One who pushes a cart has the button of the cart's window here too (`hud/cart.rs`).
-        window.push_str(&self.cart_equipment_button());
-        window.push_str(&Self::worn_places(&self.bag.items, true));
-        // The arrows readied (`UIEquipWnd::Paint`, after the character is drawn, so over it): their picture
-        // with no number on it, 25 left of the window's middle and 44 under where its page begins (115, 64),
-        // and their name from the same 115 at 88, in lines no wider than 40 (`DrawItemIcon`, `DrawItemName`).
-        // The client does put both there, beside and over the character's head. A double click takes them off,
-        // as with anything worn.
-        if let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::net::items::WORN_AS_AMMO) {
-            let resource = data::item(item.id).map(|(_, resource)| resource);
-            window.push_str(&format!(
-                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{} : {} {}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
+        let Some(says) = says else { return String::new() };
+        let tip = data::message(says).map(|line| format!(r#" data-tip="{}""#, escape(tr(&line)))).unwrap_or_default();
+        format!(
+            r#"<button type="button" class="a" style="{};border:0;padding:0;background:url('{}') no-repeat" {}{tip}></button>"#,
+            at(122, 127, 36, 36),
+            picture("basic_interface/btn_off.bmp"),
+            pressed(Press::MountOff)
+        )
+    }
+
+    /// The arrows readied (`UIEquipWnd::Paint`, after the character is drawn, so over it): their picture
+    /// with no number on it, 25 left of the window's middle and 44 under where its page begins (115, 64),
+    /// and their name from the same 115 at 88, in lines no wider than 40 (`DrawItemIcon`, `DrawItemName`).
+    /// The client does put both there, beside and over the character's head. A double click takes them off,
+    /// as with anything worn.
+    fn equipment_ammunition(&self) -> String {
+        let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::net::items::WORN_AS_AMMO) else { return String::new() };
+        format!(
+            r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
                    <div class="a t" style="left:115px;top:88px;width:40px;line-height:12px;white-space:normal;overflow:hidden;max-height:24px;pointer-events:none">{}</div>"#,
-                // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
-                // begins the same drag); a double click takes it off.
-                format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))),
-                item.id,
-                escape(&Self::item_name(item)),
-                item.amount,
-                tr("ea"),
-                Self::icon(resource.as_deref()),
-                escape(&Self::item_name(item)),
-            ));
-        }
-        window
+            // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
+            // begins the same drag); a double click takes it off.
+            format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))),
+            item.id,
+            escape(&amount_tip(&Self::item_name(item), item.amount)),
+            Self::item_icon(item.id, true),
+            escape(&Self::item_name(item)),
+        )
     }
 }

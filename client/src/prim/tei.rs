@@ -60,6 +60,7 @@
 
 use super::*;
 
+mod drawn;
 mod part;
 mod rect;
 
@@ -245,144 +246,101 @@ pub enum Tei {
 impl Prim {
     /// One tick of the parts of a kind of this file.
     pub(super) fn tick_parts(&mut self, kind: Tei) {
-        match kind {
-            Tei::ShieldBoomerang3 => return self.fly_with_a_tail(),
-            Tei::Ripple => return self.ripple_rings(),
-            Tei::ShieldBoomerang => return self.fly_out_and_back(),
-            Tei::Drop => return self.drop_turning(),
-            Tei::Gust => return self.blow_as_gust(false),
-            Tei::GustRing => return self.blow_as_gust(true),
-            Tei::GustChase => return self.chase_as_gust(),
-            Tei::GustSwerve => return self.swerve_as_gust(),
-            Tei::DriftingSparks => return self.drift_as_lights(),
-            Tei::DriftingOrbs => return self.drift_as_sphere(),
-            _ => {}
+        if self.tick_whole(kind) {
+            return;
         }
+        let pictures = self.pictures.len();
         for (index, part) in self.parts.iter_mut().enumerate().filter(|(_, part)| part.live) {
-            let index = index as i32;
-            match kind {
-                Tei::FanBeam => part.open_as_beam(),
-                Tei::PentaRing => part.reach_as_streak(),
-                Tei::Wind => part.blow_as_wind(),
-                Tei::SphereWind => part.go_round(),
-                Tei::SphereWind2 => part.go_round_widening(),
-                Tei::FloorSquare => part.slide_as_square(),
-                Tei::StackedRings => part.spin_and_fade(),
-                Tei::Spread => part.spread_sparks(),
-                Tei::ShieldBoomerang3 | Tei::Ripple | Tei::ShieldBoomerang | Tei::Gust | Tei::GustRing | Tei::GustChase | Tei::GustSwerve => {}
-                Tei::Slash1 => part.shoot_as_slash(),
-                Tei::JitterSweep => part.shift_as_trail(index),
-                Tei::Electric => part.arc_as_lightning(),
-                Tei::Aura if index == 0 => part.glow_as_aura(),
-                Tei::Aura => {}
-                Tei::Twinkle => part.twinkle(),
-                Tei::DriftRing => part.drift_as_ring(),
-                Tei::ArcWall => part.ramp_up(),
-                Tei::GlowSquare => part.fall_as_dust(),
-                Tei::OrbitIcons | Tei::DoubleGumGang => part.float_as_signs(),
-                Tei::Peong => part.puff_out(),
-                Tei::PeongUp => part.puff_up(),
-                Tei::FlowerCast => part.breathe_as_petal(),
-                Tei::WanderingFlames => part.wander_as_flames(false),
-                Tei::WanderingFlames2 => part.wander_as_flames(true),
-                Tei::Sma => part.fly_as_sma(),
-                Tei::SpiralFade => part.circle_as_light(),
-                Tei::Forest => part.shine_as_shaft(index),
-                Tei::Sky => part.drift_as_cloud(),
-                Tei::Level99Glow => part.breathe_as_glow(),
-                Tei::Level99Swirl => part.turn_as_swirl(),
-                Tei::Level99Orb => part.rise_as_orb(),
-                Tei::TaperedQuad => part.draw_out(),
-                Tei::BladeFins => part.flash_and_fade(),
-                Tei::Hover if index == 0 => part.hover(),
-                Tei::Hover => {}
-                Tei::SoulLink => part.fly_as_soul(),
-                Tei::SoulParticle => part.drift_as_soul_sparks(),
-                Tei::AsuraCasting => part.flash_as_letter(),
-                Tei::RisingFan => part.rise_as_fan(),
-                Tei::SpiralBlade => part.collapse_in_a_spiral(),
-                Tei::FrameFade => part.fade_by_frames(self.pictures.len()),
-                Tei::Gi3 => part.rise_as_quarter(),
-                Tei::GrandCross2 => part.rise_as_box(),
-                Tei::Intimidate => part.fly_as_coin(),
-                Tei::ExpandPulse => part.shoot_as_plate(),
-                Tei::TeiHit2 => part.fly_as_fleck(),
-                Tei::Guard => part.guard(),
-                Tei::HitLine => part.bounce_as_spark(),
-                Tei::Magnum2 => part.flash_as_cone(),
-                Tei::Drop => {}
-                Tei::Columns => part.turn_as_columns(index),
-                Tei::LowRing => part.widen_as_low_ring(index),
-                Tei::Halo if index < 2 => part.breathe_as_halo(),
-                Tei::Halo => {}
-                Tei::HitLine3 => part.leap_as_spark(),
-                Tei::LineLink if index == 0 => part.follow_as_link(),
-                Tei::FirstAid if index == 0 => part.glitter_as_aid(),
-                Tei::Footprint if index == 0 => part.fade_as_print(),
-                Tei::FirstAid | Tei::Footprint | Tei::DriftingSparks => {}
-                Tei::DriftingOrbs => {}
-                Tei::LineLink => {}
-            }
+            part.tick_as(kind, index as i32, pictures);
         }
     }
 
-    /// The rectangles of a kind of this file now; none for any other kind. `right` and `up` are the screen's
-    /// two directions in the world, for the kinds that face it.
-    pub fn rects(&self, right: [f32; 3], up: [f32; 3]) -> Vec<Rect> {
-        let Shape::Tei(kind) = self.kind else { return Vec::new() };
-        let live = self.parts.iter().filter(|part| part.live);
+    /// One tick of a kind whose parts are ticked together, one looking at another; false for a kind whose
+    /// parts each live by themselves (`Part::tick_as`).
+    fn tick_whole(&mut self, kind: Tei) -> bool {
         match kind {
-            Tei::FanBeam => live.flat_map(|part| part.fan(self.picture)).collect(),
-            Tei::PentaRing => live.flat_map(|part| part.five_sides(self.picture)).collect(),
-            Tei::Wind => live.flat_map(|part| part.rising_arc(self.picture, self.size)).collect(),
-            Tei::SphereWind | Tei::SphereWind2 => live.flat_map(|part| part.tipped_band(self.picture, self.size)).collect(),
-            Tei::FloorSquare => live.flat_map(|part| part.level_square(self.picture)).collect(),
-            Tei::StackedRings => live.flat_map(|part| part.stacked_squares(self.picture)).collect(),
-            Tei::Spread | Tei::SoulParticle => live.flat_map(|part| part.sparks(self.picture, right, up)).collect(),
-            Tei::ShieldBoomerang3 => live.flat_map(|part| part.panel(self.picture, right, up)).collect(),
-            Tei::HitLine3 => live.flat_map(|part| part.bow(self.picture)).collect(),
-            Tei::LineLink => live.take(1).flat_map(|part| part.tube(self.picture)).collect(),
-            Tei::Ripple | Tei::Columns => live.flat_map(|part| part.casting(self.picture, self.size, 20)).collect(),
-            Tei::LowRing => live.flat_map(|part| part.casting(self.picture, self.size, 10)).collect(),
-            Tei::Halo | Tei::Footprint => self.parts.iter().enumerate().filter(|(_, part)| part.live).flat_map(|(number, part)| part.sized_square(self.picture, self.size, number as i32)).collect(),
-            Tei::Gi3 => self.parts.iter().enumerate().filter(|(_, part)| part.live).flat_map(|(number, part)| part.quarter(self.picture, number, self.size)).collect(),
-            Tei::GrandCross2 => live.flat_map(|part| part.open_box(self.picture)).collect(),
-            Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky => self.field_panels(right, up),
-            Tei::DriftingSparks => self.pillar_squares(right, up),
-            Tei::Level99Glow => self.level99_glows(right),
-            Tei::Level99Swirl => self.level99_swirls(right),
-            Tei::Level99Orb => self.level99_orbs(right, up),
-            Tei::DriftingOrbs => self.layered_glow(right, up),
-            Tei::HitLine => live.flat_map(|part| part.bouncing(self.picture)).collect(),
-            Tei::Magnum2 => live.flat_map(|part| part.cone(self.picture, self.size)).collect(),
-            Tei::Intimidate => live.filter_map(|part| part.coin(self.picture, right, up)).collect(),
-            Tei::ExpandPulse => live.filter_map(|part| part.plate(self.picture)).collect(),
-            Tei::Guard => live.flat_map(|part| part.cage(self.pictures)).collect(),
-            Tei::Slash1 => live.flat_map(|part| part.slash(self.picture)).collect(),
-            Tei::Gust | Tei::GustChase | Tei::GustSwerve => live.flat_map(|part| part.spinning_square(self.picture)).collect(),
-            Tei::GustRing => live.flat_map(|part| part.upright_square(self.picture)).collect(),
-            Tei::JitterSweep => self.jitter_sweeps(),
-            Tei::Electric => live.flat_map(|part| part.lightning_arc(self.picture)).collect(),
-            Tei::Aura => live.flat_map(|part| part.aura(self.picture, right, up)).collect(),
-            Tei::Twinkle => live.flat_map(|part| part.colour_panel(self.picture)).collect(),
-            Tei::DriftRing => self.trailing_arcs(),
-            Tei::SpiralBlade => live.flat_map(|part| part.blades(self.picture)).collect(),
-            Tei::AsuraCasting | Tei::RisingFan => live.flat_map(|part| part.halo_layers(self.pictures, self.picture, right, up)).collect(),
-            Tei::SoulLink => live.flat_map(|part| part.soul(self.picture, right, up)).collect(),
-            Tei::BladeFins => live.flat_map(|part| part.fins(self.picture)).collect(),
-            Tei::Hover => live.flat_map(|part| part.jitter_quad(self.picture, self.parts[0].flags[1], right, up)).collect(),
-            Tei::TaperedQuad => live.flat_map(|part| part.tapered_quad(self.picture, right, up)).collect(),
-            Tei::GlowSquare => live.flat_map(|part| part.glow_square(self.picture, right, up)).collect(),
-            Tei::OrbitIcons => live.flat_map(|part| part.orbit_icons(self.pictures, right, up)).collect(),
-            Tei::DoubleGumGang => live.flat_map(|part| part.double_signs(self.pictures, right, up)).collect(),
-            Tei::Peong => live.flat_map(|part| part.scrap(self.picture, right, up)).collect(),
-            Tei::PeongUp => live.flat_map(|part| part.rising_light(self.picture, right, up)).collect(),
-            Tei::FlowerCast => live.flat_map(|part| part.casting(self.picture, self.size, 20)).collect(),
-            Tei::WanderingFlames | Tei::WanderingFlames2 => live.flat_map(|part| part.twin_glows(self.picture, right, up)).collect(),
-            Tei::Sma | Tei::SpiralFade => Vec::new(),
-            Tei::Forest => live.flat_map(|part| part.slanting_shaft(self.picture)).collect(),
-            Tei::ArcWall => live.flat_map(|part| part.arc_walls(self.picture, self.size)).collect(),
-            Tei::FrameFade => live.flat_map(|part| part.aura(self.pictures.get(part.flags[0] as usize).copied().unwrap_or(self.picture), right, up)).collect(),
+            Tei::ShieldBoomerang3 => self.fly_with_a_tail(),
+            Tei::Ripple => self.ripple_rings(),
+            Tei::ShieldBoomerang => self.fly_out_and_back(),
+            Tei::Drop => self.drop_turning(),
+            Tei::Gust => self.blow_as_gust(false),
+            Tei::GustRing => self.blow_as_gust(true),
+            Tei::GustChase => self.chase_as_gust(),
+            Tei::GustSwerve => self.swerve_as_gust(),
+            Tei::DriftingSparks => self.drift_as_lights(),
+            Tei::DriftingOrbs => self.drift_as_sphere(),
+            _ => return false,
+        }
+        true
+    }
+}
+
+impl Part {
+    /// One tick of a living part of a kind whose parts each live by themselves: the part numbered `index`
+    /// of a primitive that has so many `pictures`.
+    fn tick_as(&mut self, kind: Tei, index: i32, pictures: usize) {
+        let part = self;
+        match kind {
+            Tei::FanBeam => part.open_as_beam(),
+            Tei::PentaRing => part.reach_as_streak(),
+            Tei::Wind => part.blow_as_wind(),
+            Tei::SphereWind => part.go_round(),
+            Tei::SphereWind2 => part.go_round_widening(),
+            Tei::FloorSquare => part.slide_as_square(),
+            Tei::StackedRings => part.spin_and_fade(),
+            Tei::Spread => part.spread_sparks(),
+            Tei::Slash1 => part.shoot_as_slash(),
+            Tei::JitterSweep => part.shift_as_trail(index),
+            Tei::Electric => part.arc_as_lightning(),
+            Tei::Aura if index == 0 => part.glow_as_aura(),
+            Tei::Aura => {}
+            Tei::Twinkle => part.twinkle(),
+            Tei::DriftRing => part.drift_as_ring(),
+            Tei::ArcWall => part.ramp_up(),
+            Tei::GlowSquare => part.fall_as_dust(),
+            Tei::OrbitIcons | Tei::DoubleGumGang => part.float_as_signs(),
+            Tei::Peong => part.puff_out(),
+            Tei::PeongUp => part.puff_up(),
+            Tei::FlowerCast => part.breathe_as_petal(),
+            Tei::WanderingFlames => part.wander_as_flames(false),
+            Tei::WanderingFlames2 => part.wander_as_flames(true),
+            Tei::Sma => part.fly_as_sma(),
+            Tei::SpiralFade => part.circle_as_light(),
+            Tei::Forest => part.shine_as_shaft(index),
+            Tei::Sky => part.drift_as_cloud(),
+            Tei::Level99Glow => part.breathe_as_glow(),
+            Tei::Level99Swirl => part.turn_as_swirl(),
+            Tei::Level99Orb => part.rise_as_orb(),
+            Tei::TaperedQuad => part.draw_out(),
+            Tei::BladeFins => part.flash_and_fade(),
+            Tei::Hover if index == 0 => part.hover(),
+            Tei::Hover => {}
+            Tei::SoulLink => part.fly_as_soul(),
+            Tei::SoulParticle => part.drift_as_soul_sparks(),
+            Tei::AsuraCasting => part.flash_as_letter(),
+            Tei::RisingFan => part.rise_as_fan(),
+            Tei::SpiralBlade => part.collapse_in_a_spiral(),
+            Tei::FrameFade => part.fade_by_frames(pictures),
+            Tei::Gi3 => part.rise_as_quarter(),
+            Tei::GrandCross2 => part.rise_as_box(),
+            Tei::Intimidate => part.fly_as_coin(),
+            Tei::ExpandPulse => part.shoot_as_plate(),
+            Tei::TeiHit2 => part.fly_as_fleck(),
+            Tei::Guard => part.guard(),
+            Tei::HitLine => part.bounce_as_spark(),
+            Tei::Magnum2 => part.flash_as_cone(),
+            Tei::Columns => part.turn_as_columns(index),
+            Tei::LowRing => part.widen_as_low_ring(index),
+            Tei::Halo if index < 2 => part.breathe_as_halo(),
+            Tei::Halo => {}
+            Tei::HitLine3 => part.leap_as_spark(),
+            Tei::LineLink if index == 0 => part.follow_as_link(),
+            Tei::FirstAid if index == 0 => part.glitter_as_aid(),
+            Tei::Footprint if index == 0 => part.fade_as_print(),
+            Tei::FirstAid | Tei::Footprint => {}
+            Tei::LineLink => {}
+            // Ticked whole (`Prim::tick_whole`).
+            Tei::ShieldBoomerang3 | Tei::Ripple | Tei::ShieldBoomerang | Tei::Drop | Tei::Gust | Tei::GustRing | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs => {}
         }
     }
 }

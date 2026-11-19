@@ -49,9 +49,9 @@ impl App {
             .lines
             .iter()
             .enumerate()
-            .map(|(index, (line, [red, green, blue]))| {
+            .map(|(index, (line, colour))| {
                 let line = if index + 1 == told.time { line.replacen("%s", &time, 1) } else { line.clone() };
-                format!(r#"<div style="color:rgb({red},{green},{blue});min-height:11px;margin-bottom:4px;white-space:nowrap">{}</div>"#, escape(&line))
+                format!(r#"<div style="color:{};min-height:11px;margin-bottom:4px;white-space:nowrap">{}</div>"#, crate::said::colour::css(*colour), escape(&line))
             })
             .collect();
         format!(

@@ -140,10 +140,7 @@ pub(super) fn bodies(state: &mut State, touches: &[(Option<u32>, crate::body::To
         mover.ail.body.clear();
     }
     for (on, touch, fresh) in touches {
-        let Some(mover) = (match on {
-            Some(id) => scene.units.get_mut(id),
-            None => Some(&mut scene.player),
-        }) else {
+        let Some(mover) = scene.mover_mut(*on) else {
             continue;
         };
         mover.ail.body.touch(touch, *fresh);
@@ -185,10 +182,7 @@ pub(super) struct Ghost {
 pub(super) fn copies_left(state: &mut State, copies: &[(Option<u32>, Vector, [u8; 3], crate::body::copies::Kind)], time: f64) {
     let Some(scene) = &state.scene else { return };
     for (of, from, colour, kind) in copies {
-        let Some(mover) = (match of {
-            Some(id) => scene.units.get(id),
-            None => Some(&scene.player),
-        }) else {
+        let Some(mover) = scene.mover(*of) else {
             continue;
         };
         let moves = mover.walk.is_some() || mover.motion.is_some_and(|(_, began, _)| began <= time);

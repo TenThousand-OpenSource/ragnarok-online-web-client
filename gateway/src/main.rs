@@ -2,6 +2,8 @@
 //!
 //! - `GET /assets/<client path>`: a file out of the client's GRF archives, read on demand.
 //! - `GET /image/<client path>`: a picture out of the GRF, as a PNG the browser can show (see `images`).
+//! - `GET /tables.json`, `/tables/…`: the client's tables for the browser (see `tables`); these three are the
+//!   routes of `routes.rs`.
 //! - `GET /bgm/<file>`: the client's loose BGM folder.
 //! - `GET /ws/<port>`: a WebSocket bridged to a TCP connection to the game server (see `bridge`).
 //! - `POST /api/register`, `/api/recover`, `/api/reset`: accounts and lost passwords (see `accounts`).
@@ -9,160 +11,23 @@
 //!
 //! Reached from outside (a tunnel, a proxy), it asks for an invitation word and counts visitors by their own
 //! addresses (see `public`).
+//!
+//! Here: the start-up, and what is done instead of serving when the command line asks for it (`told`). The
+//! options and the commands of the command line are in `config.rs`.
 
-use roweb_gateway::{accounts, bridge, grf, images, mapcache, public, tables};
+use roweb_gateway::{accounts, bridge, grf, mapcache, public, tables};
 
 use std::net::SocketAddr;
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use axum::Router;
-use axum::extract::{Path, State};
-use axum::http::{StatusCode, header};
-use axum::response::{IntoResponse, Response};
-use axum::routing::get;
+use axum::http::header;
 use tower_http::services::ServeDir;
 
-/// The server's item database that goes with the rules it plays by: `server/.env`, written by `rules.sh`, says
-/// which (`ROWEB_PRERE=no` is Renewal); without it, the classic one.
-fn rules_database() -> PathBuf {
-    let renewal = std::fs::read_to_string("server/.env").is_ok_and(|env| env.lines().any(|line| line.trim() == "ROWEB_PRERE=no"));
-    if renewal { "../rathena/db/re" } else { "../rathena/db/pre-re" }.into()
-}
+mod config;
+mod routes;
 
-struct Config {
-    client_dir: PathBuf,
-    web_dir: PathBuf,
-    listen: SocketAddr,
-    server_host: String,
-    server_ports: Vec<u16>,
-    accounts: accounts::Config,
-    /// rAthena's item database folder, for the items' names.
-    item_database: PathBuf,
-    /// Whether what is sent is compressed for browsers that take it (`--compress on|off`). Off where something
-    /// in front of the gateway (a proxy, a CDN) does that itself.
-    compress: bool,
-    /// Whether the client's own files, asked for by their build (`?v=…`), may be kept by the browser for good
-    /// (`--cache-client on|off`). Off, they are asked for anew each time, as the page always is.
-    cache_client: bool,
-    /// The word a browser must give before anything is served to it (`--invite-file <file>`: the file holds
-    /// the word, so that it is not in the list of running programs); none, and everyone is served.
-    invite: Option<String>,
-    /// Whether a proxy or a tunnel stands in front (`--behind-proxy on|off`): then a visitor's address is the
-    /// one it reports, not its own.
-    behind_proxy: bool,
-    /// A debug delay on everything that goes between a browser and the game server, each way (`--lag
-    /// <milliseconds>`, and `--jitter <milliseconds>` for a random part on top of it): for looking at the game
-    /// as a player far away has it. None unless given. Never for the gateway others play through
-    /// (`public.sh`): it delays everyone.
-    lag: bridge::Lag,
-}
-
-struct App {
-    grf: grf::Grf,
-    /// The client's tables for the browser, as JSON.
-    tables: String,
-    items: tables::Items,
-    /// What the client says of each skill, by skill ID.
-    skill_texts: std::collections::HashMap<u32, Vec<String>>,
-    /// The skills' names and descriptions in Russian, from the translation files.
-    skills_russian: tables::Translated,
-    /// The client's folder: the scripts of a homunculus and a mercenary are read from beside its archives.
-    client_dir: PathBuf,
-}
-
-fn config() -> Result<(Config, Option<String>), String> {
-    let mut config = Config {
-        client_dir: "../Feb-Client-CLEAN".into(),
-        web_dir: "client/dist".into(),
-        listen: "127.0.0.1:8080".parse().unwrap(),
-        server_host: "127.0.0.1".into(),
-        server_ports: vec![6900, 6121, 5121],
-        // The server is built for the classic game (see server/docker-compose.yml): its databases are these.
-        item_database: rules_database(),
-        compress: true,
-        cache_client: true,
-        invite: None,
-        behind_proxy: false,
-        lag: bridge::Lag::default(),
-        // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.
-        accounts: accounts::Config {
-            database_url: "mysql://ragnarok:ragnarok@127.0.0.1:3306/ragnarok".into(),
-            smtp_url: "smtp://127.0.0.1:1025".into(),
-            mail_from: "Ragnarok 2026 <no-reply@localhost>".into(),
-            public_url: "http://localhost:8080".into(),
-        },
-    };
-    let mut command = None;
-    let mut args = std::env::args().skip(1);
-    while let Some(arg) = args.next() {
-        let mut value = || args.next().ok_or_else(|| format!("{arg} needs a value"));
-        match arg.as_str() {
-            "--client-dir" => config.client_dir = value()?.into(),
-            "--web-dir" => config.web_dir = value()?.into(),
-            "--listen" => config.listen = value()?.parse().map_err(|error| format!("--listen: {error}"))?,
-            "--server-host" => config.server_host = value()?,
-            "--server-ports" => {
-                config.server_ports =
-                    value()?.split(',').map(|port| port.trim().parse()).collect::<Result<_, _>>().map_err(|error| format!("--server-ports: {error}"))?;
-            }
-            "--item-database" => config.item_database = value()?.into(),
-            "--compress" => config.compress = switch(&arg, &value()?)?,
-            "--cache-client" => config.cache_client = switch(&arg, &value()?)?,
-            "--behind-proxy" => config.behind_proxy = switch(&arg, &value()?)?,
-            // Debug only, never on a gateway others play through: see `Config::lag`.
-            "--lag" => config.lag.fixed = milliseconds(&arg, &value()?)?,
-            "--jitter" => config.lag.jitter = milliseconds(&arg, &value()?)?,
-            "--invite-file" => {
-                let file = value()?;
-                let word = std::fs::read_to_string(&file).map_err(|error| format!("--invite-file {file}: {error}"))?;
-                if word.trim().len() < 8 {
-                    return Err(format!("--invite-file {file}: the word must be at least 8 characters"));
-                }
-                config.invite = Some(word);
-            }
-            "--database-url" => config.accounts.database_url = value()?,
-            "--smtp-url" => config.accounts.smtp_url = value()?,
-            "--mail-from" => config.accounts.mail_from = value()?,
-            "--public-url" => config.accounts.public_url = value()?,
-            // Debug commands: `stats`, `ls <substring>`.
-            "stats" => command = Some(String::new()),
-            "ls" => command = Some(value()?),
-            // `lua <file>,<file>`: runs datainfo files of the client and lists the tables they leave.
-            "lua" => command = Some(format!("lua:{}", value()?)),
-            // `dump <file>,<file> <global>`: runs those files and prints that table of theirs as JSON.
-            "dump" => command = Some(format!("dump:{}:{}", value()?, value()?)),
-            // `mapcache <file>`: writes the server's map cache from the client's maps (for rAthena's db/import).
-            "mapcache" => command = Some(format!("mapcache:{}", value()?)),
-            // `items <id>,<id>`: prints what the item table says of those items.
-            "items" => command = Some(format!("items:{}", value()?)),
-            // `tables`: prints what the browser client is given of the client's tables.
-            "tables" => command = Some("tables:".to_owned()),
-            // `chat-tabs`: prints the client's table of the chat window's tabs.
-            "chat-tabs" => command = Some("chat-tabs:".to_owned()),
-            _ => return Err(format!("unknown argument {arg}")),
-        }
-    }
-    // The debug delay is for one's own machine: a gateway opened to others does not start with it.
-    if (!config.lag.fixed.is_zero() || !config.lag.jitter.is_zero()) && (config.invite.is_some() || config.behind_proxy) {
-        return Err("--lag and --jitter are debug options: not with --invite-file or --behind-proxy".to_owned());
-    }
-    Ok((config, command))
-}
-
-/// The value of an option that is a time in milliseconds.
-fn milliseconds(option: &str, value: &str) -> Result<std::time::Duration, String> {
-    value.parse().map(std::time::Duration::from_millis).map_err(|error| format!("{option}: {error}"))
-}
-
-/// The value of an option that is either on or off.
-fn switch(option: &str, value: &str) -> Result<bool, String> {
-    match value {
-        "on" => Ok(true),
-        "off" => Ok(false),
-        other => Err(format!("{option}: on or off, not {other}")),
-    }
-}
+use config::{Command, Config};
 
 /// What of the gateway's answers is worth compressing: not what is small, and not what is compressed already
 /// (PNG and JPEG pictures, music). Maps, tables, the client itself and the client's BMP pictures are.
@@ -176,46 +41,76 @@ fn worth_compressing() -> impl tower_http::compression::Predicate {
         .and(NotForContentType::SSE)
 }
 
-/// What the gateway was asked on its command line instead of serving: the map cache written, the tables for
-/// the browser, some items, what a Lua file of the client leaves, or the files of the archives whose path has
-/// those words.
-fn told(grf: &grf::Grf, config: &Config, filter: &str) {
-    if let Some(path) = filter.strip_prefix("mapcache:") {
-        let written = std::fs::File::create(path).and_then(|file| mapcache::write(&grf, std::io::BufWriter::new(file)));
-        match written {
-            Ok(count) => println!("{path}: {count} maps"),
-            Err(error) => {
-                eprintln!("{path}: {error}");
-                std::process::exit(1);
+/// Does what the gateway was asked on its command line instead of serving (`config::Command`).
+fn told(grf: &grf::Grf, config: &Config, command: Command) {
+    let run = |files: &str| tables::run(grf, &files.split(',').collect::<Vec<_>>());
+    match command {
+        Command::MapCache(path) => {
+            let written = std::fs::File::create(&path).and_then(|file| mapcache::write(grf, std::io::BufWriter::new(file)));
+            match written {
+                Ok(count) => println!("{path}: {count} maps"),
+                Err(error) => {
+                    eprintln!("{path}: {error}");
+                    std::process::exit(1);
+                }
             }
         }
-    } else if filter == "tables:" {
-        println!("{}", tables::for_browser(&grf, &config.client_dir, &config.item_database));
-    } else if filter == "chat-tabs:" {
-        println!("{}", tables::chat_tabs(&grf));
-    } else if let Some(ids) = filter.strip_prefix("items:") {
-        println!("{}", tables::Items::load(&grf).with_server_names(&config.item_database).with_english(&config.client_dir).json(ids.split(',').filter_map(|id| id.parse().ok())));
-    } else if let Some((files, global)) = filter.strip_prefix("dump:").and_then(|dump| dump.rsplit_once(':')) {
-        let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
-        println!("{}", tables::json_of(&lua.globals().get::<mlua::Value>(global).unwrap_or(mlua::Value::Nil)));
-    } else if let Some(files) = filter.strip_prefix("lua:") {
-        let lua = tables::run(&grf, &files.split(',').collect::<Vec<_>>());
-        tables::describe(&lua).iter().for_each(|line| println!("{line}"));
-    } else if filter.is_empty() {
-        println!("{} files", grf.len());
-        for (flags, count) in grf.flag_counts() {
-            println!("flags {flags:#04x}: {count}");
+        Command::Tables => println!("{}", tables::for_browser(grf, &config.client_dir, &config.item_database)),
+        Command::ChatTabs => println!("{}", tables::chat_tabs(grf)),
+        Command::Items(ids) => {
+            let items = tables::Items::load(grf).with_server_names(&config.item_database).with_english(&config.client_dir);
+            println!("{}", items.json(ids.split(',').filter_map(|id| id.parse().ok())));
         }
+        Command::Dump { files, global } => println!("{}", tables::json_of(&run(&files).globals().get::<mlua::Value>(global).unwrap_or(mlua::Value::Nil))),
+        Command::Lua(files) => tables::describe(&run(&files)).iter().for_each(|line| println!("{line}")),
+        Command::Stats => {
+            println!("{} files", grf.len());
+            for (flags, count) in grf.flag_counts() {
+                println!("flags {flags:#04x}: {count}");
+            }
+        }
+        Command::List(words) => {
+            let mut paths: Vec<_> = grf.paths().filter(|path| path.contains(&words.to_lowercase())).collect();
+            paths.sort();
+            paths.iter().for_each(|path| println!("{path}"));
+        }
+    }
+}
+
+/// The client itself, out of its folder. The page is asked for anew each time: a browser keeping an older build
+/// would run it against a newer page. The files the page names by their build (`?v=…`) never change under that
+/// name, so they may be kept, where the configuration lets them.
+fn client(web_dir: &std::path::Path, cache_client: bool) -> Router {
+    Router::new().fallback_service(ServeDir::new(web_dir)).layer(axum::middleware::from_fn(move |request: axum::extract::Request, next: axum::middleware::Next| async move {
+        let by_build = cache_client && request.uri().query().is_some_and(|query| query.starts_with("v="));
+        let mut response = next.run(request).await;
+        let keep = if by_build && response.status().is_success() { "public, max-age=31536000, immutable" } else { "no-cache" };
+        response.headers_mut().insert(header::CACHE_CONTROL, axum::http::HeaderValue::from_static(keep));
+        response
+    }))
+}
+
+/// What stands before everything the gateway serves: who a visitor from outside is and whether they were
+/// invited, and the compressing of what is sent.
+fn guarded(router: Router, invite: Option<&str>, behind_proxy: bool, compress: bool) -> Router {
+    // What is asked of a visitor from outside comes before everything else: first who they are, then whether
+    // they were invited.
+    let router = match invite {
+        Some(word) => router.layer(axum::middleware::from_fn_with_state(Arc::new(public::Invite::new(word, behind_proxy)), public::invited)),
+        None => router,
+    };
+    let router = if behind_proxy { router.layer(axum::middleware::from_fn(public::behind_proxy)) } else { router };
+    // Compressed as it is sent, and quickly: the maps are megabytes of mostly the same bytes.
+    if compress {
+        router.layer(tower_http::compression::CompressionLayer::new().quality(tower_http::CompressionLevel::Fastest).compress_when(worth_compressing()))
     } else {
-        let mut paths: Vec<_> = grf.paths().filter(|path| path.contains(&filter.to_lowercase())).collect();
-        paths.sort();
-        paths.iter().for_each(|path| println!("{path}"));
+        router
     }
 }
 
 #[tokio::main]
 async fn main() {
-    let (config, command) = config().unwrap_or_else(|error| {
+    let (config, command) = config::config().unwrap_or_else(|error| {
         eprintln!("{error}");
         std::process::exit(2);
     });
@@ -224,8 +119,8 @@ async fn main() {
         std::process::exit(1);
     });
 
-    if let Some(filter) = command {
-        return told(&grf, &config, &filter);
+    if let Some(command) = command {
+        return told(&grf, &config, command);
     }
 
     // The first port is the login server's.
@@ -236,47 +131,13 @@ async fn main() {
         eprintln!("{error}");
         std::process::exit(2);
     });
-    // The client itself. The page is asked for anew each time: a browser keeping an older build would run it
-    // against a newer page. The files the page names by their build (`?v=…`) never change under that name, so
-    // they may be kept, where the configuration lets them.
-    let cache_client = config.cache_client;
-    let client = Router::new().fallback_service(ServeDir::new(&config.web_dir)).layer(axum::middleware::from_fn(move |request: axum::extract::Request, next: axum::middleware::Next| async move {
-        let by_build = cache_client && request.uri().query().is_some_and(|query| query.starts_with("v="));
-        let mut response = next.run(request).await;
-        let keep = if by_build && response.status().is_success() { "public, max-age=31536000, immutable" } else { "no-cache" };
-        response.headers_mut().insert(header::CACHE_CONTROL, axum::http::HeaderValue::from_static(keep));
-        response
-    }));
-    let router = Router::new()
-        .route("/assets/{*path}", get(asset))
-        .route("/image/{*path}", get(image))
-        .route("/tables.json", get(client_tables))
-        .route("/tables/items/{ids}", get(client_items))
-        .route("/tables/skills/{ids}", get(client_skills))
-        .route("/tables/ru/items/{ids}", get(client_items_russian))
-        .route("/tables/ru/skills/{ids}", get(client_skills_russian))
-        .route("/tables/ru/skill-names.json", get(client_skill_names_russian))
-        .route("/tables/items.ko/{ids}", get(client_items_korean))
-        .route("/tables/ai.json", get(client_ai))
-        .route("/tables/ai-user.json", get(client_ai_user))
-        .with_state(Arc::new(App { tables: tables::for_browser(&grf, &config.client_dir, &config.item_database).to_string(), items, skill_texts: tables::skill_texts(&grf), skills_russian: tables::translated(std::path::Path::new("translations/ru"), "skills"), client_dir: config.client_dir.clone(), grf }))
+    let client = client(&config.web_dir, config.cache_client);
+    let router = routes::router(routes::App::new(grf, items, &config.client_dir, &config.item_database))
         .merge(bridge::router(bridge::Bridge { host: config.server_host, ports: config.server_ports, login_guard: Some(login_guard.clone()), connections_per_minute: 60, lag: config.lag }))
         .merge(accounts)
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
         .merge(client);
-    // What is asked of a visitor from outside comes before everything else: first who they are, then whether
-    // they were invited.
-    let router = match &config.invite {
-        Some(word) => router.layer(axum::middleware::from_fn_with_state(Arc::new(public::Invite::new(word, config.behind_proxy)), public::invited)),
-        None => router,
-    };
-    let router = if config.behind_proxy { router.layer(axum::middleware::from_fn(public::behind_proxy)) } else { router };
-    // Compressed as it is sent, and quickly: the maps are megabytes of mostly the same bytes.
-    let router = if config.compress {
-        router.layer(tower_http::compression::CompressionLayer::new().quality(tower_http::CompressionLevel::Fastest).compress_when(worth_compressing()))
-    } else {
-        router
-    };
+    let router = guarded(router, config.invite.as_deref(), config.behind_proxy, config.compress);
 
     let listener = tokio::net::TcpListener::bind(config.listen).await.unwrap_or_else(|error| {
         eprintln!("{}: {error}", config.listen);
@@ -287,97 +148,4 @@ async fn main() {
         eprintln!("gateway: DEBUG DELAY on everything to and from the game server: {} ms and up to {} ms more, each way", config.lag.fixed.as_millis(), config.lag.jitter.as_millis());
     }
     axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
-}
-
-async fn asset(State(app): State<Arc<App>>, Path(path): Path<String>) -> Response {
-    // Pictures the browser can show by itself say what they are.
-    let lower = path.to_ascii_lowercase();
-    let kind = if lower.ends_with(".jpg") || lower.ends_with(".jpeg") {
-        "image/jpeg"
-    } else if lower.ends_with(".wav") {
-        "audio/wav"
-    } else if lower.ends_with(".png") {
-        "image/png"
-    } else {
-        "application/octet-stream"
-    };
-    let read = tokio::task::spawn_blocking(move || app.grf.read(&path)).await.unwrap();
-    match read {
-        // Game data never changes under a path while the gateway runs, so the browser may keep it.
-        Ok(bytes) => ([(header::CONTENT_TYPE, kind), (header::CACHE_CONTROL, "public, max-age=86400")], bytes).into_response(),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => StatusCode::NOT_FOUND.into_response(),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
-    }
-}
-
-async fn image(State(app): State<Arc<App>>, Path(path): Path<String>) -> Response {
-    let converted = tokio::task::spawn_blocking(move || app.grf.read(&path).map(|bytes| images::to_png(&path, &bytes))).await.unwrap();
-    match converted {
-        Ok(Ok(png)) => ([(header::CONTENT_TYPE, "image/png"), (header::CACHE_CONTROL, "public, max-age=86400")], png).into_response(),
-        Ok(Err(error)) => (StatusCode::UNSUPPORTED_MEDIA_TYPE, error).into_response(),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => StatusCode::NOT_FOUND.into_response(),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
-    }
-}
-
-/// `GET /tables/ai.json`: the client's own scripts for a homunculus and a mercenary (`tables/ai.rs`), read as
-/// they are asked for: a player changes them while the gateway runs.
-async fn client_ai(State(app): State<Arc<App>>) -> Response {
-    let scripts = tokio::task::spawn_blocking(move || tables::ai_scripts(&app.client_dir, false)).await.unwrap();
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], scripts).into_response()
-}
-
-/// `GET /tables/ai-user.json`: those and the player's own under `USER_AI`.
-async fn client_ai_user(State(app): State<Arc<App>>) -> Response {
-    let scripts = tokio::task::spawn_blocking(move || tables::ai_scripts(&app.client_dir, true)).await.unwrap();
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], scripts).into_response()
-}
-
-async fn client_tables(State(app): State<Arc<App>>) -> Response {
-    // Asked for anew every time: the tables change with the gateway, and a stale copy would hide what was added.
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.tables.clone()).into_response()
-}
-
-/// `GET /tables/items.ko/<id>,<id>,…`: the Korean names and descriptions of those items (the client's own table),
-/// kept apart from the English shown.
-async fn client_items_korean(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
-    let ids = ids.split(',').take(400).filter_map(|id| id.parse().ok());
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.items.korean_json(ids).to_string()).into_response()
-}
-
-/// `GET /tables/ru/items/<id>,<id>,…`: those items in Russian (see `Items::russian_json`).
-async fn client_items_russian(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
-    let ids = ids.split(',').take(400).filter_map(|id| id.parse().ok());
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.items.russian_json(ids).to_string()).into_response()
-}
-
-/// `GET /tables/ru/skills/<id>,…`: the Russian descriptions of those skills; a skill with none gets the client's.
-async fn client_skills_russian(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
-    let found: serde_json::Map<String, serde_json::Value> = ids
-        .split(',')
-        .take(100)
-        .filter_map(|id| id.parse::<u32>().ok())
-        .filter_map(|id| app.skills_russian.get(&id).map(|(_, lines)| lines).filter(|lines| !lines.is_empty()).or_else(|| app.skill_texts.get(&id)).map(|lines| (id.to_string(), serde_json::json!(lines))))
-        .collect();
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], serde_json::Value::from(found).to_string()).into_response()
-}
-
-/// `GET /tables/ru/skill-names.json`: what the translated skills are called in Russian, by ID.
-async fn client_skill_names_russian(State(app): State<Arc<App>>) -> Response {
-    let names: serde_json::Map<String, serde_json::Value> = app.skills_russian.iter().filter(|(_, (name, _))| !name.is_empty()).map(|(id, (name, _))| (id.to_string(), name.as_str().into())).collect();
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], serde_json::Value::from(names).to_string()).into_response()
-}
-
-/// `GET /tables/skills/<id>,<id>,…`: the client's descriptions of those skills, line by line.
-async fn client_skills(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
-    let found: serde_json::Map<String, serde_json::Value> =
-        ids.split(',').take(100).filter_map(|id| id.parse::<u32>().ok()).filter_map(|id| app.skill_texts.get(&id).map(|lines| (id.to_string(), serde_json::json!(lines)))).collect();
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], serde_json::Value::from(found).to_string()).into_response()
-}
-
-/// `GET /tables/items/<id>,<id>,…`: the names and pictures of those items.
-async fn client_items(State(app): State<Arc<App>>, Path(ids): Path<String>) -> Response {
-    // At most a few hundred at once: an inventory holds a hundred.
-    let ids = ids.split(',').take(400).filter_map(|id| id.parse().ok());
-    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], app.items.json(ids).to_string()).into_response()
 }

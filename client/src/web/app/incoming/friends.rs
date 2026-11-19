@@ -7,7 +7,7 @@ use crate::net::friends;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn friend_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn friends_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // The whole list, told on entering: everyone is out of the game until the server says otherwise.
             friends::ZC_FRIENDS_LIST => {

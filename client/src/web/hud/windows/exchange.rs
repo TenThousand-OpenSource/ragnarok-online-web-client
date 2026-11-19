@@ -5,15 +5,13 @@ use super::*;
 
 /// The window of a deal between two players, where the client opens it (`CUIExchangeUI::OnInit`): 100 across
 /// its 640-wide stage, 100 of 480 down. Escape calls the deal off, as its Cancel does.
-pub(in crate::web) static EXCHANGE: Window = Window {
-    id: "exchange",
-    open: |app| app.exchange.open,
-    frame: |_, view| staged(view, 100, 100, 560, 377),
-    draw: App::exchange_window,
-    order: ordered(|app| app.exchange.open, |app| app.pressed(crate::press::exchange::Press::Cancel)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static EXCHANGE: Window = Window::usual(
+    "exchange",
+    |app| app.exchange.open,
+    |_, view| staged(view, 100, 100, 560, 377),
+    App::exchange_window,
+    |app| app.pressed(crate::press::exchange::Press::Cancel),
+);
 
 /// The question whether to deal, in the client's message box: 200 of 480 down the middle of the screen.
 pub(in crate::web) static EXCHANGE_ASKS: Window = Window::question("exchange-asks", |app| app.exchange.asked.is_some(), App::exchange_question);

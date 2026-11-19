@@ -125,8 +125,7 @@ mod tests {
         assert!((prim.slots[0].heights[1] - 32.55).abs() < 0.001);
     }
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// A streak towards the east (the client's angle 0), 15 to the side, its tail 110 along (10 past the
     /// middle), 20 long and 1 wide: a quarter turn back from east is the client's 270, towards -z, the south.

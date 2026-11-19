@@ -18,7 +18,7 @@ impl App {
                     world::state_effects((Some(change.who) != self.account.as_ref().map(|account| account.account_id)).then_some(change.who), u32::from(change.state), change.on);
                     // Playing dead (EFST_TRICKDEAD, 29) lays anyone down.
                     if change.state == 29 {
-                        world::plays_dead(change.who, self.account.as_ref().map_or(0, |account| account.account_id), change.on);
+                        world::plays_dead(change.who, self.own_account(), change.on);
                     }
                     if Some(change.who) == self.account.as_ref().map(|account| account.account_id) {
                         self.state_changed(&change);

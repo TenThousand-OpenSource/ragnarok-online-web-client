@@ -141,8 +141,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     fn one(kind: Tei, mode: i8, out: f32) -> Prim {
         let mut prim = Prim::new(Shape::Tei(kind), "priest_spell.bmp");

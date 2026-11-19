@@ -6,11 +6,7 @@
 
 /// The lines of `commands.txt` of one sort, each as its two fields after the first.
 fn lines(sort: &'static str) -> impl Iterator<Item = (&'static str, &'static str)> {
-    include_str!("commands.txt").lines().filter_map(move |line| {
-        let mut fields = line.split('\t');
-        (fields.next() == Some(sort)).then_some(())?;
-        Some((fields.next()?, fields.next()?))
-    })
+    crate::tables::sorted(include_str!("commands.txt"), sort).filter_map(|fields| Some((*fields.first()?, *fields.get(1)?)))
 }
 
 /// What a command asks for, by the client's name for it (`CSession::GetTalkType`): commands are told apart

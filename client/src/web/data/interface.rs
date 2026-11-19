@@ -61,12 +61,12 @@ pub fn option_starts(id: &str) -> bool {
     OPTIONS.with_borrow(|options| options.iter().find(|option| option.id == id).is_some_and(|option| option.on))
 }
 
-/// A line of the client's message table, by the number the client's code knows it by.
 /// Whether the server plays by Renewal's rules; by the classic game's until the tables are read.
 pub fn renewal() -> bool {
     RENEWAL.get()
 }
 
+/// A line of the client's message table, by the number the client's code knows it by.
 pub fn message(line: usize) -> Option<String> {
     MESSAGES.with_borrow(|messages| messages.get(line).cloned())
 }
@@ -116,12 +116,12 @@ pub fn emotion_name(id: u16) -> Option<String> {
 /// window, its keys, its emotions.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     CHAT_TABS.set(
-        js_sys::Array::from(&field(tables, "chat_tabs"))
+        list(&field(tables, "chat_tabs"))
             .iter()
-            .map(|tab| js_sys::Array::from(&field(&tab, "shows")).iter().map(|shown| shown.as_bool().unwrap_or(false)).collect())
+            .map(|tab| list(&field(tab, "shows")).iter().map(|shown| shown.as_bool().unwrap_or(false)).collect())
             .collect(),
     );
-    CHAT_TAB_NAMES.set(js_sys::Array::from(&field(tables, "chat_tabs")).iter().map(|tab| text_of(&tab, "name").unwrap_or_default()).collect());
+    CHAT_TAB_NAMES.set(list(&field(tables, "chat_tabs")).iter().map(|tab| text_of(tab, "name").unwrap_or_default()).collect());
     RENEWAL.set(field(tables, "renewal").as_bool().unwrap_or(false));
     MESSAGES.set(field(tables, "messages").dyn_into::<js_sys::Array>().map(|lines| lines.iter().map(|line| line.as_string().unwrap_or_default()).collect()).unwrap_or_default());
     OPTIONS.set(
@@ -130,30 +130,26 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .map(|list| list.to_vec())
             .unwrap_or_default()
             .into_iter()
-            .map(|option| {
-                let flag = |name: &str| js_sys::Reflect::get(&option, &name.into()).ok().and_then(|flag| flag.as_bool()).unwrap_or(false);
-                GameOption {
-                    id: text_of(&option, "id").unwrap_or_default(),
-                    tab: js_sys::Reflect::get(&option, &"tab".into()).ok().and_then(|tab| tab.as_f64()).unwrap_or(0.0) as u8,
-                    run: flag("run"),
-                    title: text_of(&option, "title").unwrap_or_default(),
-                    description: text_of(&option, "description").unwrap_or_default(),
-                    on: flag("on"),
-                }
+            .map(|option| GameOption {
+                id: text_of(&option, "id").unwrap_or_default(),
+                tab: number(&option, "tab").unwrap_or(0.0) as u8,
+                run: flag(&option, "run"),
+                title: text_of(&option, "title").unwrap_or_default(),
+                description: text_of(&option, "description").unwrap_or_default(),
+                on: flag(&option, "on"),
             })
             .collect(),
     );
     let keys = field(tables, "hotkeys");
-    let part = |of: &wasm_bindgen::JsValue, name: &str| js_sys::Reflect::get(of, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
     let listed = |of: wasm_bindgen::JsValue| of.dyn_into::<js_sys::Array>().map(|list| list.to_vec()).unwrap_or_default();
     HOTKEYS.set(
-        listed(part(&keys, "tables"))
+        listed(field(&keys, "tables"))
             .into_iter()
             .map(|entries| {
                 listed(entries)
                     .into_iter()
                     .map(|entry| {
-                        let chord = listed(part(&entry, "keys"));
+                        let chord = listed(field(&entry, "keys"));
                         let number = |at: usize| chord.get(at).and_then(|number| number.as_f64()).unwrap_or(0.0) as u16;
                         (text_of(&entry, "name").unwrap_or_default(), crate::hotkeys::Chord { key: number(0), with: number(1) })
                     })
@@ -161,15 +157,16 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             })
             .collect(),
     );
-    KEY_NAMES.set(entries::<u16>(&part(&keys, "names")).into_iter().filter_map(|(key, name)| Some((key, name.as_string()?))).collect());
+    KEY_NAMES.set(entries::<u16>(&field(&keys, "names")).into_iter().filter_map(|(key, name)| Some((key, name.as_string()?))).collect());
     let emotions = entries::<u16>(&field(tables, "emotions"));
-    EMOTIONS.set(emotions.iter().filter_map(|(id, about)| Some((*id, (text_of(about, "sprite")?, js_sys::Reflect::get(about, &"action".into()).ok()?.as_f64()? as usize)))).collect());
+    // What is typed after a slash to show an emotion, as the gateway lists it; none when it lists nothing.
+    let names_of = |about: &wasm_bindgen::JsValue| field(about, "names").dyn_into::<js_sys::Array>().ok();
+    EMOTIONS.set(emotions.iter().filter_map(|(id, about)| Some((*id, (text_of(about, "sprite")?, number(about, "action")? as usize)))).collect());
     EMOTION_FIRST_NAMES.set(
         emotions
             .iter()
             .filter_map(|(id, about)| {
-                let names = js_sys::Reflect::get(about, &"names".into()).ok().and_then(|names| names.dyn_into::<js_sys::Array>().ok())?;
-                Some((*id, names.get(0).as_string()?))
+                Some((*id, names_of(about)?.get(0).as_string()?))
             })
             .collect(),
     );
@@ -177,7 +174,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         emotions
             .iter()
             .flat_map(|(id, about)| {
-                let names = js_sys::Reflect::get(about, &"names".into()).ok().and_then(|names| names.dyn_into::<js_sys::Array>().ok()).map(|names| names.to_vec()).unwrap_or_default();
+                let names = names_of(about).map(|names| names.to_vec()).unwrap_or_default();
                 names.into_iter().filter_map(|name| name.as_string()).map(|name| (name.to_lowercase(), *id)).collect::<Vec<_>>()
             })
             .collect(),

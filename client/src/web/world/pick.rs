@@ -36,17 +36,27 @@ pub(super) fn touched(gpu: &Gpu, scene: &Scene, view: &View, unit: &Mover, point
     let least = 40.0 * height / 480.0;
     let texture = gpu.sprite_textures.get(unit.shown.as_ref()?)?;
     let feet = on_ground(&scene.gat, unit.at);
+    let inside = within(corners(view, feet, texture)?, least, (width, height), pointer);
+    let under = view.project(feet)?;
+    inside.then_some((under.0 * width, under.1 * height))
+}
+
+/// Two opposite corners of a picture standing with its feet at a place, as the view shows them (parts of the
+/// screen); nothing for one behind the camera.
+fn corners(view: &View, feet: Vector, texture: &gpu::SpriteTexture) -> Option<((f32, f32), (f32, f32))> {
     let corner = |x: f32, y: f32| view.project(along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE));
-    let (low, high) = (corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?);
-    // The rectangle, grown evenly about its middle where it is smaller than the least.
+    Some((corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?))
+}
+
+/// Whether a point of the page is in the rectangle between two such corners, the page being so wide and
+/// high: the rectangle grown evenly about its middle where it is smaller than the `least`.
+fn within((low, high): ((f32, f32), (f32, f32)), least: f32, (width, height): (f32, f32), pointer: (f32, f32)) -> bool {
     let span = |low: f32, high: f32| {
         let (low, high) = (low.min(high), low.max(high));
         let short = (least - (high - low)).max(0.0) / 2.0;
         low - short..=high + short
     };
-    let inside = span(low.0 * width, high.0 * width).contains(&pointer.0) && span(low.1 * height, high.1 * height).contains(&pointer.1);
-    let under = view.project(feet)?;
-    inside.then_some((under.0 * width, under.1 * height))
+    span(low.0 * width, high.0 * width).contains(&pointer.0) && span(low.1 * height, high.1 * height).contains(&pointer.1)
 }
 
 /// The thing on the ground a point of the page is on. The client's way (`CItem::SetRenderInfo`): the rectangle
@@ -65,18 +75,10 @@ pub(super) fn lying_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32
             let resource = data::item_as(*item, *identified).map(|(_, resource)| resource).unwrap_or_default();
             let key = SpriteKey::Creature(format!("아이템/{}", if resource.is_empty() { "사과" } else { resource.as_str() }), 0, 0);
             let (low, high) = match gpu.sprite_textures.get(&key) {
-                Some(texture) => {
-                    let corner = |x: f32, y: f32| view.project(along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE));
-                    (corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?)
-                }
+                Some(texture) => corners(view, feet, texture)?,
                 None => (under, under),
             };
-            let span = |low: f32, high: f32| {
-                let (low, high) = (low.min(high), low.max(high));
-                let short = (least - (high - low)).max(0.0) / 2.0;
-                low - short..=high + short
-            };
-            let inside = span(low.0 * width, high.0 * width).contains(&pointer.0) && span(low.1 * height, high.1 * height).contains(&pointer.1);
+            let inside = within((low, high), least, (width, height), pointer);
             inside.then(|| (dot(subtract(feet, view.eye), view.forward), *id))
         })
         .min_by(|a, b| a.0.total_cmp(&b.0))

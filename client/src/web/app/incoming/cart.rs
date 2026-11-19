@@ -20,7 +20,7 @@ impl App {
                 return false;
             }
             items::ZC_INVENTORY_START => {
-                if packet.get(4) == Some(&cart::LIST) {
+                if items::list_kind(packet) == Some(cart::LIST) {
                     self.cart.items.clear();
                 }
                 return false;

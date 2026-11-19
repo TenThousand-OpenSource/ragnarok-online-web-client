@@ -87,9 +87,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     /// A spark as `WhiteSparks` launches one, to leap east, 10 far at its first leap's half.
     fn spark(wait: i32) -> Prim {

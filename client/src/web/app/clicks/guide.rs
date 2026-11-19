@@ -83,4 +83,10 @@ impl App {
             }
         });
     }
+
+    /// A monster's picture for the guide was made.
+    pub(in crate::web::app) fn guide_picture_read(&mut self, id: u32, picture: (String, (usize, usize), (f32, f32))) {
+        self.guide.pictures.insert(id, picture);
+        self.redraw(&[&wnd::GUIDE]);
+    }
 }

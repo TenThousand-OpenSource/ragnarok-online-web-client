@@ -21,19 +21,16 @@ pub(in crate::web) static TAMING: Window = Window {
 };
 
 /// The list of eggs to hatch: 200 by 200, where the client opens it.
-pub(in crate::web) static EGGS: Window =
-    Window { id: "eggs", open: |app| app.pets.eggs.is_some(), frame: |_, view| middle(view, 200, 200), draw: App::egg_window, order: None, layer: Layer::Asks, drawn: None };
+pub(in crate::web) static EGGS: Window = Window::pick("eggs", |app| app.pets.eggs.is_some(), App::egg_window);
 
 /// The pet window, where the client opens it: 185 across its 640-wide stage, 60 above 400 of 480 down.
-pub(in crate::web) static PET: Window = Window {
-    id: "pet",
-    open: |app| app.pets.open && app.pets.pet.is_some(),
-    frame: |_, view| framed(format!("left:{}px;top:{}px;width:280px", (view.0 as i32 - 640) / 2 + 185, view.1 as i32 * 400 / 480 - 60)),
-    draw: App::pet_window,
-    order: ordered(|app| app.pets.open && app.pets.pet.is_some(), switched_off!(pets.open)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static PET: Window = Window::usual(
+    "pet",
+    |app| app.pets.open && app.pets.pet.is_some(),
+    |_, view| framed(format!("left:{}px;top:{}px;width:280px", (view.0 as i32 - 640) / 2 + 185, view.1 as i32 * 400 / 480 - 60)),
+    App::pet_window,
+    switched_off!(pets.open),
+);
 
 /// What the pet window asks before it acts, in the middle of the screen.
 pub(in crate::web) static PET_ASKS: Window = Window {

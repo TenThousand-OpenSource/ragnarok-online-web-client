@@ -48,6 +48,13 @@ pub struct Slot {
 }
 
 impl Slot {
+    /// Counts a tick of its life, and says whether it still waits: a part whose count the effect started
+    /// under nothing does nothing until the count is over nothing (as `tei::Part::waits`).
+    pub(super) fn waits(&mut self) -> bool {
+        self.process += 1;
+        self.process <= 0
+    }
+
     /// A wall as the effects launch one: all the way round, nothing of it showing yet.
     pub fn wall(turned: i32, out: f32, rise: i32, tall: f32, holds: i32) -> Self {
         Self { live: true, process: 0, alpha: 0, out, turned, round: 360, rise, tall, holds, heights: [0.0; 21], at: [0.0; 3], climbs: 0.0, drifts: 0.0, flashes: false, flashing: false }
@@ -110,8 +117,7 @@ impl Slot {
     /// 3 a tick, ending at nothing. One that flashes shows its second picture at two ticks, the 35th and 36th
     /// for the first part and 7 earlier for each part after.
     fn rise_as_mote(&mut self, index: i32) {
-        self.process += 1;
-        if self.process <= 0 {
+        if self.waits() {
             return;
         }
         self.round -= 5;

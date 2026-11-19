@@ -1,8 +1,6 @@
 //! The colours the windows share, as the page takes them. A colour only one window has is written in that
 //! window's file; the colours of the chat's lines are `crate::said::colour`.
 
-// Not every one is taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
 
 pub(in crate::web) const BLACK: &str = "#000";
 pub(in crate::web) const WHITE: &str = "#fff";

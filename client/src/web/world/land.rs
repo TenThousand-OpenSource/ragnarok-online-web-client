@@ -5,6 +5,9 @@
 use super::*;
 use crate::model::{Light, Placement};
 
+/// How many pictures the water runs through, and how many world units one of them covers.
+pub(super) const WATER_FRAMES: usize = 32;
+
 /// The corners of the triangles drawn with one picture: so many corners, each its place, where of the picture
 /// it shows, the light on it and the way its face looks out (`CORNER` numbers); and whether the picture has
 /// an alpha of its own, to be mixed with what is behind it (a TGA: the client's `A4R4G4B4` textures; a BMP is

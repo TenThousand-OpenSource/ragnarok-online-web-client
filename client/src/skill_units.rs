@@ -17,9 +17,10 @@
 //! An effect on a unit ends with the unit (the actor tells its effects `AM_MASTER_DEAD` as it goes).
 //!
 //! The kinds of the first and second jobs are here as far as their effects are drawn; `shows` says nothing for
-//! the others, which then show nothing:
+//! the others, which then show no effect:
 //!
-//! - Graffiti (176), which comes in a packet of its own;
+//! - Graffiti (176), which comes in a packet of its own (ZC_SKILL_ENTRY2) and of which only the words are
+//!   shown, over the unit (`web/world/written.rs`);
 //! - the kind 134, which the server shows instead of a unit that is not to be seen and for which the client
 //!   has nothing either; and every kind of the later jobs, most of which the client hands to its
 //!   `CSkillActionMgr`.

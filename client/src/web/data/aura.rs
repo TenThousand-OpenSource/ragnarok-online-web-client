@@ -16,10 +16,10 @@ pub fn aura_table() -> crate::aura::Table {
 /// Takes its table out of what the gateway gave.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     let aura = field(tables, "aura");
-    let number = |name: &str| field(&aura, name).as_f64().unwrap_or(0.0);
+    let level = |name: &str| number(&aura, name).unwrap_or(0.0) as u16;
     let pair = |name: &str| -> [u32; 2] {
-        let pair = js_sys::Array::from(&field(&aura, name));
-        [0, 1].map(|index| pair.get(index).as_f64().unwrap_or(0.0) as u32)
+        let pair = list(&field(&aura, name));
+        [0, 1].map(|index| pair.get(index).and_then(|effect| effect.as_f64()).unwrap_or(0.0) as u32)
     };
-    TABLE.set(crate::aura::Table { highest: number("highest") as u16, homunculus: number("homunculus") as u16, plain: pair("plain"), baby: pair("baby"), high: pair("high") });
+    TABLE.set(crate::aura::Table { highest: level("highest"), homunculus: level("homunculus"), plain: pair("plain"), baby: pair("baby"), high: pair("high") });
 }

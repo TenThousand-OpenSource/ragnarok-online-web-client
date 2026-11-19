@@ -34,7 +34,7 @@ impl App {
     /// 530 wide is that long, and it is not done here.)
     pub(in crate::web) fn book_window(&self) -> String {
         let Some(open) = &self.books.open else { return String::new() };
-        let [red, green, blue] = open.book.paper.unwrap_or([255, 255, 255]);
+        let paper = crate::said::colour::css(open.book.paper.unwrap_or([255, 255, 255]));
         let lines: String = crate::books::carried(open.book.page(open.page))
             .iter()
             .enumerate()
@@ -42,10 +42,10 @@ impl App {
             .collect();
         let title = format!("{} ( {} / {} )", data::item(open.id).map(|(name, _)| name).unwrap_or_default(), open.page, open.book.pages());
         format!(
-            r#"{}<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;box-sizing:border-box"></div><div class="a" style="{};background:rgb({red},{green},{blue})"></div>{}{lines}{}{}{}{}"#,
+            "{}{}{}{}{lines}{}{}{}{}",
             title_bar(WIDTH, ""),
-            at(0, 17, WIDTH, HEIGHT - 17),
-            at(1, 17, WIDTH - 2, HEIGHT - 18),
+            panel_ground(0, 17, WIDTH, HEIGHT - 17),
+            fill(1, 17, WIDTH - 2, HEIGHT - 18, &paper),
             text(WIDTH / 2 - 72, 2, BLACK, &title),
             self.book_button(BookButton::Mark, 10, 25, &Self::words(1296, "Bookmark"), Press::Mark),
             self.book_button(BookButton::Before, WIDTH - 57, 25, &Self::words(1297, "Previous"), Press::Before),

@@ -14,7 +14,7 @@ mod buying;
 /// (`UIWindow::DrawAmount`).
 pub(super) fn price_written(price: u32) -> String {
     let (colour, rim) = price_colour(price);
-    let rim = rim.map_or(String::new(), |rim| format!(";text-shadow:-1px 0 {rim},1px 0 {rim},0 -1px {rim},0 1px {rim}"));
+    let rim = rim.map_or(String::new(), |rim| format!(";{}", outlined(rim)));
     format!(r#"<span style="color:{colour}{rim}">{}</span>"#, grouped(i64::from(price)))
 }
 
@@ -74,31 +74,27 @@ impl App {
                 Some(format!(
                     r#"<div class="a" style="left:3px;top:{top}px;width:32px;height:32px;background:url('{}')">{}</div>
                        <div class="a t" style="left:39px;top:{}px;width:100px;line-height:12px;white-space:normal;overflow:hidden;max-height:36px">{}</div>
-                       {}<input id="{}" class="a in" style="{};background:#e8e8e8;text-align:right" type="text" inputmode="numeric" maxlength="14" autocomplete="off" value="{}">{left}"#,
+                       {}{}{left}"#,
                     picture("basic_interface/itemwin_mid.bmp"),
-                    cart::grid_cell(0, 1, item, stalled.amount, &dragged(Drag::Stalled(row)), &Self::item_name(item)),
+                    grid_cell(0, 1, item, stalled.amount, &dragged(Drag::Stalled(row)), &Self::item_name(item)),
                     top + 3,
                     escape(&Self::item_name(item)),
                     text(235, top + 3, BLACK, &Self::words(369, "Price: ")),
-                    windows::stall_price_field(row),
-                    at(281, top, 94, 16),
-                    escape(&stalled.price),
+                    numeric_field(&windows::stall_price_field(row), (281, top, 94, 16), &stalled.price, 14, &format!("background:{FIELD_GROUND};text-align:right")),
                 ))
             })
             .collect();
         format!(
-            r#"<form {} {} class="a" style="{}">{}{}{}<input id="{}" class="a in" style="{};background:#e8e8e8" type="text" maxlength="{TITLE}" autocomplete="off" value="{}">{rows}{}{}{}</form>"#,
+            r#"<form {} {} class="a" style="{}">{}{}{}{}{rows}{}{}{}</form>"#,
             sent(Form::Stall),
             dropped(Drop::Stall),
             at(0, 0, width, height),
             title_bar(width, &Self::words(224, "Opening a stall")),
             panel(width, height),
             text(2, 25, BLACK, &Self::words(282, "Name")),
-            windows::VENDING_STALL.field(),
-            at(41, 22, width - 66, 16),
-            escape(&making.title),
-            text(5, height - 43, "#f00", &Self::words(3223, "~ When selling items, total amount of zeny received ")),
-            picture_press(width - 92, height - 24, "btn_ok", Press::StallOk).replace(r#"type="button""#, r#"type="submit""#),
+            field(&windows::VENDING_STALL.field(), (41, 22, width - 66, 16), &making.title, TITLE, &format!("background:{FIELD_GROUND}")),
+            text(5, height - 43, RED, &Self::words(3223, "~ When selling items, total amount of zeny received ")),
+            submit_press(width - 92, height - 24, "btn_ok", Press::StallOk),
             picture_press(width - 46, height - 24, "btn_cancel", Press::StallCancel),
         )
     }
@@ -114,9 +110,9 @@ impl App {
             .iter()
             .filter_map(|item| Some((item, item.amount.checked_sub(making.taken(item.index)).filter(|left| *left > 0)?)))
             .enumerate()
-            .map(|(place, (item, left))| cart::grid_cell(place, 7, item, left, &dragged(Drag::Stock(item.index)), &Self::item_name(item)))
+            .map(|(place, (item, left))| grid_cell(place, 7, item, left, &dragged(Drag::Stock(item.index)), &Self::item_name(item)))
             .collect();
-        format!("<div {}>{}{}</div>", dropped(Drop::Stock), list_frame(280, 120, &Self::words(232, "Available Items for Vending")), cart::grid_of(7, 2, &cells))
+        format!("<div {}>{}{}</div>", dropped(Drop::Stock), list_frame(280, 120, &Self::words(232, "Available Items for Vending")), grid_of(7, 2, &cells))
     }
 
     /// One's own shop while it is open (`UIMerchantItemMyShopWnd`, 280 by 120; its title the client's line
@@ -128,9 +124,9 @@ impl App {
         let cells: Vec<String> = mine
             .iter()
             .enumerate()
-            .map(|(place, sold)| cart::grid_cell(place, 7, &sold.item, sold.item.amount, "", &format!("{} {} Zeny", Self::item_name(&sold.item), grouped(i64::from(sold.price)))))
+            .map(|(place, sold)| grid_cell(place, 7, &sold.item, sold.item.amount, "", &format!("{} {} Zeny", Self::item_name(&sold.item), grouped(i64::from(sold.price)))))
             .collect();
-        format!("{}{}{}", list_frame(280, 120, &Self::words(3237, "My Shop")), cart::grid_of(7, 2, &cells), picture_press(280 - 61, 120 - 24, "btn_close", Press::MineClose))
+        format!("{}{}{}", list_frame(280, 120, &Self::words(3237, "My Shop")), grid_of(7, 2, &cells), picture_press(280 - 61, 120 - 24, "btn_close", Press::MineClose))
     }
 
     /// What the making of a shop asks, in the client's message box: whether a thing is to cost nothing (its

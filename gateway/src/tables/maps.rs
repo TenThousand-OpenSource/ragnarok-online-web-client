@@ -10,18 +10,18 @@ use super::*;
 pub fn maps(client_dir: &std::path::Path) -> serde_json::Value {
     let Some(lua) = beside(client_dir, &["System/mapInfo_true_EN.lub", "System/mapInfo_true.lub"]) else { return serde_json::json!({}) };
     let Ok(table) = lua.globals().get::<Table>("mapTbl") else { return serde_json::json!({}) };
-    let text = |entry: &Table, field: &str| entry.get::<Option<mlua::String>>(field).ok().flatten().map(|text| korean(&text.as_bytes())).unwrap_or_default();
+    let words = |entry: &Table, field: &str| text(entry, field).unwrap_or_default();
     let found: serde_json::Map<String, serde_json::Value> = table
         .pairs::<mlua::String, Table>()
         .flatten()
         .map(|(map, entry)| {
             let sign = entry.get::<Option<Table>>("signName").ok().flatten();
-            let line = |field: &str| sign.as_ref().map(|sign| text(sign, field)).unwrap_or_default();
+            let line = |field: &str| sign.as_ref().map(|sign| words(sign, field)).unwrap_or_default();
             let about = serde_json::json!({
-                "name": text(&entry, "displayName"),
+                "name": words(&entry, "displayName"),
                 "title": line("mainTitle"),
                 "over": line("subTitle"),
-                "picture": text(&entry, "backgroundBmp"),
+                "picture": words(&entry, "backgroundBmp"),
                 "shown": entry.get::<Option<bool>>("notifyEnter").ok().flatten().unwrap_or(false),
             });
             (korean(&map.as_bytes()).trim_end_matches(".rsw").to_owned(), about)
@@ -44,9 +44,8 @@ pub fn towns(client_dir: &std::path::Path) -> serde_json::Value {
                 .sequence_values::<Table>()
                 .flatten()
                 .map(|one| {
-                    let name = one.get::<Option<mlua::String>>("name").ok().flatten().map(|name| korean(&name.as_bytes())).unwrap_or_default();
                     let number = |field: &str| one.get::<Option<i64>>(field).ok().flatten().unwrap_or(-1);
-                    serde_json::json!([name, number("X"), number("Y"), number("TYPE")])
+                    serde_json::json!([text(&one, "name").unwrap_or_default(), number("X"), number("Y"), number("TYPE")])
                 })
                 .collect();
             (korean(&map.as_bytes()), people.into())

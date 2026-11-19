@@ -60,13 +60,7 @@ pub(super) fn drawn(state: &mut State, pictures: &mut Vec<Stood>) {
     let owners: Vec<(Option<u32>, u8)> = carts.own.map(|kind| (None, kind)).into_iter().chain(carts.others.iter().map(|(owner, kind)| (Some(*owner), *kind))).collect();
     carts.pulled.retain(|owner, _| owners.iter().any(|(pulls, _)| pulls == owner));
     for (owner, kind) in owners {
-        let mover = match owner {
-            None => &scene.player,
-            Some(id) => match scene.units.get(&id) {
-                Some(mover) => mover,
-                None => continue,
-            },
-        };
+        let Some(mover) = scene.mover(owner) else { continue };
         if !matches!(mover.look, Look::Character(_)) || mover.state & (2 | 4 | 0x40) != 0 {
             carts.pulled.remove(&owner);
             continue;

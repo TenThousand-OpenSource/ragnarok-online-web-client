@@ -75,7 +75,7 @@ fn aimed(event: &MouseEvent) {
         let aimed = STATE.with_borrow_mut(|state| {
             let ground = state.aiming.take() == Some(true);
             let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-            let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+            let view = scene.view(gpu);
             let pointer = (event.client_x() as f32, event.client_y() as f32);
             let aimed = if ground {
                 let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
@@ -113,7 +113,7 @@ fn looks(event: &MouseEvent, at: (f32, f32)) -> bool {
         if !event.shift_key() && !scene.turns_only() {
             return None;
         }
-        let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+        let view = scene.view(gpu);
         let turned = view.pick(&scene.gat, at).and_then(|picked| poses::looks_at(state, picked));
         state.held = None;
         Some((state.hooks.as_ref().map(|hooks| hooks.face), turned))
@@ -129,7 +129,7 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
         // A press on someone talks to them or fights them; a press on the ground walks there.
         let pressed = STATE.with_borrow(|state| {
             let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-            let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+            let view = scene.view(gpu);
             // Whoever the last frame drew the pointer on is who is pressed: the pointer already
             // shows it, and the press must not see it otherwise (a picture a moment further in its
             // motion, the camera a step further along), or a press on a monster becomes a walk.
@@ -165,7 +165,7 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
         // A press on a thing lying on the ground goes to it and picks it up.
         let lying = STATE.with_borrow(|state| {
             let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-            let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+            let view = scene.view(gpu);
             lying_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32))
         });
         if let Some(id) = lying {
@@ -192,7 +192,7 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
             let player = &scene.player;
             // Seen as the last frame drew it: the place pressed is the place the player saw.
-            let view = scene.camera.view(scene.looked_at(), gpu.config.width as f32 / gpu.config.height as f32);
+            let view = scene.view(gpu);
             let picked = view.pick(&scene.gat, at)?;
             // A press on a wall, or too far away, walks as far towards it as the way is open.
             let goal = scene.goal_towards(player.cell, picked, state.options.far_walk)?;

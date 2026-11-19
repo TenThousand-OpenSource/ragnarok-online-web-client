@@ -1,7 +1,5 @@
 //! The client's small boxes that are ticked and its round buttons of which one is on, each written once.
 
-// Not every one is taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
 
 use super::*;
 

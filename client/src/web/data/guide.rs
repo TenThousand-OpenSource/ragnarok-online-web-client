@@ -101,80 +101,84 @@ pub fn guide() -> std::rc::Rc<Guide> {
     GUIDE_READ.with_borrow(|read| read.clone()).unwrap_or_else(|| GUIDE.with(std::rc::Rc::clone))
 }
 
-/// Takes the guide out of what the gateway gave.
+/// A whole number in a field of one of the guide's entries; 0 when it has none.
+fn count(object: &wasm_bindgen::JsValue, name: &str) -> u32 {
+    number(object, name).map_or(0, |number| number as u32)
+}
+
+/// A text in a field of one of the guide's entries; empty when it has none.
+fn words(object: &wasm_bindgen::JsValue, name: &str) -> String {
+    text_of(object, name).unwrap_or_default()
+}
+
+/// One of the guide's pages with kinds to pick from, each of its entries read by `entry`.
+fn page<Entry>(guide: &wasm_bindgen::JsValue, name: &str, entry: fn(&wasm_bindgen::JsValue) -> Entry) -> GuidePage<Entry> {
+    let page = field(guide, name);
+    GuidePage {
+        kinds: list(&field(&page, "kinds")).iter().map(|kind| (count(kind, "at"), words(kind, "title"), count(kind, "min"), count(kind, "max"))).collect(),
+        list: list(&field(&page, "list")).iter().map(entry).collect(),
+    }
+}
+
+/// A quest, a part of an episode or a dungeon, as the gateway gives it.
+fn guide_quest(quest: &wasm_bindgen::JsValue) -> GuideQuest {
+    GuideQuest {
+        id: count(quest, "id"),
+        kind: count(quest, "kind"),
+        min: count(quest, "min"),
+        max: count(quest, "max"),
+        title: words(quest, "title"),
+        says: words(quest, "says"),
+        needs: words(quest, "needs"),
+        rewards: texts(&field(quest, "rewards")),
+    }
+}
+
+/// An item the guide recommends, as the gateway gives it.
+fn guide_item(item: &wasm_bindgen::JsValue) -> GuideItem {
+    let can = js_sys::Array::from(&field(item, "can"));
+    GuideItem {
+        id: count(item, "id"),
+        kind: count(item, "kind"),
+        min: count(item, "min"),
+        max: count(item, "max"),
+        can: [0, 1, 2].map(|at| can.get(at).as_bool().unwrap_or(false)),
+        from: texts(&field(item, "from")),
+        jobs: count(item, "jobs"),
+    }
+}
+
+/// A monster of the guide, as the gateway gives it.
+fn guide_monster(monster: &wasm_bindgen::JsValue) -> GuideMonster {
+    GuideMonster {
+        key: words(monster, "key"),
+        id: count(monster, "id"),
+        name: words(monster, "name"),
+        min: count(monster, "min"),
+        max: count(monster, "max"),
+        rewards: list(&field(monster, "rewards")).iter().filter_map(|item| item.as_f64()).map(|item| item as u32).collect(),
+        element: words(monster, "element"),
+        element_level: count(monster, "element_level"),
+        race: words(monster, "race"),
+        size: words(monster, "size"),
+        boss: words(monster, "class") == "Boss",
+    }
+}
+
+/// Takes the guide out of what the gateway gave (`tables/guide.rs`).
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     let guide = field(tables, "guide");
-    let number = |object: &wasm_bindgen::JsValue, name: &str| field(object, name).as_f64().map_or(0, |number| number as u32);
-    let words = |object: &wasm_bindgen::JsValue, name: &str| field(object, name).as_string().unwrap_or_default();
-    let list = |value: wasm_bindgen::JsValue| js_sys::Array::from(&value).iter().collect::<Vec<_>>();
-    let texts = |value: wasm_bindgen::JsValue| js_sys::Array::from(&value).iter().filter_map(|line| line.as_string()).collect::<Vec<String>>();
-    let kinds = |page: &wasm_bindgen::JsValue| list(field(page, "kinds")).iter().map(|kind| (number(kind, "at"), words(kind, "title"), number(kind, "min"), number(kind, "max"))).collect::<Vec<_>>();
-    let quests = |name: &str| {
-        let page = field(&guide, name);
-        GuidePage {
-            kinds: kinds(&page),
-            list: list(field(&page, "list"))
-                .iter()
-                .map(|quest| GuideQuest {
-                    id: number(quest, "id"),
-                    kind: number(quest, "kind"),
-                    min: number(quest, "min"),
-                    max: number(quest, "max"),
-                    title: words(quest, "title"),
-                    says: words(quest, "says"),
-                    needs: words(quest, "needs"),
-                    rewards: texts(field(quest, "rewards")),
-                })
-                .collect(),
-        }
-    };
-    let items = |name: &str| {
-        let page = field(&guide, name);
-        GuidePage {
-            kinds: kinds(&page),
-            list: list(field(&page, "list"))
-                .iter()
-                .map(|item| {
-                    let can = js_sys::Array::from(&field(item, "can"));
-                    GuideItem {
-                        id: number(item, "id"),
-                        kind: number(item, "kind"),
-                        min: number(item, "min"),
-                        max: number(item, "max"),
-                        can: [0, 1, 2].map(|at| can.get(at).as_bool().unwrap_or(false)),
-                        from: texts(field(item, "from")),
-                        jobs: number(item, "jobs"),
-                    }
-                })
-                .collect(),
-        }
-    };
     let job_codes = field(&guide, "job_codes");
-    let jobs_of = |value: wasm_bindgen::JsValue| js_sys::Array::from(&value).iter().filter_map(|job| job.as_f64()).map(|job| job as u16).collect::<Vec<u16>>();
+    let jobs_of = |value: wasm_bindgen::JsValue| list(&value).iter().filter_map(|job| job.as_f64()).map(|job| job as u16).collect::<Vec<u16>>();
     let read = Guide {
         job_codes: entries::<u32>(&field(&job_codes, "codes")).into_iter().map(|(code, jobs)| (code, jobs_of(jobs))).collect(),
         novices: jobs_of(field(&job_codes, "novices")),
-        quests: [quests("episode"), quests("quest"), quests("dungeon")],
-        items: [items("weapon"), items("armor")],
+        quests: [page(&guide, "episode", guide_quest), page(&guide, "quest", guide_quest), page(&guide, "dungeon", guide_quest)],
+        items: [page(&guide, "weapon", guide_item), page(&guide, "armor", guide_item)],
         intro: words(&guide, "intro"),
         menu: words(&guide, "menu"),
-        tabs: js_sys::Array::from(&field(&guide, "tabs")).iter().map(|tab| js_sys::Array::from(&tab)).map(|tab| (tab.get(0).as_string().unwrap_or_default(), tab.get(1).as_string().unwrap_or_default())).collect(),
-        monsters: js_sys::Array::from(&field(&guide, "monsters"))
-            .iter()
-            .map(|monster| GuideMonster {
-                key: words(&monster, "key"),
-                id: number(&monster, "id"),
-                name: words(&monster, "name"),
-                min: number(&monster, "min"),
-                max: number(&monster, "max"),
-                rewards: js_sys::Array::from(&field(&monster, "rewards")).iter().filter_map(|item| item.as_f64()).map(|item| item as u32).collect(),
-                element: words(&monster, "element"),
-                element_level: number(&monster, "element_level"),
-                race: words(&monster, "race"),
-                size: words(&monster, "size"),
-                boss: words(&monster, "class") == "Boss",
-            })
-            .collect(),
+        tabs: list(&field(&guide, "tabs")).iter().map(js_sys::Array::from).map(|tab| (tab.get(0).as_string().unwrap_or_default(), tab.get(1).as_string().unwrap_or_default())).collect(),
+        monsters: list(&field(&guide, "monsters")).iter().map(guide_monster).collect(),
     };
     GUIDE_READ.set(Some(std::rc::Rc::new(read)));
 }

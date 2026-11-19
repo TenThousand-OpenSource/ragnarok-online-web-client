@@ -10,14 +10,12 @@ use super::*;
 pub(super) fn list_frame(width: i32, height: i32, title: &str) -> String {
     let side = |x: i32, name: &str| format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(x, 17, 20, height - 38), picture(name));
     format!(
-        r#"{}<div class="a" style="{};background:#fff"></div>{}{}{}{}{}"#,
+        "{}{}{}{}{}",
         title_bar(width, title),
-        at(0, 17, width, height - 38),
+        fill(0, 17, width, height - 38, WHITE),
         side(0, "basic_interface/itemwin_left.bmp"),
         side(width - 20, "basic_interface/itemwin_right.bmp"),
-        art("basic_interface/btnbar_left.bmp", 0, height - 21, 21, 21),
-        art("basic_interface/btnbar_mid.bmp", 21, height - 21, width - 42, 21),
-        art("basic_interface/btnbar_right.bmp", width - 21, height - 21, 21, 21),
+        button_bar(width, height),
     )
 }
 
@@ -35,10 +33,18 @@ pub(super) struct Row<'a> {
     pub name: &'a str,
     /// Where the name begins, counted from the cell's left edge, and how wide it may be.
     pub name_at: (i32, i32),
-    /// What is written at the right end of the row, `inset` from the list's right edge: a price.
-    pub price: Option<(&'a str, i32)>,
+    /// What is written at the right end of the row: a price.
+    pub aside: Option<Aside<'a>>,
     /// What the row's tag says more: what it does when dragged, double-clicked, pressed with the right button.
     pub marks: &'a str,
+}
+
+/// What stands at the right end of a row: written already as the page takes it (a price may have a colour and
+/// a rim of its own), ending `inset` from the list's right edge, in that `colour` (`inherit` for the row's).
+pub(super) struct Aside<'a> {
+    pub html: &'a str,
+    pub inset: i32,
+    pub colour: &'a str,
 }
 
 /// A row of a list (`UIItemShopWnd::Paint` and the windows like it): the cell of the inventory at its left
@@ -55,12 +61,11 @@ pub(super) fn item_row(row: &Row) -> String {
         row.name_at.0,
         row.name_at.1,
         escape(row.name),
-        row.price.map_or(String::new(), |(price, inset)| format!(r#"<div class="a t" style="right:{inset}px;top:12px;white-space:nowrap;color:inherit">{}</div>"#, escape(price))),
+        row.aside.as_ref().map_or(String::new(), |Aside { html, inset, colour }| format!(r#"<div class="a t" style="right:{inset}px;top:12px;white-space:nowrap;color:{colour}">{html}</div>"#)),
     )
 }
 
-/// What a cell or a row says of the item in it for the right button and for the picture that follows the
-/// pointer when it is dragged (`data-info`: the item, with a `?` while it is not identified).
-pub(super) fn item_marks(id: u32, identified: bool) -> String {
-    format!(r#"data-info="{id}{}""#, if identified { "" } else { "?" })
+/// The sum under a basket (`UIItemPurchaseWnd::Paint` and the windows like it): "Total : n Zeny", 12 in.
+pub(super) fn total_line(y: i32, total: i64) -> String {
+    text(12, y, BLACK, &format!("Total : {} Zeny", grouped(total)))
 }

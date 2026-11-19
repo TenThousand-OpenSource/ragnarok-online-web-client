@@ -8,7 +8,7 @@
 //! The files' own space has y pointing down and positions measured from the map's middle. Everything is worked
 //! out there and turned into the world's space (y up, measured from the map's south-west corner) at the end.
 
-type Vector = [f32; 3];
+use crate::vector::Vector;
 
 mod matrix;
 mod rsm;
@@ -18,49 +18,35 @@ pub use matrix::Matrix;
 pub use rsm::{Rsm, Triangle, frame_at};
 pub use rsw::{Light, MapEffect, MapSound, Placement, Rsw, Water};
 
+/// The reader of a file of the game (`crate::bytes::Reader`) with what the models' formats add to it: the
+/// file's version, by which later fields are there or not, and a vector.
 struct Reader<'a> {
-    bytes: &'a [u8],
-    at: usize,
+    file: crate::bytes::Reader<'a>,
     /// The file's version, as major times 256 plus minor.
     version: u16,
 }
 
 impl<'a> Reader<'a> {
-    fn take(&mut self, count: usize) -> Result<&'a [u8], String> {
-        let slice = self.bytes.get(self.at..self.at.checked_add(count).ok_or("a size too large")?).ok_or("the file ends too early")?;
-        self.at += count;
-        Ok(slice)
-    }
-
-    fn u16(&mut self) -> Result<u16, String> {
-        Ok(u16::from_le_bytes(self.take(2)?.try_into().unwrap()))
-    }
-
-    fn i32(&mut self) -> Result<i32, String> {
-        Ok(i32::from_le_bytes(self.take(4)?.try_into().unwrap()))
-    }
-
-    fn f32(&mut self) -> Result<f32, String> {
-        Ok(f32::from_le_bytes(self.take(4)?.try_into().unwrap()))
+    fn new(bytes: &'a [u8]) -> Self {
+        Self { file: crate::bytes::Reader::new(bytes), version: 0 }
     }
 
     fn vector(&mut self) -> Result<Vector, String> {
-        Ok([self.f32()?, self.f32()?, self.f32()?])
+        self.file.floats()
     }
+}
 
-    /// A count that the rest of the file could hold.
-    fn count(&mut self, each: usize) -> Result<usize, String> {
-        let count = usize::try_from(self.i32()?).map_err(|_| "a negative count")?;
-        if count.saturating_mul(each) > self.bytes.len() - self.at {
-            return Err("a count larger than the file".to_owned());
-        }
-        Ok(count)
+impl<'a> std::ops::Deref for Reader<'a> {
+    type Target = crate::bytes::Reader<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.file
     }
+}
 
-    /// A zero-terminated name in a field of `size` bytes, as its bytes.
-    fn name(&mut self, size: usize) -> Result<&'a [u8], String> {
-        let field = self.take(size)?;
-        Ok(&field[..field.iter().position(|&byte| byte == 0).unwrap_or(size)])
+impl std::ops::DerefMut for Reader<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.file
     }
 }
 

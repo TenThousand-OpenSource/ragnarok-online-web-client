@@ -15,16 +15,9 @@ const SPRITES: [&str; 14] = ["슈노손수레", "손수레", "손수레1", "손�
 /// How long the rope is, in cells (the client's 5.0 of the world's measure, a cell being 5).
 pub const ROPE: f32 = 1.0;
 
-/// `IsSuperNoviceClass`: the Super Novice, its baby, the Expanded Super Novice and its baby. (The client names
-/// its later kinds too; they come with later content.)
-fn super_novice(job: u16) -> bool {
-    matches!(job, 23 | 4045 | 4190 | 4191)
-}
-
-/// `IsBabyJob`, the ranges of the client's `JT_…_B` (as `crate::mounts::name_offset` has them).
-fn baby(job: u16) -> bool {
-    matches!(job, 4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4238 | 4241 | 4242 | 4244 | 4247 | 4248 | 4352 | 4354)
-}
+// Whose cart it is: the client's `IsSuperNoviceClass` (the Super Novice, its baby, the Expanded Super Novice and
+// its baby) and `IsBabyJob` (the ranges of its `JT_…_B`).
+use crate::jobs::{baby, super_novice};
 
 /// The sprite of a cart of that kind behind one of that job, under `data/sprite/`; none for a kind the client
 /// has no cart for. The carts from the sixth on have a smaller sprite of their own for a baby (`…베이비`,
@@ -73,6 +66,15 @@ pub fn by_level(level: u32) -> Vec<u8> {
     kinds
 }
 
+/// The place so far behind one who stands at `owner` and looks the game's way `facing` (0 south, then by
+/// eighths through west), in cells: where what follows an owner is made (`AM_SET_MASTER_POINTER`: a cart, a
+/// falcon).
+pub fn behind(owner: (f32, f32), facing: u8, away: f32) -> (f32, f32) {
+    let turn = (f32::from(facing) * 45.0).to_radians();
+    // One who looks south has it to the north.
+    (owner.0 + turn.sin() * away, owner.1 + turn.cos() * away)
+}
+
 /// A cart being pulled: where it is, in cells, and how far it has rolled.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pulled {
@@ -84,9 +86,7 @@ impl Pulled {
     /// A cart as it is made: a rope's length behind its owner, who looks the game's way `facing` (0 south,
     /// then by eighths through west) (`AM_SET_MASTER_POINTER`).
     pub fn behind(owner: (f32, f32), facing: u8) -> Self {
-        let turn = (f32::from(facing) * 45.0).to_radians();
-        // One who looks south has the cart to the north.
-        Pulled { at: (owner.0 + turn.sin() * ROPE, owner.1 + turn.cos() * ROPE), rolled: 0.0 }
+        Pulled { at: behind(owner, facing, ROPE), rolled: 0.0 }
     }
 
     /// One frame of `CMsgEffect::FollowOwner`: while the owner is farther than the rope is long, the cart is

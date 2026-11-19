@@ -18,11 +18,7 @@ pub fn figures(grf: &Grf) -> serde_json::Value {
     let globals = lua.globals();
     let numbers = |table: &str| -> Vec<i64> {
         let Ok(table) = globals.get::<Table>(table) else { return Vec::new() };
-        table.pairs::<Value, Value>().flatten().filter_map(|(key, _)| match key {
-            Value::Integer(key) => Some(key),
-            Value::Number(key) => Some(key as i64),
-            _ => None,
-        }).collect()
+        table.pairs::<Value, Value>().flatten().filter_map(|(key, _)| whole(&key)).collect()
     };
     let mut shadows = serde_json::Map::new();
     if let Ok(factor) = globals.get::<mlua::Function>("ReqshadowFactor") {

@@ -49,18 +49,6 @@ impl State {
     }
 }
 
-impl super::Scene {
-    /// Where a press on `to` sends the player's character (`Gat::goal_towards`), the cells where somebody
-    /// stands being taken. The client keeps those in a list (`CGameMode::actorPosList`): an actor is put on it
-    /// when it stands, sits, strikes or casts (`RegisterPos` in `CRenderObject::SetState`) and taken off when
-    /// it walks, has died or goes out of sight; portals and unseen NPCs are never on it, and one who hides
-    /// (the effect state's bit 2) does not count (`IsRegisterCell`).
-    pub(super) fn goal_towards(&self, from: (i32, i32), to: (i32, i32), far: bool) -> Option<(i32, i32)> {
-        let taken = |cell: (i32, i32)| self.units.values().any(|unit| unit.cell == cell && unit.walk.is_none() && !unit.dead && unit.dying.is_none() && unit.state & 2 == 0);
-        self.gat.goal_towards(from, to, taken, far)
-    }
-}
-
 /// A place pressed that is farther than the server walks in one go (its `max_walk_path`) is walked to in
 /// stretches: arrived at the end of one, the character is sent on towards the place, until it is there or
 /// the way is shut. The client asks once and does not go on; this is the project's own, and happens only with

@@ -3,6 +3,12 @@
 //!
 //! The wording of what the original client also says follows its `msgstringtable.txt`.
 
+mod phrases;
+#[cfg(test)]
+mod tests;
+
+use phrases::PHRASES;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum Lang {
     #[default]
@@ -172,45 +178,6 @@ pub fn fill(text: &str, values: &[&str]) -> String {
     filled
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn every_text_is_there_in_every_language() {
-        for &key in Key::ALL {
-            let places = key.text(Lang::En).matches("{}").count();
-            for lang in Lang::ALL {
-                let text = key.text(lang);
-                assert!(!text.trim().is_empty(), "{key:?} in {lang:?}");
-                assert_eq!(text.matches("{}").count(), places, "{key:?} in {lang:?} takes other values than in English");
-            }
-        }
-    }
-
-    #[test]
-    fn russian_is_russian() {
-        let cyrillic = Key::ALL.iter().filter(|key| key.text(Lang::Ru).chars().any(|character| ('а'..='я').contains(&character))).count();
-        // All but the few words that stay as they are (names, "ID", "OK", "E-mail").
-        assert!(cyrillic >= Key::ALL.len() - 6, "{cyrillic} of {}", Key::ALL.len());
-    }
-
-    #[test]
-    fn languages_are_found_by_code() {
-        assert_eq!(Lang::from_code("ru"), Some(Lang::Ru));
-        assert_eq!(Lang::from_code("EN"), Some(Lang::En));
-        assert_eq!(Lang::from_code("de"), None);
-        assert_eq!(Lang::default(), Lang::En);
-    }
-
-    #[test]
-    fn fills_values_in_order() {
-        assert_eq!(fill("from {} to {}.", &["4", "23"]), "from 4 to 23.");
-        assert_eq!(fill("no places", &["x"]), "no places");
-        assert_eq!(fill("{} and {}", &["one"]), "one and ");
-    }
-}
-
 thread_local! {
     /// The language the game's windows speak now.
     static NOW: std::cell::Cell<Lang> = const { std::cell::Cell::new(Lang::En) };
@@ -234,162 +201,3 @@ pub fn tr(english: &str) -> &str {
     }
     PHRASES.iter().find(|(known, _)| *known == english).map_or(english, |(_, russian)| russian)
 }
-
-/// The phrases of the game's windows, in English and in Russian.
-const PHRASES: &[(&str, &str)] = &[
-    ("online", "в сети"),
-    ("Remove the tab", "Убрать вкладку"),
-    ("Attach", "Прикрепить"),
-    ("without the windows", "без окон"),
-    ("The picture of the screen could not be made", "Не удалось сделать снимок экрана"),
-    ("Players online", "Игроков в сети"),
-    ("Language", "Язык"),
-    ("Game Settings", "Настройки игры"),
-    ("Basic", "Основное"),
-    ("Effects", "Эффекты"),
-    ("Controls", "Управление"),
-    ("Graphics", "Графика"),
-    ("Etc", "Прочее"),
-    ("Audio Settings", "Звук"),
-    ("BGM", "Музыка"),
-    ("SFX", "Звуки"),
-    ("Off", "Выкл."),
-    ("The browser sets the graphics; there is nothing to choose here.", "Графику задаёт браузер: выбирать здесь нечего."),
-    ("Check Pet Status", "Сведения о питомце"),
-    ("Shortcut Settings", "Настройка клавиш"),
-    ("Hotkey Bar", "Панель"),
-    ("Hotkey Bar 2", "Панель 2"),
-    ("Interface", "Интерфейс"),
-    ("Macros", "Макросы"),
-    ("Not Assigned", "Не назначено"),
-    ("Press a key to assign. Pressing 'ESC' will remove the assigned key.", "Нажмите клавишу, чтобы назначить её. ESC снимает назначение."),
-    ("This keyboard does not have that key.", "На этой клавиатуре нет такой клавиши."),
-    ("Basic Information", "Основная информация"),
-    ("Game Options", "Настройки игры"),
-    ("Equipment", "Экипировка"),
-    ("Storage", "Склад"),
-    ("Inventory", "Инвентарь"),
-    ("Skill Tree", "Дерево умений"),
-    ("Status", "Характеристики"),
-    ("Do you really want to go back to your savepoint?", "Вы действительно хотите вернуться к точке сохранения?"),
-    ("Amount", "Кол-во"),
-    ("Available Items to sell", "Предметы на продажу"),
-    ("Selling Items", "Продаваемые предметы"),
-    ("Available Items to buy", "Предметы в продаже"),
-    ("Buying Items", "Покупаемые предметы"),
-    ("Unknown Skill", "Неизвестное умение"),
-    ("Item", "Предмет"),
-    ("Skill", "Умение"),
-    ("Cash", "Кэш"),
-    ("Armor", "Броня"),
-    ("Wpn", "Оруж"),
-    ("Cstm", "Кост"),
-    ("Ammo", "Снар"),
-    ("Card", "Карты"),
-    ("Misc", "Проч"),
-    ("Use", "Исп"),
-    ("Eqp", "Экип"),
-    ("Etc", "Проч"),
-    ("1st", "1-я"),
-    ("2nd", "2-я"),
-    ("3rd", "3-я"),
-    ("4th", "4-я"),
-    ("Public Log", "Общий"),
-    ("Battle Log", "Бой"),
-    ("Hide the log", "Скрыть журнал"),
-    ("Add a tab", "Добавить вкладку"),
-    ("Detach", "Открепить"),
-    ("Options", "Настройки"),
-    ("Base Lv.", "Б. ур."),
-    ("Job Lv.", "П. ур."),
-    ("Lv.", "Ур."),
-    ("Exp.", "Опыт"),
-    ("Weight", "Вес"),
-    ("Zeny", "Зени"),
-    ("ea", "шт."),
-    ("Skill Point", "Очки умений"),
-    ("obtained.", "получено."),
-    ("Raise", "Повысить"),
-    ("Too much of the emblem is see-through.", "Слишком большая часть эмблемы прозрачна."),
-    ("Log out", "Выход"),
-    ("You cannot leave the game right now.", "Сейчас нельзя выйти из игры."),
-    ("There is no such character name or the user is offline.", "Такого персонажа нет, или игрок не в сети."),
-    ("Skill has failed.", "Умение не удалось."),
-    ("Pet Egg List", "Яйца питомцев"),
-    ("Identify Item", "Опознание предмета"),
-    ("Refinable", "Можно точить"),
-    ("Not refinable", "Нельзя точить"),
-    ("Enchantable", "Можно зачаровать"),
-    ("Not enchantable", "Нельзя зачаровать"),
-    ("Grade enchantable", "Можно повысить ранг"),
-    ("Not grade enchantable", "Нельзя повысить ранг"),
-    ("Pet Info", "Питомец"),
-    ("Name", "Имя"),
-    ("Level", "Ур."),
-    ("Hunger", "Голод"),
-    ("Intimacy", "Связь"),
-    ("Accessory", "Аксессуар"),
-    ("Equipped", "Надет"),
-    ("Unequipped", "Не надет"),
-    ("Very Hungry", "Очень голоден"),
-    ("Hungry", "Голоден"),
-    ("Neutral", "Обычно"),
-    ("Satisfied", "Сыт"),
-    ("Stuffed", "Объелся"),
-    ("Awkward", "Чужой"),
-    ("Shy", "Робкий"),
-    ("Cordial", "Дружелюбный"),
-    ("Loyal", "Преданный"),
-    ("Unknown", "Неизвестно"),
-    ("Feed Pet", "Покормить"),
-    ("Performance", "Трюк"),
-    ("Unequip Accessory", "Снять аксессуар"),
-    ("Return to Egg", "Вернуть в яйцо"),
-    ("Are you sure that you want to feed your pet?", "Покормить питомца?"),
-    ("Pet name will be changed to {}, do you want to continue?", "Питомца будут звать {}. Продолжить?"),
-    ("Your pet name must be 23 characters or less.", "Имя питомца — не длиннее 23 символов."),
-    ("Your pet has been fed. {} ({}) remaining", "Питомец накормлен. {}: осталось {}"),
-    ("Pet food [{}] is not available.", "Нет корма для питомца: {}."),
-    ("this command does nothing in this client yet.", "эта команда в этом клиенте пока ничего не делает."),
-    ("Packets not read", "Непрочитанные пакеты"),
-    // Why a server ended the session: lines 3, 4, 5, 241, 264 and 440 of the client's message table.
-    ("Disconnected from Server!", "Соединение с сервером разорвано!"),
-    ("Server Closed.", "Сервер закрыт."),
-    ("Someone has Logged in with this ID.", "С этим ID уже вошли в игру."),
-    ("You've been disconnected due to a time gap between you and the server.", "Соединение разорвано из-за расхождения времени с сервером."),
-    ("Server is jammed due to over population. Please try again shortly.", "Сервер переполнен. Попробуйте чуть позже."),
-    ("The game server still recognizes your last log-in. Please try again after about 30 seconds.", "Сервер ещё помнит ваш прошлый вход. Попробуйте примерно через 30 секунд."),
-    ("Clear", "Очистить"),
-    ("You can't put this item on.", "Этот предмет нельзя надеть."),
-    ("From", "От"),
-    ("Status (Alt+A)", "Характеристики (Alt+A)"),
-    ("Equipment (Alt+Q)", "Экипировка (Alt+Q)"),
-    ("Inventory (Alt+E)", "Инвентарь (Alt+E)"),
-    ("Skills (Alt+S)", "Умения (Alt+S)"),
-    ("Party (Alt+Z)", "Группа (Alt+Z)"),
-    ("Guild (Alt+G)", "Гильдия (Alt+G)"),
-    ("Battlegrounds", "Поля битв"),
-    ("Quests (Alt+U)", "Задания (Alt+U)"),
-    ("World map (Ctrl+~)", "Карта мира (Ctrl+~)"),
-    ("Navigation", "Навигация"),
-    ("Options (Alt+O)", "Настройки (Alt+O)"),
-    ("Bank", "Банк"),
-    ("Replay", "Запись"),
-    ("Mail", "Почта"),
-    ("Achievements", "Достижения"),
-    ("Tips", "Подсказки"),
-    ("Cash shop", "Кэш-магазин"),
-    ("Shortcut settings", "Горячие клавиши"),
-    ("Attendance", "Посещаемость"),
-    ("Adventurer agency", "Агентство приключенцев"),
-    ("Reputation", "Репутация"),
-    ("Adventure guide", "Путеводитель"),
-    ("Probabilities", "Вероятности"),
-    ("There is no such book.", "Такой книги нет."),
-    ("Read", "Читать"),
-    ("Auto Read", "Читать вслух"),
-    ("Bookmark", "Закладка"),
-    ("Previous", "Назад"),
-    ("Next", "Вперёд"),
-    ("Close", "Закрыть"),
-];

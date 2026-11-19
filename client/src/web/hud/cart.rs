@@ -1,45 +1,11 @@
 //! The merchant's cart: its window (`UIMerchantItemWnd`), the box that asks how many go into it or out of it,
 //! the Equipment window's button that opens it (`UIEquipWnd`), and the window of the looks it may be given
-//! (`UISelectCartWnd`). Here too is the grid of things that the client's windows made of `UIItemBaseWnd`
-//! share with it (what the cart has for a shop being made, one's own shop: `hud/vending.rs`).
+//! (`UISelectCartWnd`). The grid of things it shares with the client's other windows made of `UIItemBaseWnd`
+//! (what the cart has for a shop being made, one's own shop: `hud/vending.rs`) is `hud/items.rs`.
 
 use super::*;
 use crate::press::cart::Press;
 use crate::web::app::Carting;
-
-/// A thing in a cell of a grid (`UIItemBaseWnd::Paint`): its picture with how many there are, in the cell at
-/// that `place` of a grid `columns` wide; `marks` is what the cell's tag says more (what it does when
-/// dragged), and `tip` what it says when pointed at.
-pub(super) fn grid_cell(place: usize, columns: i32, item: &Item, amount: u16, marks: &str, tip: &str) -> String {
-    let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
-    format!(
-        r#"<div class="a cell" style="left:{}px;top:{}px" {marks} {} title="{}">{}{}</div>"#,
-        place as i32 % columns * 32,
-        place as i32 / columns * 32,
-        item_marks(item.id, item.identified),
-        escape(tip),
-        App::icon(resource.as_deref()),
-        count(amount)
-    )
-}
-
-/// The grid of such a window: `columns` cells of 32 across from 40 in, `rows` of them showing under the
-/// title, scrolled when it has more (the client scrolls it by a bar at the right).
-pub(super) fn grid_of(columns: i32, rows: i32, cells: &[String]) -> String {
-    let filled = (cells.len().div_ceil(columns.max(1) as usize) as i32).max(rows);
-    format!(
-        r#"<div class="a scroll" style="{};background:url('{}')"><div style="position:relative;height:{}px">{}</div></div>"#,
-        at(40, 17, 32 * columns, 32 * rows),
-        picture("basic_interface/itemwin_mid.bmp"),
-        filled * 32,
-        cells.concat()
-    )
-}
-
-/// The cross in the corner of a window `width` wide.
-pub(super) fn cross(width: i32, press: impl Into<crate::press::Press>) -> String {
-    press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", press)
-}
 
 impl App {
     /// The cart's window, 280 by 120 as the client first makes it (`UIWindowMgr::EnsureWindow`,
@@ -60,7 +26,7 @@ impl App {
             .enumerate()
             .map(|(place, item)| {
                 let marks = if taken { dragged(Drag::Carted(item.index)) } else { String::new() };
-                grid_cell(place, 7, item, item.amount, &marks, &format!("{} : {} {}", Self::item_name(item), item.amount, tr("ea")))
+                grid_cell(place, 7, item, item.amount, &marks, &amount_tip(&Self::item_name(item), item.amount))
             })
             .collect();
         let fill = self.cart.fill;
@@ -68,7 +34,7 @@ impl App {
             format!(
                 r#"<div class="a t" style="left:{x}px;top:{y}px;white-space:nowrap;color:#000;{}"><span style="color:{}">{has}</span>/{most}</div>"#,
                 SMALL.style(),
-                if has >= most { "#f00" } else { "#232323" }
+                if has >= most { RED } else { "#232323" }
             )
         };
         format!(
@@ -134,9 +100,9 @@ impl App {
             })
             .collect();
         format!(
-            r#"{}<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;box-sizing:border-box"></div><div class="a" style="{};overflow:hidden">{buttons}</div>{}"#,
+            r#"{}{}<div class="a" style="{};overflow:hidden">{buttons}</div>{}"#,
             title_bar(385, &Self::words(659, "Cart List")),
-            at(0, 17, 385, height - 17),
+            panel_ground(0, 17, 385, height - 17),
             at(0, 0, 385, height),
             cross(385, Press::LooksClose),
         )

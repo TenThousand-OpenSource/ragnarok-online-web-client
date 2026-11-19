@@ -10,8 +10,21 @@ use super::*;
 /// from the server's own database (`mob_db.yml`): its number, name, level, size, race, element and whether it is
 /// a boss.
 pub fn guide(grf: &Grf, database: &std::path::Path, client_dir: &std::path::Path) -> serde_json::Value {
-    let lua = run(grf, &["adventureguide\\availablejoblist", "adventureguide\\availablejoblist_f", "adventureguide\\adventureguide_f", "adventureguide\\guide_intro", "adventureguide\\guide_monster", "adventureguide\\guide_episode", "adventureguide\\guide_quest", "adventureguide\\guide_dungeon", "adventureguide\\guide_weapon", "adventureguide\\guide_armor"]);
-    let tips = tips(client_dir);
+    let lua = run(grf, &[
+        "adventureguide\\availablejoblist",
+        "adventureguide\\availablejoblist_f",
+        "adventureguide\\adventureguide_f",
+        "adventureguide\\guide_intro",
+        "adventureguide\\guide_monster",
+        "adventureguide\\guide_episode",
+        "adventureguide\\guide_quest",
+        "adventureguide\\guide_dungeon",
+        "adventureguide\\guide_weapon",
+        "adventureguide\\guide_armor",
+    ]);
+    // Each tip's title and its first page, by the tip's number: what the guide shows of a quest.
+    let tips: std::collections::HashMap<u32, (String, String)> =
+        tips::read(client_dir).into_iter().filter_map(|tip| Some((u32::try_from(tip.id).ok()?, (tip.title, tip.pages.into_iter().next().unwrap_or_default())))).collect();
     let intro = global(&lua, "GuideIntro");
     let tabs = tabs(&intro);
     let monsters = monsters(&global(&lua, "GuideMonster"), &known_monsters(database));
@@ -45,12 +58,7 @@ fn global(lua: &Lua, name: &str) -> serde_json::Value {
 
 /// The guide's tabs, each its name and description, in the guide's own order.
 fn tabs(intro: &serde_json::Value) -> Vec<serde_json::Value> {
-    let mut tabs: Vec<(i64, serde_json::Value)> = intro["Contents"]
-        .as_object()
-        .map(|contents| contents.iter().filter_map(|(at, tab)| Some((at.parse().ok()?, serde_json::json!([tab["Name"], tab["Desc"]])))).collect())
-        .unwrap_or_default();
-    tabs.sort_by_key(|(at, _)| *at);
-    tabs.into_iter().map(|(_, tab)| tab).collect()
+    by_number(&intro["Contents"]).into_iter().map(|(_, tab)| serde_json::json!([tab["Name"], tab["Desc"]])).collect()
 }
 
 /// What the server's database says of a monster.
@@ -124,12 +132,7 @@ fn monsters(guided: &serde_json::Value, known: &std::collections::HashMap<String
 /// The other pages: each a table with its kinds (`SubMenu`, by number) and its entries (`Contents`). These are
 /// the kinds, in the order of their numbers.
 fn kinds(table: &serde_json::Value) -> Vec<serde_json::Value> {
-    let mut kinds: Vec<(i64, serde_json::Value)> = table["SubMenu"]
-        .as_object()
-        .map(|kinds| kinds.iter().filter_map(|(at, kind)| Some((at.parse().ok()?, serde_json::json!({ "at": at.parse::<i64>().ok()?, "title": kind["SubMenuTitle"], "min": kind["SubMenuMinLevel"], "max": kind["SubMenuMaxLevel"] })))).collect())
-        .unwrap_or_default();
-    kinds.sort_by_key(|(at, _)| *at);
-    kinds.into_iter().map(|(_, kind)| kind).collect()
+    by_number(&table["SubMenu"]).into_iter().map(|(at, kind)| serde_json::json!({ "at": at, "title": kind["SubMenuTitle"], "min": kind["SubMenuMinLevel"], "max": kind["SubMenuMaxLevel"] })).collect()
 }
 
 /// The lines of a list of the guide's, each without its marks.
@@ -218,23 +221,5 @@ fn plain(line: &str) -> String {
     cleaned.trim().to_owned()
 }
 
-/// The client's tip box (`System\\tipbox.lub`; the English one beside it where there is one), as far as the guide
-/// needs it: each tip's title and its first page, by the tip's number.
-fn tips(client_dir: &std::path::Path) -> std::collections::HashMap<u32, (String, String)> {
-    let Some(lua) = beside(client_dir, &["SystemEN/tipbox.lub", "System/tipbox.lub"]) else { return Default::default() };
-    let Ok(table) = lua.globals().get::<Table>("tbl") else { return Default::default() };
-    // The English file is plain text with a few signs beyond ASCII; the client's own is Korean.
-    let words = |text: &mlua::String| match std::str::from_utf8(&text.as_bytes()) {
-        Ok(text) => text.to_owned(),
-        Err(_) => encoding_rs::WINDOWS_1252.decode_without_bom_handling(&text.as_bytes()).0.into_owned(),
-    };
-    table
-        .pairs::<i64, Table>()
-        .flatten()
-        .filter_map(|(id, tip)| {
-            let title = tip.get::<Option<mlua::String>>("Title").ok().flatten().map(|title| words(&title)).unwrap_or_default();
-            let page = tip.get::<Option<Table>>("Page").ok().flatten().and_then(|pages| pages.get::<Option<mlua::String>>(1).ok().flatten()).map(|page| words(&page)).unwrap_or_default();
-            Some((u32::try_from(id).ok()?, (title, page)))
-        })
-        .collect()
-}
+#[cfg(test)]
+mod tests;

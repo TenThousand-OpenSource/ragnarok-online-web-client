@@ -4,7 +4,7 @@
 //! (`UIJoinFriendAcceptWnd` and the client's `Confirm`).
 
 use super::*;
-use super::party::{bar_back, bar_button, radio_marked};
+use super::party::{bar_back, bar_button};
 use crate::net::friends::{Friend, MOST, colour};
 use crate::press::friends::{Entry, Press};
 use crate::press::things::Menu;
@@ -114,7 +114,7 @@ impl App {
         [
             title_bar(width, &Self::words(355, "Friend Setup")),
             panel(width, height),
-            press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::SetupClose),
+            cross(width, Press::SetupClose),
             check_words(6, 21, talks.strangers, &Self::words(361, "Open 1:1 Chat between Strangers"), Press::Option(0)),
             check_words(6, 37, talks.friends, &Self::words(359, "Open 1:1 Chat between Friends"), Press::Option(1)),
             check_words(6, 53, talks.sound, &Self::words(362, "Alarm when receive a 1:1 Chat"), Press::Option(2)),

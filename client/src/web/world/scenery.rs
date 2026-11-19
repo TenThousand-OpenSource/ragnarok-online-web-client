@@ -150,18 +150,6 @@ fn skies(sky: &data::Sky) -> Vec<u32> {
     sky.stars.then_some(945).into_iter().chain(clouds).collect()
 }
 
-impl Scene {
-    /// Where someone, or a place effects play on, stands in the world now (none named: the player's own
-    /// character): on the ground, but for a place a map put its effect at, which is as high as the map says.
-    pub(super) fn stands(&self, who: Option<u32>) -> Option<Vector> {
-        let mut place = on_ground(&self.gat, self.place_of(who)?);
-        if let Some(height) = who.and_then(|id| self.scenery.raised.get(&id)) {
-            place[1] = *height;
-        }
-        Some(place)
-    }
-}
-
 /// Whether the fog of maps is shown (the client's `/fog`, `CGameMode::ApplyMapFog`).
 pub fn fog(shown: bool) {
     STATE.with_borrow_mut(|state| state.scenery.fog = shown);

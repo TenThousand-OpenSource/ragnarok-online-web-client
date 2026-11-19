@@ -91,8 +91,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     #[test]
     fn the_lines_of_great_echo_flash_up_and_fade_as_two_wedges_to_each_side_of_the_way() {

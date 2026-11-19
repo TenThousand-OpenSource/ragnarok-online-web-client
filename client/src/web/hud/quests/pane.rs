@@ -60,7 +60,7 @@ impl App {
         format!(
             r#"{}{}{}<div class="a t" style="{};text-align:center;color:{TITLE};{};overflow:hidden">{}</div>{}"#,
             title_bar(PANE.0, &Self::words(3400, "Quest information")),
-            art("basic_interface/sys_base_off.bmp", 3, 3, 11, 11),
+            base_button(3, 3),
             art(&format!("renew_questui/{ground}.bmp"), 0, 17, 342, 395),
             at(0, 39, 342, 15),
             BOLD.style(),
@@ -97,13 +97,12 @@ impl App {
             .enumerate()
             .map(|(place, (item, count))| {
                 let top = 72 + place as i32 * 41;
-                let known = data::item(*item);
                 format!(
                     r#"{}<div class="a" style="{}">{}</div>{}{}"#,
                     art("renew_questui/img_questiocn.bmp", 110, top, 38, 38),
                     at(117, top + 7, 24, 24),
-                    Self::icon(known.as_ref().map(|(_, resource)| resource.as_str())),
-                    text(156, top + 5, BLACK, &known.map(|(name, _)| name).unwrap_or_default()),
+                    Self::item_icon(*item, true),
+                    text(156, top + 5, BLACK, &data::item(*item).map(|(name, _)| name).unwrap_or_default()),
                     text(156, top + 20, WORTH, &Self::words(182, "%d ea.").replacen("%d", &count.to_string(), 1))
                 )
             })
@@ -126,7 +125,7 @@ impl App {
             rule(),
             part(&Self::words(3402, "Monster"), &viewer_lines(&hunts)),
             rule(),
-            text_in(Font(0, 12, false), 13, 393, DEADLINE, &deadline(quest.deadline))
+            text_in(USUAL, 13, 393, DEADLINE, &deadline(quest.deadline))
         )
     }
 
@@ -154,7 +153,7 @@ impl App {
             plate("renew_questui/bg_quest01.bmp", 9, 62 + 8, 324, 138),
             plate("renew_questui/bg_quest02.bmp", 9, 62 + 221, 208, 92),
             boxed((18, 17, 306, 120), "color:#000", &about.info[0]),
-            boxed((16, 153, 213, 60), "color:#2a2a2a;font-weight:bold;padding-top:6px;box-sizing:border-box;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff", &about.info[1]),
+            boxed((16, 153, 213, 60), &format!("color:#2a2a2a;font-weight:bold;padding-top:6px;box-sizing:border-box;{}", outlined(WHITE)), &about.info[1]),
             boxed((22, 229, 182, 76), "color:#000", &about.info[2])
         )
     }

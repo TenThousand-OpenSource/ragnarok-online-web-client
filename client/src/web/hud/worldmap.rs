@@ -169,17 +169,16 @@ impl App {
     /// members and the character. (The client's boxes for the marks of quests, towns and the guild, and its
     /// notes on the map, are not here.)
     pub(in crate::web) fn large_map_window(&self) -> String {
-        const PICTURES: [&str; 8] = ["store", "weaponshop", "armorshops", "smithy", "guide", "inn", "kafra", "style"];
         let Some(game) = &self.game else { return String::new() };
         let map = game.map.trim_end_matches(".gat");
         let name = data::map_sign(map).map(|sign| sign.name).unwrap_or_default();
         let mut window = title_bar(516, &format!("{name} ( {map} ) {} {}", game.x, game.y));
-        window.push_str(&press_button(502, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Large));
+        window.push_str(&cross(516, Press::Large));
         window.push_str(&panel(516, 559));
         let spot = |cell: (f32, f32)| crate::web::view::minimap_spot(game, 1.0, cell);
         let mut marks = String::new();
         for (name, x, y, kind) in data::town_marks(&game.map) {
-            if let (Some(picture_name), Some((x, y))) = (usize::try_from(kind).ok().and_then(|kind| PICTURES.get(kind)), spot((x as f32, y as f32))) {
+            if let (Some(picture_name), Some((x, y))) = (usize::try_from(kind).ok().and_then(|kind| crate::web::view::TOWN_PICTURES.get(kind)), spot((x as f32, y as f32))) {
                 marks.push_str(&format!(r#"<img src="{}" alt="" draggable="false" data-tip="{}" style="position:absolute;left:{x:.2}%;top:{y:.2}%;transform:translate(-50%,-50%)">"#, picture(&format!("information/{picture_name}.bmp")), escape(&name)));
             }
         }
@@ -192,11 +191,10 @@ impl App {
         if let Some((x, y)) = spot((f32::from(game.x), f32::from(game.y))) {
             marks.push_str(&format!(r#"<span style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:6px;height:6px;margin:-4px 0 0 -4px;background:#fff;border:1px solid #000"></span>"#));
         }
-        let pictured: String = map.chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
         window.push_str(&format!(
             r#"<div class="a" style="{};background:#aaa;overflow:hidden"><img src="{}" alt="" draggable="false" style="width:100%;height:100%;display:block" onerror="this.remove()">{marks}</div>"#,
             at(2, 19, 512, 512),
-            picture(&format!("map/{pictured}.bmp"))
+            crate::web::view::map_picture(map)
         ));
         window
     }

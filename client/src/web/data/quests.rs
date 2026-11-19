@@ -114,21 +114,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         .collect();
     recommended.sort_by_key(|(number, _)| *number);
     RECOMMENDED.set(recommended);
-    let tooltips = field(&quests, "tooltips");
-    TOOLTIPS.set(
-        tooltips
-            .dyn_into::<js_sys::Object>()
-            .map(|tooltips| {
-                js_sys::Object::entries(&tooltips)
-                    .iter()
-                    .filter_map(|entry| {
-                        let entry: js_sys::Array = entry.dyn_into().ok()?;
-                        Some((entry.get(0).as_string()?, entry.get(1).as_string()?))
-                    })
-                    .collect()
-            })
-            .unwrap_or_default(),
-    );
+    TOOLTIPS.set(entries::<String>(&field(&quests, "tooltips")).into_iter().filter_map(|(icon, words)| Some((icon, words.as_string()?))).collect());
     let mut filters: Vec<(u32, String, Vec<String>)> =
         entries::<u32>(&field(&quests, "filters")).into_iter().map(|(number, about)| (number, text_of(&about, "name").unwrap_or_default(), lines_of(&field(&about, "icons")))).collect();
     filters.sort_by_key(|(number, ..)| *number);

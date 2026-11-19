@@ -211,7 +211,7 @@ impl App {
     /// ZC_ACK_WRITE_MAIL: the letter was sent, or why not. For one not sent the client tells the server once
     /// more that nothing is being written.
     fn mail_sent(&mut self, packet: &[u8]) {
-        let words = match packet.get(2) {
+        let words = match mail::sent(packet) {
             Some(0) => Self::words(2587, "Your mail has been sent."),
             Some(1) => Self::words(2597, "Mail delivery failed."),
             Some(2) => Self::words(2603, "Sending mail count exceeded."),
@@ -219,7 +219,7 @@ impl App {
             Some(4) => Self::words(2599, "Information of the recipient does not exist."),
             _ => return,
         };
-        if packet.get(2) != Some(&0) {
+        if mail::sent(packet) != Some(0) {
             self.send_on_map(&mail::cancel_write());
         }
         self.chat_line(words, MAIL_SAID);

@@ -46,8 +46,8 @@ impl App {
             .values()
             .filter_map(|mark| {
                 let (x, y) = crate::web::view::minimap_spot(game, self.minimap_zoom, (mark.cell.0 as f32, mark.cell.1 as f32))?;
-                let [red, green, blue] = mark.colour;
-                let bar = |width: i32, height: i32| format!(r#"<div style="position:absolute;left:{}px;top:{}px;width:{width}px;height:{height}px;background:rgb({red},{green},{blue})"></div>"#, -width / 2, -height / 2);
+                let colour = crate::said::colour::css(mark.colour);
+                let bar = |width: i32, height: i32| format!(r#"<div style="position:absolute;left:{}px;top:{}px;width:{width}px;height:{height}px;background:{colour}"></div>"#, -width / 2, -height / 2);
                 Some(format!(r#"<div class="blink" style="position:absolute;left:{x:.2}%;top:{y:.2}%;width:0;height:0">{}{}</div>"#, bar(8, 2), bar(2, 8)))
             })
             .collect()

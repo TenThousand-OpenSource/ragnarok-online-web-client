@@ -37,7 +37,7 @@ pub enum Who {
 pub fn colour(who: Who, job: u16, level: u16, own_level: u16) -> &'static str {
     let plain = match who {
         Who::Npc => NPC,
-        _ if (1001..3999).contains(&job) || (20021..=31999).contains(&job) => MONSTER,
+        _ if crate::jobs::monster(job) => MONSTER,
         _ => PLAIN,
     };
     if who != Who::Monster || level == 0 {

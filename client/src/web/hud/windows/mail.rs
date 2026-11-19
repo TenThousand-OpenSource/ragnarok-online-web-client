@@ -16,37 +16,31 @@ pub(in crate::web) static MAIL_NOTICE: Window = Window {
 
 /// The mailbox, 309 by 416 (`UIWindowMgr::EnsureWindow`, `WID_RODEXINBOXWND`). Escape closes it with the
 /// letter read or written beside it, as its icon does.
-pub(in crate::web) static MAIL: Window = Window {
-    id: "mail",
-    open: |app| app.mail.open,
-    frame: |_, view| staged(view, 100, 100, 309, 416),
-    draw: App::mail_window,
-    order: ordered(|app| app.mail.open, |app| app.pressed(crate::press::mail::Press::Window)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static MAIL: Window = Window::usual(
+    "mail",
+    |app| app.mail.open,
+    |_, view| staged(view, 100, 100, 309, 416),
+    App::mail_window,
+    |app| app.pressed(crate::press::mail::Press::Window),
+);
 
 /// The letter being read, 300 by 400 (`WID_RODEXCONTENTSWND`).
-pub(in crate::web) static MAIL_READ: Window = Window {
-    id: "mail-read",
-    open: |app| app.mail.reading.is_some(),
-    frame: |_, view| staged(view, 120, 120, 300, 400),
-    draw: App::mail_read_window,
-    order: ordered(|app| app.mail.reading.is_some(), |app| app.pressed(crate::press::mail::Press::ReadClose)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static MAIL_READ: Window = Window::usual(
+    "mail-read",
+    |app| app.mail.reading.is_some(),
+    |_, view| staged(view, 120, 120, 300, 400),
+    App::mail_read_window,
+    |app| app.pressed(crate::press::mail::Press::ReadClose),
+);
 
 /// The letter being written, in the same place (`WID_RODEXCOMPOSEWND`).
-pub(in crate::web) static MAIL_WRITE: Window = Window {
-    id: "mail-write",
-    open: |app| app.mail.writing.is_some(),
-    frame: |_, view| staged(view, 120, 120, 300, 400),
-    draw: App::mail_write_window,
-    order: ordered(|app| app.mail.writing.is_some(), |app| app.pressed(crate::press::mail::Press::WriteClose)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static MAIL_WRITE: Window = Window::usual(
+    "mail-write",
+    |app| app.mail.writing.is_some(),
+    |_, view| staged(view, 120, 120, 300, 400),
+    App::mail_write_window,
+    |app| app.pressed(crate::press::mail::Press::WriteClose),
+);
 
 /// What the mail asks, in the client's message box: 200 of 480 down the middle of the screen.
 pub(in crate::web) static MAIL_ASKS: Window = Window::question("mail-asks", |app| app.mail.asks.is_some(), App::mail_question);

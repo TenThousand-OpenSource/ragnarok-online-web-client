@@ -17,7 +17,7 @@ impl App {
         let mut window = art("basic_interface/homuninfo_bg.bmp", 0, 0, 280, 180);
         let (line, otherwise) = title(self.mercenary.job);
         window.push_str(&text(5, 2, BLACK, &Self::words(line, otherwise)));
-        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
+        window.push_str(&cross(280, Press::Window));
         for (x, y, line, otherwise) in [(100, 24, 407, "Name"), (100, 47, 408, "Level"), (100, 111, 1184, "Expiration"), (100, 135, 1185, "Loyalty"), (100, 159, 1186, "Summons"), (230, 133, 1187, "Kill")] {
             window.push_str(&text(x, y, BLACK, &Self::words(line, otherwise)));
         }
@@ -31,14 +31,14 @@ impl App {
         // shows 85; the fill and the numbers are drawn as that window's gauges are (`App::gauge`), cut there.
         for (y, now, most) in [(73, info.hp, info.max_hp), (88, info.sp, info.max_sp)] {
             window.push_str(&mercenary_gauge(117, y, i64::from(now), i64::from(most)));
-            window.push_str(&text_in(Font(1, 14, false), 218, y - 3, BLACK, &format!("{now} / {most}")));
+            window.push_str(&text_in(FIGURES, 218, y - 3, BLACK, &format!("{now} / {most}")));
         }
         // The end of its contract, as the client's line 1260 writes a time, in the player's own hours.
         let ends = js_sys::Date::new(&wasm_bindgen::JsValue::from_f64(f64::from(info.expires) * 1000.0));
-        window.push_str(&text(155, 111, "#f00", &expiry(&Self::words(1260, "%m/%d %H:%M"), (ends.get_month() + 1, ends.get_date(), ends.get_hours(), ends.get_minutes()))));
-        window.push_str(&text_in(Font(1, 14, false), 170, 133, BLACK, &info.faith.to_string()));
-        window.push_str(&text_in(Font(1, 14, false), 170, 157, BLACK, &info.calls.to_string()));
-        window.push_str(&text_in(Font(1, 14, false), 245, 157, BLACK, &info.kills.to_string()));
+        window.push_str(&text(155, 111, RED, &expiry(&Self::words(1260, "%m/%d %H:%M"), (ends.get_month() + 1, ends.get_date(), ends.get_hours(), ends.get_minutes()))));
+        window.push_str(&text_in(FIGURES, 170, 133, BLACK, &info.faith.to_string()));
+        window.push_str(&text_in(FIGURES, 170, 157, BLACK, &info.calls.to_string()));
+        window.push_str(&text_in(FIGURES, 245, 157, BLACK, &info.kills.to_string()));
         window
     }
 
@@ -70,12 +70,5 @@ fn mercenary_gauge(x: i32, y: i32, now: i64, most: i64) -> String {
     if most <= 0 || now > most || now <= 0 {
         return String::new();
     }
-    let colour = if now * 4 < most { "red" } else { "blue" };
-    let fill = (77.0 * now as f64 / most as f64) as i32;
-    format!(
-        "{}{}{}",
-        art(&format!("basic_interface/gze{colour}_left.bmp"), x, y, 4, 8),
-        art(&format!("basic_interface/gze{colour}_mid.bmp"), x + 4, y, fill, 8),
-        art(&format!("basic_interface/gze{colour}_right.bmp"), x + 4 + fill, y, 4, 8)
-    )
+    filling(x, y, 77, now, most, Red::UnderQuarter)
 }

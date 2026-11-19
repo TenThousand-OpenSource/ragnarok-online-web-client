@@ -1,7 +1,14 @@
 //! Talking to NPCs: what the player sends, and what the script answers (rAthena, `clif_scriptmes` and its
-//! neighbours in `src/map/clif.cpp`, at PACKETVER 20260219).
+//! neighbours in `src/map/clif.cpp`, at PACKETVER 20260219); and the line in a colour of its own that an NPC,
+//! or the server, says into the chat (ZC_NPC_CHAT).
+//!
+//! Whispers are `net/whispers.rs` and CZ_RESTART is with the basics of the map server (`net/packets/zone.rs`):
+//! both are still named from here, where they were.
 
-use super::bytes::{text};
+use super::bytes::{long, text, Writer};
+
+pub use super::packets::restart;
+pub use super::whispers::{whisper, whisper_answered, whispered, ZC_ACK_WHISPER, ZC_WHISPER};
 
 /// ZC_SAY_DIALOG (0x00b4): `u16 length, u32 npc, char[] text`; ZC_SAY_DIALOG2 (0x0972) has a `u8 type` before
 /// the text.
@@ -26,7 +33,7 @@ pub const ZC_NPC_CHAT: u16 = 0x02c1;
 
 /// ZC_NPC_CHAT: who says it, the colour as red, green and blue, and the words.
 pub fn coloured_line(packet: &[u8]) -> Option<(u32, [u8; 3], String)> {
-    let who = u32::from_le_bytes(packet.get(4..8)?.try_into().ok()?);
+    let who = long(packet, 4)?;
     let colour = packet.get(8..11)?;
     Some((who, [colour[0], colour[1], colour[2]], text(packet.get(12..)?)))
 }
@@ -34,7 +41,7 @@ pub fn coloured_line(packet: &[u8]) -> Option<(u32, [u8; 3], String)> {
 /// The NPC a packet is about: at offset 4 where a length comes first, else at 2.
 pub fn npc(id: u16, packet: &[u8]) -> Option<u32> {
     let at = if matches!(id, ZC_SAY_DIALOG | ZC_SAY_DIALOG2 | ZC_MENU_LIST) { 4 } else { 2 };
-    Some(u32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?))
+    long(packet, at)
 }
 
 /// What an NPC says: one line of its window.
@@ -52,81 +59,34 @@ pub fn menu(packet: &[u8]) -> Option<Vec<String>> {
     Some(choices)
 }
 
-fn about(id: u16, npc: u32) -> Vec<u8> {
-    let mut packet = id.to_le_bytes().to_vec();
-    packet.extend(npc.to_le_bytes());
-    packet
-}
-
 /// CZ_CONTACTNPC (0x0090): `u32 npc, u8 type` (1): the player presses an NPC.
 pub fn contact(npc: u32) -> Vec<u8> {
-    let mut packet = about(0x0090, npc);
-    packet.push(1);
-    packet
+    Writer::new(0x0090).u32(npc).u8(1).done()
 }
 
 /// CZ_REQ_NEXT_SCRIPT (0x00b9): "next" was pressed.
 pub fn next(npc: u32) -> Vec<u8> {
-    about(0x00b9, npc)
+    Writer::new(0x00b9).u32(npc).done()
 }
 
 /// CZ_CLOSE_DIALOG (0x0146): "close" was pressed.
 pub fn close(npc: u32) -> Vec<u8> {
-    about(0x0146, npc)
+    Writer::new(0x0146).u32(npc).done()
 }
 
 /// CZ_CHOOSE_MENU (0x00b8): `u32 npc, u8 choice`, the first being 1; 255 turns the menu down.
 pub fn choose(npc: u32, choice: u8) -> Vec<u8> {
-    let mut packet = about(0x00b8, npc);
-    packet.push(choice);
-    packet
+    Writer::new(0x00b8).u32(npc).u8(choice).done()
 }
 
 /// CZ_INPUT_EDITDLG (0x0143): `u32 npc, i32 value`.
 pub fn number(npc: u32, value: i32) -> Vec<u8> {
-    let mut packet = about(0x0143, npc);
-    packet.extend(value.to_le_bytes());
-    packet
+    Writer::new(0x0143).u32(npc).i32(value).done()
 }
 
 /// CZ_INPUT_EDITDLGSTR (0x01d5): `u16 length, u32 npc, char[] words` ending in a zero.
 pub fn words(npc: u32, words: &str) -> Vec<u8> {
-    let mut packet = 0x01d5u16.to_le_bytes().to_vec();
-    packet.extend(((words.len() + 9) as u16).to_le_bytes());
-    packet.extend(npc.to_le_bytes());
-    packet.extend(words.as_bytes());
-    packet.push(0);
-    packet
-}
-
-/// CZ_RESTART (0x00b2): `u8 type`: 0 returns a dead character to its save point, 1 goes back to the characters.
-pub fn restart(to_characters: bool) -> Vec<u8> {
-    vec![0xb2, 0x00, u8::from(to_characters)]
-}
-
-/// ZC_WHISPER (0x09de): `u16 length, u32 sender, char[24] name, u8 admin, char[] words`: someone whispers.
-pub const ZC_WHISPER: u16 = 0x09de;
-/// ZC_ACK_WHISPER (0x09df): `u8 result, u32 character`: 0 if the whisper arrived.
-pub const ZC_ACK_WHISPER: u16 = 0x09df;
-
-/// Who whispers, and what.
-pub fn whispered(packet: &[u8]) -> Option<(String, String)> {
-    Some((text(packet.get(8..32)?), text(packet.get(33..)?)))
-}
-
-/// ZC_ACK_WHISPER (0x09df, 7 bytes): how the whisper went (`crate::whispers::answer`).
-pub fn whisper_answered(packet: &[u8]) -> Option<u8> {
-    packet.get(..7).map(|packet| packet[2])
-}
-
-/// CZ_WHISPER (0x0096): `u16 length, char[24] name, char[] words` ending in a zero.
-pub fn whisper(name: &str, words: &str) -> Vec<u8> {
-    let mut packet = 0x0096u16.to_le_bytes().to_vec();
-    packet.extend(((4 + 24 + words.len() + 1) as u16).to_le_bytes());
-    packet.extend(super::bytes::name24(name));
-    packet.extend(words.as_bytes());
-    packet.push(0);
-    packet
+    Writer::sized(0x01d5).u32(npc).bytes(words.as_bytes()).u8(0).done()
 }
 
 #[cfg(test)]
@@ -158,20 +118,11 @@ mod tests {
     }
 
     #[test]
-    fn reads_how_a_whisper_went() {
-        assert_eq!(whisper_answered(&[0xdf, 0x09, 1, 0, 0, 0, 0]), Some(crate::whispers::answer::ABSENT));
-        assert_eq!(whisper_answered(&[0xdf, 0x09, 0]), None);
-    }
-
-    #[test]
     fn builds_the_answers() {
         assert_eq!(contact(0x01020304), [0x90, 0, 4, 3, 2, 1, 1]);
         assert_eq!(choose(5, 2), [0xb8, 0, 5, 0, 0, 0, 2]);
         assert_eq!(next(5), [0xb9, 0, 5, 0, 0, 0]);
         assert_eq!(words(5, "ab"), [0xd5, 0x01, 11, 0, 5, 0, 0, 0, b'a', b'b', 0]);
-        for packet in [contact(1), choose(1, 1), next(1), close(1), number(1, 1)] {
-            let id = u16::from_le_bytes([packet[0], packet[1]]);
-            assert_eq!(crate::net::packet_length(id), Some(packet.len() as i32), "{id:#06x}");
-        }
+        crate::net::bytes::testing::assert_lengths(&[contact(1), choose(1, 1), next(1), close(1), number(1, 1)]);
     }
 }

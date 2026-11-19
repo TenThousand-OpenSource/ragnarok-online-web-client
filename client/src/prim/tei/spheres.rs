@@ -86,8 +86,7 @@ impl Prim {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// A sphere as `CRagEffect::ElementalOrbit` launches it: so far round, so high, reaching so far, flagged.
     fn sphere(round: f32, high: f32, out: f32, near: bool, flag: i8) -> Prim {

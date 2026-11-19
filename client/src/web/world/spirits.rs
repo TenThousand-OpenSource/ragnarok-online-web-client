@@ -11,10 +11,7 @@ use super::*;
 /// who is not there.
 fn job_and_state(state: &State, on: Option<u32>) -> Option<(u16, u32)> {
     let scene = state.scene.as_ref()?;
-    let mover = match on {
-        None => &scene.player,
-        Some(id) => scene.units.get(&id)?,
-    };
+    let mover = scene.mover(on)?;
     Some((mover.job, mover.state))
 }
 

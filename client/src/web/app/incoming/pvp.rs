@@ -101,4 +101,10 @@ impl App {
             shown.set_inner_html(&line);
         }
     }
+
+    /// The digits of the standing were read (the pictures of `RankFont`, action by action).
+    pub(in crate::web::app) fn pvp_digits_read(&mut self, digits: Vec<(String, (usize, usize), (f32, f32))>) {
+        self.pvp.digits = digits;
+        self.rank_shown();
+    }
 }

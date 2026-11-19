@@ -20,7 +20,7 @@
 //!
 //! The sprites several files show are read with this file's (`SPRITES`); their names are in `launched.rs`.
 
-use super::launched::{FIREBALL, PARTICLE1, PARTICLE2, PARTICLE3, PARTICLE4, SHADOW, SIGHT, SPEAR, thrown};
+use super::launched::{FIREBALL, PARTICLE1, PARTICLE2, PARTICLE3, PARTICLE4, SAKURA, SHADOW, SIGHT, SPEAR, thrown};
 use super::*;
 
 /// The sprites the effects here show, among the client's sprites (the client names them `이팩트\name.spr`, the
@@ -31,7 +31,6 @@ const PARTICLE6: &str = "이팩트/particle6";
 const PARTICLE7: &str = "이팩트/particle7";
 const ANGEL: &str = "이팩트/축복";
 const AQUA: &str = "이팩트/성수뜨기";
-const SAKURA: &str = "이팩트/sakura01";
 
 pub(super) const FILE: File = File { known, thrown: none, stays: none, run, pictures: &[&PICTURES], sprites: &[&SPRITES] };
 

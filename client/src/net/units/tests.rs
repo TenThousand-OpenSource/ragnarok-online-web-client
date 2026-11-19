@@ -172,3 +172,50 @@ fn refuses_what_is_not_a_unit() {
     assert_eq!(vanished(&[0x80, 0, 1, 0, 0, 0, 1]), Some((1, true)));
     assert_eq!(vanished(&[0x80, 0, 1, 0, 0, 0, 0]), Some((1, false)));
 }
+
+/// The tests that stood in `net/units.rs` itself: a name told, a blow dealt.
+mod act_tests {
+    use super::*;
+
+    #[test]
+    fn a_monsters_name_with_its_title_and_group() {
+        let mut packet = vec![0xdf, 0x0a];
+        packet.extend(9u32.to_le_bytes());
+        packet.extend(3u32.to_le_bytes());
+        for words in ["Poring", "Angry"] {
+            let mut field = words.as_bytes().to_vec();
+            field.resize(24, 0);
+            packet.extend(field);
+        }
+        assert_eq!(named(&packet), Some((9, 3, "Poring".to_owned(), "Angry".to_owned())));
+        assert_eq!(named(&packet[..57]), None);
+    }
+
+    #[test]
+    fn a_blow_of_several_hits_with_the_other_hands_damage() {
+        let mut packet = vec![0xc8, 0x08];
+        for number in [7u32, 9, 1000, 432, 288, 300] {
+            packet.extend(number.to_le_bytes());
+        }
+        packet.push(0);
+        packet.extend(3u16.to_le_bytes());
+        packet.push(8);
+        packet.extend(40i32.to_le_bytes());
+        assert_eq!(act(&packet), Some(Act { source: 7, target: 9, speed: 432, delay: 288, damage: 300, kind: 8, hits: 3, extra: 40 }));
+        assert_eq!(act(&packet[..33]), None);
+    }
+}
+
+#[test]
+fn reads_a_monster_becoming_another_and_how_one_is_gone() {
+    // ZC_NPCSPRITE_CHANGE: a Fabre (1007) becomes a Pupa (1008).
+    let mut packet = vec![0xb0, 0x01];
+    packet.extend(77u32.to_le_bytes());
+    packet.push(0);
+    packet.extend(1008u32.to_le_bytes());
+    assert_eq!(crate::net::packet_length(ZC_NPCSPRITE_CHANGE), Some(packet.len() as i32));
+    assert_eq!((became(&packet), became(&packet[..10])), (Some((77, 1008)), None));
+    // ZC_NOTIFY_VANISH: out of sight, and teleported away.
+    assert_eq!((vanished_how(&[0x80, 0, 7, 0, 0, 0, 0]), vanished_how(&[0x80, 0, 7, 0, 0, 0, 3])), (Some(0), Some(3)));
+    assert_eq!(vanished_how(&[0x80, 0, 7, 0, 0, 0]), None);
+}

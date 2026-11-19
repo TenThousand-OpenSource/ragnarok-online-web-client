@@ -10,7 +10,7 @@ const KEPT: usize = crate::web::hud::CHAT_KEPT;
 
 impl App {
     /// A press of this system (`crate::press::whispers`).
-    pub(super) fn whisper_pressed(&mut self, press: crate::press::whispers::Press) {
+    pub(super) fn whispers_pressed(&mut self, press: crate::press::whispers::Press) {
         use crate::press::whispers::Press;
         match press {
             Press::Close(place) => self.whisper_closed(place),

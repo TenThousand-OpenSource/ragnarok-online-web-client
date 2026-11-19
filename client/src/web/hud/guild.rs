@@ -1,6 +1,7 @@
 //! The guild's windows: the guild window with its six tabs (the client's `UIGuildWnd` and what is made of it:
-//! `UIGuildInfoManageWnd` here, and in `guild/tabs.rs` `UIGuildMemberManageWnd`, `UIGuildPositionManageWnd`,
-//! `UIGuildSkillWnd`, `UIGuildBanishedMemberWnd`, `UIGuildNoticeWnd`), the menus the right button opens in it,
+//! `UIGuildInfoManageWnd` here, and a file to each of the others in `guild/`: `UIGuildMemberManageWnd`,
+//! `UIGuildPositionManageWnd`, `UIGuildSkillWnd`, `UIGuildBanishedMemberWnd`, `UIGuildNoticeWnd`), the table
+//! two of them are laid out in, the menus the right button opens in it,
 //! and what the guild asks (`UIJoinGuildAcceptWnd`, `UIAllyGuildAcceptWnd`, `UIGuildLeaveReasonDescWnd`,
 //! `UIGuildBanReasonDescWnd`).
 //!
@@ -17,33 +18,43 @@ use crate::press::things::Menu;
 use crate::web::app::{GuildAsk, GuildMenu};
 use crate::web::parts::menued;
 
-mod tabs;
+mod expelled;
+mod members;
+mod notice;
+mod positions;
+mod skills;
 
 pub(in crate::web) const WIDTH: i32 = 400;
 pub(in crate::web) const HEIGHT: i32 = 317;
 const STRIP: &str = "#b4b4b4";
 const PANEL: &str = "#fff";
-const LINE: &str = "#c8c8c8";
+const LINE: &str = RIM;
 const MARK: &str = "#709fed";
 const PASSIVE_MARK: &str = "#70d7ed";
-/// The grey the client writes a skill not learnt in (120, 120, 120); a tab that is shut is written in it too.
-const GREY: &str = "#787878";
+/// The grey of the fields typed into (242, 242, 242).
+const FIELD: &str = "#f2f2f2";
 
-/// A rectangle of one colour.
-fn fill(x: i32, y: i32, width: i32, height: i32, colour: &str) -> String {
-    format!(r#"<div class="a" style="{};background:{colour}"></div>"#, at(x, y, width, height))
-}
-
-/// A text cut to the width it has, three dots where it was cut, as the client's fitted labels are
-/// (`UIStaticText::SetTextFitted`); what was cut is told when it is pointed at, as the client's tooltip tells it.
-fn fitted(x: i32, y: i32, width: i32, colour: &str, words: &str) -> String {
-    format!(r#"<div class="a t" style="left:{x}px;top:{y}px;width:{width}px;overflow:hidden;text-overflow:ellipsis;color:{colour}" title="{0}">{0}</div>"#, escape(words))
-}
-
-/// One of the client's small boxes, ticked or not (`checkbox_1.bmp`, `checkbox_0.bmp`), with what marks it as
-/// pressable, if anything.
-fn check(x: i32, y: i32, on: bool, press: &str) -> String {
-    format!(r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat" {press}></div>"#, at(x, y, 12, 12), picture(if on { "checkbox_1.bmp" } else { "checkbox_0.bmp" }))
+/// A table of rows 19 high (`UIGuildPositionManageWnd::Paint`, `UIGuildBanishedMemberWnd::Paint`): the grey it
+/// lies on, twelve rows of white cells with a pixel of the grey between each two, the headers in the first,
+/// and under it what the rows hold, eleven in sight. The grey ends 18 from the window's right edge: the
+/// client's scroll bar stands there.
+fn table(widths: &[i32], headers: &[String], rows: &[String]) -> String {
+    let mut table = fill(4, 45, WIDTH - 22, HEIGHT - 19 - 69, LINE);
+    for row in 0..12 {
+        let mut x = 0;
+        for width in widths {
+            table.push_str(&fill(x + 5, row * 19 + 46, *width, 18, PANEL));
+            x += width + 1;
+        }
+    }
+    let mut x = 0;
+    for (header, width) in headers.iter().zip(widths) {
+        table.push_str(&text(x + 8, 49, BLACK, header));
+        x += width + 1;
+    }
+    let inside: String = rows.iter().enumerate().map(|(row, inside)| format!(r#"<div style="position:absolute;left:0;top:{}px;width:{}px;height:19px">{inside}</div>"#, row * 19, WIDTH - 18)).collect();
+    table.push_str(&format!(r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{inside}</div></div>"#, at(0, 65, WIDTH - 6, 11 * 19), rows.len() * 19));
+    table
 }
 
 impl App {
@@ -57,7 +68,7 @@ impl App {
     /// does nothing when such a tab is pressed (`UM_CHANGE_GUILD_TAB`).
     pub(in crate::web) fn guild_window(&self) -> String {
         let mut window = title_bar(WIDTH, "");
-        window.push_str(&press_button(WIDTH - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
+        window.push_str(&cross(WIDTH, Press::Window));
         window.push_str(&fill(0, 17, WIDTH, 24, STRIP));
         let tabs = [(340, "Guild Info"), (341, "Member"), (342, "Position"), (343, "Guild Skill"), (344, "Expel List"), (345, "Announcement")];
         for (tab, (line, otherwise)) in tabs.into_iter().enumerate() {
@@ -68,9 +79,7 @@ impl App {
         }
         window.push_str(&fill(0, 41, WIDTH, HEIGHT - 41, LINE));
         window.push_str(&fill(1, 41, WIDTH - 2, HEIGHT - 42, PANEL));
-        window.push_str(&art("basic_interface/btnbar_left.bmp", 0, HEIGHT - 21, 21, 21));
-        window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, HEIGHT - 21, WIDTH - 42, 21));
-        window.push_str(&art("basic_interface/btnbar_right.bmp", WIDTH - 21, HEIGHT - 21, 21, 21));
+        window.push_str(&button_bar(WIDTH, HEIGHT));
         window.push_str(&match self.guild.tab {
             0 => self.guild_info(),
             1 => self.guild_members(),
@@ -133,7 +142,7 @@ impl App {
         if guild.master {
             tab.push_str(&picture_press(WIDTH - 42 - 8, 69, "btn_edit", Press::Emblem));
             // The button that breaks the guild up, 15 from the right and 5 from the bottom.
-            tab.push_str(&pictured(WIDTH - 64 - 15, HEIGHT - 20 - 5, (64, 20), ["btn_disBand.bmp", "btn_disBand_a.bmp", "btn_disBand_b.bmp"], Press::Disband, ""));
+            tab.push_str(&picture_press_sized(WIDTH - 64 - 15, HEIGHT - 20 - 5, (64, 20), "btn_disBand", Press::Disband));
         }
         tab
     }

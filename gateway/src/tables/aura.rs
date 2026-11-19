@@ -17,11 +17,7 @@ pub fn aura(grf: &Grf) -> serde_json::Value {
 fn told(lua: &Lua) -> serde_json::Value {
     let number = |table: &str, key: &str| -> i64 {
         let value = lua.globals().get::<Table>(table).and_then(|table| table.get::<Value>(key));
-        match value {
-            Ok(Value::Integer(number)) => number.max(0),
-            Ok(Value::Number(number)) => (number as i64).max(0),
-            _ => 0,
-        }
+        value.ok().as_ref().and_then(whole).unwrap_or(0).max(0)
     };
     let pair = |key: &str| [number("Level99AuraTable", key), number("Level99AuraTable", &format!("{key}_sub"))];
     serde_json::json!({

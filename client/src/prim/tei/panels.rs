@@ -91,7 +91,6 @@ impl Prim {
         if head.process >= 15 {
             head.alpha = (head.alpha - 10).max(0);
         }
-        head.at[0][0] += head.heights[1] * cosine(head.turned as f32);
-        head.at[0][2] += head.heights[1] * sine(head.turned as f32);
+        head.fly_level();
     }
 }

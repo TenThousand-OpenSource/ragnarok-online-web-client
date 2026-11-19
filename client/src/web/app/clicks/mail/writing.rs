@@ -56,7 +56,7 @@ impl App {
     pub(super) fn mail_send(&mut self) {
         self.mail_keep_typed();
         let Some(writing) = &self.mail.writing else { return };
-        let has = self.hero.params.get(&packets::parameter::ZENY).copied().unwrap_or(0);
+        let has = self.hero.zeny();
         let zeny = mail::zeny_typed(&writing.zeny);
         let fee = mail::fee(writing.items.len(), zeny);
         let amiss = if writing.to.is_empty() && writing.receiver.is_none() {

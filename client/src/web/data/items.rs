@@ -56,37 +56,32 @@ pub fn want_items(ids: impl Iterator<Item = u32>, then: fn()) {
         let list: Vec<String> = missing.iter().map(u32::to_string).collect();
         match fetch_json(&format!("/tables/{}items/{}", if russian() { "ru/" } else { "" }, list.join(","))).await {
             Ok(answer) => {
-                let found: Vec<(u32, (String, String))> = entries(&answer)
-                    .into_iter()
-                    .filter_map(|(id, about)| Some((id, (text_of(&about, "name")?, text_of(&about, "resource")?))))
-                    .collect();
-                let strings = |value: wasm_bindgen::JsValue| js_sys::Array::from(&value).iter().filter_map(|line| line.as_string()).collect::<Vec<String>>();
-                let told: Vec<(u32, (Vec<String>, Vec<(String, String)>))> = entries::<u32>(&answer)
-                    .into_iter()
-                    .map(|(id, about)| {
-                        let field = |name: &str| js_sys::Reflect::get(&about, &name.into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
-                        let facts = js_sys::Array::from(&field("facts")).iter().filter_map(|fact| <[String; 2]>::try_from(strings(fact)).ok()).map(|[key, value]| (key, value)).collect();
-                        (id, (strings(field("description")), facts))
-                    })
-                    .collect();
-                let unknown: Vec<(u32, (String, String, Vec<String>))> = entries::<u32>(&answer)
-                    .into_iter()
-                    .filter_map(|(id, about)| {
-                        let unknown = js_sys::Reflect::get(&about, &"unidentified".into()).ok().filter(|unknown| unknown.is_object())?;
-                        let lines = js_sys::Reflect::get(&unknown, &"description".into()).unwrap_or(wasm_bindgen::JsValue::UNDEFINED);
-                        Some((id, (text_of(&unknown, "name")?, text_of(&unknown, "resource")?, strings(lines))))
-                    })
-                    .collect();
-                let slots: Vec<(u32, u8)> = entries::<u32>(&answer).into_iter().filter_map(|(id, about)| Some((id, js_sys::Reflect::get(&about, &"slots".into()).ok()?.as_f64().filter(|slots| *slots > 0.0)? as u8))).collect();
-                SLOTS.with_borrow_mut(|all| all.extend(slots));
-                UNIDENTIFIED.with_borrow_mut(|all| all.extend(unknown));
-                ABOUT.with_borrow_mut(|about| about.extend(told));
-                ITEMS.with_borrow_mut(|items| items.extend(found));
+                told(&answer);
                 then();
             }
             Err(error) => web_sys::console::warn_1(&error.into()),
         }
     });
+}
+
+/// Keeps what the gateway answered about some items: `{"<id>": {"name", "resource", "description": […],
+/// "facts": [[key, value], …], "unidentified": {"name", "resource", "description"} or null, "slots"}}`
+/// (`tables/items.rs`).
+fn told(answer: &wasm_bindgen::JsValue) {
+    for (id, about) in entries::<u32>(answer) {
+        if let (Some(name), Some(resource)) = (text_of(&about, "name"), text_of(&about, "resource")) {
+            ITEMS.with_borrow_mut(|items| items.insert(id, (name, resource)));
+        }
+        let facts = list(&field(&about, "facts")).iter().filter_map(|fact| <[String; 2]>::try_from(texts(fact)).ok()).map(|[key, value]| (key, value)).collect();
+        ABOUT.with_borrow_mut(|all| all.insert(id, (texts(&field(&about, "description")), facts)));
+        let unknown = field(&about, "unidentified");
+        if let (true, Some(name), Some(resource)) = (unknown.is_object(), text_of(&unknown, "name"), text_of(&unknown, "resource")) {
+            UNIDENTIFIED.with_borrow_mut(|all| all.insert(id, (name, resource, texts(&field(&unknown, "description")))));
+        }
+        if let Some(slots) = number(&about, "slots").filter(|slots| *slots > 0.0) {
+            SLOTS.with_borrow_mut(|all| all.insert(id, slots as u8));
+        }
+    }
 }
 
 /// Forgets the items' texts: after the language changed they are asked for anew.

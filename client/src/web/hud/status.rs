@@ -7,7 +7,7 @@ impl App {
     pub(in crate::web) fn status_window(&self) -> String {
         let width = 280;
         let mut window = title_bar(width, "Status");
-        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
+        window.push_str(&cross(width, Press::Window));
         window.push_str(&art("statuswnd/w_statwin_bg.bmp", 0, 17, 280, 124));
         let points = self.value(parameter::STATUS_POINTS);
         // Every number of the window is written as (1, 14) (`UIStatusWnd::Paint`).

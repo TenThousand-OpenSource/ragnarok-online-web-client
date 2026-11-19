@@ -5,6 +5,32 @@
 
 use super::*;
 
+/// An effect file ready to play: its layers, and each layer's pictures on the GPU (for the see-through pipeline
+/// and for the one that adds light).
+pub(super) struct Shown {
+    pub(super) effect: crate::effect::Effect,
+    pub(super) pictures: Vec<Vec<Option<Rc<[wgpu::BindGroup; 2]>>>>,
+}
+
+/// An effect playing on someone (`None`: the player's own character) since a moment.
+pub(super) struct Playing {
+    pub(super) shown: Rc<Shown>,
+    pub(super) on: Option<u32>,
+    pub(super) began: f64,
+    /// How it is carried, for a file a class of the client's own moves, turns or begins late; none for a file
+    /// that plays over the one it is on.
+    pub(super) carried: Option<Carrying>,
+}
+
+/// How a playing file is carried (`crate::effect::carried`), whose place it was told besides that of the one it
+/// is on (none told: nobody; no one named: the player's own character), and what it measured as it began, as
+/// the client's effect does in its `Open`: where the two stood and the angle it is turned by.
+pub(super) struct Carrying {
+    pub(super) how: crate::effect::carried::Carried,
+    pub(super) other: Option<Option<u32>>,
+    pub(super) set: Option<(Vector, Vector, f32)>,
+}
+
 /// One of the client's effect files plays on someone after a while, with a sound if it has one.
 pub fn effect_later(name: &str, on: Option<u32>, delay: f64, sound: Option<&str>) {
     STATE.with_borrow_mut(|state| {
@@ -123,8 +149,7 @@ pub(super) fn effect_carried(name: &str, on: Option<u32>, carried: Option<Carryi
                 .iter()
                 .filter_map(|(name, image)| {
                     let image = image.as_ref()?;
-                    let view = gpu.texture(image.width, image.height, &image.rgba);
-                    Some((*name, Rc::new([0, 1].map(|which| gpu.textured(&gpu.effect_pipelines[which].get_bind_group_layout(1), &view, &gpu.sampler)))))
+                    Some((*name, gpu.effect_binds(image.width, image.height, &image.rgba, &gpu.sampler)))
                 })
                 .collect();
             let pictures = effect.layers.iter().map(|layer| layer.textures.iter().map(|name| on_gpu.get(name.as_str()).cloned()).collect()).collect();

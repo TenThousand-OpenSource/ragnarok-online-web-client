@@ -268,13 +268,7 @@ impl App {
     /// character's own skills' (`Skills::use_level`): the numbers of skills are not shared.
     pub(super) fn companion_skill_level(&mut self, step: LevelStep, most: Option<u16>) {
         let Some(known) = most.map(|most| most.max(1)) else { return };
-        let used = self.skills.use_level.get(&step.skill).copied().unwrap_or(known);
-        let wanted = if step.step == crate::press::Step::More { (used + 1).min(known) } else { used.saturating_sub(1).max(1) };
-        if wanted == known {
-            self.skills.use_level.remove(&step.skill);
-        } else {
-            self.skills.use_level.insert(step.skill, wanted);
-        }
+        self.use_level_stepped(step.skill, step.step, known);
     }
 
     /// The right button was pressed on someone: if it is the player's homunculus or mercenary, its menu opens

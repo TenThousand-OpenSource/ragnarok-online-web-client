@@ -58,8 +58,7 @@ impl Prim {
                 head.at[0][1] -= head.heights[2];
             }
         }
-        head.at[0][0] += head.heights[1] * cosine(head.turned as f32);
-        head.at[0][2] += head.heights[1] * sine(head.turned as f32);
+        head.fly_level();
     }
 }
 
@@ -89,9 +88,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     /// A shield as `TexturedShieldThrow` launches it at a place 20 to the east and level (`quick`: a sphere as
     /// `TANJI` does, without its wait).

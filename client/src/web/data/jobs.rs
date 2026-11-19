@@ -11,13 +11,7 @@ pub const SUMMONER: u16 = 4218;
 
 thread_local! {
     /// Body sprite names by sprite job, from the list taken out of the original client.
-    static BODIES: HashMap<u16, &'static str> = include_str!("job_sprites.txt")
-        .lines()
-        .filter_map(|line| {
-            let (job, name) = line.split_once('\t')?;
-            Some((job.parse().ok()?, name))
-        })
-        .collect();
+    static BODIES: HashMap<u16, &'static str> = crate::tables::tabbed(include_str!("job_sprites.txt")).filter_map(|(job, name)| Some((job.parse().ok()?, name))).collect();
     /// From the gateway's `/tables.json`, read out of the client's Lua files: job names, and headgear sprite names
     /// by view ID.
     static JOB_NAMES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
@@ -25,13 +19,7 @@ thread_local! {
     /// The sprite files of NPCs and monsters, by the number the server shows them under.
     static SPRITES: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The plain job of a mounted or re-dressed job, from the list taken out of the original client.
-    static BASES: HashMap<u16, u16> = include_str!("job_bases.txt")
-        .lines()
-        .filter_map(|line| {
-            let (job, base) = line.split_once('\t')?;
-            Some((job.parse().ok()?, base.parse().ok()?))
-        })
-        .collect();
+    static BASES: HashMap<u16, u16> = crate::tables::tabbed(include_str!("job_bases.txt")).filter_map(|(job, base)| Some((job.parse().ok()?, base.parse().ok()?))).collect();
     /// The job each job grew out of (the client's `jobinheritlist.lub`).
     static INHERITS: RefCell<HashMap<u16, u16>> = RefCell::new(HashMap::new());
     /// The ending of a weapon's sprite files, by the client's number for the kind of weapon.

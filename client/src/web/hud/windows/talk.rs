@@ -29,11 +29,3 @@ pub(in crate::web) static CHAT: Window = Window {
     layer: Layer::Under,
     drawn: None,
 };
-
-impl App {
-    /// The chat's height: the client's own sum (`UINewChatWnd::ResizeRows`), the input line, the rows and three
-    /// more, the tabs.
-    fn chat_height(&self) -> i32 {
-        if self.chat.rows == 0 { 24 } else { 24 + (self.chat.rows as i32 + 3) * 14 + 16 }
-    }
-}

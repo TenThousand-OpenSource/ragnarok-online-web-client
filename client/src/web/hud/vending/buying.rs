@@ -4,19 +4,18 @@
 use super::*;
 
 impl App {
-    /// A row of either list (`item_row`) with what stands at its right end written after it: a price in its
-    /// colour, which a row of the lists has no place for.
+    /// A row of either list (`item_row`) with what stands at its right end, written already: a price in its
+    /// colour, ending 18 from the list's edge.
     fn vending_row(item: &Item, amount: u16, name_width: i32, right: &str, marks: &str) -> String {
         let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
-        let row = item_row(&Row {
+        item_row(&Row {
             resource: resource.as_deref(),
             amount: Some(u32::from(amount)),
             name: &Self::item_name(item),
             name_at: (36, name_width),
-            price: None,
+            aside: Some(Aside { html: right, inset: 18, colour: BLACK }),
             marks: &format!("{marks} {}", item_marks(item.id, item.identified)),
-        });
-        format!(r#"{}<div class="a t" style="right:18px;top:12px;white-space:nowrap;color:#000">{right}</div></div>"#, row.strip_suffix("</div>").unwrap_or(&row))
+        })
     }
 
     /// How many rows the vendor's list shows: one to a thing, four at the least (`UM_REFRESHITEM`), and here
@@ -65,7 +64,7 @@ impl App {
             dropped(Drop::Wants),
             list_frame(280, 120, &Self::words(228, "Buying Items")),
             list_of(40, 225, 2, &rows, ""),
-            text(12, 99, BLACK, &format!("Total : {} Zeny", grouped(visit.total() as i64))),
+            total_line(99, visit.total() as i64),
             picture_press(174, 96, "btn_buy", Press::Buy),
             picture_press(219, 96, "btn_cancel", Press::Leave),
         )

@@ -19,15 +19,7 @@ pub(in crate::web) static CHOOSE_PLACE: Window = Window {
 /// A list of rows with pictures, 200 by 200, where the list of items to identify stands
 /// (`WID_MAKINGARROWLISTWND`, `WID_SPELLLISTWND`, `WID_ITEMCOMPOSITIONWND`: the same place as
 /// `WID_ITEMIDENTIFYWND`).
-pub(in crate::web) static CHOOSE_PICTURED: Window = Window {
-    id: "choose-pictured",
-    open: |app| app.choosing_in(Shape::Pictured),
-    frame: |_, view| middle(view, 200, 200),
-    draw: App::choose_pictured_window,
-    order: None,
-    layer: Layer::Asks,
-    drawn: None,
-};
+pub(in crate::web) static CHOOSE_PICTURED: Window = Window::pick("choose-pictured", |app| app.choosing_in(Shape::Pictured), App::choose_pictured_window);
 
 /// A list of lines or a thing being forged, 280 by 150: 185 across the stage, 60 above 300 of 480 down
 /// (`WID_MAKETARGETLISTWND`, `WID_MAKETARGETPROCESSWND`, `WID_ITEMREPAIRWND`, `WID_WEAPONREFINEWND`).

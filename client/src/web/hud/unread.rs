@@ -16,7 +16,7 @@ impl App {
     pub(in crate::web) fn unread_window(&self) -> String {
         let tally = &self.unread.tally;
         let mut window = title_bar(SIZE.0, &format!("{}: {}", tr("Packets not read"), tally.total()));
-        window.push_str(&press_button(SIZE.0 - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Close));
+        window.push_str(&cross(SIZE.0, Press::Close));
         window.push_str(&panel(SIZE.0, SIZE.1));
         let rows: String = tally
             .rows()

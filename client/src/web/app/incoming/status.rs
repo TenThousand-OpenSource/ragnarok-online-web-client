@@ -7,7 +7,7 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn status_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
-            0x019b => self.level_gained(id, packet),
+            packets::ZC_NOTIFY_EFFECT => self.level_gained(packet),
             // ZC_USER_COUNT (0x00c2): `u32 count`: how many play on the server. It is shown by the chat's tabs.
             crate::net::commands::ZC_USER_COUNT => {
                 if let Some(count) = crate::net::commands::users(packet) {
@@ -75,10 +75,9 @@ impl App {
     /// went well (3: `EF_REFINEOK`), a potion brewed (5: `EF_PHARMACY_OK`) or spoilt (6:
     /// `EF_PHARMACY_FAIL`), the level of a super novice (7: `EF_ANGEL2`; 8: `EF_JOBLVUP50` for its job
     /// level) and of a taekwon (9: `EF_ANGEL3`). Kind 4 (the game is over) only sets a switch in the client.
-    fn level_gained(&mut self, id: u16, packet: &[u8]) {
+    fn level_gained(&mut self, packet: &[u8]) {
         let own = self.account.as_ref().map(|account| account.account_id);
-        let who = npc::npc(id, packet);
-        let kind = packet.get(6..10).map_or(u32::MAX, |kind| u32::from_le_bytes([kind[0], kind[1], kind[2], kind[3]]));
+        let (who, kind) = packets::effect_on(packet);
         let on = who.filter(|who| Some(*who) != own);
         match kind {
             0 => world::effect("angel.str", on),

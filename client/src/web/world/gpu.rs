@@ -5,8 +5,95 @@ use super::*;
 mod draw;
 mod land;
 mod layers;
+mod textures;
 
 pub(super) use layers::{frames_of, sheet};
+
+/// A frame of a sprite as one picture on the GPU for the effects' pipelines: the picture for each of the two, and
+/// its size.
+#[derive(Clone)]
+pub(super) struct EffectSprite {
+    pub(super) binds: Rc<[wgpu::BindGroup; 2]>,
+    pub(super) size: (f32, f32),
+}
+
+/// A sprite's picture on the GPU: for the see-through pipeline, and for the one that adds its light to what is
+/// behind it.
+pub(super) struct SpriteTexture {
+    pub(super) bind: wgpu::BindGroup,
+    pub(super) adding: wgpu::BindGroup,
+    pub(super) size: (f32, f32),
+    pub(super) feet: (f32, f32),
+}
+
+pub(super) struct Ground {
+    pub(super) vertices: wgpu::Buffer,
+    /// Per texture: its triangles, how many indices they are, and the texture with the baked light.
+    pub(super) batches: Vec<(wgpu::Buffer, u32, wgpu::BindGroup)>,
+}
+
+pub(super) struct Gpu {
+    pub(super) canvas: HtmlCanvasElement,
+    pub(super) surface: wgpu::Surface<'static>,
+    pub(super) device: wgpu::Device,
+    pub(super) queue: wgpu::Queue,
+    pub(super) config: wgpu::SurfaceConfiguration,
+    pub(super) depth: wgpu::TextureView,
+    pub(super) camera_buffer: wgpu::Buffer,
+    pub(super) camera_bind: wgpu::BindGroup,
+    pub(super) sprite_camera_bind: wgpu::BindGroup,
+    pub(super) model_camera_binds: [wgpu::BindGroup; 2],
+    pub(super) water_camera_bind: wgpu::BindGroup,
+    pub(super) ground_pipeline: wgpu::RenderPipeline,
+    /// The models' pipelines: for pictures cut out by their colour, and for those mixed in by their alpha.
+    pub(super) model_pipelines: [wgpu::RenderPipeline; 2],
+    pub(super) water_pipeline: wgpu::RenderPipeline,
+    pub(super) sprite_pipeline: wgpu::RenderPipeline,
+    /// The sprites' pipeline that adds a picture's light to what is behind it (a body an effect has lit:
+    /// `crate::body`), and the camera for it.
+    pub(super) sprite_adding_pipeline: wgpu::RenderPipeline,
+    pub(super) sprite_adding_camera_bind: wgpu::BindGroup,
+    pub(super) sampler: wgpu::Sampler,
+    /// For pictures laid side by side again and again: model textures and the water.
+    pub(super) repeating: wgpu::Sampler,
+    /// Sprites are pixel art: shown pixel by pixel, not smoothed.
+    pub(super) pixel_sampler: wgpu::Sampler,
+    /// The pictures drawn so far on this map.
+    pub(super) sprite_textures: HashMap<SpriteKey, SpriteTexture>,
+    /// The corners of this frame's sprites, and how many sprites the buffer holds.
+    pub(super) sprite_vertices: wgpu::Buffer,
+    pub(super) sprite_room: usize,
+    /// The picture of a portal's rings.
+    pub(super) ring: Option<wgpu::BindGroup>,
+    /// The mark on the ground cell the pointer is over: green corners, as the original's.
+    pub(super) mark: Option<wgpu::BindGroup>,
+    /// For the effects: the see-through pipeline and the one that adds light, the camera for each, and the
+    /// corners of this frame's quads.
+    pub(super) effect_pipelines: [wgpu::RenderPipeline; 2],
+    pub(super) effect_camera_binds: [wgpu::BindGroup; 2],
+    pub(super) effect_vertices: wgpu::Buffer,
+    pub(super) effect_room: usize,
+    /// The pictures of the effects drawn by code (the rings of a cast, the mark on its target, an arrow), by name.
+    pub(super) effect_pictures: HashMap<&'static str, Rc<[wgpu::BindGroup; 2]>>,
+    /// The sprites' pictures the effects' pipelines draw, a frame to a picture (an arrow in flight), by picture.
+    pub(super) effect_sprites: HashMap<SpriteKey, EffectSprite>,
+    /// The pictures of the sprites of the effects made of the client's primitives, each by itself: by the
+    /// sprite's path, then by whether the picture is a truecolor one and its number (`gpu/layers.rs`).
+    pub(super) effect_layers: HashMap<String, HashMap<(bool, usize), Rc<[wgpu::BindGroup; 2]>>>,
+}
+
+pub(super) fn canvas() -> Result<HtmlCanvasElement, String> {
+    crate::web::by_id("game")
+        .ok_or("no #game canvas")?
+        .dyn_into()
+        .map_err(js_error)
+}
+
+/// The canvas's size in real pixels, for a sharp picture on dense screens.
+pub(super) fn pixel_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
+    let ratio = web_sys::window().map_or(1.0, |window| window.device_pixel_ratio());
+    (((f64::from(canvas.client_width()) * ratio) as u32).max(1), ((f64::from(canvas.client_height()) * ratio) as u32).max(1))
+}
 
 pub(super) fn depth_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
     device
@@ -184,71 +271,6 @@ impl Gpu {
         })
     }
 
-    pub(super) fn texture(&self, width: u32, height: u32, rgba: &[u8]) -> wgpu::TextureView {
-        self.device
-            .create_texture_with_data(
-                &self.queue,
-                &wgpu::TextureDescriptor {
-                    label: None,
-                    size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-                    mip_level_count: 1,
-                    sample_count: 1,
-                    dimension: wgpu::TextureDimension::D2,
-                    format: wgpu::TextureFormat::Rgba8Unorm,
-                    usage: wgpu::TextureUsages::TEXTURE_BINDING,
-                    view_formats: &[],
-                },
-                wgpu::util::TextureDataOrder::LayerMajor,
-                rgba,
-            )
-            .create_view(&Default::default())
-    }
-
-    /// A bind group of one picture and how it is sampled.
-    pub(super) fn textured(&self, layout: &wgpu::BindGroupLayout, picture: &wgpu::TextureView, sampler: &wgpu::Sampler) -> wgpu::BindGroup {
-        self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(picture) }, wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(sampler) }],
-        })
-    }
-
-    /// Puts the ground's mesh and textures on the GPU. A texture that could not be read is drawn plain grey.
-    pub(super) fn ground(&self, mesh: &crate::map::Mesh, pictures: &[Option<bmp::Image>]) -> Ground {
-        let mut floats = Vec::with_capacity(mesh.vertices.len() * 10);
-        for vertex in &mesh.vertices {
-            floats.extend(vertex.position);
-            floats.extend(vertex.uv);
-            floats.extend(vertex.light_uv);
-            floats.extend(vertex.colour);
-        }
-        let vertices = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(&floats), usage: wgpu::BufferUsages::VERTEX });
-        let light = self.texture(mesh.light_atlas_size.0.max(1), mesh.light_atlas_size.1.max(1), if mesh.light_atlas.is_empty() { &[0, 0, 0, 255] } else { &mesh.light_atlas });
-        let layout = self.ground_pipeline.get_bind_group_layout(1);
-        let mut batches = Vec::new();
-        for (index, triangles) in mesh.by_texture.iter().enumerate() {
-            if triangles.is_empty() {
-                continue;
-            }
-            let picture = match pictures.get(index).and_then(Option::as_ref) {
-                Some(picture) => self.texture(picture.width, picture.height, &picture.rgba),
-                None => self.texture(1, 1, &[128, 128, 128, 255]),
-            };
-            let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: None,
-                layout: &layout,
-                entries: &[
-                    wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&picture) },
-                    wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&self.sampler) },
-                    wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::TextureView(&light) },
-                ],
-            });
-            let indices = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(triangles), usage: wgpu::BufferUsages::INDEX });
-            batches.push((indices, triangles.len() as u32, bind));
-        }
-        Ground { vertices, batches }
-    }
-
     /// Follows the canvas when the window changes size.
     pub(super) fn fit(&mut self) {
         let (width, height) = pixel_size(&self.canvas);
@@ -260,35 +282,5 @@ impl Gpu {
             self.surface.configure(&self.device, &self.config);
             self.depth = depth_view(&self.device, &self.config);
         }
-    }
-
-    /// Whether a sprite's picture is on the GPU: put there now if it is ready.
-    pub(super) fn has_sprite(&mut self, key: &SpriteKey) -> bool {
-        if self.sprite_textures.contains_key(key) {
-            return true;
-        }
-        let Some(picture) = figure::picture(key) else { return false };
-        let canvas = &picture.canvas;
-        let view = self.texture(canvas.width as u32, canvas.height as u32, &canvas.rgba);
-        let bind = self.textured(&self.sprite_pipeline.get_bind_group_layout(1), &view, &self.pixel_sampler);
-        let adding = self.textured(&self.sprite_adding_pipeline.get_bind_group_layout(1), &view, &self.pixel_sampler);
-        self.sprite_textures.insert(key.clone(), SpriteTexture { bind, adding, size: (canvas.width as f32, canvas.height as f32), feet: picture.feet });
-        true
-    }
-
-    /// A frame of a sprite as one picture for the effects' pipelines (an arrow in flight): put on the GPU now if
-    /// it is ready, nothing while it is not. (The sprites of the effects made of the client's primitives are
-    /// drawn a layer at a time: `gpu/layers.rs`.)
-    pub(super) fn effect_sprite(&mut self, key: &SpriteKey) -> Option<EffectSprite> {
-        if let Some(known) = self.effect_sprites.get(key) {
-            return Some(known.clone());
-        }
-        let picture = figure::picture(key)?;
-        let canvas = &picture.canvas;
-        let view = self.texture(canvas.width as u32, canvas.height as u32, &canvas.rgba);
-        let binds = [0, 1].map(|which| self.textured(&self.effect_pipelines[which].get_bind_group_layout(1), &view, &self.pixel_sampler));
-        let made = EffectSprite { binds: Rc::new(binds), size: (canvas.width as f32, canvas.height as f32) };
-        self.effect_sprites.insert(key.clone(), made.clone());
-        Some(made)
     }
 }

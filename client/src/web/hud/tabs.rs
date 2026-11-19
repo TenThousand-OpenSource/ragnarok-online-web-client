@@ -39,7 +39,7 @@ pub(super) fn side_tabs_tall(words: &[String], padding: i32, uniform: bool) -> i
 /// if the window gives it one, and what makes it something to press (and to drop on).
 pub(super) fn side_tabs(x: i32, y: i32, padding: i32, uniform: bool, open: usize, tabs: &[(String, Option<&str>, String)]) -> String {
     let words: Vec<String> = tabs.iter().map(|(words, ..)| words.clone()).collect();
-    let font = Font(0, 12, false).style();
+    let font = USUAL.style();
     let mut strip = String::new();
     let mut top = y;
     for (index, ((words, ground, more), height)) in tabs.iter().zip(side_tab_heights(&words, padding, uniform)).enumerate() {

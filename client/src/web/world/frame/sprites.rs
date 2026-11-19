@@ -7,7 +7,7 @@ use super::*;
 pub(super) fn landings(state: &mut State, time: f64, landed: &[combat::Struck]) {
     let Some(scene) = &mut state.scene else { return };
     for &combat::Struck { target, own, flinches, flash } in landed {
-        let Some(hurt) = (if target == own { Some(&mut scene.player) } else { scene.units.get_mut(&target) }) else { continue };
+        let Some(hurt) = scene.one_mut(target, own) else { continue };
         // (`render.started` and `isSingleColor` with the colour of `AM_ATTACKED_SKILL`: `Ail::flash`.)
         if let Some(colour) = flash {
             hurt.ail.flash = Some((time, colour));
@@ -133,7 +133,7 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         if let SpriteKey::Creature(path, action, frame) = &wanted {
             if mover.heard.replace((*action, *frame)) != Some((*action, *frame)) {
                 if let Some(name) = figure::sound_of(path, *action, *frame) {
-                    sound::at(&name, (position.0 - feet_cell.0) * CELL, (position.1 - feet_cell.1) * CELL);
+                    earshot::heard_from(&name, position, feet_cell);
                 }
             }
         }
@@ -144,7 +144,7 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
             let frame = if count > 0 { figure.frame % count } else { figure.frame };
             for due in crate::sprite::frames_sounding(mover.heard.replace((action, frame)), action, frame, count.max(frame + 1)) {
                 if let Some(name) = figure::body_sound_of(figure.job, figure.sex, figure.action, due) {
-                    sound::at(&name, (position.0 - feet_cell.0) * CELL, (position.1 - feet_cell.1) * CELL);
+                    earshot::heard_from(&name, position, feet_cell);
                 }
             }
         }

@@ -86,13 +86,26 @@ impl Prim {
     }
 }
 
+impl Prim {
+    /// One tick of the kind `Flash2d`: its turn and its height change by their speeds, which change by
+    /// theirs; a height that has gone under nothing stays at nothing and turns back.
+    pub(super) fn bounce(&mut self) {
+        if self.height < 0.0 {
+            self.height_speed = -self.height_speed;
+            self.height = 0.0;
+        }
+        self.long_speed += self.long_accel;
+        self.height_speed += self.height_accel;
+        self.longitude += self.long_speed;
+        self.height += self.height_speed;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     #[test]
     fn a_kite_has_its_tips_up_and_down_and_its_sides_off_the_middle() {

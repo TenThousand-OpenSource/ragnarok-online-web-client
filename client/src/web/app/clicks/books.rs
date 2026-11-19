@@ -45,7 +45,7 @@ fn widths() -> impl FnMut(&str) -> f64 {
 
 impl App {
     /// A press of this system (`crate::press::books`).
-    pub(super) fn book_pressed(&mut self, press: crate::press::books::Press) {
+    pub(super) fn books_pressed(&mut self, press: crate::press::books::Press) {
         use crate::press::books::Press;
         match press {
             Press::Mark => self.book_marked(),
@@ -75,7 +75,7 @@ impl App {
         if !self.books.open.as_ref().is_some_and(|open| open.aloud.is_none()) || !matches!(key, "ArrowLeft" | "ArrowRight") {
             return false;
         }
-        self.book_pressed(if key == "ArrowLeft" { crate::press::books::Press::Before } else { crate::press::books::Press::After });
+        self.books_pressed(if key == "ArrowLeft" { crate::press::books::Press::Before } else { crate::press::books::Press::After });
         true
     }
 

@@ -5,26 +5,22 @@ use super::*;
 use crate::web::hud::quests::{JOURNAL, list_place, notice_place, pane_place};
 
 /// The quest journal, in the middle of the view (`CUIRenewQuestUI::Initialize`).
-pub(in crate::web) static QUESTS: Window = Window {
-    id: "quests",
-    open: |app| app.quests.open,
-    frame: |_, view| framed(format!("{};height:{}px", centred(view, JOURNAL.0, JOURNAL.1), JOURNAL.1)),
-    draw: App::quest_window,
-    order: ordered(|app| app.quests.open, |app| app.pressed(crate::press::quests::Press::Window)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static QUESTS: Window = Window::usual(
+    "quests",
+    |app| app.quests.open,
+    |_, view| framed(format!("{};height:{}px", centred(view, JOURNAL.0, JOURNAL.1), JOURNAL.1)),
+    App::quest_window,
+    |app| app.pressed(crate::press::quests::Press::Window),
+);
 
 /// The pane of one quest, at the right side of where the journal opens (`quests::pane_place`).
-pub(in crate::web) static QUEST_PANE: Window = Window {
-    id: "quest-pane",
-    open: |app| app.quests.open && app.quests.pane.is_some(),
-    frame: |_, view| framed(pane_place(view)),
-    draw: App::quest_pane,
-    order: ordered(|app| app.quests.open && app.quests.pane.is_some(), |app| app.pressed(crate::press::quests::Press::PaneClose)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static QUEST_PANE: Window = Window::usual(
+    "quest-pane",
+    |app| app.quests.open && app.quests.pane.is_some(),
+    |_, view| framed(pane_place(view)),
+    App::quest_pane,
+    |app| app.pressed(crate::press::quests::Press::PaneClose),
+);
 
 /// The button that tells of a new quest, and the list of quests on the screen: neither is a window that is
 /// dragged, and nothing of the list is pressed (`notice_place`, `list_place`).

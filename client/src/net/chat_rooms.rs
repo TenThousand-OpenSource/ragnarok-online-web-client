@@ -4,7 +4,7 @@
 //! `src/map/clif.cpp`); what the client does with each is `CGameMode`'s (`GameModePackets.cpp`,
 //! `GameModeHandlers.cpp`) and its `UIChatRoomWnd`, `UIChatRoomMakeWnd` and `UIChatRoomTitle`.
 
-use super::bytes::{long, name24, text, text_at, word};
+use super::bytes::{Writer, long, records, text, text_at, word};
 
 /// ZC_ACK_CREATE_CHATROOM (0x00d6, 3 bytes): `u8 result`: 0 the room is made, 1 there are too many rooms, 2
 /// there is a room of that title.
@@ -31,43 +31,11 @@ pub const ZC_ROLE_CHANGE: u16 = 0x00e1;
 pub const OWNER: u32 = 0;
 pub const MEMBER: u32 = 1;
 
-/// The kinds of room (rAthena's `e_status_chatroom`): a player's with a password, a player's open to all, an
-/// NPC's that is entered (`waitingroom` with a limit), an NPC's that is only a sign.
-pub mod kind {
-    pub const PRIVATE: u8 = 0;
-    pub const PUBLIC: u8 = 1;
-    pub const ARENA: u8 = 2;
-    pub const SIGN: u8 = 3;
-}
+/// What a room is and the rules of one that are no packet, kept at the path they had.
+pub use crate::chat_rooms::{LIMITS, Room, Setting, kind, not_made, refused, wrong};
 
 /// The longest title the client keeps of a room it is told of (`ReceiveChatRoomCreate`: 60 bytes).
 const TITLE_KEPT: usize = 60;
-
-/// A room as its sign tells of it.
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct Room {
-    pub owner: u32,
-    pub id: u32,
-    pub limit: u16,
-    pub users: u16,
-    pub kind: u8,
-    pub title: String,
-}
-
-impl Room {
-    /// What the sign over the owner says (`UIChatRoomTitle::SendMsg`, `UM_SETINFO`): the title up to its
-    /// first line break, and how many of how many are in; a room that is only a sign has its title alone.
-    pub fn sign(&self) -> String {
-        let title = self.title.split('\r').next().unwrap_or_default();
-        if self.kind == kind::SIGN { title.to_owned() } else { format!("{title} ({}/{})", self.users, self.limit) }
-    }
-
-    /// What the room's window is called (`UIChatRoomWnd::SendMsg`, `UM_SETINFO`): `"%s%s (%d/%d)"` with the
-    /// client's word for a room with a password or for one without (its lines 89 and 90) before the title.
-    pub fn heading(&self, word: &str) -> String {
-        format!("{word}{} ({}/{})", self.title.split('\r').next().unwrap_or_default(), self.users, self.limit)
-    }
-}
 
 /// ZC_ROOM_NEWENTRY and ZC_CHANGE_CHATROOM. The title has no zero after it.
 pub fn room(packet: &[u8]) -> Option<Room> {
@@ -85,33 +53,9 @@ pub fn result(packet: &[u8]) -> Option<u8> {
     packet.get(2).copied()
 }
 
-/// The line of the client's message table said for a room not made (`ReceiveChatRoomCreateResult`), and the
-/// words until the table is read: none for a room that was made.
-pub fn not_made(result: u8) -> Option<(usize, &'static str)> {
-    match result {
-        1 => Some((65, "Room limit exceeded.")),
-        2 => Some((66, "Same room already exists.")),
-        _ => None,
-    }
-}
-
-/// The same for a room not entered (`ReceiveChatRoomEnterRefused`): the client has no line for 3.
-pub fn refused(why: u8) -> Option<(usize, &'static str)> {
-    Some(match why {
-        0 => (67, "Room is full."),
-        1 => (7, "Incorrect Password."),
-        2 => (68, "You have been kicked out of this room."),
-        4 => (55, "You don't have enough zeny."),
-        5 => (432, "Your level is too low to enter."),
-        6 => (433, "Your level is too high to enter."),
-        7 => (434, "Your job is not suitable for this room."),
-        _ => return None,
-    })
-}
-
 /// ZC_ENTER_ROOM: the room, and everyone in it with their roles.
 pub fn entered(packet: &[u8]) -> Option<(u32, Vec<(u32, String)>)> {
-    let members = packet.get(8..)?.chunks_exact(28).filter_map(|member| Some((long(member, 0)?, text_at(member, 4, 24)?))).collect();
+    let members = records(packet, 8, 28).filter_map(|member| Some((long(member, 0)?, text_at(member, 4, 24)?))).collect();
     Some((long(packet, 4)?, members))
 }
 
@@ -130,47 +74,15 @@ pub fn role(packet: &[u8]) -> Option<(u32, String)> {
     Some((long(packet, 2)?, text_at(packet, 6, 24)?))
 }
 
-/// What the player sets of a room in the window that makes or changes one (`ChatRoomSetting`).
-#[derive(Debug, Clone, PartialEq)]
-pub struct Setting {
-    pub title: String,
-    pub password: String,
-    pub public: bool,
-    pub limit: u16,
-}
-
-/// The numbers of people the window offers (`UIChatRoomMakeWnd::OnCreate`); the last is what it has at first.
-pub const LIMITS: [u16; 6] = [2, 3, 5, 10, 15, 20];
-
-/// What is wrong with a setting, as a line of the client's message table and the words until it is read
-/// (`UIChatRoomMakeWnd::SendMsg`, `ID_OK`): no title; a room with a password whose password is missing or
-/// shorter than 4. (The client also refuses a title with a word of its list of bad words, which this client
-/// does not have.)
-pub fn wrong(setting: &Setting) -> Option<(usize, &'static str)> {
-    if setting.title.is_empty() {
-        Some((13, "Please enter room title."))
-    } else if !setting.public && setting.password.is_empty() {
-        Some((15, "Please enter the password."))
-    } else if !setting.public && setting.password.len() < 4 {
-        Some((16, "Please enter at least 4 characters."))
-    } else {
-        None
-    }
-}
-
 /// CZ_CREATE_CHATROOM (0x00d5) and CZ_CHANGE_CHATROOM (0x00de), which are laid out alike: `u16 length, u16
 /// limit, u8 public, char password[8], char title[]`, the title without a zero after it
 /// (`CGameMode::SendMsg`, `MM_CREATE_CHATROOM`).
 fn setting(id: u16, setting: &Setting) -> Vec<u8> {
-    let mut packet = id.to_le_bytes().to_vec();
-    packet.extend(((setting.title.len() + 15) as u16).to_le_bytes());
-    packet.extend(setting.limit.to_le_bytes());
-    packet.push(u8::from(setting.public));
-    packet.extend(password(&setting.password));
-    packet.extend(setting.title.as_bytes());
-    packet
+    let packet = Writer::sized(id).u16(setting.limit).u8(u8::from(setting.public));
+    packet.bytes(&password(&setting.password)).bytes(setting.title.as_bytes()).done()
 }
 
+/// A password in its 8 bytes: cut where the field ends, with no zero after one that fills it.
 fn password(password: &str) -> [u8; 8] {
     let mut field = [0u8; 8];
     let length = password.len().min(8);
@@ -188,35 +100,28 @@ pub fn change(room: &Setting) -> Vec<u8> {
 
 /// CZ_REQ_ENTER_ROOM (0x00d9, 14 bytes): `u32 room, char password[8]`.
 pub fn enter(room: u32, word: &str) -> Vec<u8> {
-    let mut packet = 0x00d9u16.to_le_bytes().to_vec();
-    packet.extend(room.to_le_bytes());
-    packet.extend(password(word));
-    packet
+    Writer::new(0x00d9).u32(room).bytes(&password(word)).done()
 }
 
 /// CZ_REQ_ROLE_CHANGE (0x00e0, 30 bytes): `u32 role (0), char name[24]`: the room is given to that one.
 pub fn give(name: &str) -> Vec<u8> {
-    let mut packet = 0x00e0u16.to_le_bytes().to_vec();
-    packet.extend(OWNER.to_le_bytes());
-    packet.extend(name24(name));
-    packet
+    Writer::new(0x00e0).u32(OWNER).name(name).done()
 }
 
 /// CZ_REQ_EXPEL_MEMBER (0x00e2, 26 bytes): `char name[24]`: that one is thrown out.
 pub fn expel(name: &str) -> Vec<u8> {
-    let mut packet = 0x00e2u16.to_le_bytes().to_vec();
-    packet.extend(name24(name));
-    packet
+    Writer::new(0x00e2).name(name).done()
 }
 
 /// CZ_EXIT_ROOM (0x00e3, 2 bytes): the character leaves the room.
 pub fn leave() -> Vec<u8> {
-    0x00e3u16.to_le_bytes().to_vec()
+    Writer::new(0x00e3).done()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::net::bytes::{name24, testing::assert_lengths};
 
     fn sign(id: u16, kind: u8, title: &[u8]) -> Vec<u8> {
         let mut packet = id.to_le_bytes().to_vec();
@@ -268,31 +173,12 @@ mod tests {
     }
 
     #[test]
-    fn says_why_a_room_was_not_made_or_not_entered() {
-        assert_eq!((not_made(0), not_made(1).map(|said| said.0), not_made(2).map(|said| said.0)), (None, Some(65), Some(66)));
-        assert_eq!([0, 1, 2, 3, 4, 5, 6, 7].map(|why| refused(why).map(|said| said.0)), [Some(67), Some(7), Some(68), None, Some(55), Some(432), Some(433), Some(434)]);
-    }
-
-    #[test]
-    fn a_setting_is_checked_as_the_window_checks_it() {
-        let room = |title: &str, password: &str, public: bool| Setting { title: title.to_owned(), password: password.to_owned(), public, limit: 20 };
-        assert_eq!(wrong(&room("", "", true)).map(|said| said.0), Some(13));
-        assert_eq!(wrong(&room("Chat", "", false)).map(|said| said.0), Some(15));
-        assert_eq!(wrong(&room("Chat", "abc", false)).map(|said| said.0), Some(16));
-        assert_eq!(wrong(&room("Chat", "abcd", false)), None);
-        assert_eq!(wrong(&room("Chat", "", true)), None);
-    }
-
-    #[test]
     fn builds_what_the_client_sends() {
         let room = Setting { title: "Chat".to_owned(), password: "abcd".to_owned(), public: false, limit: 10 };
         assert_eq!(create(&room), [0xd5, 0, 19, 0, 10, 0, 0, b'a', b'b', b'c', b'd', 0, 0, 0, 0, b'C', b'h', b'a', b't']);
         assert_eq!(change(&room)[..4], [0xde, 0, 19, 0]);
         assert_eq!(enter(42, "abcd"), [0xd9, 0, 42, 0, 0, 0, b'a', b'b', b'c', b'd', 0, 0, 0, 0]);
-        for packet in [enter(1, ""), give("Guest"), expel("Guest"), leave()] {
-            let id = u16::from_le_bytes([packet[0], packet[1]]);
-            assert_eq!(crate::net::packet_length(id), Some(packet.len() as i32), "{id:#06x}");
-        }
+        assert_lengths(&[enter(1, ""), give("Guest"), expel("Guest"), leave()]);
         assert_eq!(give("Guest")[..8], [0xe0, 0, 0, 0, 0, 0, b'G', b'u']);
     }
 }

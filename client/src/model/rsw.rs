@@ -79,7 +79,7 @@ pub struct Rsw {
 impl Rsw {
     /// Reads a RSW of versions 1.2 to 2.5. Names are EUC-KR and given to `name` to decode.
     pub fn parse(bytes: &[u8], name: impl Fn(&[u8]) -> String) -> Result<Self, String> {
-        let mut reader = Reader { bytes, at: 0, version: 0 };
+        let mut reader = Reader::new(bytes);
         if reader.take(4)? != b"GRSW" {
             return Err("not a RSW file".to_owned());
         }

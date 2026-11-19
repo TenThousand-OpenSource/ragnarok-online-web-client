@@ -2,8 +2,6 @@
 //! stands, under the pointer, pressed), by whichever way its files are named, and the client's button with
 //! words on it.
 
-// Not every one is taken up by the windows yet (they are being moved onto these).
-#![allow(dead_code)]
 
 use super::*;
 
@@ -46,8 +44,12 @@ pub(in crate::web) enum Convention {
     AThenB,
     /// `name_out.bmp`, `name_over.bmp`, `name_press.bmp`: the mail's, the party's.
     OutOverPress,
-    /// `name_normal.bmp`, `name_over.bmp`, `name_press.bmp`: the screens before the game.
+    /// `name_normal.bmp`, `name_over.bmp`, `name_press.bmp`: the screens before the game, the searches.
     NormalOverPress,
+    /// `name.bmp`, `name_over.bmp`, `name_press.bmp`: the inventory's "Align items", the quests' buttons.
+    OverPress,
+    /// `name_a.bmp`, `name_b.bmp`, `name_c.bmp`: the button that drops a list under a box (`txtbox_btn`).
+    ABC,
 }
 
 /// The three pictures of a button, as it stands, under the pointer and pressed, by its name (with its folder,
@@ -59,6 +61,8 @@ pub(in crate::web) fn states(name: &str, convention: Convention) -> [String; 3] 
         Convention::AThenB => ["_a", "_b", "_b"],
         Convention::OutOverPress => ["_out", "_over", "_press"],
         Convention::NormalOverPress => ["_normal", "_over", "_press"],
+        Convention::OverPress => ["", "_over", "_press"],
+        Convention::ABC => ["_a", "_b", "_c"],
     };
     endings.map(|ending| format!("{name}{ending}.bmp"))
 }
@@ -71,8 +75,20 @@ pub(in crate::web) fn picture_press(x: i32, y: i32, name: &str, press: impl Into
 
 /// The same button of another size than the usual 42 by 20.
 pub(in crate::web) fn picture_press_sized(x: i32, y: i32, size: (i32, i32), name: &str, press: impl Into<crate::press::Press>) -> String {
+    pictured_by(Convention::AB, x, y, size, name, press, "")
+}
+
+/// A button of three pictures by its name (with its folder, without `.bmp`) and the way its files are named
+/// after it; `more` as `pictured` takes it.
+pub(in crate::web) fn pictured_by(convention: Convention, x: i32, y: i32, size: (i32, i32), name: &str, press: impl Into<crate::press::Press>, more: &str) -> String {
+    let [off, over, down] = states(name, convention);
+    pictured(x, y, size, [&off, &over, &down], press, more)
+}
+
+/// One of those small buttons (42 by 20) as the one that sends the form it stands in: the OK of a box that asks.
+pub(in crate::web) fn submit_press(x: i32, y: i32, name: &str, press: impl Into<crate::press::Press>) -> String {
     let [off, over, down] = states(name, Convention::AB);
-    pictured(x, y, size, [&off, &over, &down], press, "")
+    pictured_as(Kind::Submit, x, y, (42, 20), [&off, &over, &down], press, "")
 }
 
 /// A small picture button whose picture changes under the pointer.

@@ -24,15 +24,15 @@ impl App {
                     if Some(id) == own { world::stand((x, y)) } else { world::unit_stand(id, (x, y)) }
                 }
             }
-            // 0x00b3: the server lets the character out of the game, back to the characters (type 1).
-            0x00b3 => {
-                if packet.get(2) == Some(&1) {
+            // The server lets the character out of the game, back to the characters.
+            packets::ZC_RESTART_ACK => {
+                if packets::restart_allowed(packet) {
                     self.back_to_characters();
                 }
             }
-            // 0x018b: leaving was refused (a fight just now, for one).
-            0x018b => {
-                if packet.get(2..4) != Some(&[0, 0]) {
+            // Leaving was refused (a fight just now, for one).
+            packets::ZC_ACK_REQ_DISCONNECT => {
+                if packets::leave_refused(packet) {
                     self.chat_line(crate::i18n::tr("You cannot leave the game right now.").to_owned(), PALE_RED);
                 }
             }

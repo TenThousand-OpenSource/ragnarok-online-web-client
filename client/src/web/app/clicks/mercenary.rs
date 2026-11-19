@@ -36,7 +36,7 @@ impl App {
             }
             Press::SkillUse => {
                 if let Some(skill) = self.mercenary.skill_picked.and_then(|row| self.mercenary.skills.get(row)).filter(|skill| skill.level != 0 && skill.sp != 0) {
-                    self.use_it(Use::Skill(skill.id));
+                    self.used(Use::Skill(skill.id));
                 }
             }
             Press::SkillLevel(step) => {

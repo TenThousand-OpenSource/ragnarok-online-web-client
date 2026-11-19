@@ -6,6 +6,8 @@ use super::*;
 mod bars;
 mod pointer;
 
+pub(super) use pointer::pointers;
+
 /// Works those out for this frame and puts them on the page. `feet` is where the player's own character stands
 /// and `casts` the casts under way (where, since when, for how long, which effect, at whom), as the frame found
 /// them while drawing. Gives back the page's size, which what follows needs too.
@@ -101,4 +103,20 @@ fn lying_name(thing: &Lying) -> Option<String> {
     let (name, _) = data::item_as(thing.item, thing.identified)?;
     let line = data::message(183).unwrap_or_else(|| "%s: %d ea.".to_owned());
     Some(line.replacen("%s", &name, 1).replacen("%d", &thing.count.to_string(), 1))
+}
+
+/// Shows a name on the page in a colour, its middle at a place, or takes it away.
+pub(super) fn name_shown(named: Option<(&str, &str, (f32, f32))>) {
+    let Some(label) = crate::web::by_id("unit-name") else { return };
+    match named {
+        Some((name, colour, (x, y))) => {
+            if label.text_content().as_deref() != Some(name) {
+                label.set_text_content(Some(name));
+            }
+            let _ = label.set_attribute("style", &format!("display:block;left:{x:.0}px;top:{y:.0}px;color:{colour}"));
+        }
+        None => {
+            let _ = label.set_attribute("style", "display:none");
+        }
+    }
 }

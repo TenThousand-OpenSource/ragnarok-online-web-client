@@ -65,10 +65,10 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         entries::<String>(&field(tables, "towns"))
             .into_iter()
             .map(|(map, people)| {
-                let people = js_sys::Array::from(&people)
+                let people = list(&people)
                     .iter()
                     .filter_map(|person| {
-                        let person = js_sys::Array::from(&person);
+                        let person = js_sys::Array::from(person);
                         let number = |at: u32| person.get(at).as_f64().map(|number| number as i32);
                         Some((person.get(0).as_string()?, number(1)?, number(2)?, number(3)?))
                     })
@@ -86,7 +86,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
                     title: text_of(&about, "title").unwrap_or_default(),
                     over: text_of(&about, "over").unwrap_or_default(),
                     picture: text_of(&about, "picture").unwrap_or_default(),
-                    shown: js_sys::Reflect::get(&about, &"shown".into()).ok().and_then(|shown| shown.as_bool()).unwrap_or(false),
+                    shown: flag(&about, "shown"),
                 };
                 (map, sign)
             })

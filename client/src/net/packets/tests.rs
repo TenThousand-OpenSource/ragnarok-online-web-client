@@ -1,4 +1,5 @@
 use super::*;
+use crate::net::bytes::testing::assert_lengths;
 use crate::net::packet_length;
 
 fn account() -> LoginAccepted {
@@ -22,11 +23,9 @@ fn requests_have_the_length_the_server_expects() {
         delete_cancel(150_000),
         walk_to(156, 191),
         raise_stat(parameter::STR, 1),
+        restart(true),
     ];
-    for request in requests {
-        let id = u16_at(&request, 0);
-        assert_eq!(packet_length(id), Some(request.len() as i32), "{id:#06x}");
-    }
+    assert_lengths(&requests);
 }
 
 #[test]
@@ -293,4 +292,39 @@ fn reads_the_spawn_position() {
     packet[6..9].copy_from_slice(&[0xff, 0xff, 0xf0]);
     let accepted = map_accepted(&packet).unwrap();
     assert_eq!((accepted.x, accepted.y, accepted.direction), (1023, 1023, 0));
+}
+
+/// A cell is packed and read back the one way, here and in the files of those in sight.
+#[test]
+fn packs_a_cell_into_three_bytes_and_reads_it_back() {
+    assert_eq!(cell_packed((156, 191)), [0x27, 0x0b, 0xf0]);
+    assert_eq!(cell_unpacked(&cell_packed((156, 191))), ((156, 191), 0));
+    assert_eq!(cell_unpacked(&[0xff, 0xff, 0xf5]), ((1023, 1023), 5));
+    assert_eq!(walk_to(156, 191)[2..], cell_packed((156, 191)));
+}
+
+#[test]
+fn reads_a_number_and_its_value() {
+    assert_eq!(number_and_value(&[0xb0, 0, 5, 0, 0xfe, 0xff, 0xff, 0xff]), Some((5, -2)));
+    assert_eq!(number_and_value(&[0xb0, 0, 5, 0, 0xfe, 0xff, 0xff]), None);
+    assert_eq!(parameter(&[0xb0, 0, 5, 0, 0xfe, 0xff, 0xff, 0xff, 9]), Some((5, -2)));
+}
+
+#[test]
+fn reads_an_effect_shown_on_someone() {
+    assert_eq!(packet_length(ZC_NOTIFY_EFFECT), Some(10));
+    assert_eq!(effect_on(&[0x9b, 0x01, 7, 0, 0, 0, 1, 0, 0, 0]), (Some(7), 1));
+    // One that ends early: whoever it is about is still read, and the kind is none there is.
+    assert_eq!(effect_on(&[0x9b, 0x01, 7, 0, 0, 0, 1, 0]), (Some(7), u32::MAX));
+    assert_eq!(effect_on(&[0x9b, 0x01, 7]), (None, u32::MAX));
+}
+
+#[test]
+fn reads_whether_the_character_may_leave() {
+    assert_eq!((packet_length(ZC_RESTART_ACK), packet_length(ZC_ACK_REQ_DISCONNECT)), (Some(3), Some(4)));
+    assert_eq!(restart(true), [0xb2, 0x00, 1]);
+    assert_eq!((restart_allowed(&[0xb3, 0, 1]), restart_allowed(&[0xb3, 0, 0]), restart_allowed(&[0xb3, 0])), (true, false, false));
+    assert_eq!((leave_refused(&[0x8b, 0x01, 0, 0]), leave_refused(&[0x8b, 0x01, 1, 0]), leave_refused(&[0x8b, 0x01, 0, 1])), (false, true, true));
+    // What ends before its result is taken for a refusal.
+    assert!(leave_refused(&[0x8b, 0x01, 0]));
 }

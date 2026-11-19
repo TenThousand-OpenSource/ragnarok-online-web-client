@@ -11,7 +11,7 @@ use super::*;
 /// `GetStateIconDescript(state, line)` for each line of the description and its colour, from line 1 until an
 /// empty one, and `GetTimeLimitInfo(state)` for whether a time is written into it and on which line (0: none).
 pub fn statuses(grf: &Grf) -> serde_json::Value {
-    let lua = Lua::new_with(mlua::StdLib::TABLE | mlua::StdLib::STRING | mlua::StdLib::MATH, mlua::LuaOptions::default()).expect("a Lua state");
+    let lua = state();
     run_in(&lua, grf, &["stateicon\\efstids", "stateicon\\stateiconinfo", "stateicon\\stateiconinfo_f", "stateicon\\stateiconimginfo"]);
     let globals = lua.globals();
     let states: Vec<i64> = names_of(&globals, "EFST_IDs");
@@ -57,11 +57,7 @@ fn names_of(globals: &Table, table: &str) -> Vec<i64> {
     let mut numbers: Vec<i64> = table
         .pairs::<Value, Value>()
         .flatten()
-        .filter_map(|(_, number)| match number {
-            Value::Integer(number) => Some(number),
-            Value::Number(number) => Some(number as i64),
-            _ => None,
-        })
+        .filter_map(|(_, number)| whole(&number))
         .filter(|number| *number >= 0)
         .collect();
     numbers.sort_unstable();

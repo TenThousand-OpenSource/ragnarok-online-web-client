@@ -71,10 +71,7 @@ impl Mover {
 fn on(id: Option<u32>, then: impl FnOnce(&mut Mover)) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        if let Some(mover) = match id {
-            None => Some(&mut scene.player),
-            Some(id) => scene.units.get_mut(&id),
-        } {
+        if let Some(mover) = scene.mover_mut(id) {
             then(mover);
         }
     });

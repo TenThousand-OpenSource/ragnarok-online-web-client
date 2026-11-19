@@ -81,8 +81,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// A shaft as `TexturedSpread` launches one for Tetra Vortex, 10 east of the effect's place.
     fn shaft(process: i32) -> Prim {

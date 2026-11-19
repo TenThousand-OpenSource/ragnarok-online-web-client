@@ -2,6 +2,81 @@
 
 use super::*;
 
+/// The walking speed until the server says otherwise, in milliseconds per cell.
+pub(super) const DEFAULT_SPEED: f64 = 150.0;
+/// How long one picture of the walking animation shows at the default speed.
+pub(super) const WALK_FRAME_MS: f64 = 100.0;
+pub(super) const WALK_FRAMES: usize = 8;
+
+/// How someone on the map looks: a character put together from its parts, or a monster's or NPC's own sprite
+/// (its path under `data/sprite/`).
+#[derive(Clone)]
+pub(super) enum Look {
+    Character(Figure),
+    Creature(String),
+}
+
+/// A thing lying on the ground: its cell and where in the cell it lies (in cells), which item it is, whether it
+/// is identified, and how many there are.
+pub(super) struct Lying {
+    pub(super) cell: (i32, i32),
+    pub(super) item: u32,
+    pub(super) at: (f32, f32),
+    pub(super) identified: bool,
+    pub(super) count: u16,
+}
+
+/// Someone on the map: the player's own character, another player, an NPC or a monster.
+pub(super) struct Mover {
+    pub(super) look: Look,
+    /// A character's own job and the bits of the state it is in: the job its look is drawn as follows from the
+    /// two (`crate::mounts`).
+    pub(super) job: u16,
+    pub(super) state: u32,
+    pub(super) name: String,
+    /// Whether it moves while standing still, as monsters do.
+    pub(super) lively: bool,
+    /// A pet (or a homunculus, a mercenary): someone's companion, neither fought nor talked to.
+    pub(super) companion: bool,
+    /// A player's guild (0 for none) and the version of its emblem, as the server showed them.
+    pub(super) guild: (u32, u32),
+    pub(super) cell: (i32, i32),
+    /// Where it is drawn, in cells: a walker along its way, one who stands where it stopped (the middle of
+    /// its cell, or short of it when a blow stopped it).
+    pub(super) at: (f32, f32),
+    pub(super) facing: u8,
+    /// The walk under way: its cells and the server's time at which each is reached (`crate::route`).
+    pub(super) walk: Option<Route>,
+    /// When it began to walk from standing (milliseconds, as `now` counts): its legs go from then.
+    pub(super) strode: f64,
+    pub(super) speed: f64,
+    /// The picture last drawn, kept on screen until the next one is ready.
+    pub(super) shown: Option<SpriteKey>,
+    /// Sitting on the ground.
+    pub(super) sitting: bool,
+    /// Lying dead (the player's own character, until it returns to its save point).
+    pub(super) dead: bool,
+    /// A monster struck down: when its fall is over. From then it lies there and fades.
+    pub(super) dying: Option<f64>,
+    /// What it said last, and when: shown over its head for a while.
+    pub(super) says: Option<(String, f64)>,
+    /// The emotion it shows: the sprite it is in, which of its actions, and when it began.
+    pub(super) emotion: Option<(String, usize, f64)>,
+    /// What is left of its life and how much it has, once the server has said (monsters being fought).
+    pub(super) life: Option<(i32, i32)>,
+    /// The action and frame last drawn: a frame's sound plays when the frame comes, not while it stays.
+    pub(super) heard: Option<(usize, usize)>,
+    /// A motion under way while standing (a blow, a flinch): its first action, when it began, how long it lasts.
+    pub(super) motion: Option<(usize, f64, f64)>,
+    /// What its body state and health state make of it: its colour, the marks by it (`ailments.rs`).
+    pub(super) ail: ailments::Ail,
+    /// A skill being cast: when it began, how long it takes, which of the client's effects shows around the
+    /// caster, and on whom it is aimed.
+    pub(super) casting: Option<(f64, f64, u32, Option<u32>)>,
+    /// How it is posed beyond that, and what else of it is drawn (`mover.rs`).
+    pub(super) pose: mover::Pose,
+}
+
 /// Which of a character's two attacks shows when it strikes: the action at 88 for the weapons its job handles
 /// in that way, the one at 80 for everything else (the client's `IsJobWeaponAllowed`). An Archer shoots with
 /// the action at 80 and strikes with the other when it holds no bow; a Swordsman thrusts a spear with the one
@@ -31,22 +106,6 @@ pub(super) fn attack_action(figure: &Figure) -> usize {
         _ => false,
     };
     if second { 88 } else { 80 }
-}
-
-/// Where a point given in cells is in the world: cell centres, on the ground.
-pub(super) fn on_ground(gat: &Gat, (x, y): (f32, f32)) -> Vector {
-    // A character on cell 3 stands at 3.5 cells.
-    [(x + 0.5) * CELL, gat.height_at(x + 0.5, y + 0.5), (y + 0.5) * CELL]
-}
-
-impl Scene {
-    /// Where someone is now, in cells: no one named is the player's own character; nothing for one out of sight.
-    pub(super) fn place_of(&self, who: Option<u32>) -> Option<(f32, f32)> {
-        match who {
-            Some(id) => self.units.get(&id).map(|unit| unit.at).or_else(|| self.spots.get(&id).copied()),
-            None => Some(self.player.at),
-        }
-    }
 }
 
 /// Everyone on the map is moved to where the server's clock has them now (the client's actors each do it in

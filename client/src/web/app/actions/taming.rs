@@ -99,4 +99,11 @@ impl App {
             self.player_menu_opens(id, at);
         }
     }
+
+    /// The slot machine's pictures were read: those of its waiting and of its turning.
+    pub(in crate::web::app) fn taming_read(&mut self, waiting: Vec<(String, (usize, usize), (f32, f32))>, turning: Vec<(String, (usize, usize), (f32, f32))>) {
+        if let Some(taming) = &mut self.pets.taming {
+            taming.frames = [waiting, turning];
+        }
+    }
 }

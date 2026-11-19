@@ -57,8 +57,7 @@ impl Gpu {
             return Some(known.clone());
         }
         let (width, height) = sheet.sprite.size_of(truecolor, picture).filter(|(width, height)| width * height > 0)?;
-        let view = self.texture(width as u32, height as u32, &sheet.sprite.rgba_of(truecolor, picture)?);
-        let binds = Rc::new([0, 1].map(|which| self.textured(&self.effect_pipelines[which].get_bind_group_layout(1), &view, &self.pixel_sampler)));
+        let binds = self.effect_binds(width as u32, height as u32, &sheet.sprite.rgba_of(truecolor, picture)?, &self.pixel_sampler);
         self.effect_layers.entry(path.to_owned()).or_default().insert((truecolor, picture), binds.clone());
         Some(binds)
     }

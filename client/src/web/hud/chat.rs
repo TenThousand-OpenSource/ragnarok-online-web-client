@@ -56,7 +56,7 @@ impl App {
                         }
                     })
                     .collect();
-                format!(r#"<div style="color:{colour}">{line}</div>"#)
+                log_line(colour, &line)
             })
             .collect()
     }
@@ -64,7 +64,7 @@ impl App {
     /// One of the small buttons of the tabs' line, or of a tab's own window: its two pictures
     /// (`basic_interface\<name>_a.bmp` as it stands, `_b.bmp` under the pointer and pressed).
     fn chat_button(x: i32, name: &str, (width, height): (i32, i32), press: Press, title: &str) -> String {
-        pictured(x, 4, (width, height), [&format!("basic_interface/{name}_a.bmp"), &format!("basic_interface/{name}_b.bmp"), &format!("basic_interface/{name}_b.bmp")], press, &format!(r#" title="{}""#, escape(tr(title))))
+        pictured_by(Convention::AThenB, x, 4, (width, height), &format!("basic_interface/{name}"), press, &format!(r#" title="{}""#, escape(tr(title))))
     }
 
     /// The tabs' line of the chat (`UINewChatWnd`): the tabs that are in the window, 71 wide and 16 high, the
@@ -95,6 +95,12 @@ impl App {
         header
     }
 
+    /// The chat's height: the client's own sum (`UINewChatWnd::ResizeRows`), the input line, the rows and three
+    /// more, the tabs.
+    pub(in crate::web) fn chat_height(&self) -> i32 {
+        if self.chat.rows == 0 { 24 } else { 24 + (self.chat.rows as i32 + 3) * 14 + 16 }
+    }
+
     /// The chat, as the client's `UINewChatWnd` lays it out, 600 wide: the tabs' line at the top; the
     /// see-through list between its white and grey lines; and the input line with the box for whom to whisper
     /// to, the two edits and the round buttons. With no rows only the input line is left.
@@ -118,25 +124,27 @@ impl App {
                 ));
             }
             // The list's see-through back, and the lines around it.
-            window.push_str(&format!(r#"<div class="a" style="{};background:rgba(0,0,0,.4)"></div>"#, at(4, 17, 600 - 8, height - 16 - 24 - 1)));
-            window.push_str(&format!(r#"<div class="a" style="{};background:#fff"></div>"#, at(3, 16, 1, height - 16)));
-            window.push_str(&format!(r#"<div class="a" style="{};background:#fff"></div>"#, at(tabs + 3, 16, (600 - tabs - 10).max(0), 1)));
-            window.push_str(&format!(r#"<div class="a" style="{};background:#8e8e8e"></div>"#, at(600 - 4, 18, 1, height - 18)));
+            window.push_str(&fill(4, 17, 600 - 8, height - 16 - 24 - 1, "rgba(0,0,0,.4)"));
+            window.push_str(&fill(3, 16, 1, height - 16, WHITE));
+            window.push_str(&fill(tabs + 3, 16, (600 - tabs - 10).max(0), 1, WHITE));
+            window.push_str(&fill(600 - 4, 18, 1, height - 18, "#8e8e8e"));
             window.push_str(&format!(
                 r#"<div id="chat-log" class="a chat-log" style="{}"><div id="chat-lines">{}</div></div>"#,
                 at(5, 18, 600 - 8, height - 16 - 24 - 4),
                 self.chat_lines(all.get(open))
             ));
         }
-        window.push_str(&format!(r#"<div class="a" style="{};background:#8e8e8e"></div>"#, at(4, base, 600 - 8, 1)));
+        window.push_str(&fill(4, base, 600 - 8, 1, "#8e8e8e"));
         let chat = sent(Form::Chat);
+        // The round buttons of the input line: as they stand, and lit under the pointer and pressed.
+        const ROUND: [&str; 3] = ["basic_interface/sys_base_off.bmp", "basic_interface/sys_base_on.bmp", "basic_interface/sys_base_on.bmp"];
         window.push_str(&format!(
             r#"<form {chat} class="a" style="{};background:url('{}') 0 0 no-repeat">
                 <input class="a in" id="chat-to" maxlength="23" autocomplete="off" style="{};background:#f0f0f0" title="Whisper to">
                 <div class="a" style="{};background:url('{}') 0 0 no-repeat"></div>
                 <input class="a in" id="chat-input" maxlength="70" autocomplete="off" style="{}">
-                <button type="button" class="a b" style="{};--n:url('{off}');--o:url('{on}');--p:url('{on}')" {size} title="Change the size (F10)"></button>
-                <button type="button" class="a b" style="{};--n:url('{off}');--o:url('{on}');--p:url('{on}')" {mini} title="Hide or show the log"></button>
+                {}
+                {}
                 <button type="submit" hidden></button>
             </form>"#,
             at(0, base, 600, 24),
@@ -145,12 +153,8 @@ impl App {
             at(97, 3, 8, 18),
             picture("basic_interface/dialog_btn0.bmp"),
             at(110, 4, 460, 16),
-            at(572, 7, 11, 11),
-            at(586, 7, 11, 11),
-            off = picture("basic_interface/sys_base_off.bmp"),
-            on = picture("basic_interface/sys_base_on.bmp"),
-            size = pressed(Press::Size),
-            mini = pressed(Press::Mini),
+            pictured(572, 7, (11, 11), ROUND, Press::Size, r#" title="Change the size (F10)""#),
+            pictured(586, 7, (11, 11), ROUND, Press::Mini, r#" title="Hide or show the log""#),
         ));
         window
     }
@@ -191,9 +195,9 @@ impl App {
         let tabs = self.chat_tabs();
         let Some(tab) = self.chat.options.and_then(|index| tabs.get(index)) else { return String::new() };
         let mut window = title_bar(280, &format!("{}{}", tr(&tab.name), Self::words(1777, " message log settings")));
-        window.push_str(&press_button(266, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::OptionsClose));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border:1px solid #c8c8c8;border-top:0;box-sizing:border-box"></div>"#, at(0, 17, 280, 183)));
-        window.push_str(&format!(r#"<div class="a" style="{};background:#e0e0e0"></div>"#, at(18, 17, 1, 162)));
+        window.push_str(&cross(280, Press::OptionsClose));
+        window.push_str(&panel_ground(0, 17, 280, 183));
+        window.push_str(&fill(18, 17, 1, 162, "#e0e0e0"));
         let rows: String = chat_tabs::ROWS
             .iter()
             .filter_map(|(kind, line)| Some((kind, data::message(*line).filter(|name| !name.is_empty())?)))

@@ -1,22 +1,7 @@
 //! Tests of the guild's packets: each is built as rAthena writes it (`packets_struct.hpp`) and read back.
 
 use super::*;
-
-/// A text in a field of `size` bytes.
-fn padded(words: &str, size: usize) -> Vec<u8> {
-    let mut field = words.as_bytes().to_vec();
-    field.resize(size, 0);
-    field
-}
-
-/// A packet with a length after its number.
-fn sized(id: u16, body: &[u8]) -> Vec<u8> {
-    [&id.to_le_bytes()[..], &((body.len() + 4) as u16).to_le_bytes(), body].concat()
-}
-
-fn longs(values: &[u32]) -> Vec<u8> {
-    values.iter().flat_map(|value| value.to_le_bytes()).collect()
-}
+use crate::net::bytes::testing::{assert_lengths, field as padded, longs, sized};
 
 #[test]
 fn the_guild_one_is_of_is_read() {
@@ -55,6 +40,13 @@ fn a_member_coming_and_going_is_read() {
     let packet = [&[0xf2, 0x01][..], &longs(&[2_000_001, 150_002, 1]), &[1, 0, 5, 0, 2, 0]].concat();
     assert_eq!(packet.len(), 20);
     assert_eq!(member_online(&packet), Some((150_002, true)));
+}
+
+#[test]
+fn the_answers_of_one_number_are_read() {
+    assert_eq!((result(&[0x67, 0x01, made::NO_ITEM]), result(&[0x67, 0x01])), (Some(3), None));
+    assert_eq!((tabs(&[0x4e, 0x01, 0x85, 0, 0, 0]), tabs(&[0x4e, 0x01, 0x85, 0, 0])), (Some(0x85), None));
+    assert_eq!((broken_how(&[0x5e, 0x01, 2, 0, 0, 0]), broken_how(&[0x5e, 0x01])), (Some(broken::MEMBERS_LEFT), None));
 }
 
 #[test]
@@ -163,10 +155,7 @@ fn what_is_sent_has_the_server_s_lengths() {
         set_notice(7, "War tonight", "Be at the castle at nine."),
         ask_names(2_000_001),
     ];
-    for packet in sent {
-        let id = u16::from_le_bytes([packet[0], packet[1]]);
-        assert_eq!(packet_length(id), Some(packet.len() as i32), "{id:#06x}");
-    }
+    assert_lengths(&sent);
     let said = say("Thor", "hello");
     assert_eq!(packet_length(0x017e), Some(-1));
     assert_eq!(&said[2..4], &[(said.len() as u16).to_le_bytes()[0], 0]);

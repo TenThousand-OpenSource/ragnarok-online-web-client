@@ -186,4 +186,28 @@ impl App {
         self.redraw(&[&wnd::CHAT_OPTIONS]);
         self.refresh_chat();
     }
+
+    /// The chat's line was sent: a command is done, words with a name beside them are whispered, anything
+    /// else is said aloud.
+    pub(in crate::web::app) fn chat_typed(&mut self) {
+        let words = field("chat-input");
+        let words = words.trim();
+        // The client's own commands come first; everything else is said (the server reads its
+        // @commands).
+        if !words.is_empty() && self.typed_command(words) {
+            set_field("chat-input", "");
+            return;
+        }
+        // A name in the small box at the left sends the words to that one alone: the line shows once
+        // the server has answered (`clicks/whispers.rs`).
+        let to = field("chat-to");
+        let to = to.trim();
+        if !words.is_empty() && !to.is_empty() && self.game.is_some() {
+            self.whisper_send(to, words);
+            return set_field("chat-input", "");
+        }
+        if self.say_aloud(words) {
+            set_field("chat-input", "");
+        }
+    }
 }

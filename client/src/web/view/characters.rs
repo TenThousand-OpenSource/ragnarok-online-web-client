@@ -1,7 +1,7 @@
-//! Choosing a server and a character, and making a character.
+//! Choosing a server and a character. Making a character is `view/creation.rs`.
 
 use super::*;
-use crate::press::account::{Press, Race, Sex, Turn};
+use crate::press::account::Press;
 
 impl App {
     pub(in super::super) fn character_in(&self, slot: u8) -> Option<&Character> {
@@ -161,94 +161,5 @@ impl App {
         inner.push_str(&format!(r#"<div class="a page" style="{};{large}">1 / 1</div>"#, at(851, 560, 88, 22)));
         inner.push_str(&button(&at(945, 5, 17, 18), &states_of("select_character_ver3/bt_close2"), &pressed(Press::Logout), ""));
         inner
-    }
-
-    pub(super) fn char_create_window(&self, view: (f64, f64)) -> String {
-        let make = &self.make;
-        let folder = "make_character_ver2";
-        // The window's title is bold, the titles over the hair styles and colours are the smaller text in bold,
-        // and the words on its two buttons are (0, 14), bold (`UINewMakeCharWnd::Paint`, and its `OnCreate`:
-        // `SetFont(0, 0xB, 1, 0)`, `AddTextStyle(.., 0xE, .., 1, ..)`).
-        let (bold, small, large) = (BOLD.style(), Font(0, 11, true).style(), Font(0, 14, true).style());
-        let mut inner = format!(r#"<div class="a" style="{};{bold};color:#5f5f5f">{}</div>"#, at(44, 17, 300, 14), self.text(Key::CharacterCreation));
-
-        // The two races: the chosen one is lit. A classic server makes no Doram (rAthena lets one be made only
-        // under Renewal's rules: its `allowed_job_flag`), so there the Doram's panel is shown and cannot be
-        // pressed. The client itself has no such switch, it is always shown a server of its own day: this is
-        // this project's.
-        for (y, picture, race, name, about) in [(36, "human", Race::Human, Key::Human, Key::HumanAbout), (202, "doram", Race::Doram, Key::Doram, Key::DoramAbout)] {
-            let lit = if (race == Race::Doram) == make.doram { "on" } else { "off" };
-            let offered = race == Race::Human || data::renewal();
-            inner.push_str(&format!(
-                r#"<button type="button" class="a race" style="{};{}" {}><b>{}</b><p>{}</p></button>"#,
-                at(21, y, 364, 166),
-                background(&format!("{folder}/img_{picture}_{lit}.bmp")),
-                if offered { pressed(Press::Race(race)) } else { "disabled".to_owned() },
-                self.text(name),
-                self.text(about)
-            ));
-        }
-
-        for (x, sex, name) in [(437, Sex::Male, "male"), (500, Sex::Female, "female")] {
-            let base = format!("{folder}/bt_{name}");
-            let pictures = if (make.sex == 1) == (sex == Sex::Male) {
-                let on = format!("{base}_on.bmp");
-                states(&on, &on, &on)
-            } else {
-                states(&format!("{base}_off.bmp"), &format!("{base}_over.bmp"), &format!("{base}_press.bmp"))
-            };
-            inner.push_str(&button(&at(x, 59, 62, 25), &pictures, &pressed(Press::Sex(sex)), ""));
-        }
-        inner.push_str(&button(&at(426, 179, 22, 23), &states_of(&format!("{folder}/bt_leftturn")), &pressed(Press::Turn(Turn::Left)), ""));
-        inner.push_str(&button(&at(551, 179, 22, 23), &states_of(&format!("{folder}/bt_rightturn")), &pressed(Press::Turn(Turn::Right)), ""));
-        // The new character, feet at (500, 228).
-        inner.push_str(&format!(r#"<canvas class="a pass" id="pc-make" width="{}" height="{}" style="left:420px;top:91px"></canvas>"#, figure::WIDTH, figure::HEIGHT));
-        inner.push_str(&format!(r#"<input class="a in" id="char-name" maxlength="23" autocomplete="off" autofocus style="{}">"#, at(440, 268, 120, 20)));
-
-        inner.push_str(&format!(r#"<div class="a" style="{};{small};color:#404040">{}</div>"#, at(609, 44, 150, 14), self.text(Key::HairStyle)));
-        let thumbnails = match (make.doram, make.sex == 1) {
-            (false, true) => "",
-            (false, false) => "_girl",
-            (true, true) => "_doramboy",
-            (true, false) => "_doramgirl",
-        };
-        for index in 0..24u16 {
-            let place = at(i32::from(index % 4) * 38 + 606, i32::from(index / 4) * 37 + 59, 36, 37);
-            let style = index + 1;
-            if style > hair_styles(make.doram) {
-                inner.push_str(&format!(r#"<div class="a" style="{place};{}"></div>"#, background(&format!("{folder}/img_hairstyle_none.bmp"))));
-                continue;
-            }
-            let frame = if style == make.hair_style {
-                let select = format!("{folder}/bt_hairstyle_select.bmp");
-                states(&select, &select, &select)
-            } else {
-                states_of(&format!("{folder}/bt_hairstyle"))
-            };
-            let thumbnail = format!(r#"<img src="{}" alt="">"#, picture(&format!("{folder}/img_hairstyle{thumbnails}{style:02}.bmp")));
-            inner.push_str(&button(&place, &frame, &pressed(Press::Hair(style)), &thumbnail));
-        }
-
-        inner.push_str(&format!(r#"<div class="a" style="{};{small};color:#404040">{}</div>"#, at(609, 285, 150, 14), self.text(Key::HairColor)));
-        for colour in 0..HAIR_COLOURS {
-            let base = format!("{folder}/color{:02}", colour + 1);
-            let pictures = if colour == make.hair_colour {
-                let on = format!("{base}_on.bmp");
-                states(&on, &on, &on)
-            } else {
-                states(&format!("{base}_off.bmp"), &format!("{base}_over.bmp"), &format!("{base}_press.bmp"))
-            };
-            inner.push_str(&button(&at(i32::from(colour % 5) * 27 + 619, i32::from(colour / 5) * 24 + 306, 22, 22), &pictures, &pressed(Press::Colour(colour)), ""));
-        }
-
-        let make_pictures = states_of(&format!("{folder}/bt_make"));
-        inner.push_str(&button(&format!("{};{large}", at(25, 379, 152, 27)), &make_pictures, &format!(r#"{} data-big"#, pressed(Press::Back)), self.text(Key::Return)));
-        inner.push_str(&format!(r#"<button class="a b" data-big style="{};{large};{make_pictures}">{}</button>"#, at(616, 379, 152, 27), self.text(Key::Create)));
-        inner.push_str(&button(&at(768, 9, 17, 16), &states_of(&format!("{folder}/bt_close")), &pressed(Press::Back), ""));
-
-        let size = (794, 422);
-        let place = centred(view, size);
-        let inner = format!(r#"<form {}>{inner}</form>"#, sent(Form::Create));
-        window(view, size, (place.0, place.1 - 70.0), "", &format!("{folder}/bg_makebg.bmp"), &inner)
     }
 }

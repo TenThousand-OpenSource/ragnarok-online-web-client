@@ -3,6 +3,46 @@
 
 use super::*;
 
+pub(super) const FIELD_OF_VIEW: f32 = 15.0;
+pub(super) const NEAR: f32 = 10.0;
+pub(super) const FAR: f32 = 5000.0;
+pub(super) const DISTANCE: f32 = 300.0;
+pub(super) const DISTANCE_RANGE: [f32; 2] = [150.0, 730.0];
+/// How far the camera goes outdoors without the client's Zoom Out option (with it: `DISTANCE_RANGE`'s end).
+pub(super) const DISTANCE_NEAR_MOST: f32 = 400.0;
+pub(super) const PITCH: f32 = 45.0;
+pub(super) const PITCH_RANGE: [f32; 2] = [20.0, 70.0];
+
+/// The camera: where it looks, and from where.
+#[derive(Clone, Copy)]
+pub(super) struct Camera {
+    /// Degrees; 0 looks north, growing clockwise.
+    pub(super) yaw: f32,
+    /// Degrees above the horizon.
+    pub(super) pitch: f32,
+    pub(super) distance: f32,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self { yaw: 0.0, pitch: PITCH, distance: DISTANCE }
+    }
+}
+
+/// Under which name the browser keeps the camera.
+pub(super) const CAMERA_KEPT: &str = "roweb.camera";
+
+/// The camera at one moment: its place and axes, and the matrix that takes the world to the screen.
+pub(super) struct View {
+    pub(super) eye: Vector,
+    pub(super) forward: Vector,
+    pub(super) right: Vector,
+    pub(super) up: Vector,
+    pub(super) aspect: f32,
+    /// Column by column, for the shaders.
+    pub(super) matrix: [f32; 16],
+}
+
 impl Camera {
     /// How far the camera may tilt and how far away it may be, outdoors or inside (the original's limits: 20
     /// degrees either way of 45 outdoors and 10 inside, and inside no farther than where it starts).
@@ -86,6 +126,11 @@ impl Scene {
     /// Where the camera looks now: at the character's feet until it has started to follow them.
     pub(super) fn looked_at(&self) -> Vector {
         self.aim.map_or_else(|| on_ground(&self.gat, self.player.at), |(aim, _)| aim)
+    }
+
+    /// The view the camera gives now on that canvas: what the mouse is told the world by between frames.
+    pub(super) fn view(&self, gpu: &Gpu) -> View {
+        self.camera.view(self.looked_at(), gpu.config.width as f32 / gpu.config.height as f32)
     }
 
     /// Moves the camera's aim towards the character's feet, as far as the time since it was last moved allows

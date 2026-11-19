@@ -11,12 +11,8 @@ pub struct Imf {
 /// `f32 version (1.01 at least), i32 checksum, i32 last layer`, then for each layer `i32 actions` and for each
 /// action `i32 frames` and for each frame `i32 priority, i32 x, i32 y` (`CImfRes::Load`).
 pub fn parse_imf(bytes: &[u8]) -> Result<Imf, String> {
-    let mut at = 0;
-    let mut long = || -> Result<i32, String> {
-        let number = bytes.get(at..at + 4).ok_or("the file ends too early")?;
-        at += 4;
-        Ok(i32::from_le_bytes(number.try_into().unwrap()))
-    };
+    let mut reader = crate::bytes::Reader::new(bytes);
+    let mut long = || reader.i32();
     if f32::from_bits(long()? as u32) < 1.01 {
         return Err("not an IMF file".to_owned());
     }

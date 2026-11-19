@@ -2,7 +2,7 @@
 //! join, leave and break one. The layouts are rAthena's for PACKETVER 20260219 (`clif_guild_*` and
 //! `clif_parse_Guild*` in `clif.cpp`, `packets_struct.hpp`, `clif_packetdb.hpp`).
 
-use super::bytes::{long, text_at, word};
+use super::bytes::{Writer, body, long, records, text, text_at, word};
 
 /// ZC_RESULT_MAKE_GUILD (0x0167, 3 bytes): `u8 result`: how making a guild went (`made`).
 pub const ZC_RESULT_MAKE_GUILD: u16 = 0x0167;
@@ -141,20 +141,20 @@ impl Skill {
     }
 }
 
-/// A text in a field of `N` bytes, the last of them a zero.
-fn field<const N: usize>(words: &str) -> [u8; N] {
-    let mut field = [0; N];
-    let mut size = words.len().min(N - 1);
-    while !words.is_char_boundary(size) {
-        size -= 1;
-    }
-    field[..size].copy_from_slice(&words.as_bytes()[..size]);
-    field
+/// ZC_RESULT_MAKE_GUILD, ZC_ACK_REQ_JOIN_GUILD, ZC_ACK_REQ_ALLY_GUILD and ZC_ACK_REQ_HOSTILE_GUILD: the one byte
+/// each answers with (`made`, `invite`, `ally`, `oppose`), if the packet has it.
+pub fn result(packet: &[u8]) -> Option<u8> {
+    packet.get(2).copied()
 }
 
-/// The records of `size` bytes each that follow the first `from` bytes of a packet with a length.
-fn records(packet: &[u8], from: usize, size: usize) -> impl Iterator<Item = &[u8]> {
-    packet.get(from..).unwrap_or_default().chunks_exact(size)
+/// ZC_ACK_GUILD_MENUINTERFACE: which tabs of the guild window the player may open.
+pub fn tabs(packet: &[u8]) -> Option<u32> {
+    long(packet, 2)
+}
+
+/// ZC_ACK_DISORGANIZE_GUILD_RESULT: how breaking the guild up went (`broken`).
+pub fn broken_how(packet: &[u8]) -> Option<u32> {
+    long(packet, 2)
 }
 
 /// ZC_UPDATE_GDID: `u32 guild, u32 emblem, u32 mode, u8 master, u32 inter, char name[24], u32 master_character`;
@@ -247,8 +247,7 @@ pub fn expelled(packet: &[u8]) -> Option<(u32, String)> {
 
 /// ZC_GUILD_CHAT: `u16 length, char text[]`: "name : words".
 pub fn said(packet: &[u8]) -> Option<String> {
-    let size = usize::from(word(packet, 2)?).min(packet.len());
-    text_at(packet, 4, size.checked_sub(4)?)
+    body(packet, 4).map(text)
 }
 
 /// ZC_GUILD_POSITION: who, and the position they have in their guild.

@@ -109,7 +109,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::UP;
     const PICTURES: [&str; 5] = ["super1.bmp", "super2.bmp", "super3.bmp", "super4.bmp", "super5.bmp"];
 
     /// The screen's right for a camera of that yaw (it looks along (sin, cos) on the ground).

@@ -12,15 +12,17 @@ pub fn decode(bytes: &[u8]) -> Result<Image, String> {
     if bytes.len() < 54 || &bytes[..2] != b"BM" {
         return Err("not a BMP file".into());
     }
-    let u16_at = |at: usize| u16::from_le_bytes([bytes[at], bytes[at + 1]]);
-    let u32_at = |at: usize| u32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
-
-    let pixels_at = u32_at(10) as usize;
-    let header_size = u32_at(14) as usize;
-    let width = u32_at(18) as i32;
-    let raw_height = u32_at(22) as i32;
-    let bits = u16_at(28);
-    let compression = u32_at(30);
+    // The file header (14 bytes) and the start of the picture's: all of it is there, the file being 54 bytes at least.
+    let mut reader = crate::bytes::Reader::new(bytes);
+    reader.take(10)?;
+    let pixels_at = reader.u32()? as usize;
+    let header_size = reader.u32()? as usize;
+    let width = reader.i32()?;
+    let raw_height = reader.i32()?;
+    // The count of planes.
+    reader.take(2)?;
+    let bits = reader.u16()?;
+    let compression = reader.u32()?;
     if compression != 0 {
         return Err(format!("compressed BMP (type {compression}) is not supported"));
     }

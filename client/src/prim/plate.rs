@@ -76,7 +76,7 @@ mod tests {
         (0..3).all(|axis| (a[axis] - b[axis]).abs() < 0.001)
     }
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
+    use crate::prim::testing::RIGHT;
     const UP: [f32; 3] = [0.0, 0.6, -0.8];
 
     #[test]

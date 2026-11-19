@@ -148,10 +148,7 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
     state.sounds_due.extend(heard.into_iter().map(|sound| (time, sound.to_owned())));
     let standing = |on: Option<u32>| scene.stands(on);
     for burst in state.bursts.iter_mut().filter(|burst| burst.begins <= time) {
-        let facing = match burst.on {
-            Some(id) => scene.units.get(&id).map_or(0, |unit| unit.facing),
-            None => scene.player.facing,
-        };
+        let facing = scene.mover(burst.on).map_or(0, |unit| unit.facing);
         // The step on the ground that facing is (as `map::direction` numbers them, from the south round by the west).
         let step = [(0.0, -1.0), (-1.0, -1.0), (-1.0, 0.0), (-1.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (1.0, -1.0)][usize::from(facing % 8)];
         let length = f32::hypot(step.0, step.1);
@@ -230,10 +227,7 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
 /// one is drawn as (`crate::mounts::name_offset`, the client's `GetNameOffset`): nothing for a monster or an
 /// NPC, or for one out of sight.
 fn name_offset(scene: &Scene, on: Option<u32>) -> f32 {
-    let mover = match on {
-        Some(id) => scene.units.get(&id),
-        None => Some(&scene.player),
-    };
+    let mover = scene.mover(on);
     mover.filter(|mover| matches!(mover.look, Look::Character(_))).map_or(0.0, |mover| crate::mounts::name_offset(crate::mounts::drawn_job(mover.job, mover.state), data::is_doram(mover.job)))
 }
 

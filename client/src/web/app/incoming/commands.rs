@@ -19,7 +19,7 @@ const BLOCKED_LIST: [usize; 2] = [3396, 3395];
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other, and for the count of players,
     /// which the chat's tabs show too (`incoming/status.rs`).
-    pub(super) fn command_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn commands_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // The count that `/who` asked for is told in the chat, in yellow (`0xFFFF`).
             commands::ZC_USER_COUNT => {

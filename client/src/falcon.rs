@@ -86,8 +86,7 @@ impl Falcon {
     /// A falcon as it is made: a cell behind its owner, who looks the game's way `facing` (0 south, then by
     /// eighths through west) (`AM_SET_MASTER_POINTER`, as the cart is), over the ground at `ground`.
     pub fn behind(owner: (f32, f32), facing: u8, ground: f32) -> Self {
-        let turn = (f32::from(facing) * 45.0).to_radians();
-        Falcon { at: (owner.0 + turn.sin() * BEHIND, owner.1 + turn.cos() * BEHIND), up: ground + HEIGHT, velocity: (0.0, 0.0, 0.0), tick: 0, sent: false, over: false, home: true, picture: 0 }
+        Falcon { at: crate::carts::behind(owner, facing, BEHIND), up: ground + HEIGHT, velocity: (0.0, 0.0, 0.0), tick: 0, sent: false, over: false, home: true, picture: 0 }
     }
 
     /// It is sent at a place (`CMsgEffect::SendMsg`, `AM_REQ_ATTACK`): a tenth of the way there each tick. Its

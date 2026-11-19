@@ -2,9 +2,7 @@
 
 use super::*;
 
-fn close(a: f32, b: f32) -> bool {
-    (a - b).abs() < 0.001
-}
+use crate::prim::testing::close;
 
 fn flat(_: f32, _: f32) -> f32 {
     0.0

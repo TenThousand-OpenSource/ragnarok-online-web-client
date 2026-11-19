@@ -5,7 +5,7 @@ use crate::net::books;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn book_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn books_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // `CGameMode::ReceiveBookOpen`: the book's window shows that page of it.
             books::ZC_READ_BOOK => {

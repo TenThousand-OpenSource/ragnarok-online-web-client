@@ -35,27 +35,6 @@ pub fn quests(client_dir: &std::path::Path, database: &std::path::Path) -> serde
     serde_json::json!({ "ongoing": ongoing, "recommended": recommended, "tooltips": tooltips, "filters": filters })
 }
 
-/// The entries of one of the client's tables that are tables themselves, each by its number and as JSON. The
-/// table is gone through an entry at a time: the quests' has some eleven thousand, more than can be held at
-/// once the way `json_of` holds a table.
-fn numbered(lua: &Lua, name: &str) -> Vec<(u64, serde_json::Value)> {
-    let Ok(table) = lua.globals().get::<Table>(name) else { return Vec::new() };
-    let mut entries: Vec<(u64, serde_json::Value)> = table
-        .pairs::<Value, Value>()
-        .flatten()
-        .filter_map(|(number, entry)| {
-            let number = match number {
-                Value::Integer(number) => u64::try_from(number).ok()?,
-                Value::Number(number) if number >= 0.0 => number as u64,
-                _ => return None,
-            };
-            matches!(entry, Value::Table(_)).then(|| (number, json_of(&entry)))
-        })
-        .collect();
-    entries.sort_by_key(|(number, _)| *number);
-    entries
-}
-
 /// The numbers of the quests the server's database has (`- Id: 1001` in `quest_db.yml` and in the `import`
 /// folder's): empty when neither file is there.
 fn known_quests(database: &std::path::Path) -> std::collections::HashSet<u64> {

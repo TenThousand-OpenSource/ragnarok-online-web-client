@@ -4,7 +4,7 @@ use super::*;
 
 impl App {
     /// A press of this system (`crate::press::inventory`).
-    pub(super) fn item_pressed(&mut self, press: crate::press::inventory::Press) {
+    pub(super) fn inventory_pressed(&mut self, press: crate::press::inventory::Press) {
         use crate::press::inventory::Press;
         match press {
             Press::Window => {
@@ -93,5 +93,58 @@ impl App {
         if let Some(index) = index {
             self.send_on_map(&items::move_to_tab(index, tab == 3));
         }
+    }
+
+    /// An item carried is used, by a double click or from the hotkey bar: it is used, taken off or put on.
+    pub(in crate::web::app) fn use_item(&mut self, index: u16) {
+        let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };
+        let Some(item) = self.bag.at(index) else { return };
+        if item.usable() {
+            socket.send(&items::use_item(item.index, account.account_id));
+        } else if item.worn != 0 {
+            socket.send(&items::take_off(item.index));
+        // A pet's accessory (the server's item kind 8) goes nowhere on the character, and is asked to be
+        // worn all the same: the server puts it on the pet. The client tells such a thing by its number
+        // (its Lua `IsPetAccessory`, not read here) and sends the same request (`MM_WEAR_EQUIP`).
+        } else if item.wearable != 0 || item.kind == 8 {
+            socket.send(&items::wear(item.index, item.wearable));
+        }
+    }
+
+    /// An item was pressed with the right button: what is known of it shows.
+    pub(in crate::web::app) fn item_info(&mut self, id: u32, identified: bool) {
+        self.bag.info = Some((id, identified));
+        // With the item, the cards set into it where it is carried: its window draws them in its slots.
+        let cards: Vec<u32> = self.bag.items.iter().filter(|item| item.id == id).flat_map(|item| crate::item_names::Named::from(item).cards_set()).collect();
+        data::want_items(std::iter::once(id).chain(cards), || dispatch(Action::ItemsKnown));
+        // A book has its two buttons there, whose pictures are read.
+        if data::is_book(id) {
+            self.book_pictures_wanted();
+        }
+        self.refresh_items();
+    }
+
+    /// An item was dragged out of its window and let go over the world: it is dropped.
+    pub(in crate::web::app) fn thrown(&mut self, dragged: Drag) {
+        // The first of that item carried without being worn. One is dropped at once; of more, the
+        // original asks how many.
+        let Drag::Item(id) = dragged else { return };
+        let Some(item) = self.bag.first_unworn(id) else { return };
+        if item.amount <= 1 {
+            self.send(&items::throw(item.index, 1));
+        } else {
+            self.bag.throwing = Some((item.index, item.amount));
+            self.redraw(&[&wnd::THROW]);
+        }
+    }
+
+    /// The box that asks how many to drop was sent: that many are dropped.
+    pub(in crate::web::app) fn throw_counted(&mut self) {
+        if let (Some((index, most)), Some(socket)) = (self.bag.throwing.take(), &self.socket) {
+            if let Some(count) = Self::counted(&wnd::THROW, most) {
+                socket.send(&items::throw(index, count));
+            }
+        }
+        self.redraw(&[&wnd::THROW]);
     }
 }

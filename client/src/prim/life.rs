@@ -24,61 +24,16 @@ impl Prim {
         self.shift();
         match self.kind {
             Shape::Texture2d | Shape::Quad2d => self.slide(),
-            Shape::Flash2d => {
-                if self.height < 0.0 {
-                    self.height_speed = -self.height_speed;
-                    self.height = 0.0;
-                }
-                self.long_speed += self.long_accel;
-                self.height_speed += self.height_accel;
-                self.longitude += self.long_speed;
-                self.height += self.height_speed;
-            }
+            Shape::Flash2d => self.bounce(),
             Shape::Circle2d => self.widen(),
             Shape::Texture3d => {
                 if !self.plate_flight(master) {
                     return false;
                 }
             }
-            // `Prim3DCylinder`: it goes along its own upright by its speed, turns (twice its turning speed a
-            // tick, as the client adds it twice), and its two rings and its height change by their speeds,
-            // which change by theirs. With the first pattern its far ring closes over the time it fades.
-            Shape::Cylinder3d => {
-                self.speed += self.accel;
-                self.height_speed += self.height_accel;
-                self.outer_speed += self.outer_accel;
-                self.inner_speed += self.inner_accel;
-                self.long_speed += self.long_accel;
-                self.longitude += self.long_speed;
-                let step = self.turned([0.0, -self.speed, 0.0]);
-                self.moved = [self.moved[0] + step[0], self.moved[1] + step[1], self.moved[2] + step[2]];
-                self.longitude += self.long_speed;
-                self.inner += self.inner_speed;
-                self.outer += self.outer_speed;
-                self.height = (self.height + self.height_speed).min(100.0);
-                if self.first_pattern && self.count == self.fade_out {
-                    self.outer_speed = -(self.outer / (self.duration - self.count + 1) as f32);
-                }
-            }
-            // `Prim3DCircle`: it widens by its speed, turns, and goes along its own forward by its speed; it
-            // is filled from its edge inwards by its inner size, or to its middle with the first pattern or
-            // while it is narrower than that. (The client can change its inner size by a speed too; none of the
-            // effects here gives it one.)
-            Shape::Circle3d => {
-                self.radius_speed += self.radius_accel;
-                self.long_speed += self.long_accel;
-                self.speed += self.accel;
-                self.longitude += self.long_speed;
-                self.radius += self.radius_speed;
-                self.go_forward();
-                self.size = if self.first_pattern || self.inner > self.radius { self.radius } else { self.inner };
-            }
-            // `CEffectPrim::OnProcess`, `PP_3DSPHERE`: it swells by its speed and turns by its turning speed.
-            Shape::Sphere3d => {
-                self.radius_speed += self.radius_accel;
-                self.radius += self.radius_speed;
-                self.longitude += self.long_speed;
-            }
+            Shape::Cylinder3d => self.drill(),
+            Shape::Circle3d => self.ring_out(),
+            Shape::Sphere3d => self.swell(),
             Shape::CrossTexture3d => {
                 if !self.cross_flight(master, ground) {
                     return false;

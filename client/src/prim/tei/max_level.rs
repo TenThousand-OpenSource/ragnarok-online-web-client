@@ -193,7 +193,7 @@ mod tests {
     use super::*;
 
     const EAST: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::UP;
 
     fn near(one: [f32; 3], other: [f32; 3]) -> bool {
         one.iter().zip(other).all(|(one, other)| (one - other).abs() < 0.001)

@@ -3,12 +3,7 @@
 
 use super::*;
 
-fn close(a: f32, b: f32) -> bool {
-    (a - b).abs() < 0.001
-}
-
-const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-const UP: [f32; 3] = [0.0, 1.0, 0.0];
+use crate::prim::testing::{RIGHT, UP, close};
 
 fn walls(kind: Walls, duration: i32, slots: Vec<Slot>) -> Prim {
     let mut prim = Prim::new(Shape::Walls(kind), "one");

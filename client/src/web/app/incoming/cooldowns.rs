@@ -6,7 +6,7 @@ use crate::net::cooldowns::{self, Told};
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn cooldown_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn cooldowns_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         let told = match id {
             // A skill was used and cannot be again for a time (the client's `ApplyCooldownStart`).
             cooldowns::ZC_SKILL_POSTDELAY => cooldowns::started(packet).into_iter().collect(),

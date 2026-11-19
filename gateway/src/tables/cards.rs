@@ -4,34 +4,28 @@
 
 use super::*;
 
-/// The fields of one of the client's `#` tables, in order: `4001#Lucky#` gives `4001`, `Lucky`. A line that
-/// begins a comment (`//`) gives nothing.
-fn fields(text: &str) -> Vec<Vec<&str>> {
-    text.lines().map(str::trim).filter(|line| !line.is_empty() && !line.starts_with("//")).map(|line| line.trim_end_matches('#').split('#').collect()).collect()
-}
-
 /// `{"<id>": [word, after, picture]}` for every card: the word it adds to the name of the thing it is set into
 /// (`data\cardprefixnametable.txt`), 1 when the word goes after the name (the cards `cardpostfixnametable.txt`
 /// lists) and 0 when before, and the name of its illustration (`num2cardillustnametable.txt`: a file of
 /// `texture\유저인터페이스\cardbmp`). A card is what any of the four tables names, as for the client.
 pub fn card_names(prefixes: &str, postfixes: &str, listed: &str, pictures: &str) -> serde_json::Value {
     let mut cards: BTreeMap<u32, (String, u8, String)> = BTreeMap::new();
-    for line in fields(listed) {
+    for line in hash_fields(listed) {
         if let Some(id) = line.first().and_then(|id| id.parse().ok()) {
             cards.entry(id).or_default();
         }
     }
-    for line in fields(pictures) {
+    for line in hash_fields(pictures) {
         if let (Some(id), Some(picture)) = (line.first().and_then(|id| id.parse().ok()), line.get(1)) {
             cards.entry(id).or_default().2 = (*picture).to_owned();
         }
     }
-    for line in fields(prefixes) {
+    for line in hash_fields(prefixes) {
         if let (Some(id), Some(word)) = (line.first().and_then(|id| id.parse().ok()), line.get(1)) {
             cards.entry(id).or_default().0 = (*word).to_owned();
         }
     }
-    for line in fields(postfixes) {
+    for line in hash_fields(postfixes) {
         if let Some(id) = line.first().and_then(|id| id.parse().ok()) {
             cards.entry(id).or_default().1 = 1;
         }

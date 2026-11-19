@@ -7,9 +7,9 @@ pub fn start() -> Result<(), String> {
     let document = window.document().ok_or("no document")?;
     let ui = ui()?;
     ui.set_attribute("style", &format!("background-image:url('{}')", asset_url(WALLPAPER))).map_err(js_error)?;
-    // Icons are dragged from the inventory and the skill list onto the hotkey bar, and out onto the world.
+    // The things in the windows are dragged: onto the hotkey bar, into another window, out onto the world.
     dragging::wire(&window, &ui)?;
-    // A thing dragged out of the inventory and let go over the world is dropped there.
+    // The windows themselves are dragged by their title bars.
     drag_windows(&document)?;
     wire_tooltip(&ui)?;
     wire_presses(&ui)?;
@@ -88,36 +88,7 @@ fn wire_presses(ui: &Element) -> Result<(), String> {
             dispatch(Action::Slid(name, level));
         }
     });
-    let on_menu = Closure::<dyn FnMut(Event)>::new(|event: Event| {
-        if let Some(slot) = pressed(&event, "data-slot").and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok()) {
-            event.prevent_default();
-            dispatch(Action::Dropped(slot, None));
-        }
-        // The right button with Alt held on a thing that goes into the storage or comes out of it moves all
-        // of it at once (the client's `UIItemWnd::OnRBtnDown`, `UIItemStoreWnd::OnRBtnDown`).
-        let alt = event.dyn_ref::<web_sys::MouseEvent>().is_some_and(|event| event.alt_key());
-        let stowed = pressed(&event, "data-use").filter(|_| alt).and_then(|thing| thing.get_attribute("data-use")).and_then(|what| things::read::<Use>(&what));
-        if let Some(what @ (Use::Put(_) | Use::Take(_))) = stowed {
-            event.prevent_default();
-            return dispatch(Action::Stowed(what));
-        }
-        // The right button on an item shows what it is.
-        if let Some((id, identified)) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| Some((id.trim_end_matches('?').parse().ok()?, !id.ends_with('?')))) {
-            event.prevent_default();
-            dispatch(Action::Info(id, identified));
-        }
-        // The right button on a thing that has a menu opens it there (`data-menu`).
-        let place = event.dyn_ref::<web_sys::MouseEvent>().map(|event| (event.client_x() as f32, event.client_y() as f32));
-        if let (Some(what), Some(place)) = (pressed(&event, "data-menu").and_then(|thing| thing.get_attribute("data-menu")).and_then(|what| things::read(&what)), place) {
-            event.prevent_default();
-            dispatch(Action::MenuOn(what, place));
-        }
-        // The right button on a skill shows its description.
-        if let Some(id) = pressed(&event, "data-skill").and_then(|skill| skill.get_attribute("data-skill")).and_then(|id| id.parse().ok()) {
-            event.prevent_default();
-            dispatch(Action::SkillInfo(id));
-        }
-    });
+    let on_menu = Closure::<dyn FnMut(Event)>::new(right_pressed);
     ui.add_event_listener_with_callback("submit", on_submit.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("click", on_click.as_ref().unchecked_ref()).map_err(js_error)?;
     ui.add_event_listener_with_callback("dblclick", on_double_click.as_ref().unchecked_ref()).map_err(js_error)?;
@@ -130,6 +101,39 @@ fn wire_presses(ui: &Element) -> Result<(), String> {
     on_menu.forget();
     on_slide.forget();
     Ok(())
+}
+
+/// The right button on the page: it empties a slot of the hotkey bar, with Alt moves all of a thing into the
+/// storage or out of it, shows what an item or a skill is, opens the menu of a thing that has one.
+fn right_pressed(event: Event) {
+    if let Some(slot) = pressed(&event, "data-slot").and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok()) {
+        event.prevent_default();
+        dispatch(Action::Dropped(slot, None));
+    }
+    // The right button with Alt held on a thing that goes into the storage or comes out of it moves all
+    // of it at once (the client's `UIItemWnd::OnRBtnDown`, `UIItemStoreWnd::OnRBtnDown`).
+    let alt = event.dyn_ref::<web_sys::MouseEvent>().is_some_and(|event| event.alt_key());
+    let stowed = pressed(&event, "data-use").filter(|_| alt).and_then(|thing| thing.get_attribute("data-use")).and_then(|what| things::read::<Use>(&what));
+    if let Some(what @ (Use::Put(_) | Use::Take(_))) = stowed {
+        event.prevent_default();
+        return dispatch(Action::Stowed(what));
+    }
+    // The right button on an item shows what it is.
+    if let Some((id, identified)) = pressed(&event, "data-info").and_then(|item| item.get_attribute("data-info")).and_then(|id| Some((id.trim_end_matches('?').parse().ok()?, !id.ends_with('?')))) {
+        event.prevent_default();
+        dispatch(Action::Info(id, identified));
+    }
+    // The right button on a thing that has a menu opens it there (`data-menu`).
+    let place = event.dyn_ref::<web_sys::MouseEvent>().map(|event| (event.client_x() as f32, event.client_y() as f32));
+    if let (Some(what), Some(place)) = (pressed(&event, "data-menu").and_then(|thing| thing.get_attribute("data-menu")).and_then(|what| things::read(&what)), place) {
+        event.prevent_default();
+        dispatch(Action::MenuOn(what, place));
+    }
+    // The right button on a skill shows its description.
+    if let Some(id) = pressed(&event, "data-skill").and_then(|skill| skill.get_attribute("data-skill")).and_then(|id| id.parse().ok()) {
+        event.prevent_default();
+        dispatch(Action::SkillInfo(id));
+    }
 }
 
 /// The keys: the game's own, and the first press that lets the music start.
@@ -233,10 +237,7 @@ fn load_tables() {
 
 /// Looks, a moment from now, whether the music plays: starting it takes the browser a moment.
 pub(super) fn check_music_soon() {
-    let check = Closure::once_into_js(|| dispatch(Action::CheckMusic));
-    if let Some(window) = web_sys::window() {
-        let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(check.unchecked_ref(), 400);
-    }
+    after(400, Action::CheckMusic);
 }
 
 /// Hands the app something that happened. One thing is handled at a time: what happens while another is being

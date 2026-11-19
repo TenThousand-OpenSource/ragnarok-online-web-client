@@ -8,10 +8,12 @@
 //! the map as a `Sight` taken before each call, and what it asks for comes back as `Order`s: nothing here
 //! touches the page or the socket, so all of it is tested natively (`ai/tests.rs`).
 //!
-//! `ai/host.rs` has the functions the client provides, each after its function of `MercenaryAI.cpp`;
+//! `ai/host.rs` has the functions the client provides and `ai/sight.rs` what each answers, after its function
+//! of `MercenaryAI.cpp`;
 //! `ai/prelude.lua` what the players' own scripts (`AI\USER_AI`) expect of the client's Lua besides.
 
 mod host;
+mod sight;
 #[cfg(test)]
 mod tests;
 

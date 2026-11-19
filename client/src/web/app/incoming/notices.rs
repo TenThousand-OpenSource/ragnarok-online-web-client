@@ -7,7 +7,7 @@ use crate::net::notices::{self, filled};
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn notice_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn notices_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             notices::ZC_ACTION_FAILURE => {
                 let job = self.game.as_ref().map_or(0, |game| game.job);
@@ -61,13 +61,9 @@ impl App {
             notices::ZC_EQUIPITEM_DAMAGED => self.damage_told(packet),
             notices::ZC_CASH_TIME_COUNTER => self.rental_told(packet),
             notices::ZC_CASH_ITEM_DELETE => self.rental_over(packet),
-            // The name of a character by its number: the client keeps it for the names of things that carry
-            // their maker's (`SetPlayerName`). This client does not ask for such names yet, nor write them
-            // on things, so there is nobody to keep it for.
-            notices::ZC_ACK_REQNAME_BYGID => {}
             // A thing put on is bound to the character (`case ID_ZC_NOTIFY_BIND_ON_EQUIP`).
             notices::ZC_NOTIFY_BIND_ON_EQUIP => {
-                let bound = notices::kind(packet).and_then(|index| self.bag.items.iter().find(|item| item.index == index)).map(Self::item_name);
+                let bound = notices::kind(packet).and_then(|index| self.bag.at(index)).map(Self::item_name);
                 if let Some(name) = bound {
                     self.say_filled(said::GENERAL, 1328, &[&name], notices::BOUND);
                 }
@@ -83,14 +79,6 @@ impl App {
     fn notice(&mut self, said: Option<(usize, &'static str)>) {
         if let Some((line, colour)) = said {
             self.say_filled(said::GENERAL, line, &[], colour);
-        }
-    }
-
-    /// A line of the client's message table in the chat, with what it asks for written into it
-    /// (`notices::filled`); nothing while the table does not have the line.
-    fn say_filled(&mut self, kind: u8, line: usize, with: &[&str], colour: &str) {
-        if let Some(words) = data::message(line).filter(|words| !words.is_empty()) {
-            self.chat_line_of(kind, filled(crate::i18n::tr(&words), with), colour);
         }
     }
 

@@ -14,7 +14,7 @@ const SILENT_TOO_LONG: f64 = 60_000.0;
 const SAY_SOMETHING: f64 = 10_000.0;
 
 pub fn ping_live() -> Vec<u8> {
-    CZ_PING_LIVE.to_le_bytes().to_vec()
+    super::bytes::Writer::new(CZ_PING_LIVE).done()
 }
 
 /// What the watch does when it looks.

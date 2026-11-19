@@ -22,23 +22,21 @@ impl App {
     pub(in crate::web) fn whisper_window(&self, place: usize) -> String {
         let Some(talk) = self.whispers.talks.get(place).and_then(Option::as_ref) else { return String::new() };
         let (width, height) = SIZE;
-        let lines: String = talk.lines.iter().map(|(words, colour)| format!(r#"<div style="color:{colour}">{}</div>"#, escape(words))).collect();
+        let lines: String = talk.lines.iter().map(|(words, colour)| log_line(colour, &escape(words))).collect();
         format!(
             r#"<div class="a" style="{};background:rgba(0,0,0,.4);border:1px solid #c0c0c0;border-radius:3px;box-sizing:border-box"></div>
                <div class="a" style="{};background:rgba(158,182,228,.27)"></div>
                {}{}
                <div class="a t" style="{};padding:0 3px;box-sizing:border-box;display:flex;flex-direction:column-reverse;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;white-space:normal;line-height:14px;user-select:text"><div>{lines}</div></div>
                <div class="a" style="{};background:#c0c0c0"></div>
-               <form {} class="a" style="{}"><input id="whisper-input-{place}" class="a in" maxlength="70" autocomplete="off" style="{};color:#fff"><button type="submit" hidden></button></form>"#,
+               {}"#,
             at(0, 0, width, height),
             at(1, 1, width - 2, 17),
             text(10, 3, "#fff", &talk.title),
-            press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Close(place)),
+            cross(width, Press::Close(place)),
             at(1, 17, width - 2, height - 38),
             at(1, height - 20, width - 2, 1),
-            sent(Form::Whisper(place)),
-            at(0, height - 19, width, 19),
-            at(3, 1, width - 30, 16),
+            typed_line(&sent(Form::Whisper(place)), &at(0, height - 19, width, 19), &format!("whisper-input-{place}"), &at(3, 1, width - 30, 16), "color:#fff"),
         )
     }
 

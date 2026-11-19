@@ -10,33 +10,11 @@ pub mod views;
 
 /// The records of one of the client's tables whose fields end with `#` each (`fogparametertable.txt`,
 /// `viewpointtable.txt`): a name and so many figures after it, as `CSession::LoadMapViewParameters` reads
-/// them. A field is what stands between the `#` before it, or the start of its line, and its own `#`.
-pub fn records(table: &str, figures: usize) -> Vec<(String, Vec<f64>)> {
-    let mut records = Vec::new();
-    let mut fields: Vec<&str> = Vec::new();
-    for line in table.lines() {
-        let mut rest = line;
-        while let Some((field, after)) = rest.split_once('#') {
-            fields.push(field.trim());
-            rest = after;
-            if fields.len() == figures + 1 {
-                records.push((fields[0].to_ascii_lowercase(), fields[1..].iter().map(|field| number(field)).collect()));
-                fields.clear();
-            }
-        }
-    }
-    records
-}
-
-/// A figure of such a table: a number as C's `atof` reads it, or one written in sixteens (`0xff12121e`), which
-/// the client reads with a function of its own.
-fn number(field: &str) -> f64 {
-    if let Some(hex) = field.strip_prefix("0x").or_else(|| field.strip_prefix("0X")) {
-        return u32::from_str_radix(hex, 16).map_or(0.0, f64::from);
-    }
-    let end = field.char_indices().find(|&(at, character)| !(character.is_ascii_digit() || character == '.' || (at == 0 && (character == '-' || character == '+')))).map_or(field.len(), |(at, _)| at);
-    field[..end].parse().unwrap_or(0.0)
-}
+/// them. A field is what stands between the `#` before it, or the start of its line, and its own `#`. The
+/// reading is with the other shapes of the client's tables (`crate::tables::hashed`); a figure is a number as
+/// C's `atof` reads it, or one written in sixteens (`0xff12121e`), which the client reads with a function of
+/// its own.
+pub use crate::tables::hashed as records;
 
 /// The name such a table knows a map by (`CSession::GetFogParameters`, `GetMapViewParameters`): the map's file,
 /// and of a copy made for one party (`0011@gef`) the name as the client cuts it: without the three characters

@@ -5,18 +5,18 @@ use crate::net::pets;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn pet_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn pets_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             // ZC_PETEGG_LIST (0x01a6): `u16 length`, then the place in the inventory of each egg. An incubator was
             // used: the eggs are listed to pick the one to hatch (the client's `UIPetEggListWnd`).
-            0x01a6 => {
+            pets::ZC_PETEGG_LIST => {
                 self.pets.eggs = Some(pets::eggs(packet));
                 self.pets.egg_picked = 0;
                 self.render();
             }
             // ZC_START_CAPTURE (0x019e): a taming item was used. The monster to tame is picked with the pointer, as
             // a skill's target is (the client's `Zc_Start_Capture`: reach 5).
-            0x019e => {
+            pets::ZC_START_CAPTURE => {
                 self.skills.aimed = Some((TAME, 0));
                 world::aim(Some(false), 5);
                 // Taming and fighting do not go together: the fight stops as soon as the bait is in hand.
@@ -25,9 +25,9 @@ impl App {
             }
             // ZC_TRYCAPTURE_MONSTER (0x01a0): `u8 caught`. The reels slow down and stop on the picture of the
             // catch (the eighth) or of the miss (the fourth).
-            0x01a0 => {
-                if let (Some(taming), Some(caught)) = (&mut self.pets.taming, packet.get(2)) {
-                    (taming.wanted, taming.delay, taming.longest) = (if *caught != 0 { 7 } else { 3 }, 7, 7);
+            pets::ZC_TRYCAPTURE_MONSTER => {
+                if let (Some(taming), Some(caught)) = (&mut self.pets.taming, pets::caught(packet)) {
+                    (taming.wanted, taming.delay, taming.longest) = (if caught { 7 } else { 3 }, 7, 7);
                 }
             }
             // ZC_PROPERTY_PET: everything about the player's pet. (A level of 10000 and more tells of a pet still

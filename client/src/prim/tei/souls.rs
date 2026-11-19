@@ -1,7 +1,7 @@
 //! `PP_SOULLINK` (109) and `PP_SOULPARTICLE` (111): the light that flies in a bow over one whose soul is
 //! linked, and the sparks it leaves behind (`CEffectPrim::OnProcess`, `case PP_SOULLINK`, drawn by
 //! `RenderSoulLink`; `PrimSoulParticle`, drawn by `RenderSoulParticle`, which is `Part::sparks` in
-//! `tei/panels.rs`). The angle that wanders (`WanderAngle`), which other kinds use too, is here.
+//! `tei/panels.rs`). The angle that wanders (`WanderAngle`), which other kinds use too, is `Part::wander` (`tei/part.rs`).
 
 use super::*;
 
@@ -30,7 +30,7 @@ impl Part {
     /// its light added.
     pub(super) fn soul(&self, picture: &'static str, right: [f32; 3], up: [f32; 3]) -> Vec<Rect> {
         let middle = to_screen([0.0, self.at[2][1], 0.0], self.at[2][0], 0.0, right, [0.0; 3]);
-        let corners = [45, 135, 225, 315].map(|angle| to_screen(middle, self.out * cosine(angle as f32), self.out * sine(angle as f32), right, up));
+        let corners = Part::facing(middle, self.out, 45, right, up);
         if corners[0][1] > 0.0 {
             return Vec::new();
         }
@@ -75,8 +75,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     #[test]
     fn the_light_goes_along_its_bow_faster_and_faster_and_fades_late() {

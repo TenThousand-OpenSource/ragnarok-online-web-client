@@ -54,7 +54,7 @@ pub fn want_skill(id: u16, then: fn()) {
     SKILL_TEXTS.with_borrow_mut(|texts| texts.insert(id, None));
     wasm_bindgen_futures::spawn_local(async move {
         if let Ok(answer) = fetch_json(&format!("/tables/{}skills/{id}", if russian() { "ru/" } else { "" })).await {
-            let lines = js_sys::Reflect::get(&answer, &id.to_string().into()).ok().filter(|lines| !lines.is_undefined()).map(|lines| js_sys::Array::from(&lines).iter().filter_map(|line| line.as_string()).collect());
+            let lines = Some(field(&answer, &id.to_string())).filter(|lines| !lines.is_undefined()).map(|lines| texts(&lines));
             SKILL_TEXTS.with_borrow_mut(|texts| texts.insert(id, lines));
             then();
         }
@@ -80,7 +80,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         entries::<u16>(&field(tables, "skills"))
             .into_iter()
             .filter_map(|(id, about)| {
-                let max = js_sys::Reflect::get(&about, &"max".into()).ok().and_then(|max| max.as_f64()).unwrap_or(1.0) as u16;
+                let max = number(&about, "max").unwrap_or(1.0) as u16;
                 Some((id, (text_of(&about, "resource")?, text_of(&about, "name")?, max)))
             })
             .collect(),
@@ -89,8 +89,8 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
         entries::<u16>(&field(tables, "tree"))
             .into_iter()
             .map(|(job, about)| {
-                let from = js_sys::Reflect::get(&about, &"from".into()).ok().and_then(|from| from.as_f64()).map(|from| from as u16);
-                let slots = js_sys::Reflect::get(&about, &"slots".into()).map(|slots| entries::<u16>(&slots)).unwrap_or_default();
+                let from = number(&about, "from").map(|from| from as u16);
+                let slots = entries::<u16>(&field(&about, "slots"));
                 (job, (from, slots.into_iter().filter_map(|(place, skill)| Some((place, skill.as_f64()? as u16))).collect()))
             })
             .collect(),

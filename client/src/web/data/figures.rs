@@ -34,12 +34,12 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     let figures = field(tables, "figures");
     SHADOWS.set(entries::<u16>(&field(&figures, "shadows")).into_iter().filter_map(|(job, factor)| Some((job, factor.as_f64()? as f32))).collect());
     let layers = field(&figures, "layers");
-    let row = |row: wasm_bindgen::JsValue| -> Vec<i32> { js_sys::Array::from(&row).iter().filter_map(|number| number.as_f64()).map(|number| number as i32).collect() };
+    let row = |row: wasm_bindgen::JsValue| -> Vec<i32> { list(&row).iter().filter_map(|number| number.as_f64()).map(|number| number as i32).collect() };
     if let Ok(usual) = <[i32; 3]>::try_from(row(field(&layers, "usual"))) {
         USUAL.set(usual);
     }
     let views = entries::<u16>(&field(&layers, "views")).into_iter().filter_map(|(view, rows)| {
-        let rows: Vec<[i32; 8]> = js_sys::Array::from(&rows).iter().filter_map(|numbers| row(numbers).try_into().ok()).collect();
+        let rows: Vec<[i32; 8]> = list(&rows).into_iter().filter_map(|numbers| row(numbers).try_into().ok()).collect();
         Some((view, <[[i32; 8]; 3]>::try_from(rows).ok()?))
     });
     LAYERS.set(views.collect());

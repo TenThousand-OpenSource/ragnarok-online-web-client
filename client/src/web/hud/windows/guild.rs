@@ -4,15 +4,13 @@ use super::*;
 use crate::web::hud::guild::{HEIGHT, WIDTH};
 
 /// The guild window, where the client first opens it (`GuildWndInfo::Reset`: 0, 34).
-pub(in crate::web) static GUILD: Window = Window {
-    id: "guild",
-    open: |app| app.guild.open,
-    frame: |_, _| framed(format!("left:0;top:34px;width:{}px;height:{}px", WIDTH, HEIGHT)),
-    draw: App::guild_window,
-    order: ordered(|app| app.guild.open, |app| app.pressed(crate::press::guild::Press::Window)),
-    layer: Layer::Usual,
-    drawn: None,
-};
+pub(in crate::web) static GUILD: Window = Window::usual(
+    "guild",
+    |app| app.guild.open,
+    |_, _| framed(format!("left:0;top:34px;width:{}px;height:{}px", WIDTH, HEIGHT)),
+    App::guild_window,
+    |app| app.pressed(crate::press::guild::Press::Window),
+);
 
 /// What the guild asks: an invitation in the client's message box, 200 of 480 down the middle of the screen;
 /// the reason of leaving or expelling in its own box, 120 of 480 down.

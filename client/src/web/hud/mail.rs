@@ -1,6 +1,7 @@
-//! The mail (the client's RODEX): the notice of mail not read (`UIOpenMailBoxWnd`), the mailbox with its tabs,
-//! its list of six letters a page and its search (`UIRodexInboxWnd`), what the mail asks before it acts, and
-//! how many of a thing go into a letter. The letter being read and the one being written are in `mail/letter.rs`.
+//! The mail (the client's RODEX): the notice of mail not read (`UIOpenMailBoxWnd`), the mailbox with its tabs
+//! and its list of six letters a page (`UIRodexInboxWnd`), what the mail asks before it acts, and
+//! how many of a thing go into a letter. The rows of the list and the search are in `mail/list.rs`, the letter
+//! being read and the one being written in `mail/letter.rs`.
 //!
 //! Places, sizes, pictures and colours are those the client's windows are made with (`OnCreate`, `Paint`); its
 //! colours are written blue first there and are turned round here. The words are lines of its message table.
@@ -12,6 +13,7 @@ use crate::press::mail::Press;
 use crate::web::app::{MailAsk, epoch};
 
 mod letter;
+mod list;
 
 /// The colour of the numbers by the mailbox's logo (the client's 0xC89482).
 const PALE: &str = "#8294c8";
@@ -24,43 +26,22 @@ fn rodex(name: &str) -> String {
 /// One of the mail's picture buttons (`UIBitmapButton`): `name_out.bmp`, `name_over.bmp` under the pointer,
 /// `name_press.bmp` pressed; with what it says of itself when pointed at.
 fn picture_button(x: i32, y: i32, size: (i32, i32), name: &str, press: Press, tip: &str) -> String {
-    let file = |state: &str| rodex(&format!("{name}_{state}"));
-    pictured(x, y, size, [&file("out"), &file("over"), &file("press")], press, &format!(r#" title="{}""#, escape(tip)))
+    picture_button_as(Kind::Press, x, y, size, name, press, tip)
 }
 
-/// The client's button with words on it (`UIBasicButton`), 20 high and as wide as asked: ends of 6 that keep
-/// their size and a middle that repeats between them, each in three pictures (`btn_out_*`, `btn_over_*`,
-/// `btn_press_*`); the words in the middle, black over a grey copy of themselves. Without a press it is the
-/// one that cannot be pressed (`btn_disable_*`, its words grey).
-fn basic_button(x: i32, y: i32, width: i32, words: &str, press: Option<Press>) -> String {
-    let skin = |state: &str| ["left", "right", "mid"].map(|piece| format!("url('{}')", picture(&format!("basic_interface/btn_{state}_{piece}.bmp")))).join(",");
-    let (states, colours, press) = match press {
-        Some(press) => ([skin("out"), skin("over"), skin("press")], "color:#000;text-shadow:1px 1px 0 #d7d7d7", pressed(press)),
-        None => ([skin("disable"), skin("disable"), skin("disable")], "color:#6f6f6f;text-shadow:-1px -1px 0 #e2e2e2", "disabled".to_owned()),
-    };
-    format!(
-        r#"<button type="button" class="a b" style="{};--n:{};--o:{};--p:{};padding:0 6px;background-position:0 0,100% 0,0 0;background-repeat:no-repeat,no-repeat,repeat-x;background-clip:border-box,border-box,content-box;background-origin:border-box,border-box,content-box;white-space:nowrap;{colours};{}" {press}>{}</button>"#,
-        at(x, y, width, 20),
-        states[0],
-        states[1],
-        states[2],
-        Font(0, 12, false).style(),
-        escape(words)
-    )
-}
-
-/// A line of text with its middle at `x`, in the font the client asks for there (`DrawCenteredText`).
-fn text_about(font: Font, x: i32, y: i32, colour: &str, words: &str) -> String {
-    format!(r#"<div class="a t" style="left:{}px;top:{y}px;width:96px;text-align:center;pointer-events:none;color:{colour};{}">{}</div>"#, x - 48, font.style(), escape(words))
+/// The same button of either kind: the one that sends the form it stands in, for the search.
+fn picture_button_as(kind: Kind, x: i32, y: i32, size: (i32, i32), name: &str, press: Press, tip: &str) -> String {
+    let [off, over, down] = states(&format!("basic_interface/rodexsystem/renewal/{name}"), Convention::OutOverPress);
+    pictured_as(kind, x, y, size, [&off, &over, &down], press, &format!(r#" title="{}""#, escape(tip)))
 }
 
 impl App {
-    /// What a field of the page has in it now, if the field is there. What is typed into the mail's windows
-    /// stays in their fields between presses; a window drawn anew takes it from the page it replaces, and so
-    /// loses none of it when the whole screen is written again.
+    /// What a field of the page has in it now, if the field is there (`app::written`). What is typed into the
+    /// mail's windows stays in their fields between presses; a window drawn anew takes it from the page it
+    /// replaces, and so loses none of it when the whole screen is written again. (The app still asks by this
+    /// name; the windows ask `written` itself.)
     pub(in crate::web) fn mail_typed(id: &str) -> Option<String> {
-        let field = crate::web::by_id(id)?;
-        js_sys::Reflect::get(field.as_ref(), &"value".into()).ok()?.as_string()
+        crate::web::app::written(id)
     }
 
     /// The notice of mail not read, 43 by 43 (`UIOpenMailBoxWnd`): one button of one picture, which opens the
@@ -88,8 +69,8 @@ impl App {
     pub(in crate::web) fn mail_window(&self) -> String {
         let mail = &self.mail;
         let mut window = art(&rodex("bg_rodex_list"), 0, 0, 309, 416);
-        window.push_str(&art("basic_interface/sys_base_off.bmp", 3, 3, 11, 11));
-        window.push_str(&press_button(295, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
+        window.push_str(&base_button(3, 3));
+        window.push_str(&cross(309, Press::Window));
         window.push_str(&picture_button(248, 20, (24, 26), "btn_refresh", Press::Refresh, &Self::words(2849, "Refresh")));
         window.push_str(&picture_button(277, 18, (24, 26), "btn_write", Press::Write, &Self::words(1026, "Write Mail")));
         window.push_str(&self.mail_search());
@@ -133,105 +114,13 @@ impl App {
         // pages wait while the mailbox is asked for anew.
         let ticked = mail.checked.contains(&true);
         let (delete, claim) = if ticked { (Self::words(3588, "Delete"), Self::words(3591, "Claim")) } else { (Self::words(3589, "Delete All"), Self::words(3592, "Claim All")) };
-        window.push_str(&basic_button(4, 392, 70, &delete, (!mail.waiting).then_some(Press::Delete)));
-        window.push_str(&basic_button(84, 392, 70, &claim, (!mail.waiting).then_some(Press::Claim)));
+        window.push_str(&basic_button(4, 392, 70, &delete, (!mail.waiting).then_some(Press::Delete.into())));
+        window.push_str(&basic_button(84, 392, 70, &claim, (!mail.waiting).then_some(Press::Claim.into())));
         window.push_str(&picture_button(255, 390, (24, 24), "btn_prev", Press::Page(Step::Less), &Self::words(1297, "Previous")));
         window.push_str(&picture_button(279, 390, (24, 24), "btn_next", Press::Page(Step::More), &Self::words(1298, "Next")));
-        let small = Font(0, 11, true);
-        window.push_str(&text_ending_in(small, 273, 309, 46, PALE, &mail.sent_today.to_string()));
-        window.push_str(&text_in(small, 273, 46, PALE, &Self::words(3034, "/100")));
+        window.push_str(&text_ending_in(SMALL_BOLD, 273, 309, 46, PALE, &mail.sent_today.to_string()));
+        window.push_str(&text_in(SMALL_BOLD, 273, 46, PALE, &Self::words(3034, "/100")));
         window
-    }
-
-    /// The search of the mailbox: the two round boxes that say where to look, the titles (the first, on at
-    /// first) or the senders, 51 apart; the words to look for, sixteen letters at most; and its button. Enter
-    /// in the field searches, as the button does.
-    fn mail_search(&self) -> String {
-        let mut search = String::new();
-        for (x, line, name, by_sender) in [(22, 3192, "Title", false), (73, 3193, "Sender", true)] {
-            search.push_str(&format!(
-                r#"<div class="a t" style="left:{x}px;top:68px;height:12px;line-height:12px;padding-left:13px;cursor:default;color:#394965;background:url('{}') 0 1px no-repeat" {}>{}</div>"#,
-                picture(&rodex(if by_sender == self.mail.by_sender { "checkbox_search_on" } else { "checkbox_search_off" })),
-                pressed(Press::SearchIn(by_sender)),
-                escape(&Self::words(line, name))
-            ));
-        }
-        let button = picture_button(131, 0, (32, 18), "btn_search", Press::Search, "").replace(r#"type="button""#, r#"type="submit""#);
-        search.push_str(&format!(
-            r#"<form {} class="a" style="{}"><input id="mail-sought" class="a in" style="{};background:#fff;border:1px solid #adadad;box-sizing:border-box" type="text" maxlength="16" autocomplete="off" value="{}">{button}</form>"#,
-            sent(Form::MailSearch),
-            at(133, 65, 163, 18),
-            at(0, 0, 132, 18),
-            escape(&Self::mail_typed("mail-sought").unwrap_or_default())
-        ));
-        search
-    }
-
-    /// A row of the list, 44 high, the first 121 down (`Paint`, `DrawMailIcons`, `DrawExpireTime`,
-    /// `SetMailRow`): the box to tick; the picture of a letter read or not (of one returned, among what was
-    /// searched for); the title, and under it the sender, each pressed to read and to write back; the picture
-    /// of what is in it; how long it still lies there; and for a letter of someone not known the button that
-    /// sends it back. One the server has deleted says so in grey and is not pressed.
-    fn mail_row(&self, row: usize, kind: u8, letter: &Letter, now: f64) -> String {
-        let y = 121 + 44 * row as i32;
-        let returned = self.mail.searching && kind == tab::RETURNED;
-        let status = if returned { "icon_status_mail_returned" } else if letter.read { "icon_status_mail_read" } else { "icon_status_mail_received" };
-        // The client opens a letter by its title alone; here its picture opens it too, and the title is pressed
-        // along its whole 140, not only where its letters are (this project's, for a hand that looks for it).
-        let mut html = if letter.gone {
-            art(&rodex(status), 36, y + 3, 24, 24)
-        } else {
-            format!(r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat;cursor:pointer" {}></div>"#, at(36, y + 3, 24, 24), picture(&rodex(status)), pressed(Press::Title(row)))
-        };
-        let inside = match letter.has & (has::ZENY | has::ITEMS) {
-            0 => None,
-            has::ZENY => Some("icon_zeny"),
-            has::ITEMS => Some("icon_item"),
-            _ => Some("icon_zeny_n_item"),
-        };
-        if let Some(inside) = inside {
-            html.push_str(&art(&rodex("shadow_item_on"), 216, y + 18, 32, 18));
-            html.push_str(&art(&rodex(inside), 219, y + 6, 28, 25));
-        }
-        let (line, words, count) = mail::time_left((letter.expires - now) as i64);
-        let left = Self::words(line, words).replace("%d", &count.to_string());
-        if returned {
-            html.push_str(&text_about(SMALL, 260, y + 4, "#736666", &Self::words(2853, "Returned")));
-            html.push_str(&text_about(SMALL, 260, y + 17, "#736666", &left));
-        } else {
-            html.push_str(&text_about(Font(0, 11, true), 260, y + 9, "#e90a0a", &left));
-        }
-        html.push_str(&format!(
-            r#"<div class="a" style="{};background:url('{}') 0 0 no-repeat" {}></div>"#,
-            at(17, y + 7, 14, 14),
-            picture(&rodex(if self.mail.checked[row] { "checkbox_on" } else { "checkbox_off" })),
-            pressed(Press::Check(row))
-        ));
-        // The title and the sender are cut at 140 across (`ResizeToTextClipped`).
-        let clipped = "max-width:140px;overflow:hidden;cursor:default";
-        let colour = mail::title_colour(kind, letter);
-        if letter.gone {
-            html.push_str(&format!(r#"<div class="a t" style="left:69px;top:{y}px;{clipped};color:{colour}">{}</div>"#, escape(&Self::words(2907, "The mail has been deleted."))));
-            return html;
-        }
-        html.push_str(&format!(
-            r#"<div class="a t" style="left:69px;top:{y}px;width:140px;{clipped};cursor:pointer;color:{colour}" {} title="{}">{}</div>"#,
-            pressed(Press::Title(row)),
-            escape(&Self::words(2702, "Read mail")),
-            escape(&letter.title)
-        ));
-        html.push_str(&format!(
-            r#"<div class="a t" style="left:71px;top:{}px;{clipped};color:#424a84;{}" {} title="{}">{}</div>"#,
-            y + 20,
-            Font(0, 11, true).style(),
-            pressed(Press::Sender(row)),
-            escape(&Self::words(2701, "Write reply")),
-            escape(&letter.sender)
-        ));
-        if !letter.known {
-            html.push_str(&picture_button(186, y + 10, (42, 20), "btn_return", Press::GiveBack(row), &Self::words(2848, "Return")));
-        }
-        html
     }
 
     /// What the mail asks before it acts, in the client's message box (280 by 120, `UIWindowMgr::Confirm`):

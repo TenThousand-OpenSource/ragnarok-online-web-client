@@ -5,7 +5,7 @@
 //! `clif_playBGM`, `clif_showscript` in `src/map/clif.cpp`); what the client does with each is in
 //! `CGameMode`'s handlers (`GameModePackets.cpp`, `GameModeSounds.cpp`, `GameModeMiniMap.cpp`).
 
-use super::bytes::{long, text, text_at};
+use super::bytes::{long, text, text_at, Writer};
 
 /// ZC_SHOW_IMAGE (0x0145, 19 bytes): `char name[16], u8 kind`; ZC_SHOW_IMAGE2 (0x01b3, 67 bytes): `char
 /// name[64], u8 kind`, the one rAthena sends at this PACKETVER.
@@ -92,7 +92,8 @@ pub const COMPASS_SHOWN_FOR: f64 = 15_000.0;
 /// ZC_COMPASS.
 pub fn compass(packet: &[u8]) -> Option<Compass> {
     let colour = long(packet, 19)?;
-    Some(Compass { id: *packet.get(18)?, kind: long(packet, 6)?, cell: (long(packet, 10)?, long(packet, 14)?), colour: [(colour >> 16) as u8, (colour >> 8) as u8, colour as u8] })
+    let cell = (long(packet, 10)?, long(packet, 14)?);
+    Some(Compass { id: *packet.get(18)?, kind: long(packet, 6)?, cell, colour: crate::said::colour::parts(colour) })
 }
 
 /// ZC_PROGRESS: for how many milliseconds the bar fills. (The colour is in the packet and the client does
@@ -109,7 +110,7 @@ pub fn progress_of(packet: &[u8]) -> Option<(u32, u32)> {
 /// CZ_PROGRESS (0x02f1, 2 bytes): the bar over the player's character is full, or was taken away. The script
 /// goes on only once the server has this (`clif_parse_progressbar`).
 pub fn progress_done() -> Vec<u8> {
-    0x02f1u16.to_le_bytes().to_vec()
+    Writer::new(0x02f1).done()
 }
 
 /// What a ZC_SOUND asks for.

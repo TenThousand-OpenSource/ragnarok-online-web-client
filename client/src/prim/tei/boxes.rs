@@ -50,9 +50,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     /// A bar as `GRANDCROSS2` launches one, turned by `turned`.
     fn bar(turned: i32) -> Prim {

@@ -4,7 +4,7 @@ use super::*;
 
 impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
-    pub(super) fn trade_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn shops_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             trade::ZC_SELECT_DEALTYPE => {
                 if let Some(npc) = npc::npc(id, packet) {
@@ -17,8 +17,8 @@ impl App {
                 self.shop_opened(Shop::Buy(offers));
             }
             trade::ZC_PC_SELL_ITEMLIST => self.shop_opened(Shop::Sell(trade::bids(packet))),
-            trade::ZC_PC_PURCHASE_RESULT => self.shop_answer(trade::purchase_line(packet.get(2).copied().unwrap_or(0))),
-            trade::ZC_PC_SELL_RESULT => self.shop_answer(trade::sell_line(packet.get(2).copied().unwrap_or(0))),
+            trade::ZC_PC_PURCHASE_RESULT => self.shop_answer(trade::purchase_line(trade::result(packet))),
+            trade::ZC_PC_SELL_RESULT => self.shop_answer(trade::sell_line(trade::result(packet))),
             _ => return false,
         }
         true

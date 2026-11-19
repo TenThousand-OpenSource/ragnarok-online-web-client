@@ -5,7 +5,6 @@
 //! being forged).
 
 use super::*;
-use crate::item_names::Named;
 use crate::net::choosing::{CANCEL, RANDOM, takes_more};
 use crate::press::choosing::Press;
 use crate::web::app::{Choice, Shape};
@@ -29,12 +28,6 @@ fn line_list(x: i32, y: i32, width: i32, height: i32, lines: &[String], picked: 
     format!(r#"<div class="a scroll" style="{};background:#f0f0f0">{rows}</div>"#, at(x, y, width, height))
 }
 
-/// What an item is called by its number alone, as the client names the rows of these lists
-/// (`item.SetItemId(id)`, identified, `DisplayName(0)`).
-fn called(id: u32) -> String {
-    data::item_title(&Named { id, identified: true, ..Named::default() }, false)
-}
-
 impl App {
     /// The places of Teleport or Warp Portal (`UIChooseWarpWnd`, 280 by 120 in the frame of the system
     /// boxes): "Select an Area to Warp" (line 213) at 12, 9, the list at 12, 26 (256 by 65), OK and Cancel 92
@@ -47,7 +40,7 @@ impl App {
             .map(|place| match place.as_str() {
                 RANDOM => Self::words(212, "Random Area"),
                 CANCEL => Self::words(218, "Cancel"),
-                map => data::map_sign(map).map_or_else(|| map.to_owned(), |sign| sign.name),
+                map => data::map_name(map),
             })
             .collect();
         format!(
@@ -67,17 +60,11 @@ impl App {
         let does = Picking { pick: |row| Press::Pick(row).into(), used: Use::Choice, ok: Press::Ok.into(), cancel: Press::Cancel.into() };
         let (title, rows) = match &self.choosing.open {
             Some(Choice::Arrows(items) | Choice::Mix(_, items)) => {
-                let rows = items.iter().map(|id| (Self::icon(data::item(*id).map(|(_, resource)| resource).as_deref()), called(*id))).collect();
+                let rows = items.iter().map(|id| (Self::item_icon(*id, true), called(*id))).collect();
                 ("LIST".to_owned(), rows)
             }
             Some(Choice::Spells(skills)) => {
-                let rows = skills
-                    .iter()
-                    .map(|id| {
-                        let known = data::skill(*id as u16);
-                        (Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref()), known.map_or_else(|| id.to_string(), |(_, name, _)| name))
-                    })
-                    .collect();
+                let rows = skills.iter().map(|id| (Self::skill_icon(*id as u16), data::skill_name(*id as u16, || id.to_string()))).collect();
                 (Self::words(697, "Spell List"), rows)
             }
             Some(Choice::Compound(card, places)) => {
@@ -123,7 +110,7 @@ impl App {
         }
         if takes_more(make) {
             for slot in 0..3 {
-                let inside = put.get(slot).map(|id| Self::icon(data::item(*id).map(|(_, resource)| resource).as_deref())).unwrap_or_default();
+                let inside = put.get(slot).map(|id| Self::item_icon(*id, true)).unwrap_or_default();
                 pane.push_str(&format!(
                     r#"<div class="a cell" style="left:{}px;top:97px;background:url('{}') 0 0 no-repeat" {}>{inside}</div>"#,
                     4 + slot as i32 * 32,
@@ -133,20 +120,6 @@ impl App {
             }
         }
         pane
-    }
-
-    /// The rows of a list with pictures (`pick_list`) for things carried, by where each is: its picture and
-    /// its name. A thing that is no longer carried keeps its row, empty, so that the rows stay those of the
-    /// list.
-    pub(super) fn carried_rows(&self, places: &[u16]) -> Vec<(String, String)> {
-        places
-            .iter()
-            .map(|index| {
-                let Some(item) = self.bag.items.iter().find(|item| item.index == *index) else { return Default::default() };
-                let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
-                (Self::icon(resource.as_deref()), Self::item_name(item))
-            })
-            .collect()
     }
 
     /// Which of the three windows the open list is in.

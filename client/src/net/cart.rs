@@ -7,7 +7,7 @@
 //! by a state (`EFST_ON_PUSH_CART`, whose first value is the cart's kind): the bits of the old effect state
 //! are not set.
 
-use super::bytes::{long, word};
+use super::bytes::{Writer, body, long, word};
 use super::items::Item;
 
 /// ZC_NOTIFY_CARTITEM_COUNTINFO: how full the cart is.
@@ -68,38 +68,35 @@ pub fn refused(packet: &[u8]) -> Option<(usize, &'static str)> {
 /// ZC_SELECTCART (0x097f): `u16 length`, `u32 identity`, then a byte for each look offered. Gives back what
 /// the answer must name, and the looks.
 pub fn looks(packet: &[u8]) -> Option<(u32, Vec<u8>)> {
-    let length = usize::from(word(packet, 2)?).min(packet.len());
-    Some((long(packet, 4)?, packet.get(8..length)?.to_vec()))
+    Some((long(packet, 4)?, body(packet, 8)?.to_vec()))
 }
 
 /// CZ_MOVE_ITEM_FROM_BODY_TO_CART (0x0126) and CZ_MOVE_ITEM_FROM_CART_TO_BODY (0x0127), 8 bytes: `u16 index`
-/// where the thing is kept now, `i32 amount`. (Between the cart and the storage: `net::storage`.)
-fn moved(id: u16, index: u16, amount: u32) -> Vec<u8> {
-    [&id.to_le_bytes()[..], &index.to_le_bytes(), &amount.to_le_bytes()].concat()
-}
-
+/// where the thing is kept now, `i32 amount`. (Between the cart and the storage: `net::storage`, which has
+/// the one writer of them all.)
 pub fn put(index: u16, amount: u32) -> Vec<u8> {
-    moved(0x0126, index, amount)
+    super::storage::moved(0x0126, index, amount)
 }
 
 pub fn take(index: u16, amount: u32) -> Vec<u8> {
-    moved(0x0127, index, amount)
+    super::storage::moved(0x0127, index, amount)
 }
 
 /// CZ_REQ_CHANGECART (0x01af, 4 bytes): `u16 look`: the cart is to look so (the skill Change Cart; the
 /// client's `MM_SELECT_CART` with no identity).
 pub fn change(look: u8) -> Vec<u8> {
-    [0x01afu16.to_le_bytes(), u16::from(look).to_le_bytes()].concat()
+    Writer::new(0x01af).u16(u16::from(look)).done()
 }
 
 /// CZ_SELECTCART (0x0980, 7 bytes): `u32 identity`, `u8 look`: the answer to ZC_SELECTCART.
 pub fn select(identity: u32, look: u8) -> Vec<u8> {
-    [&0x0980u16.to_le_bytes()[..], &identity.to_le_bytes(), &[look]].concat()
+    Writer::new(0x0980).u32(identity).u8(look).done()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::net::bytes::testing::assert_lengths;
     use crate::net::packet_length;
 
     #[test]
@@ -147,10 +144,7 @@ mod tests {
         assert_eq!((put(1, 1)[0], take(1, 1)[0]), (0x26, 0x27));
         assert_eq!(change(3), [0xaf, 0x01, 3, 0]);
         assert_eq!(select(7, 11), [0x80, 0x09, 7, 0, 0, 0, 11]);
-        for request in [change(1), select(1, 10)] {
-            let id = u16::from_le_bytes([request[0], request[1]]);
-            assert_eq!(packet_length(id), Some(request.len() as i32), "{id:#06x}");
-        }
+        assert_lengths(&[change(1), select(1, 10)]);
         for (id, length) in [(ZC_NOTIFY_CARTITEM_COUNTINFO, 14), (ZC_DELETE_ITEM_FROM_CART, 8), (ZC_CARTOFF, 2), (ZC_ACK_ADDITEM_TO_CART, 3), (ZC_SELECTCART, -1), (ZC_ADD_ITEM_TO_CART, 58)] {
             assert_eq!(packet_length(id), Some(length), "{id:#06x}");
         }

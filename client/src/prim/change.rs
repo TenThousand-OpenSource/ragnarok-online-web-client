@@ -117,9 +117,7 @@ impl Prim {
 mod tests {
     use super::*;
 
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::close;
 
     #[test]
     fn a_ring_on_the_screen_widens_and_is_filled_by_its_inner_size_once_wider_than_that() {

@@ -26,8 +26,7 @@ impl Part {
                 self.over_once_gone();
             }
         }
-        self.at[0][0] += self.heights[1] * cosine(self.turned as f32);
-        self.at[0][2] += self.heights[1] * sine(self.turned as f32);
+        self.fly_level();
     }
 
     /// `RenderFloorSquare`, for one part: a level square about its place (`at[0]`), its corners `out` from it,

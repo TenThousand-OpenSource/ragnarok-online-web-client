@@ -6,6 +6,24 @@ use super::*;
 use crate::blow::landing::{Hit, How};
 use crate::blow::signs::{self, Between, Sign};
 
+/// The arrow's sprite, and how long it flies: 8 of the client's frames of 24 milliseconds (`CArrowEffect`).
+pub(in crate::web::world) const ARROW: &str = "몬스터/skel_archer_arrow";
+pub(in crate::web::world) const ARROW_MS: f64 = 192.0;
+
+/// A number or a word of a fight flying over someone, as the original's `CMsgEffect` flies it.
+pub(in crate::web::world) struct Flying {
+    pub(in crate::web::world) began: f64,
+    /// Whom it is over (none named: the player's own character), and where that one stood on the ground when
+    /// last seen: it stays over its owner while that one is in sight.
+    pub(in crate::web::world) on: Option<u32>,
+    pub(in crate::web::world) base: Vector,
+    /// Which way it drifts, east and north.
+    pub(in crate::web::world) drift: (f32, f32),
+    /// Its pictures, left to right: the digits, or the one word.
+    pub(in crate::web::world) pictures: Vec<SpriteKey>,
+    pub(in crate::web::world) flight: Flight,
+}
+
 /// A hit on its way to someone.
 pub(in crate::web::world) struct Landing {
     /// The player's own ID, who is not among the others.
@@ -65,13 +83,13 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
     // Who struck, as far as the hit goes: whether it is a character, and the kind of weapon it holds (a
     // monster holds none the client knows of, `CGameActor::GetWeapon` gives -1: its blow, as that of one
     // out of sight, sounds as a skill's hit does).
-    let striker = if landing.striker == own { Some(&scene.player) } else { scene.units.get(&landing.striker) };
+    let striker = scene.one(landing.striker, own);
     let striker_is_character = striker.map(|striker| matches!(striker.look, Look::Character(_)));
     let weapon = striker.and_then(|striker| match &striker.look {
         Look::Character(figure) => Some(data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| data::weapon_kind(&kind)).unwrap_or(0)),
         Look::Creature(_) => None,
     });
-    let hurt = if target == own { Some(&scene.player) } else { scene.units.get(&target) }?;
+    let hurt = scene.one(target, own)?;
     let between = Between { struck_is_character: matches!(hurt.look, Look::Character(_)), striker_is_character, guarded: landing.guarded && target == own };
     // The client sends a number off by the quarter the one struck faces (`MsgEffectDrift`).
     let drift = match hurt.facing {

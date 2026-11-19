@@ -8,7 +8,7 @@
 use super::*;
 
 impl Prim {
-    /// `PrimKouenka`: each of its two turns wanders (`Part::wander`, `tei/souls.rs`). It rises
+    /// `PrimKouenka`: each of its two turns wanders (`Part::wander`, `tei/part.rs`). It rises
     /// by its part's `tall` a tick, drifts 0.15 a tick east and north by the sines of the two turns, and goes
     /// down by 3 a tick, to nothing once it is under 3.
     pub(super) fn drift_as_petal(&mut self) {

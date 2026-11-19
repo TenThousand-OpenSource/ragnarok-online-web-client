@@ -1,9 +1,22 @@
-//! The packets about everyone else on the map: other players, NPCs and monsters appearing, walking and leaving.
+//! The packets about those in sight on the map, players, NPCs and monsters: one appearing, walking, turning,
+//! leaping and leaving, what it is called and what it does to another (this file); its state, its look and
+//! its life changing (`units/changes.rs`); the things that lie on the ground (`units/ground.rs`); and what the
+//! client asks for its own character: to attack, to sit, to turn (`units/requests.rs`).
 //!
 //! Layouts are rAthena's at PACKETVER 20260219 (`packet_idle_unit`, `packet_spawn_unit` and `packet_unit_walking`
 //! in `src/map/packets_struct.hpp`).
 
-use super::bytes::{name_at, u16_at, u32_at};
+use super::bytes::{i32_at, int, long, name_at, u16_at, u32_at, word, Writer};
+
+mod changes;
+mod ground;
+mod requests;
+
+pub use changes::*;
+pub use ground::*;
+pub use requests::*;
+// The spirit spheres are told in packets of their own file; they were here once, and are still named so.
+pub use super::spirits::{told as spirits, ZC_SPIRITS, ZC_SPIRITS2};
 
 /// A unit that stands (or sits, or lies dead) where it is.
 pub const ZC_NOTIFY_STANDENTRY: u16 = 0x09ff;
@@ -11,15 +24,31 @@ pub const ZC_NOTIFY_STANDENTRY: u16 = 0x09ff;
 pub const ZC_NOTIFY_NEWENTRY: u16 = 0x09fe;
 /// A unit that is walking: one that walks into sight, or one in sight that starts to walk.
 pub const ZC_NOTIFY_MOVEENTRY: u16 = 0x09fd;
+/// ZC_NOTIFY_VANISH (0x0080): `u32 id, u8 how`: a unit is gone from sight (0), dead (1), logged out (2) or
+/// teleported away (3).
 pub const ZC_NOTIFY_VANISH: u16 = 0x0080;
-/// ZC_STATE_CHANGE (0x0229): `u32 id, u16 body state, u16 health state, u32 effect state, u8 pk`. Someone's
-/// state changed: the effect state says what they ride, among other things.
-pub const ZC_STATE_CHANGE: u16 = 0x0229;
-
-/// Whose state changed, and the bits of the state they are in now.
-pub fn state_changed(packet: &[u8]) -> Option<(u32, u32)> {
-    (packet.len() >= 14).then(|| (u32::from_le_bytes([packet[2], packet[3], packet[4], packet[5]]), u32::from_le_bytes([packet[10], packet[11], packet[12], packet[13]])))
-}
+/// ZC_NOTIFY_MOVE (0x0086): `u32 id, u8[6] move, u32 start_time`: someone already in sight walks from one cell to
+/// another (packed as the player's own move is).
+pub const ZC_NOTIFY_MOVE: u16 = 0x0086;
+/// ZC_HIGHJUMP (0x01ff): `u32 id, u16 x, u16 y`: someone is on that cell at once (a leap, a slide, being
+/// thrown back: rAthena's `clif_slide`).
+pub const ZC_HIGHJUMP: u16 = 0x01ff;
+/// ZC_FASTMOVE (0x08d2): `u32 id, u16 x, u16 y`: someone is on that cell at once (rAthena's
+/// `clif_fast_movement`), laid out as ZC_HIGHJUMP and read by `slid`.
+pub const ZC_FASTMOVE: u16 = 0x08d2;
+/// ZC_CHANGE_DIRECTION (0x009c): `u32 id, u16 head, u8 direction`: someone turns where it stands, or turns
+/// its head (0 ahead, 1 to the right, 2 to the left). Whose, the head's turn and the direction (0 north,
+/// turning left, as the packets that show a unit count it).
+pub const ZC_CHANGE_DIRECTION: u16 = 0x009c;
+/// ZC_ACK_REQNAMEALL_NPC (0x0adf): `u32 who, u32 group, char name[24], char title[24]`: what a monster, an NPC
+/// or a pet is called, with the title and the group a script gave it.
+pub const ZC_ACK_REQNAMEALL_NPC: u16 = 0x0adf;
+/// ZC_ACK_REQNAME_BYGID (0x0af7, 32 bytes): `u16 flag, u32 character, char name[24]`: what a character is
+/// called, by its own number.
+pub const ZC_ACK_REQNAME_BYGID: u16 = 0x0af7;
+/// ZC_NOTIFY_ACT (0x08c8): `u32 source, u32 target, u32 tick, i32 source_speed, i32 damage_speed, i32 damage,
+/// u8 sp, u16 hits, u8 kind, i32 damage2`: someone does something to someone.
+pub const ZC_NOTIFY_ACT: u16 = 0x08c8;
 
 /// What kind of thing a unit is, as the server tells it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -103,13 +132,15 @@ pub struct Walked {
 /// bits a coordinate, then the place within the first cell, 4 bits each way.
 pub fn walked(data: &[u8], started: u32) -> Option<Walked> {
     let within = *data.get(5)?;
+    let from = cell(data);
     let data: Vec<u16> = data[..5].iter().map(|&byte| u16::from(byte)).collect();
-    Some(Walked {
-        from: (data[0] << 2 | data[1] >> 6, (data[1] & 0x3f) << 4 | data[2] >> 4),
-        to: ((data[2] & 0x0f) << 6 | data[3] >> 2, (data[3] & 0x03) << 8 | data[4]),
-        within: (within >> 4, within & 0x0f),
-        started,
-    })
+    Some(Walked { from, to: ((data[2] & 0x0f) << 6 | data[3] >> 2, (data[3] & 0x03) << 8 | data[4]), within: (within >> 4, within & 0x0f), started })
+}
+
+/// A cell out of the three bytes a packet packs it into, 10 bits a coordinate; the four bits left over are the
+/// way the one on it faces, or the start of a second cell. The bytes must be there.
+fn cell(data: &[u8]) -> (u16, u16) {
+    super::packets::cell_unpacked(data).0
 }
 
 fn kind(object: u8) -> Kind {
@@ -140,8 +171,7 @@ pub fn unit(id: u16, packet: &[u8]) -> Option<Unit> {
         let walk = walked(&packet[position..position + 6], u32_at(packet, 37))?;
         (walk.from, 0, Some(walk))
     } else {
-        let data: Vec<u16> = packet[position..position + 3].iter().map(|&byte| u16::from(byte)).collect();
-        ((data[0] << 2 | data[1] >> 6, (data[1] & 0x3f) << 4 | data[2] >> 4), (data[2] & 0x0f) as u8, None)
+        (cell(&packet[position..position + 3]), packet[position + 2] & 0x0f, None)
     };
     Some(Unit {
         id: u32_at(packet, 5),
@@ -167,7 +197,7 @@ pub fn unit(id: u16, packet: &[u8]) -> Option<Unit> {
         sex: packet[position - 1],
         level: u16_at(packet, after_position),
         boss: packet[after_position + 12],
-        life: Some((u32_at(packet, after_position + 8) as i32, u32_at(packet, after_position + 4) as i32)).filter(|(left, most)| *left >= 0 && *most > 0),
+        life: Some((i32_at(packet, after_position + 8), i32_at(packet, after_position + 4))).filter(|(left, most)| *left >= 0 && *most > 0),
         name: packet.get(after_position + 15..).map_or(String::new(), |_| name_at(packet, after_position + 15, 24)),
         cell,
         direction,
@@ -178,88 +208,38 @@ pub fn unit(id: u16, packet: &[u8]) -> Option<Unit> {
     })
 }
 
-/// ZC_NPC_SHOWEFST_UPDATE (0x028a): `u32 id, u32 effect state, u32 level, u32 third option`: the states that
-/// show on someone in sight changed (rAthena's `clif_changeoption2`, which it sends for a monster or an NPC).
-/// Whose, the bits of the state it is in and those of its third option.
-pub const ZC_NPC_SHOWEFST_UPDATE: u16 = 0x028a;
-
-pub fn third_option(packet: &[u8]) -> Option<(u32, u32, u32)> {
-    (packet.len() >= 18).then(|| (u32_at(packet, 2), u32_at(packet, 6), u32_at(packet, 14)))
-}
-
-/// ZC_CHANGE_DIRECTION (0x009c): `u32 id, u16 head, u8 direction`: someone turns where it stands, or turns
-/// its head (0 ahead, 1 to the right, 2 to the left). Whose, the head's turn and the direction (0 north,
-/// turning left, as the packets that show a unit count it).
-pub const ZC_CHANGE_DIRECTION: u16 = 0x009c;
-
-pub fn turned(packet: &[u8]) -> Option<(u32, u8, u8)> {
-    (packet.len() >= 9).then(|| (u32_at(packet, 2), u16_at(packet, 6) as u8, packet[8] % 8))
-}
-
-/// ZC_FASTMOVE (0x08d2): `u32 id, u16 x, u16 y`: someone is on that cell at once (rAthena's
-/// `clif_fast_movement`), laid out as ZC_HIGHJUMP and read by `slid`.
-pub const ZC_FASTMOVE: u16 = 0x08d2;
-
-/// ZC_SPIRITS (0x01d0) and ZC_SPIRITS2 (0x01e1): `u32 id, u16 count`: how many spirit spheres (or coins)
-/// someone has about them.
-pub const ZC_SPIRITS: u16 = 0x01d0;
-pub const ZC_SPIRITS2: u16 = 0x01e1;
-
-pub fn spirits(packet: &[u8]) -> Option<(u32, u16)> {
-    (packet.len() >= 8).then(|| (u32_at(packet, 2), u16_at(packet, 6)))
-}
-
-/// ZC_RESURRECTION (0x0148): `u32 id, u16 kind`: someone who lay dead stands up again.
-pub const ZC_RESURRECTION: u16 = 0x0148;
-
-pub fn risen(packet: &[u8]) -> Option<u32> {
-    (packet.len() >= 6).then(|| u32_at(packet, 2))
-}
-
-/// ZC_SPRITE_CHANGE (0x01d7): `u32 id, u8 kind, u32 value, u32 second`: what someone wears or holds
-/// changes. With the kind 2 the value is the weapon and the second the shield.
-pub const ZC_SPRITE_CHANGE: u16 = 0x01d7;
-
-pub fn look(packet: &[u8]) -> Option<(u32, u8, u32, u32)> {
-    (packet.len() >= 15).then(|| (u32_at(packet, 2), packet[6], u32_at(packet, 7), u32_at(packet, 11)))
-}
-
-/// ZC_NOTIFY_VANISH (0x0080): `u32 id, u8 how`: a unit is gone from sight (0), dead (1), logged out (2) or
-/// teleported away (3). Returns the ID and whether it died.
+/// Reads ZC_NOTIFY_VANISH: the ID and whether it died.
 pub fn vanished(packet: &[u8]) -> Option<(u32, bool)> {
     (packet.len() >= 7).then(|| (u32_at(packet, 2), packet[6] == 1))
 }
 
-/// ZC_NOTIFY_MOVE (0x0086): `u32 id, u8[6] move, u32 start_time`: someone already in sight walks from one cell to
-/// another (packed as the player's own move is).
-pub const ZC_NOTIFY_MOVE: u16 = 0x0086;
+/// How ZC_NOTIFY_VANISH says its unit is gone: out of sight (0), dead (1), logged out (2), teleported away (3).
+pub fn vanished_how(packet: &[u8]) -> Option<u8> {
+    packet.get(6).copied()
+}
 
+/// Reads ZC_NOTIFY_MOVE: who walks, and the walk.
 pub fn moved(packet: &[u8]) -> Option<(u32, Walked)> {
     (packet.len() >= 16).then(|| walked(&packet[6..12], u32_at(packet, 12)).map(|walk| (u32_at(packet, 2), walk)))?
 }
 
-/// ZC_HIGHJUMP (0x01ff): `u32 id, u16 x, u16 y`: someone is on that cell at once (a leap, a slide, being
-/// thrown back: rAthena's `clif_slide`).
-pub const ZC_HIGHJUMP: u16 = 0x01ff;
-
+/// Reads ZC_HIGHJUMP and ZC_FASTMOVE: who, and the cell it is on.
 pub fn slid(packet: &[u8]) -> Option<(u32, (u16, u16))> {
     (packet.len() >= 10).then(|| (u32_at(packet, 2), (u16_at(packet, 6), u16_at(packet, 8))))
 }
 
-/// ZC_ACK_REQNAMEALL_NPC (0x0adf): `u32 who, u32 group, char name[24], char title[24]`: what a monster, an NPC
-/// or a pet is called, with the title and the group a script gave it.
-pub const ZC_ACK_REQNAMEALL_NPC: u16 = 0x0adf;
+/// Reads ZC_CHANGE_DIRECTION: whose, the head's turn and the direction.
+pub fn turned(packet: &[u8]) -> Option<(u32, u8, u8)> {
+    (packet.len() >= 9).then(|| (u32_at(packet, 2), u16_at(packet, 6) as u8, packet[8] % 8))
+}
 
-/// Who is named, in which group, by what name and title.
+/// Reads ZC_ACK_REQNAMEALL_NPC: who is named, in which group, by what name and title.
 pub fn named(packet: &[u8]) -> Option<(u32, u32, String, String)> {
     let packet = packet.get(..58)?;
     Some((u32_at(packet, 2), u32_at(packet, 6), name_at(packet, 10, 24), name_at(packet, 34, 24)))
 }
 
-/// ZC_NOTIFY_ACT (0x08c8): `u32 source, u32 target, u32 tick, i32 source_speed, i32 damage_speed, i32 damage,
-/// u8 sp, u16 hits, u8 kind, i32 damage2`: someone does something to someone.
-pub const ZC_NOTIFY_ACT: u16 = 0x08c8;
-
+/// What ZC_NOTIFY_ACT tells.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Act {
     pub source: u32,
@@ -277,109 +257,34 @@ pub struct Act {
 }
 
 pub fn act(packet: &[u8]) -> Option<Act> {
-    let number = |at: usize| Some(i32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?));
-    Some(Act { source: number(2)? as u32, target: number(6)? as u32, speed: number(14)?, delay: number(18)?, damage: number(22)?, kind: *packet.get(29)?, hits: super::bytes::word(packet, 27)?, extra: number(30)? })
+    Some(Act {
+        source: long(packet, 2)?,
+        target: long(packet, 6)?,
+        speed: int(packet, 14)?,
+        delay: int(packet, 18)?,
+        damage: int(packet, 22)?,
+        kind: *packet.get(29)?,
+        hits: word(packet, 27)?,
+        extra: int(packet, 30)?,
+    })
 }
 
-#[cfg(test)]
-mod act_tests {
-    use super::*;
+/// CZ_REQNAME_BYGID (0x0369, 6 bytes): `u32 character`: asks what the character of that number is called
+/// (`CPlayerNameDictionary`: who made a thing). The answer is ZC_ACK_REQNAME_BYGID, read by `character_name`.
+pub fn ask_name(character: u32) -> Vec<u8> {
+    Writer::new(0x0369).u32(character).done()
+}
 
-    #[test]
-    fn a_monsters_name_with_its_title_and_group() {
-        let mut packet = vec![0xdf, 0x0a];
-        packet.extend(9u32.to_le_bytes());
-        packet.extend(3u32.to_le_bytes());
-        for words in ["Poring", "Angry"] {
-            let mut field = words.as_bytes().to_vec();
-            field.resize(24, 0);
-            packet.extend(field);
-        }
-        assert_eq!(named(&packet), Some((9, 3, "Poring".to_owned(), "Angry".to_owned())));
-        assert_eq!(named(&packet[..57]), None);
+/// ZC_ACK_REQNAME_BYGID: the character's number and its name, as `CGameMode::ReceivePlayerNameUpdate` keeps
+/// it: for flag 3 the name told, for flag 4 nothing (the client then writes line 581 of its message table,
+/// `MSI_NAMELESS_USER`); any other flag is not read.
+pub fn character_name(packet: &[u8]) -> Option<(u32, Option<String>)> {
+    let packet = packet.get(..32)?;
+    match word(packet, 2)? {
+        3 => Some((long(packet, 4)?, Some(name_at(packet, 8, 24)))),
+        4 => Some((long(packet, 4)?, None)),
+        _ => None,
     }
-
-    #[test]
-    fn a_blow_of_several_hits_with_the_other_hands_damage() {
-        let mut packet = vec![0xc8, 0x08];
-        for number in [7u32, 9, 1000, 432, 288, 300] {
-            packet.extend(number.to_le_bytes());
-        }
-        packet.push(0);
-        packet.extend(3u16.to_le_bytes());
-        packet.push(8);
-        packet.extend(40i32.to_le_bytes());
-        assert_eq!(act(&packet), Some(Act { source: 7, target: 9, speed: 432, delay: 288, damage: 300, kind: 8, hits: 3, extra: 40 }));
-        assert_eq!(act(&packet[..33]), None);
-    }
-}
-
-/// ZC_HP_INFO (0x0977): `u32 id, i32 hp, i32 most`: how much life a monster has left.
-pub const ZC_HP_INFO: u16 = 0x0977;
-
-pub fn life(packet: &[u8]) -> Option<(u32, i32, i32)> {
-    let number = |at: usize| Some(i32::from_le_bytes(packet.get(at..at + 4)?.try_into().ok()?));
-    Some((number(2)? as u32, number(6)?, number(10)?))
-}
-
-/// ZC_ITEM_FALL_ENTRY (0x0add): `u32 id, u32 item, u16 type, u8 identified, i16 x, i16 y, u8 sub_x, u8 sub_y,
-/// i16 count, …`: a thing falls to the ground. ZC_ITEM_ENTRY (0x009d): `u32 id, u32 item, u8 identified, u16 x,
-/// u16 y, u16 count, …`: one that lay there comes into sight. ZC_ITEM_DISAPPEAR (0x00a1): `u32 id`.
-pub const ZC_ITEM_FALL_ENTRY: u16 = 0x0add;
-pub const ZC_ITEM_ENTRY: u16 = 0x009d;
-pub const ZC_ITEM_DISAPPEAR: u16 = 0x00a1;
-
-/// `(id, item, cell, where within the cell in sixteenths, identified, how many)` of a thing on the ground, from
-/// either packet (the count stands after the place within the cell in the one, before it in the other).
-pub fn dropped(id: u16, packet: &[u8]) -> Option<(u32, u32, (u16, u16), (u8, u8), bool, u16)> {
-    let (at, within, identified, count) = if id == ZC_ITEM_FALL_ENTRY { (13, 17, 12, 19) } else { (11, 17, 10, 15) };
-    let (short, long) = (|at: usize| super::bytes::word(packet, at), |at: usize| super::bytes::long(packet, at));
-    Some((long(2)?, long(6)?, (short(at)?, short(at + 2)?), (*packet.get(within)?, *packet.get(within + 1)?), *packet.get(identified)? != 0, short(count)?))
-}
-
-/// CZ_CANCEL_LOCKON (0x0118): the server stops the blows it was dealing on its own.
-pub fn stop_attack() -> Vec<u8> {
-    0x0118u16.to_le_bytes().to_vec()
-}
-
-/// CZ_ITEM_PICKUP (0x0362): `u32 id`.
-pub fn pick_up(id: u32) -> Vec<u8> {
-    let mut packet = 0x0362u16.to_le_bytes().to_vec();
-    packet.extend(id.to_le_bytes());
-    packet
-}
-
-/// CZ_REQUEST_ACT2 (0x0437): `u32 target, u8 action`: 7 attacks until told otherwise, 0 once.
-pub fn attack(target: u32) -> Vec<u8> {
-    request(target, 7)
-}
-
-/// CZ_CHANGE_DIRECTION (0x0361 for this client): `u16 head` (how the head is turned: 0 ahead, 1 to the
-/// right, 2 to the left), `u8 direction` (0 north, turning left).
-pub fn face(direction: u8) -> Vec<u8> {
-    turn(0, direction)
-}
-
-/// The same request with the head turned.
-pub fn turn(head: u8, direction: u8) -> Vec<u8> {
-    vec![0x61, 0x03, head.min(2), 0, direction % 8]
-}
-
-/// The same request for one blow only.
-pub fn attack_once(target: u32) -> Vec<u8> {
-    request(target, 0)
-}
-
-/// The same request to sit down (2) or to stand up (3): no target.
-pub fn sit(down: bool) -> Vec<u8> {
-    request(0, if down { 2 } else { 3 })
-}
-
-fn request(target: u32, action: u8) -> Vec<u8> {
-    let mut packet = 0x0437u16.to_le_bytes().to_vec();
-    packet.extend(target.to_le_bytes());
-    packet.push(action);
-    packet
 }
 
 #[cfg(test)]

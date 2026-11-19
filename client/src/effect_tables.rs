@@ -3,11 +3,12 @@
 //!
 //! An effect is a number of the client's (`EF_…`). Most play a `.str` file; the others the client draws by code,
 //! and only those of them this client has drawn too are shown (`effect_tables/effects_missing.txt` lists the
-//! rest, with the skills that use them).
+//! rest, with the skills that use them: its generator counts only what the five tables of skills reach, so an
+//! effect that only a state starts is not in it, drawn or not).
 
 /// The entry of a table of lines `number<TAB>value` whose number is `wanted`.
 fn found(table: &'static str, wanted: u32) -> Option<&'static str> {
-    table.lines().filter_map(|line| line.split_once('\t')).find(|(number, _)| number.parse() == Ok(wanted)).map(|(_, value)| value)
+    crate::tables::tabbed(table).find(|(number, _)| number.parse() == Ok(wanted)).map(|(_, value)| value)
 }
 
 /// The scope of a skill cast on a place, which the circle on the ground is sized by (the client's
@@ -60,11 +61,10 @@ pub fn skill_struck(skill: u16) -> Option<u32> {
 
 /// The lines `skill<TAB>s or t<TAB>effect` of a table that are of that skill.
 fn of_skill(table: &'static str, skill: u16) -> Vec<(bool, u32)> {
-    table
-        .lines()
-        .filter_map(|line| {
-            let mut fields = line.split('\t');
-            let (id, who, effect) = (fields.next()?, fields.next()?, fields.next()?);
+    crate::tables::tabbed(table)
+        .filter_map(|(id, rest)| {
+            let mut fields = rest.split('\t');
+            let (who, effect) = (fields.next()?, fields.next()?);
             (id.parse() == Ok(skill)).then_some((who == "t", effect.parse().ok()?))
         })
         .collect()

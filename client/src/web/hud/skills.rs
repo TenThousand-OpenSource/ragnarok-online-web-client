@@ -14,21 +14,20 @@ impl App {
     /// skill's name), with the close button in its corner. Only a text taller than the screen scrolls.
     pub(in crate::web) fn skill_info_window(&self) -> String {
         let Some(id) = self.skills.info else { return String::new() };
-        let lines = data::skill_text(id).unwrap_or_else(|| vec![data::skill(id).map_or_else(|| tr("Unknown Skill").to_owned(), |(_, name, _)| name)]);
+        let lines = data::skill_text(id).unwrap_or_else(|| vec![data::skill_name(id, || tr("Unknown Skill").to_owned())]);
         let height = 18 * lines.len() as i32 + 4 + 6;
         let description: String = lines.iter().map(|line| format!(r#"<div style="height:18px;line-height:18px;white-space:nowrap">{}</div>"#, coloured(line))).collect();
         format!(
             r#"<div style="position:relative;width:304px;height:{height}px;max-height:calc(100vh - 50px);background:#fff;border:1px solid #c3c3c3;border-radius:4px;box-sizing:border-box;overflow:hidden">
                <div class="t viewer" style="position:absolute;left:3px;top:3px;right:3px;bottom:3px;user-select:text">{description}</div>{}</div>"#,
-            press_button(304 - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::InfoClose),
+            cross(304, Press::InfoClose),
         )
     }
 
-    /// The bar of slots for skills and items: two rows of nine. F1 to F9 use the first row; an icon dragged from
-    /// the inventory or the skill list fills a slot, and a right click empties it.
     /// The hotkey bar as the client draws it (`UIShortCutWnd`): one to four rows of nine, each row its frame 33
     /// under the last with its number at the left; no key is written on a slot (the client names the key only
-    /// when a slot is pointed at). The buttons at the right take a row away and add one.
+    /// when a slot is pointed at). The buttons at the right take a row away and add one. An icon dragged from
+    /// the inventory or the skill list fills a slot, and what is on a slot is dragged to another or off the bar.
     pub(in crate::web) fn hotkeys(&self) -> String {
         let rows = i32::from(self.skills.hotkey_rows) + 1;
         let mut bar = String::new();
@@ -70,17 +69,14 @@ impl App {
             return (String::new(), String::new(), String::new());
         }
         if hotkey.skill {
-            let known = data::skill(hotkey.id as u16);
-            let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
-            let name = known.map_or_else(|| format!("{} {}", tr("Skill"), hotkey.id), |(_, name, _)| name);
-            (icon, count(hotkey.count), format!("{name} Lv {}", hotkey.count))
+            let name = data::skill_name(hotkey.id as u16, || format!("{} {}", tr("Skill"), hotkey.id));
+            (Self::skill_icon(hotkey.id as u16), count(hotkey.count), format!("{name} Lv {}", hotkey.count))
         } else {
-            let known = data::item(hotkey.id);
             let carried = self.carried(hotkey.id);
             // An item that is used up stays on the bar, without its picture, until there is more of it.
-            let icon = if carried == 0 { String::new() } else { Self::icon(known.as_ref().map(|(_, resource)| resource.as_str())) };
-            let name = known.map_or_else(|| format!("{} {}", tr("Item"), hotkey.id), |(name, _)| name);
-            (icon, if carried == 0 { String::new() } else { count(carried) }, format!("{name} : {carried} {}", tr("ea")))
+            let icon = if carried == 0 { String::new() } else { Self::item_icon(hotkey.id, true) };
+            let name = data::item(hotkey.id).map_or_else(|| format!("{} {}", tr("Item"), hotkey.id), |(name, _)| name);
+            (icon, if carried == 0 { String::new() } else { count(carried) }, amount_tip(&name, carried))
         }
     }
 
@@ -107,14 +103,7 @@ impl App {
             window.push_str(&self.skill_cell(place, id, points));
         }
         // The character stands in the corner, its feet 25 from the bottom.
-        window.push_str(&format!(
-            r#"<div class="a" style="{};overflow:hidden;pointer-events:none"><canvas id="pc-skill" width="{}" height="{}" style="position:absolute;left:{}px;top:{}px"></canvas></div>"#,
-            at(0, height - 130, 100, 130),
-            super::super::figure::WIDTH,
-            super::super::figure::HEIGHT,
-            48 - 80,
-            130 - 25 - 137
-        ));
+        window.push_str(&figure_canvas("pc-skill", (0, height - 130, 100, 130), (48 - 80, 130 - 25 - 137)));
         window.push_str(&text(80, height - 23, BLACK, &format!("{} : {points}", tr("Skill Point"))));
         for (name, x) in [("btn_apply", width - 100), ("btn_reset", width - 50)] {
             window.push_str(&format!(r#"<div class="a" style="{};background:url('{}');opacity:.5"></div>"#, at(x, height - 27, 42, 20), picture(&format!("{name}.bmp"))));
@@ -133,8 +122,8 @@ impl App {
         window.push_str(&art("basic_interface/skill_botbar_left.bmp", SKILL_TABS, height - 32, 12, 32));
         window.push_str(&art("basic_interface/skill_botbar_mid.bmp", SKILL_TABS + 12, height - 32, width - SKILL_TABS - 24, 32));
         window.push_str(&art("basic_interface/skill_botbar_right.bmp", width - 12, height - 32, 12, 32));
-        window.push_str(&format!(r#"<div class="a t titled" style="left:40px;top:5px">{}</div>"#, tr("Skill Tree")));
-        window.push_str(&art("basic_interface/sys_base_off.bmp", 22, 5, 11, 11));
+        window.push_str(&titled(40, 5, tr("Skill Tree")));
+        window.push_str(&base_button(22, 5));
         window.push_str(&art("basic_interface/sys_mini_off.bmp", width - 30, 5, 11, 11));
         window.push_str(&press_button(width - 16, 5, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
         window
@@ -159,7 +148,7 @@ impl App {
         let used = self.skills.use_level.get(&id).copied().filter(|used| (1..=level).contains(used)).unwrap_or(level);
         let drag = if usable { format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(id), level: used })), super::used(Use::Skill(id))) } else { String::new() };
         let dim = if level == 0 { "filter:grayscale(1) opacity(.55);" } else { "" };
-        let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
+        let icon = Self::skill_icon(id);
         window.push_str(&format!(r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#, at(x + 4, y + 44, 24, 24), escape(&name)));
         let shade = if level == 0 { "#787878" } else { "#666666" };
         // The name, over the cell, in the smaller text (`DrawSkillTree`: (0, 11), and the level under the cell
@@ -176,9 +165,10 @@ impl App {
             // "Used at / known at", the first in the client's pink when it is less than all (`0x7F3CFF`).
             let shown = if usable { format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" }) } else { level.to_string() };
             window.push_str(&format!(
-                r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;text-shadow:-1px 0 #fff,1px 0 #fff,0 -1px #fff,0 1px #fff;pointer-events:none">{shown}</div>"#,
+                r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;{};pointer-events:none">{shown}</div>"#,
                 at(x - 8, y + 70, 48, 13),
-                Font(0, 11, true).style()
+                SMALL_BOLD.style(),
+                outlined(WHITE)
             ));
         }
         // The arrows at either side of the level pick the level it is used at, one down or up (the client's

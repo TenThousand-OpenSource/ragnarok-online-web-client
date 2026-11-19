@@ -1,6 +1,10 @@
-//! The packets of the way in. Requests are built as bytes; replies are read out of a whole packet (ID included).
+//! The packets of the way in (the login server, the character server, entering the map server) and the basics
+//! of the map server: the clock, walking, the character's values, the chat, leaving. Requests are built as
+//! bytes; replies are read out of a whole packet (ID included). The numbers of the packets, the parameters and
+//! what is read of the login are here; the character server is `packets/chars.rs`, the map server
+//! `packets/zone.rs`.
 
-use super::bytes::{name_at, u16_at, u32_at, u64_at};
+use super::bytes::{i16_at, i32_at, i64_at, long, name_at, records, u16_at, u32_at, u64_at, word, Writer};
 
 mod chars;
 mod zone;
@@ -88,43 +92,12 @@ pub const PARAMETER_SPEED: u16 = parameter::SPEED;
 /// The size of one character in the char server's lists (`CHARACTER_INFO`).
 const CHARACTER_INFO: usize = 175;
 
-struct Writer(Vec<u8>);
-
-impl Writer {
-    fn new(id: u16) -> Self {
-        Self(id.to_le_bytes().to_vec())
-    }
-
-    fn u8(mut self, value: u8) -> Self {
-        self.0.push(value);
-        self
-    }
-
-    fn u16(mut self, value: u16) -> Self {
-        self.0.extend(value.to_le_bytes());
-        self
-    }
-
-    fn u32(mut self, value: u32) -> Self {
-        self.0.extend(value.to_le_bytes());
-        self
-    }
-
-    /// A fixed-size text field, zero-padded. The last byte always stays zero, as the server expects a terminator.
-    fn text(mut self, text: &str, size: usize) -> Self {
-        let bytes = &text.as_bytes()[..text.len().min(size - 1)];
-        self.0.extend(bytes);
-        self.0.resize(self.0.len() + size - bytes.len(), 0);
-        self
-    }
-}
-
 // ---------------------------------------------------------------------------------------------------------------
 // Login server
 
 /// CA_LOGIN (0x0064): `u32 version, char[24] user, char[24] password, u8 clienttype`.
 pub fn login(user: &str, password: &str) -> Vec<u8> {
-    Writer::new(0x0064).u32(55).text(user, NAME_LENGTH).text(password, NAME_LENGTH).u8(0).0
+    Writer::new(0x0064).u32(55).text(user, NAME_LENGTH).text(password, NAME_LENGTH).u8(0).done()
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -153,8 +126,7 @@ pub fn login_accepted(packet: &[u8]) -> Option<LoginAccepted> {
     if packet.len() < HEADER {
         return None;
     }
-    let char_servers = packet[HEADER..]
-        .chunks_exact(SERVER)
+    let char_servers = records(packet, HEADER, SERVER)
         .map(|server| CharServer {
             ip: server[..4].try_into().unwrap(),
             port: u16_at(server, 4),

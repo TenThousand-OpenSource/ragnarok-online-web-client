@@ -38,7 +38,7 @@ impl App {
             // Use: the picked skill, if it is learned and costs something (`UISkillListWnd`, its `ID_OK`).
             Press::SkillUse => {
                 if let Some(skill) = self.homunculus.skill_picked.and_then(|row| self.homunculus.skills.get(row)).filter(|skill| skill.level != 0 && skill.sp != 0) {
-                    self.use_it(Use::Skill(skill.id));
+                    self.used(Use::Skill(skill.id));
                 }
             }
             // A skill point of the homunculus goes into the skill: the same request as for the character's

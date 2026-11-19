@@ -129,7 +129,7 @@ impl App {
             self.chat_line(format!("    {}  :  {}  Zeny", Self::item_name(&thing.item), crate::figures::grouped(i64::from(thing.price))), LIST_LINE);
             self.chat_line(format!("Commission : 1 EA = {} Zeny", crate::figures::grouped(i64::from(vending::after_commission(thing.price)))), LIST_LINE);
         }
-        let zeny = self.hero.params.get(&packets::parameter::ZENY).copied().unwrap_or(0);
+        let zeny = self.hero.zeny();
         self.chat_line(format!("Current Zeny : {} Z", crate::figures::grouped(zeny)), LIST_FOOT);
     }
 

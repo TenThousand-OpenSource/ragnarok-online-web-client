@@ -31,7 +31,7 @@ impl App {
     }
 
     /// A press of this system (`crate::press::tips`).
-    pub(super) fn tip_pressed(&mut self, press: crate::press::tips::Press) {
+    pub(super) fn tips_pressed(&mut self, press: crate::press::tips::Press) {
         use crate::press::Step;
         use crate::press::tips::Press;
         match press {

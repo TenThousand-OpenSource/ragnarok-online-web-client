@@ -1,6 +1,6 @@
 //! The wait before a skill may be used again, as the map server tells of it.
 
-use super::bytes::{u16_at, u32_at};
+use super::bytes::{records, u16_at, u32_at};
 
 /// ZC_SKILL_POSTDELAY: a skill cannot be used again for a time.
 pub const ZC_SKILL_POSTDELAY: u16 = 0x043d;
@@ -28,13 +28,13 @@ pub fn started(packet: &[u8]) -> Option<Told> {
 /// ZC_SKILL_POSTDELAY_LIST (0x043e): `u16 length`, then for each `u16 skill`, `u32 remaining` (the client's
 /// `LoadCooldownRecords`).
 pub fn running(packet: &[u8]) -> Vec<Told> {
-    packet.get(4..).unwrap_or_default().chunks_exact(6).map(|entry| Told { skill: u16_at(entry, 0), duration: 0, remaining: u32_at(entry, 2) }).collect()
+    records(packet, 4, 6).map(|entry| Told { skill: u16_at(entry, 0), duration: 0, remaining: u32_at(entry, 2) }).collect()
 }
 
 /// ZC_SKILL_POSTDELAY_LIST2 (0x0985): `u16 length`, then for each `u16 skill`, `u32 duration`, `u32 remaining`
 /// (the client's `LoadCooldownSnapshot`).
 pub fn snapshot(packet: &[u8]) -> Vec<Told> {
-    packet.get(4..).unwrap_or_default().chunks_exact(10).map(|entry| Told { skill: u16_at(entry, 0), duration: u32_at(entry, 2), remaining: u32_at(entry, 6) }).collect()
+    records(packet, 4, 10).map(|entry| Told { skill: u16_at(entry, 0), duration: u32_at(entry, 2), remaining: u32_at(entry, 6) }).collect()
 }
 
 #[cfg(test)]

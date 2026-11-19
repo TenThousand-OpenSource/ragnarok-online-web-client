@@ -28,7 +28,7 @@ pub fn refusal_line(result: u8, putting_on: bool) -> Option<usize> {
 /// CZ_UNINSTALLATION (0x0b35): `u8 what`: the Equipment window's "off" button (`MM_REQ_CARTOFF`). What it
 /// names is `crate::mounts::off`'s number, or `CART_OFF` for the cart.
 pub fn uninstall(what: u8) -> Vec<u8> {
-    vec![0x35, 0x0b, what]
+    super::Writer::new(0x0b35).u8(what).done()
 }
 
 /// What the "off" button names when it lets go of the cart (`UIEquipWnd::UpdateCharacterView`).

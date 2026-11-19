@@ -7,6 +7,8 @@
 //! `%rrggbb`, and in which `^rrggbb` changes the colour of what follows. The client cuts it into lines no
 //! wider than its viewer less 10 (`UIWindow::WrapPixelText`) and shows 19 of them a page.
 
+use crate::markup::{Piece, pieces};
+
 /// How many lines a page has (`UIBookWnd::SendMsg`: `m_lineCount / 19`).
 pub const LINES: usize = 19;
 
@@ -166,11 +168,10 @@ pub fn carried(lines: &[String]) -> Vec<String> {
         .iter()
         .map(|line| {
             let written = format!("{}{line}", colour.as_deref().unwrap_or_default());
-            let letters: Vec<char> = line.chars().collect();
-            for at in (0..letters.len()).filter(|at| letters[*at] == '^') {
-                if letters.get(at + 1..at + 7).is_some_and(|code| code.iter().all(char::is_ascii_hexdigit)) {
-                    colour = Some(letters[at..at + 7].iter().collect());
-                }
+            // The last colour the line names is the one it leaves the text in.
+            let named = pieces(line, &[]).into_iter().rev().find_map(|piece| if let Piece::Colour(code) = piece { Some(code) } else { None });
+            if let Some(code) = named {
+                colour = Some(format!("^{code}"));
             }
             written
         })

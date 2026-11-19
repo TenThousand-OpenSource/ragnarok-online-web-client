@@ -120,8 +120,7 @@ impl Part {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
+    use crate::prim::testing::{RIGHT, UP};
 
     /// The picture as `TexturedAura` launches it for its kind: how far it reaches, how high it is, how it is
     /// laid on, and the kind the primitive lives by.

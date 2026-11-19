@@ -15,7 +15,7 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other. It is asked before the reader
     /// of what is said, for what is said near belongs to the room while the character sits in one: it goes to
     /// the room's window and neither to the chat nor over a head (`ReceiveActorChat`, `ReceiveBroadcast`).
-    pub(super) fn chat_room_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+    pub(super) fn chat_rooms_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             packets::ZC_NOTIFY_CHAT | packets::ZC_NOTIFY_PLAYERCHAT if self.chat_rooms.sitting.is_some() => {
                 if let Some(words) = packets::chat_text(id, packet) {

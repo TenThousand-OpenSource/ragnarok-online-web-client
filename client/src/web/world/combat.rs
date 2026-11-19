@@ -6,7 +6,7 @@ use super::*;
 mod landing;
 
 pub use landing::number_over;
-pub(super) use landing::{Landing, Struck, landings};
+pub(super) use landing::{ARROW, ARROW_MS, Flying, Landing, Struck, landings};
 
 /// A blow or a skill that strikes, as the app tells it: who strikes whom (`own` is the player's own ID, who
 /// is not among the others), the speed of the swing and the time the one struck flinches as the server sent
@@ -36,7 +36,7 @@ pub fn struck(strike: Strike) -> f64 {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return 0.0 };
         let time = now();
-        let place = |scene: &Scene, id: u32| if id == own { Some(scene.player.cell) } else { scene.units.get(&id).map(|unit| unit.cell) };
+        let place = |scene: &Scene, id: u32| scene.one(id, own).map(|unit| unit.cell);
         let (from, to) = (place(scene, source), place(scene, target));
         let mut lands = flinch.clamp(0.0, 1500.0);
         if source == own {
@@ -45,7 +45,7 @@ pub fn struck(strike: Strike) -> f64 {
             // does not walk (see `striking`).
             state.own_striking_until = time + lasts.max(0.0);
         }
-        if let Some(striker) = if source == own { Some(&mut scene.player) } else { scene.units.get_mut(&source) } {
+        if let Some(striker) = scene.one_mut(source, own) {
             // Characters have two attacks, and which one shows depends on the job and on what is held (see
             // `attack_action`); monsters have one.
             let action = match &striker.look {
@@ -82,7 +82,7 @@ pub fn struck(strike: Strike) -> f64 {
 pub fn combo_window(who: u32, own: u32, milliseconds: f64) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        let Some(mover) = (if who == own { Some(&mut scene.player) } else { scene.units.get_mut(&who) }) else { return };
+        let Some(mover) = scene.one_mut(who, own) else { return };
         let time = now();
         mover.pose.combo = milliseconds;
         if let Some((sequence, began)) = &mut mover.pose.sequence {
@@ -104,7 +104,7 @@ pub fn blade_caught(who: u32, whose: u32, own: u32, held: bool) {
             return;
         }
         for (id, catches) in [(who, true), (whose, false)] {
-            let Some(mover) = (if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) }) else { continue };
+            let Some(mover) = scene.one_mut(id, own) else { continue };
             mover.ail.body.locked(if held { [64; 3] } else { crate::body::WHITE });
             if !catches {
                 mover.pose.frozen = held;
@@ -121,7 +121,7 @@ pub fn blade_caught(who: u32, whose: u32, own: u32, held: bool) {
 pub fn two_handed(who: u32, own: u32) -> bool {
     STATE.with_borrow(|state| {
         let Some(scene) = &state.scene else { return false };
-        let striker = if who == own { Some(&scene.player) } else { scene.units.get(&who) };
+        let striker = scene.one(who, own);
         striker.is_some_and(|striker| crate::blow::signs::two_handed(striker.job, matches!(striker.look, Look::Character(_))))
     })
 }
@@ -147,7 +147,7 @@ pub fn picks_up(id: u32, own: u32, thing: u32) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
         let lies = scene.drops.get(&thing).map(|lying| lying.cell);
-        let Some(mover) = (if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) }) else { return };
+        let Some(mover) = scene.one_mut(id, own) else { return };
         let Look::Character(figure) = &mover.look else { return };
         figure::prepare(figure, PICKING_UP);
         let lasts = figure::body_timing(figure.job, figure.sex, PICKING_UP).map_or(450.0, |(pictures, each)| pictures as f64 * each);
@@ -179,9 +179,9 @@ pub fn ready_to_pick_up() {
 pub fn cast(source: u32, own: u32, target: u32, cell: (u16, u16), milliseconds: f64, effect: u32) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        let place = |scene: &Scene, id: u32| if id == own { Some(scene.player.cell) } else { scene.units.get(&id).map(|unit| unit.cell) };
+        let place = |scene: &Scene, id: u32| scene.one(id, own).map(|unit| unit.cell);
         let towards = if target != 0 { place(scene, target) } else { Some((i32::from(cell.0), i32::from(cell.1))) };
-        let Some(caster) = (if source == own { Some(&mut scene.player) } else { scene.units.get_mut(&source) }) else { return };
+        let Some(caster) = scene.one_mut(source, own) else { return };
         let time = now();
         if let Some(towards) = towards.filter(|towards| *towards != caster.cell) {
             caster.facing = crate::map::direction(towards.0 - caster.cell.0, towards.1 - caster.cell.1);
@@ -201,7 +201,7 @@ pub fn cast(source: u32, own: u32, target: u32, cell: (u16, u16), milliseconds: 
 pub fn cast_over(source: u32, own: u32, broken: bool) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        let Some(caster) = (if source == own { Some(&mut scene.player) } else { scene.units.get_mut(&source) }) else { return };
+        let Some(caster) = scene.one_mut(source, own) else { return };
         if caster.casting.take().is_some() && broken {
             caster.motion = None;
         }
@@ -213,7 +213,7 @@ pub fn cast_over(source: u32, own: u32, broken: bool) {
 pub fn arrow(source: u32, target: u32, own: u32, delay: f64) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &state.scene else { return };
-        let Some(archer) = (if source == own { Some(&scene.player) } else { scene.units.get(&source) }) else { return };
+        let Some(archer) = scene.one(source, own) else { return };
         // Only one who holds a bow shoots (the client asks its weapon table whether the weapon uses arrows).
         let Look::Character(figure) = &archer.look else { return };
         if !data::about(figure.weapon).is_some_and(|(_, facts)| facts.iter().any(|(key, kind)| key == "SubType" && kind == "Bow")) {
@@ -287,7 +287,7 @@ pub fn aim_words(words: &str) {
 pub fn uses_skill(who: u32, own: u32, body: u8) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return };
-        let Some(mover) = (if who == own { Some(&mut scene.player) } else { scene.units.get_mut(&who) }) else { return };
+        let Some(mover) = scene.one_mut(who, own) else { return };
         let time = now();
         let figure = match &mover.look {
             Look::Character(figure) => figure,

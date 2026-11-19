@@ -35,7 +35,7 @@ impl App {
                     amount: Some(u32::from(item.amount)),
                     name,
                     name_at: (40, room),
-                    price: None,
+                    aside: None,
                     marks: &format!("{} {} {}", dragged(Drag::Stored(item.index)), used(Use::Take(item.index)), item_marks(item.id, item.identified)),
                 })
             })
@@ -53,7 +53,7 @@ impl App {
         let (width, height) = (280, 458);
         let title = if storage.name.is_empty() { Self::words(169, "Storage") } else { storage.name.clone() };
         let mut window = list_frame(width, height, &title);
-        window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Close));
+        window.push_str(&cross(width, Press::Close));
         window.push_str(&art(&format!("basic_interface/tab_item_{:02}.bmp", self.storage.tab + 1), 0, 18, 20, 235));
         for (tab, (line, otherwise)) in TAB_LINES.iter().enumerate() {
             // A tab of the picture is an eighth of its height (`UITab::OnLBtnDown`).
@@ -79,7 +79,7 @@ impl App {
             windows::STORAGE.field(),
             at(2, 1, 104, 16)
         ));
-        window.push_str(&pictured(185, height - 23, (23, 18), ["bt_search_normal.bmp", "bt_search_over.bmp", "bt_search_press.bmp"], Press::Search, ""));
+        window.push_str(&pictured_by(Convention::NormalOverPress, 185, height - 23, (23, 18), "bt_search", Press::Search, ""));
         window.push_str(&picture_press(220, height - 23, "btn_close", Press::Close));
         format!("<div {}>{window}</div>", dropped(Drop::Storage))
     }
@@ -114,7 +114,7 @@ impl App {
             art("inventory/icon_num.bmp", 6, height - 21, 11, 14),
             height - 19,
             SMALL.style(),
-            if kinds >= most { "#f00" } else { "#232323" },
+            if kinds >= most { RED } else { "#232323" },
         )
     }
 

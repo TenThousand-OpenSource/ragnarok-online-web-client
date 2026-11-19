@@ -6,8 +6,18 @@ use super::*;
 use crate::whispers;
 
 impl App {
+    /// Reads a packet of this kind from the map server; `false` for any other.
+    pub(super) fn whispers_packet(&mut self, id: u16, packet: &[u8]) -> bool {
+        match id {
+            npc::ZC_WHISPER => self.whisper_heard(packet),
+            npc::ZC_ACK_WHISPER => self.whisper_answered(packet),
+            _ => return false,
+        }
+        true
+    }
+
     /// ZC_WHISPER: someone whispers. In the chat a friend's and a guild member's are marked as such.
-    pub(super) fn whisper_heard(&mut self, packet: &[u8]) {
+    fn whisper_heard(&mut self, packet: &[u8]) {
         let Some((name, words)) = npc::whispered(packet) else { return };
         if self.whisper_shown(&name, whispers::line(&name, &words), whispers::THEIRS) {
             return;
@@ -21,7 +31,7 @@ impl App {
 
     /// ZC_ACK_WHISPER: how the last whisper went. One that arrived is shown now, as the player's own line of
     /// the talk; one that did not, the chat says why after the other's name.
-    pub(super) fn whisper_answered(&mut self, packet: &[u8]) {
+    fn whisper_answered(&mut self, packet: &[u8]) {
         let (to, words) = self.whispers.last.clone();
         match npc::whisper_answered(packet) {
             Some(whispers::answer::ARRIVED) => {

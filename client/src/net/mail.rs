@@ -6,10 +6,12 @@
 //! (`RodexMailStore`, `UIRodexInboxWnd`). At this version the server sends the whole mailbox at once
 //! (ZC_ACK_MAIL_LIST3, 0x0ac2); the pages of six are cut by the client.
 
-use super::bytes::{long, text, word};
-use std::collections::BTreeMap;
+use super::bytes::{long, quad, text, word};
+use super::items::{Amount, Identified, Item, Layout};
 
-use super::items::Item;
+/// What is kept of the letters and the rules of the mailbox are no packets: they are in `crate::mail`, and
+/// are named here as before.
+pub use crate::mail::*;
 
 /// ZC_NOTIFY_UNREADMAIL: whether there is mail not read.
 pub const ZC_NOTIFY_UNREADMAIL: u16 = 0x09e7;
@@ -32,32 +34,6 @@ pub const ZC_MAIL_LIST: u16 = 0x0ac2;
 pub const ZC_ACK_ADD_ITEM_RODEX: u16 = 0x0b3f;
 /// ZC_ACK_READ_RODEX: a letter's text, zeny and things.
 pub const ZC_ACK_READ_RODEX: u16 = 0x0b63;
-
-/// The mailbox's three kinds of letters (the client's `MAIL_INBOX_*`, the server's `mail_inbox_type`).
-pub mod tab {
-    pub const NORMAL: u8 = 0;
-    pub const ACCOUNT: u8 = 1;
-    pub const RETURNED: u8 = 2;
-}
-
-/// The bits of what a letter has in it (the server's `MAIL_TYPE_*`).
-pub mod has {
-    pub const ZENY: u8 = 2;
-    pub const ITEMS: u8 = 4;
-    /// It was sent by an NPC: there is nobody to answer.
-    pub const NPC: u8 = 8;
-}
-
-/// How many letters a page of the mailbox shows (`UIRodexInboxWnd`), and how many things go into a letter.
-pub const PAGE: usize = 6;
-pub const MOST_ITEMS: usize = 5;
-/// The most letters of a text the client lets be sent, and the bytes a title may have.
-pub const MOST_TEXT: usize = 1000;
-pub const TITLE: std::ops::RangeInclusive<usize> = 4..=50;
-
-fn quad(packet: &[u8], at: usize) -> Option<i64> {
-    Some(i64::from_le_bytes(packet.get(at..at + 8)?.try_into().ok()?))
-}
 
 /// ZC_ACK_MAIL_LIST3 (0x0ac2): `u16 length`, `u8 end`, then each letter: `u8 tab`, `i64 id`, `u8 read`,
 /// `u8 has`, `char sender[24]`, `u32 expires_in`, `u16 title_length`, `char title[title_length]`. Gives back
@@ -98,25 +74,16 @@ pub struct Read {
 /// `u8 damaged`, `u32 card[4]`, `u32 location`, `u8 type`, `u16 view`, `u16 bound`, five options of 5 bytes,
 /// `u8 refine`, `u8 grade`.
 pub fn read(packet: &[u8]) -> Option<Read> {
+    /// A thing of the letter, counted from its amount.
+    const IN_LETTER: Layout =
+        Layout {
+            index: None, id: 2, kind: 28, amount: Amount::Word(0), wearable: Some(24), worn: None,
+            refine: Some(58), identified: Identified::Byte(6), cards: 8,
+        };
+
     let length = usize::from(word(packet, 13)?);
     let things = packet.get(24 + length..)?;
-    let items = things
-        .chunks_exact(60)
-        .take(usize::from(*packet.get(23)?))
-        .filter_map(|thing| {
-            Some(Item {
-                index: 0,
-                id: long(thing, 2)?,
-                kind: thing[28],
-                amount: word(thing, 0)?,
-                wearable: long(thing, 24)?,
-                worn: 0,
-                refine: thing[58],
-                identified: thing[6] != 0,
-                cards: [long(thing, 8)?, long(thing, 12)?, long(thing, 16)?, long(thing, 20)?],
-            })
-        })
-        .collect();
+    let items = things.chunks_exact(60).take(usize::from(*packet.get(23)?)).filter_map(|thing| Item::read(thing, &IN_LETTER)).collect();
     Some(Read { tab: *packet.get(4)?, id: quad(packet, 5)?, body: text(&packet[24..24 + length]), zeny: quad(packet, 15)?, items })
 }
 
@@ -172,17 +139,13 @@ pub mod added {
 /// is carried, and how many of it went in) and the weight of everything in the letter.
 pub fn add_answered(packet: &[u8]) -> Option<(u8, Item, u16)> {
     let packet = packet.get(..64)?;
-    let item = Item {
-        index: word(packet, 3)?,
-        id: long(packet, 7)?,
-        kind: packet[11],
-        amount: word(packet, 5)?,
-        wearable: long(packet, 58)?,
-        worn: 0,
-        refine: packet[62],
-        identified: packet[12] != 0,
-        cards: [long(packet, 14)?, long(packet, 18)?, long(packet, 22)?, long(packet, 26)?],
-    };
+    /// The thing put in, counted from the packet's start.
+    const PUT_IN: Layout =
+        Layout {
+            index: Some(3), id: 7, kind: 11, amount: Amount::Word(5), wearable: Some(58), worn: None,
+            refine: Some(62), identified: Identified::Byte(12), cards: 14,
+        };
+    let item = Item::read(packet, &PUT_IN)?;
     Some((packet[2], item, word(packet, 55)?))
 }
 
@@ -192,9 +155,15 @@ pub fn remove_answered(packet: &[u8]) -> Option<(bool, u16, u16, u16)> {
     Some((*packet.get(2)? == 1, word(packet, 3)?, word(packet, 5)?, word(packet, 7)?))
 }
 
+/// ZC_ACK_WRITE_MAIL (0x09ed, 3 bytes): `u8 result`: what became of the letter sent: 0 sent, 1 not delivered,
+/// 2 too many sent, 3 things that may not be sent, 4 nobody of that name (the lines the client says of each
+/// are 2587, 2597, 2603, 2598 and 2599 of its message table).
+pub fn sent(packet: &[u8]) -> Option<u8> {
+    packet.get(2).copied()
+}
+
 mod requests;
-mod store;
-pub use {requests::*, store::*};
+pub use requests::*;
 
 #[cfg(test)]
 mod tests;

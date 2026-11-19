@@ -20,14 +20,7 @@ impl App {
             Form::Recover => self.recover(),
             Form::Reset => self.reset(),
             Form::Create => self.create_character(),
-            Form::Throw => {
-                if let (Some((index, most)), Some(socket)) = (self.bag.throwing.take(), &self.socket) {
-                    if let Some(count) = Self::counted(&wnd::THROW, most) {
-                        socket.send(&items::throw(index, count));
-                    }
-                }
-                self.redraw(&[&wnd::THROW]);
-            }
+            Form::Throw => self.throw_counted(),
             Form::Offer => self.exchange_counted(),
             Form::Attach => self.mail_counted(),
             Form::CartCount => self.cart_counted(),
@@ -43,27 +36,7 @@ impl App {
             Form::RoomPassword => self.room_password_typed(),
             Form::Shortcuts => self.shortcuts_kept(),
             Form::TipSearch => self.tip_searched(),
-            Form::Chat => {
-                let words = field("chat-input");
-                let words = words.trim();
-                // The client's own commands come first; everything else is said (the server reads its
-                // @commands).
-                if !words.is_empty() && self.typed_command(words) {
-                    set_field("chat-input", "");
-                    return;
-                }
-                // A name in the small box at the left sends the words to that one alone: the line shows once
-                // the server has answered (`clicks/whispers.rs`).
-                let to = field("chat-to");
-                let to = to.trim();
-                if !words.is_empty() && !to.is_empty() && self.game.is_some() {
-                    self.whisper_send(to, words);
-                    return set_field("chat-input", "");
-                }
-                if self.say_aloud(words) {
-                    set_field("chat-input", "");
-                }
-            }
+            Form::Chat => self.chat_typed(),
         }
     }
 }

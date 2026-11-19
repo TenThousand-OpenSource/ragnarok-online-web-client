@@ -78,12 +78,7 @@ impl Prim {
 mod tests {
     use super::*;
 
-    const RIGHT: [f32; 3] = [1.0, 0.0, 0.0];
-    const UP: [f32; 3] = [0.0, 1.0, 0.0];
-
-    fn close(a: f32, b: f32) -> bool {
-        (a - b).abs() < 0.001
-    }
+    use crate::prim::testing::{RIGHT, UP, close};
 
     fn square(kind: i8) -> Part {
         let mut flags = [0; 21];

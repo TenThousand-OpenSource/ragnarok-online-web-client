@@ -135,6 +135,8 @@ pub(super) fn casts(state: &mut State, time: f64, quads: &mut Quads) -> Vec<((f3
 /// was as it began), a touch nearer than where it stands. The sounds they start on the way are played. Gives
 /// back what they ask of the world around them (`prims::Asked`); the effects they end are ended here.
 pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quads) -> prims::Asked {
+    // The aura of the highest level is on those who show it now (`aura.rs`).
+    aura::kept(state, time);
     let mut asked = prims::Asked::default();
     let (Some(gpu), Some(scene)) = (&mut state.gpu, &state.scene) else { return asked };
     // The effects that a state of someone's keeps going (Sight), begun and begun again while it holds.

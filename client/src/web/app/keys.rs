@@ -100,6 +100,8 @@ impl App {
         match (bound, key) {
             // Tab ticks the World Map's box while the map is open.
             _ if self.worldmap_key(key, with) => true,
+            // The arrows turn the pages of a book that is open, unless a line of text is being typed.
+            _ if !typing && self.book_key(key) => true,
             (Some((hotkeys::table::INTERFACE, place)), _) => self.interface_key(place),
             // A line of the Shortcut List (Alt+1 to Alt+0: the table's first ten entries). The ten after them
             // are the flags, emotions bought with cash, which this client does not have.
@@ -142,8 +144,12 @@ impl App {
                 true
             }
             // Escape closes the window in front, and with none open it opens the window of game options (or
-            // closes that), unless an NPC is being talked to: the client's `UIWindowMgr`, at `VK_ESCAPE`.
-            (_, "Escape") if !writing && self.dialog.is_none() => {
+            // closes that), unless an NPC is being talked to: the client's `UIWindowMgr::ProcessHotkeyAction`,
+            // at `VK_ESCAPE` (`CloseWindow` of the first of `windowHistory`, else `WID_ESCOPTIONWND`). The
+            // client does so whether or not the chat's line has the cursor (`ProcessKeyDown` hands it every
+            // Escape, and its line of chat does nothing with one), so it is the same here; the line keeps
+            // the keyboard and what was typed.
+            (_, "Escape") if self.dialog.is_none() => {
                 if self.close_front() {
                     return true;
                 }
@@ -151,6 +157,7 @@ impl App {
                 self.redraw(&[&wnd::DIALOG]);
                 true
             }
+            // (While an NPC is talked to, Escape only lets go of the chat's line.)
             (_, "Escape") if writing => {
                 if let Some(input) = chat {
                     let _ = input.blur();

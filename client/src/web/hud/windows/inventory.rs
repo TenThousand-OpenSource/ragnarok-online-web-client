@@ -7,7 +7,7 @@ use super::*;
 pub(in crate::web) static INVENTORY: Window = Window {
     id: "inventory",
     open: |app| app.bag.open,
-    frame: |app, _| framed(at(if app.storage.open.is_some() { 515 } else { 225 }, 80, 40 + 32 * ITEM_COLUMNS + 16, 17 + 32 * ITEM_ROWS + 21)),
+    frame: |app, _| framed(at(if app.storage.open.is_some() { 515 } else { 225 }, 80, 40 + 32 * ITEM_COLUMNS + 16, 17 + App::inventory_body() + 21)),
     draw: App::inventory_window,
     order: ordered(|app| app.bag.open, switched_off!(bag.open)),
     layer: Layer::Usual,

@@ -18,6 +18,18 @@ pub(in crate::web::world) struct Landing {
     /// The one struck is the player's own character under a state that wards blows off (Kyrie Eleison,
     /// Parrying): a monster's blow that does nothing then shows the guard, not a miss.
     pub guarded: bool,
+    /// The effect that follows the skill on the one struck, which the message of a skill's first hit carries
+    /// (the client's `effectId`).
+    pub follow: Option<u32>,
+}
+
+/// What a hit that landed does to the body of the one struck (`frame/sprites.rs` does it): whether it stops
+/// and flinches, and the colour its sprite is drawn in for a moment (`crate::blow::signs::flash`).
+pub(in crate::web::world) struct Struck {
+    pub target: u32,
+    pub own: u32,
+    pub flinches: bool,
+    pub flash: Option<[u8; 3]>,
 }
 
 /// The sprite of the numbers (the client's damage sprite), and of its words.
@@ -35,22 +47,19 @@ fn tinted(sprite: &str, colour: u32) -> String {
     if colour == signs::WHITE { sprite.to_owned() } else { format!("{sprite}#{colour:06x}") }
 }
 
-/// The hits that land now. (What the body of the one struck does, it does in `frame/sprites.rs`, which is
-/// run before this and hands on what it made of the blow: nothing reads that any more.)
-pub(in crate::web::world) fn landings(state: &mut State, time: f64) {
-    state.hits.clear();
+/// The hits that land now, out of the one queue of them (`State::blows`): each sounds and shows its numbers
+/// here; what the body of the one struck does is given back for `frame/sprites.rs`.
+pub(in crate::web::world) fn landings(state: &mut State, time: f64) -> Vec<Struck> {
     if state.scene.is_none() {
-        return;
+        return Vec::new();
     }
     let due: Vec<_> = state.blows.extract_if(.., |blow| blow.0 <= time).collect();
-    for (_, target, landing) in due {
-        land(state, time, target, &landing);
-    }
+    due.into_iter().filter_map(|(_, target, landing)| land(state, time, target, &landing)).collect()
 }
 
-/// One hit lands on `target`.
-fn land(state: &mut State, time: f64, target: u32, landing: &Landing) {
-    let Some(scene) = &state.scene else { return };
+/// One hit lands on `target`: what it does to that one's body, if that one is in sight.
+fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<Struck> {
+    let scene = state.scene.as_ref()?;
     let (own, hit) = (landing.own, landing.hit);
     let (on, by) = ((target != own).then_some(target), (landing.striker != own).then_some(landing.striker));
     // Who struck, as far as the hit goes: whether it is a character, and the kind of weapon it holds (a
@@ -62,7 +71,7 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) {
         Look::Character(figure) => Some(data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).and_then(|(_, kind)| data::weapon_kind(&kind)).unwrap_or(0)),
         Look::Creature(_) => None,
     });
-    let Some(hurt) = (if target == own { Some(&scene.player) } else { scene.units.get(&target) }) else { return };
+    let hurt = if target == own { Some(&scene.player) } else { scene.units.get(&target) }?;
     let between = Between { struck_is_character: matches!(hurt.look, Look::Character(_)), striker_is_character, guarded: landing.guarded && target == own };
     // The client sends a number off by the quarter the one struck faces (`MsgEffectDrift`).
     let drift = match hurt.facing {
@@ -117,6 +126,10 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) {
             sign => shown(state, time, on, base, drift, sign),
         }
     }
+    // The one struck stops and flinches as a hit that hurts lands, unless it endures it (the client's two
+    // messages "no motion"); a skill's hit may flash it.
+    let hurts = hit.damage > 0;
+    Some(Struck { target, own, flinches: hurts && hit.how.flinches(), flash: signs::flash(hit.how, landing.follow).filter(|_| hurts) })
 }
 
 /// A number or a word rises over someone standing at `base`.

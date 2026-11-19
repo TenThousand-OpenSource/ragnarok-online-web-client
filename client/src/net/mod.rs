@@ -7,6 +7,7 @@
 mod bytes;
 pub mod cart;
 pub mod choosing;
+pub mod books;
 pub mod broadcast;
 pub mod emotions;
 pub mod exchange;

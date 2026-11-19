@@ -32,10 +32,29 @@ struct Moving {
     batches: Vec<(usize, Batch)>,
 }
 
-/// The map's models: those that stand still, sorted by picture, and those that move.
+/// A model read to be put on the map while it is played on (a trap's: `CSkill::ShowModel`): the model and its
+/// pictures on the GPU, in the order the model names them.
+pub(super) struct Raisable {
+    model: Rsm,
+    pictures: Vec<(wgpu::TextureView, bool)>,
+}
+
+/// A model put on the map so: what it is, where and in which light it stands, the frame it shows, and its
+/// triangles by texture.
+struct Raised {
+    of: Rc<Raisable>,
+    placement: Placement,
+    light: Light,
+    shown: i32,
+    batches: Vec<(usize, Batch)>,
+}
+
+/// The map's models: those that stand still, sorted by picture, those that move, and those put on it since it
+/// was read, by whose they are (a unit of a skill).
 pub(super) struct Models {
     pub(super) still: Vec<Batch>,
     moving: Vec<Moving>,
+    raised: HashMap<u32, Raised>,
     light: Light,
     map_size: (f32, f32),
 }
@@ -43,12 +62,50 @@ pub(super) struct Models {
 impl Models {
     /// A map with no models.
     pub(super) fn none() -> Self {
-        Self { still: Vec::new(), moving: Vec::new(), light: Light { direction: [0.0, 1.0, 0.0], diffuse: [1.0; 3], ambient: [0.3; 3] }, map_size: (0.0, 0.0) }
+        Self { still: Vec::new(), moving: Vec::new(), raised: HashMap::new(), light: Light { direction: [0.0, 1.0, 0.0], diffuse: [1.0; 3], ambient: [0.3; 3] }, map_size: (0.0, 0.0) }
     }
 
     /// Every batch to draw, the still ones first.
     pub(super) fn batches(&self) -> impl Iterator<Item = &Batch> {
-        self.still.iter().chain(self.moving.iter().flat_map(|moving| moving.batches.iter().map(|(_, batch)| batch)))
+        let raised = self.raised.values().flat_map(|raised| raised.batches.iter().map(|(_, batch)| batch));
+        self.still.iter().chain(self.moving.iter().flat_map(|moving| moving.batches.iter().map(|(_, batch)| batch))).chain(raised)
+    }
+
+    /// Whether a model stands on the map for `id`.
+    pub(super) fn raised(&self, id: u32) -> bool {
+        self.raised.contains_key(&id)
+    }
+
+    /// Puts a model on the map for `id`, at a place of the world and a frame of its animation, lit by `light`
+    /// (`CSkill::ShowModel`: not turned, of its own size). One that stood there for `id` is gone.
+    pub(super) fn raise(&mut self, gpu: &Gpu, id: u32, of: &Rc<Raisable>, at: Vector, light: Light, frame: i32) {
+        // A placement is in the files' space: from the map's middle, y down.
+        let placement = Placement { model: String::new(), position: [at[0] - self.map_size.0 / 2.0, -at[1], at[2] - self.map_size.1 / 2.0], rotation: [0.0; 3], scale: [1.0; 3], playback: 0, speed: 1.0 };
+        let placed = model::place(&of.model.at(frame), of.model.shade, &placement, self.map_size, &light);
+        let layout = gpu.model_pipelines[0].get_bind_group_layout(1);
+        let batches = of.pictures.iter().enumerate().map(|(texture, (view, blends))| (texture, corners(&placed, texture), view, *blends)).filter(|(_, floats, _, _)| !floats.is_empty());
+        let batches = batches.map(|(texture, floats, view, blends)| (texture, batch(gpu, &layout, view, blends, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST))).collect();
+        self.raised.insert(id, Raised { of: of.clone(), placement, light, shown: frame, batches });
+    }
+
+    /// The model standing for `id` shows the frame of its animation that `frame` makes of how many frames the
+    /// animation has. Nothing for an ID no model stands for.
+    pub(super) fn raised_frame(&mut self, gpu: &Gpu, id: u32, frame: impl Fn(i32) -> i32) {
+        let Some(raised) = self.raised.get_mut(&id) else { return };
+        let frame = frame(raised.of.model.length);
+        if frame == raised.shown {
+            return;
+        }
+        raised.shown = frame;
+        let placed = model::place(&raised.of.model.at(frame), raised.of.model.shade, &raised.placement, self.map_size, &raised.light);
+        for (texture, batch) in &raised.batches {
+            gpu.queue.write_buffer(&batch.vertices, 0, bytemuck::cast_slice(&corners(&placed, *texture)));
+        }
+    }
+
+    /// The model standing for `id` is taken off the map.
+    pub(super) fn lower(&mut self, id: u32) {
+        self.raised.remove(&id);
     }
 
     /// Moves the models near `aim` on to the frame of their animation that `time` is at.
@@ -65,6 +122,46 @@ impl Models {
                 gpu.queue.write_buffer(&batch.vertices, 0, bytemuck::cast_slice(&corners(&placed, *texture)));
             }
         }
+    }
+}
+
+impl Raisable {
+    /// How many frames the model's animation has.
+    pub(super) fn length(&self) -> i32 {
+        self.model.length
+    }
+
+    /// A model and the pictures read for it (`read_raisable`), put on the GPU; a picture that could not be read
+    /// is grey.
+    pub(super) fn new(gpu: &Gpu, model: Rsm, pictures: Vec<Option<bmp::Image>>) -> Self {
+        let pictures = model.textures.iter().zip(pictures).map(|(name, picture)| (picture.map_or_else(|| gpu.texture(1, 1, &[160, 160, 160, 255]), |picture| gpu.texture(picture.width, picture.height, &picture.rgba)), blends(name))).collect();
+        Self { model, pictures }
+    }
+}
+
+/// Reads a model by its path under `data\model\`, and its pictures in the order it names them, for
+/// `Raisable::new`; nothing for one that cannot be read.
+pub(super) async fn read_raisable(name: &str) -> Option<(Rsm, Vec<Option<bmp::Image>>)> {
+    let korean = web_sys::TextDecoder::new_with_label("euc-kr").ok()?;
+    let decode = |raw: &[u8]| korean.decode_with_u8_array(raw).unwrap_or_else(|_| String::from_utf8_lossy(raw).into_owned());
+    let model = fetched(&BTreeSet::from([name]), &decode).await.remove(name)?;
+    let pictures = futures_util::future::join_all(model.textures.iter().map(|name| async move { picture(name).await.ok() })).await;
+    Rc::try_unwrap(model).ok().map(|model| (model, pictures))
+}
+
+/// Whether a model's picture has an alpha of its own, to be mixed with what is behind it (a TGA; a BMP is cut
+/// out by its magenta).
+fn blends(name: &str) -> bool {
+    !name.to_ascii_lowercase().ends_with(".bmp")
+}
+
+/// The triangles drawn with one picture, on the GPU.
+fn batch(gpu: &Gpu, layout: &wgpu::BindGroupLayout, view: &wgpu::TextureView, blends: bool, floats: &[f32], usage: wgpu::BufferUsages) -> Batch {
+    Batch {
+        vertices: gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(floats), usage }),
+        count: (floats.len() / CORNER) as u32,
+        bind: gpu.textured(layout, view, &gpu.repeating),
+        blends,
     }
 }
 
@@ -144,12 +241,7 @@ pub(super) async fn models(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32), decode: i
         })
         .collect();
     let layout = gpu.model_pipelines[0].get_bind_group_layout(1);
-    let batch = |name: &str, floats: &[f32], usage: wgpu::BufferUsages| Batch {
-        vertices: gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(floats), usage }),
-        count: (floats.len() / CORNER) as u32,
-        bind: gpu.textured(&layout, &pictures[name], &gpu.repeating),
-        blends: !name.to_ascii_lowercase().ends_with(".bmp"),
-    };
+    let batch = |name: &str, floats: &[f32], usage: wgpu::BufferUsages| batch(gpu, &layout, &pictures[name], blends(name), floats, usage);
     let still = by_texture.iter().filter(|(_, floats)| !floats.is_empty()).map(|(name, floats)| batch(name, floats, wgpu::BufferUsages::VERTEX)).collect();
     let in_world = |placement: &Placement| [placement.position[0] + map_size.0 / 2.0, -placement.position[1], placement.position[2] + map_size.1 / 2.0];
     let moving = turning
@@ -160,7 +252,7 @@ pub(super) async fn models(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32), decode: i
             Moving { model, placement: placement.clone(), at: in_world(placement), shown: 0, batches }
         })
         .collect();
-    Models { still, moving, light: rsw.light.clone(), map_size }
+    Models { still, moving, raised: HashMap::new(), light: rsw.light.clone(), map_size }
 }
 
 /// The map's water: its surface over every cube of the ground that has a corner under it, the pictures it

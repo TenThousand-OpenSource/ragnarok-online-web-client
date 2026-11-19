@@ -14,6 +14,8 @@ use wasm_bindgen_futures::JsFuture;
 use super::js_error;
 
 mod ai;
+mod aura;
+mod books;
 mod cards;
 mod commands;
 mod figures;
@@ -32,6 +34,8 @@ mod tips;
 mod worldmap;
 
 pub use ai::ai_scripts;
+pub use aura::aura_table;
+pub use books::{book_text, is_book};
 pub use cards::*;
 pub use commands::*;
 pub use figures::{head_layers, shadow};
@@ -94,7 +98,7 @@ fn field(object: &wasm_bindgen::JsValue, name: &str) -> wasm_bindgen::JsValue {
 /// built-in names and nobody wears headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=26").await?;
+    let tables = fetch_json("/tables.json?v=27").await?;
     jobs::read(&tables);
     skills::read(&tables);
     pets::read(&tables);
@@ -109,8 +113,10 @@ pub async fn load() -> Result<(), String> {
     figures::read(&tables);
     cards::read(&tables);
     scenery::read(&tables);
+    aura::read(&tables);
     // (Not of the gateway's tables: two files of the client's data, read as they are.)
     song_talk::fetch();
+    books::fetch();
     skills::read_russian().await;
     Ok(())
 }

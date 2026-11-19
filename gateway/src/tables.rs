@@ -12,6 +12,7 @@ use crate::grf::Grf;
 // Each kind of table has its file here; what is common to them (running the client's Lua, reading its Korean,
 // putting the browser's tables together) is in this one.
 mod ai;
+mod aura;
 mod cards;
 mod figures;
 mod guide;
@@ -249,6 +250,7 @@ pub fn for_browser(grf: &Grf, client_dir: &std::path::Path, database: &std::path
         tables.insert("figures".to_owned(), figures::figures(grf));
         tables.insert("worldmap".to_owned(), worldmap::worldmap(grf));
         tables.insert("tips".to_owned(), tips::tips(client_dir));
+        tables.insert("aura".to_owned(), aura::aura(grf));
         // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
         // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ
         // in what a player may do.

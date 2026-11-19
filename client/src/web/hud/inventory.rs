@@ -55,10 +55,12 @@ impl App {
         let height = if kept.is_empty() { 120 } else { 135 };
         let slots = if identified && named.is_equipment() && !named.made_or_egg() { Self::slots_row(&named, height) } else { String::new() };
         let view = if data::card_picture(id).is_some() { picture_press(6, 6, "btn_view", Press::InfoCard) } else { String::new() };
+        // On a book that is carried, "Read" and "Auto Read" stand there (`hud/books.rs`).
+        let read = self.book_buttons(id);
         format!(
             r#"{}{}<div class="a" style="{}">{large}</div>
                <div class="a t" style="{};white-space:nowrap;overflow:hidden;color:{}">{}</div>
-               <div class="a t viewer" style="{};white-space:normal;user-select:text">{description}</div>{kept}{slots}{view}{}"#,
+               <div class="a t viewer" style="{};white-space:normal;user-select:text">{description}</div>{kept}{slots}{view}{read}{}"#,
             system_box(0, 280, height),
             art("basic_interface/collection_bg.bmp", 0, 0, 280, 120),
             at(10, 11, 75, 100),
@@ -132,9 +134,9 @@ impl App {
         }
     }
 
-    /// How many of an item the character carries without wearing them.
+    /// How many of an item the character carries without wearing them (arrows readied are carried still).
     pub(in crate::web) fn carried(&self, id: u32) -> u32 {
-        self.bag.items.iter().filter(|item| item.id == id && item.worn == 0).map(|item| u32::from(item.amount)).sum()
+        self.bag.items.iter().filter(|item| item.id == id && item.in_bag()).map(|item| u32::from(item.amount)).sum()
     }
 
     /// An item's name as the client writes it everywhere (`ITEM_INFO::DisplayName`: `data::item_title`,
@@ -143,43 +145,51 @@ impl App {
         data::item_title(&item.into(), false)
     }
 
+    /// The words of the inventory's four tabs (`UIItemWnd::OnCreate`: the client's lines 1465, 2050, 1471 and
+    /// 2051).
+    fn inventory_tabs() -> Vec<String> {
+        [(1465, "Use"), (2050, "Eqp"), (1471, "Etc"), (2051, "Fav")].into_iter().map(|(line, otherwise)| Self::words(line, otherwise)).collect()
+    }
+
+    /// How tall the inventory's body is, between its title and the bar under it: as tall as its tabs, which is
+    /// the least the client lets the window be (`UIItemWnd::SendMsg`, `UM_RESIZE`: its height is that of the
+    /// tabs, whole rows of cells more, and 38). The window is not resized here, so this is its size.
+    pub(in crate::web) fn inventory_body() -> i32 {
+        tabs::side_tabs_tall(&Self::inventory_tabs(), 10, true)
+    }
+
     pub(in crate::web) fn inventory_window(&self) -> String {
         let width = 40 + 32 * ITEM_COLUMNS + 16;
-        let body = 32 * ITEM_ROWS;
+        let body = Self::inventory_body();
         let mut window = title_bar(width, "Inventory");
         window.push_str(&press_button(width - 14, 3, 11, "basic_interface/sys_close_off.bmp", "basic_interface/sys_close_on.bmp", Press::Window));
-        // The body: the tabs' strip, the cells, and the pieces at their sides.
-        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c3c3c3"></div>"#, at(0, 17, 40, body)));
-        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(20, 17, 20, body), picture("basic_interface/itemwin_left.bmp")));
+        // The body (`UIItemWnd::Paint`): the piece at its left, white from 20 in to the cells and under their
+        // last whole row, a grey line down at 20, and the piece at its right.
+        window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(0, 17, 20, body), picture("basic_interface/itemwin_left.bmp")));
+        window.push_str(&format!(r#"<div class="a" style="{};background:#fff;border-left:1px solid #c0c0c0;box-sizing:border-box"></div>"#, at(20, 17, width - 24, body)));
         window.push_str(&format!(r#"<div class="a" style="{};background:url('{}') 0 0 repeat-y"></div>"#, at(width - 20, 17, 20, body), picture("basic_interface/itemwin_right.bmp")));
-        // The four tabs (`UIItemWnd::OnCreate`: the client's lines 1465, 2050, 1471 and 2051). A thing dragged
-        // onto one is kept under "Fav" from then, or no more (`UIItemWnd::DragAndDrop`).
-        for (index, (tab, line, label)) in [(Tab::Usable, 1465, "Use"), (Tab::Equipment, 2050, "Eqp"), (Tab::Other, 1471, "Etc"), (Tab::Favourite, 2051, "Fav")].into_iter().enumerate() {
-            let open = if tab == self.bag.tab { " open" } else { "" };
-            let letters: String = Self::words(line, label).chars().map(|letter| format!("<span>{letter}</span>")).collect();
-            window.push_str(&format!(
-                r#"<button type="button" class="a tab{open}" style="{}" {} {}>{letters}</button>"#,
-                // Four tabs down the 160 of the window's body: 40 each, where this client's three had 51.
-                format!("{};padding-top:0", at(3, 18 + index as i32 * 40, 17, 40)),
-                pressed(Press::Tab(index)),
-                dropped(Drop::InventoryTab(index))
-            ));
-        }
+        // The four tabs (`UIItemWnd::OnCreate`: a `UITabControl` at 3, 18, with 10 round each tab's letters
+        // and every tab as tall as the tallest; `hud/tabs.rs`), the last on the ground the client gives it
+        // (`colorchip.bmp`, the cell 5, 2). A thing dragged onto one is kept under "Fav" from then, or no
+        // more (`UIItemWnd::DragAndDrop`).
+        let open = [Tab::Usable, Tab::Equipment, Tab::Other, Tab::Favourite].iter().position(|tab| *tab == self.bag.tab).unwrap_or(0);
+        let tabs: Vec<(String, Option<&str>, String)> = Self::inventory_tabs().into_iter().enumerate().map(|(index, words)| (words, (index == 3).then_some("#cedeff"), format!("{} {}", pressed(Press::Tab(index)), dropped(Drop::InventoryTab(index))))).collect();
+        window.push_str(&tabs::side_tabs(3, 18, 10, true, open, &tabs));
         let mut cells = String::new();
-        // What is worn is in the Equipment window, as in the original. What is kept under "Fav" is on that tab
+        // What is worn is in the Equipment window, as in the original; the arrows readied stay here too
+        // (`Item::in_bag`). What is kept under "Fav" is on that tab
         // alone (`UIItemWnd::SendMsg`, `UM_REFRESHITEM`), in the order of its kinds and names while "Align
         // items" is on (`UIItemWnd::RefreshItems`).
         let favourite = |item: &&Item| self.bag.favourites.contains(&item.index);
-        let mut shown: Vec<&Item> = self.bag.items.iter().filter(|item| item.worn == 0 && if self.bag.tab == Tab::Favourite { favourite(item) } else { item.tab() == self.bag.tab && !favourite(item) }).collect();
+        let mut shown: Vec<&Item> = self.bag.items.iter().filter(|item| item.in_bag() && if self.bag.tab == Tab::Favourite { favourite(item) } else { item.tab() == self.bag.tab && !favourite(item) }).collect();
         if self.bag.tab == Tab::Favourite && self.bag.aligned {
             shown.sort_by_cached_key(|item| (crate::net::items::sort_rank(item.kind), Self::item_name(item)));
         }
         for (place, item) in shown.iter().enumerate() {
             let (column, row) = (place as i32 % ITEM_COLUMNS, place as i32 / ITEM_COLUMNS);
             let resource = data::item_as(item.id, item.identified).map(|(_, resource)| resource);
-            let worn = if item.worn != 0 { " worn" } else { "" };
             cells.push_str(&format!(
-                r#"<div class="a cell{worn}" style="left:{}px;top:{}px" {} {} data-info="{info}" title="{} : {} {}">{}{}</div>"#,
+                r#"<div class="a cell" style="left:{}px;top:{}px" {} {} data-info="{info}" title="{} : {} {}">{}{}</div>"#,
                 column * 32,
                 row * 32,
                 dragged(Drag::Item(item.id)),
@@ -194,10 +204,10 @@ impl App {
             ));
         }
         // Rows of empty cells below the last item, so the window is never shorter than it shows.
-        let rows = (shown.len().div_ceil(ITEM_COLUMNS as usize) as i32).max(ITEM_ROWS);
+        let rows = (shown.len().div_ceil(ITEM_COLUMNS as usize) as i32).max(body / 32);
         window.push_str(&format!(
             r#"<div class="a scroll" style="{};background:url('{}')"><div style="position:relative;height:{}px">{cells}</div></div>"#,
-            at(40, 17, 32 * ITEM_COLUMNS, body),
+            at(40, 17, 32 * ITEM_COLUMNS, body / 32 * 32),
             picture("basic_interface/itemwin_mid.bmp"),
             rows * 32
         ));
@@ -205,7 +215,7 @@ impl App {
         window.push_str(&art("basic_interface/btnbar_left.bmp", 0, footer, 21, 21));
         window.push_str(&art("basic_interface/btnbar_mid.bmp", 21, footer, width - 42, 21));
         window.push_str(&art("basic_interface/btnbar_right.bmp", width - 21, footer, 21, 21));
-        let kinds = self.bag.items.iter().filter(|item| item.worn == 0).count();
+        let kinds = self.bag.items.iter().filter(|item| item.in_bag()).count();
         // How many kinds of thing are carried, of how many there is room for: the smaller text
         // (`UIItemWnd::Paint`, (0, 11) at 35 in and 15 from the bottom).
         window.push_str(&text_in(SMALL, 35, footer + 5, if kinds >= 100 { "#f00" } else { "#232323" }, &format!("{kinds} / 100")));

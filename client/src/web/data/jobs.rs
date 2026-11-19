@@ -40,10 +40,9 @@ thread_local! {
     static WEAPON_HITS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
 }
 
-/// The ending of the sprite files of a weapon (`_단검` for a dagger), by what the server's database calls its
-/// kind (the item's `SubType`). The numbers are the client's `Weapon_IDs`.
-pub fn weapon_sprite(kind: &str) -> Option<String> {
-    let number = weapon_kind(kind)?;
+/// The ending of the sprite files of a weapon (`_단검` for a dagger), by the client's number for its kind
+/// (its `Weapon_IDs`; `weapon_kind` gives it for what the server's database calls the kind).
+pub fn weapon_sprite_of(number: u16) -> Option<String> {
     WEAPONS.with_borrow(|weapons| weapons.get(&number).cloned())
 }
 

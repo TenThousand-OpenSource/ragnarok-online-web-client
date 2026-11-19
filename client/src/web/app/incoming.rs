@@ -24,6 +24,7 @@ mod pvp;
 mod exchange;
 mod mail;
 mod cart;
+mod falcon;
 mod vending;
 mod fight;
 mod friends;
@@ -41,11 +42,16 @@ mod statuses;
 mod cooldowns;
 mod commands;
 mod skill_units;
+mod spirits;
+mod books;
 
 /// The readers of the map server's packets, a system each (a file each in `incoming/`), in the order they are
 /// asked: each gives back whether the packet was its own, and the first that says so has read it.
-const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 36] = [
+const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 39] = [
     App::cart_packet,
+    App::falcon_packet,
+    App::spirits_packet,
+    App::skill_unit_packet,
     App::vending_packet,
     App::chat_room_packet,
     App::scripted_packet,
@@ -76,11 +82,11 @@ const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 36] = [
     App::viewequip_packet,
     App::pvp_packet,
     App::guild_packet,
-    App::skill_unit_packet,
     App::notice_packet,
     App::link_packet,
     App::broadcast_packet,
     App::mark_packet,
+    App::book_packet,
 ];
 
 impl App {

@@ -6,8 +6,14 @@
 //! A unit's count goes up once a tick, and a tick is taken to be that of the client's coded effects
 //! (`CAST_FRAME_MS`): `CSkill::OnProcess` runs once a pass of the client's loop, and how long that is was not
 //! found. Nothing of a unit can be pressed or pointed at (the client lets an Ice Wall and the traps be).
+//!
+//! A trap is no effect but a model on its cell: `skill_units/traps.rs`.
 
 use super::*;
+
+mod traps;
+
+pub use traps::{skill_unit_seen, skill_unit_strikes};
 use crate::net::skill_units::Entry;
 use crate::skill_units::{Pulse, Shows};
 
@@ -33,6 +39,13 @@ struct Standing {
     /// Whether the effect it launches once was launched, and its box of light if that is what it shows.
     launched: bool,
     pulse: Option<Pulse>,
+    /// Whether it is to be seen (the client's `render.enabled`): one that is not shows neither its model nor
+    /// the effect over a trap.
+    seen: bool,
+    /// The model it shows, if it is a trap (by its path among the client's models), and since when the model's
+    /// animation plays: since the trap sprang (`traps.rs`).
+    model: Option<&'static str>,
+    sprung: Option<f64>,
 }
 
 /// The units on the map, by the server's ID, and the places skills were used on: where, of which visit to a map,
@@ -42,18 +55,22 @@ pub(super) struct Grounds {
     units: HashMap<u32, Standing>,
     spots: HashMap<u32, ((f32, f32), u32, f64)>,
     spots_made: u32,
+    /// The traps' models read so far, by their paths; nothing yet for one being read (`traps.rs`).
+    models: HashMap<&'static str, Option<Rc<land::Raisable>>>,
 }
 
 /// The server shows a unit on the ground (ZC_SKILL_ENTRY5; the client's `AM_SKILLSTANDENTRY`): it stands there
-/// from now on, and sounds if its kind has a sound for that. One already there is told its kind anew.
+/// from now on, and sounds if its kind has a sound for that. One already there is told its kind anew. A trap
+/// shows its model if it is to be seen (`entry.visible`: by everyone, or by the player who laid it).
 pub fn skill_unit_shown(entry: &Entry) {
     STATE.with_borrow_mut(|state| {
         let (visit, cell) = (state.entered, (f32::from(entry.cell.0), f32::from(entry.cell.1)));
-        match state.grounds.units.get_mut(&entry.id).filter(|standing| standing.visit == visit) {
-            Some(standing) => (standing.cell, standing.unit) = (cell, entry.unit),
-            None => {
-                state.grounds.units.insert(entry.id, Standing { cell, unit: entry.unit, visit, count: crate::skill_units::COUNT_AT_FIRST, ticked: now(), launched: false, pulse: None });
-            }
+        let standing = state.grounds.units.entry(entry.id).and_modify(|standing| standing.cell = cell).or_insert(Standing { cell, unit: entry.unit, visit, count: crate::skill_units::COUNT_AT_FIRST, ticked: now(), launched: false, pulse: None, seen: entry.visible, model: None, sprung: None });
+        if standing.visit != visit {
+            *standing = Standing { cell, unit: entry.unit, visit, count: crate::skill_units::COUNT_AT_FIRST, ticked: now(), launched: false, pulse: None, seen: entry.visible, model: None, sprung: None };
+        }
+        if let (true, Some(scene)) = (standing.shows_as(entry.unit, entry.visible), &mut state.scene) {
+            scene.models.lower(entry.id);
         }
     });
     if let Some(sound) = crate::skill_units::appears_with(entry.unit) {
@@ -82,11 +99,23 @@ pub fn skill_unit_gone(id: u32) {
 
 /// A unit becomes another kind (ZC_SPRITE_CHANGE of its base, the client's `AM_SETJOB`: a Warp Portal opens, a
 /// trap springs): its count is put far up again, so the new kind's effect is launched at once. A Warp Portal
-/// that opens sounds (`UNT_WARP_WAITING`, 128). Gives back nothing for an ID that is no unit's.
+/// that opens sounds (`UNT_WARP_WAITING`, 128). A trap made a used one launches the effect of its kind on
+/// itself, and a trap's model plays from now on: the one it had, or its new kind's.
 pub fn skill_unit_becomes(id: u32, unit: u32) {
     let known = STATE.with_borrow_mut(|state| {
         let standing = state.grounds.units.get_mut(&id)?;
-        (standing.unit, standing.count) = (unit, crate::skill_units::COUNT_AT_FIRST);
+        let effect = crate::skill_units::traps::sprung_with(standing.unit).filter(|_| unit == crate::skill_units::traps::USED);
+        standing.count = crate::skill_units::COUNT_AT_FIRST;
+        let anew = standing.shows_as(unit, standing.seen);
+        if standing.model.is_some() {
+            standing.sprung.get_or_insert_with(now);
+        }
+        if let (true, Some(scene)) = (anew, &mut state.scene) {
+            scene.models.lower(id);
+        }
+        if let Some(effect) = effect {
+            launch(state, effect, id, None, now());
+        }
         Some(())
     });
     if known.is_some() && unit == 128 {
@@ -141,6 +170,7 @@ fn ended(state: &mut State, id: u32) {
     state.effects_due.retain(|due| due.2 != Some(id));
     if let Some(scene) = &mut state.scene {
         scene.spots.remove(&id);
+        scene.models.lower(id);
     }
 }
 
@@ -164,7 +194,8 @@ pub(super) fn step(state: &mut State, time: f64) {
         let due = ((time - standing.ticked) / CAST_FRAME_MS) as i32;
         standing.ticked += f64::from(due) * CAST_FRAME_MS;
         for _ in 0..due.min(60) {
-            match crate::skill_units::shows(standing.unit) {
+            // (The file over a Shockwave Trap plays only over one that is seen.)
+            match crate::skill_units::shows(standing.unit).filter(|_| standing.seen || standing.unit != crate::skill_units::traps::SHOCKWAVE) {
                 Some(Shows::Again(effect, every)) => {
                     let (count, launched) = crate::skill_units::tick(standing.count, every);
                     standing.count = count;
@@ -189,6 +220,7 @@ pub(super) fn step(state: &mut State, time: f64) {
     for (effect, id) in launches {
         launch(state, effect, id, None, time);
     }
+    traps::step(state, time);
 }
 
 /// The boxes of light of the units that show one, each wall a quad standing on the unit's cell.

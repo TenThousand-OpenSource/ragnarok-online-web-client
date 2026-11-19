@@ -38,6 +38,7 @@ mod family;
 mod emotions;
 mod tips;
 mod worldmap;
+mod books;
 
 impl App {
     /// Something on the page was pressed: the press its name and what went with it stand for (`crate::press`).
@@ -87,6 +88,7 @@ impl App {
             Press::Tips(press) => self.tip_pressed(press),
             Press::Choosing(press) => self.choosing_pressed(press),
             Press::Fight(press) => self.fight_pressed(press),
+            Press::Books(press) => self.book_pressed(press),
         }
     }
 

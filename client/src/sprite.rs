@@ -243,9 +243,35 @@ pub fn head_offset(body: &Frame, head: &Frame) -> (i32, i32) {
     }
 }
 
+/// The frames of an action whose sounds are due as an actor's picture goes on to `frame` of `action`, having
+/// last sounded at `last` (an action without its side, and a frame of it), the action having `count` frames
+/// (`CRenderObject::PlayFrameSounds`): those passed since, up to the new one; of an action just begun, those
+/// after its first; and when the frames began anew, those that were left to its end. None while the picture
+/// stays.
+pub fn frames_sounding(last: Option<(usize, usize)>, action: usize, frame: usize, count: usize) -> std::ops::Range<usize> {
+    let before = last.filter(|(was, _)| *was == action).map_or(0, |(_, frame)| frame);
+    match before.cmp(&frame) {
+        std::cmp::Ordering::Less => before + 1..frame + 1,
+        std::cmp::Ordering::Equal => 0..0,
+        std::cmp::Ordering::Greater => before.min(count.saturating_sub(1)) + 1..count,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_frames_whose_sounds_are_due() {
+        // The frames passed since the last, the new one among them.
+        assert_eq!(frames_sounding(Some((80, 1)), 80, 3, 6), 2..4);
+        assert!(frames_sounding(Some((80, 3)), 80, 3, 6).is_empty());
+        // An action just begun sounds from its second frame.
+        assert_eq!((frames_sounding(None, 80, 2, 6), frames_sounding(Some((0, 2)), 80, 0, 6).is_empty()), (1..3, true));
+        // Begun anew: what was left of it.
+        assert_eq!(frames_sounding(Some((8, 5)), 8, 1, 8), 6..8);
+        assert!(frames_sounding(Some((8, 9)), 8, 1, 8).is_empty());
+    }
 
     /// A SPR 2.1 with one 3x2 indexed picture (`pixels`, run-length coded here) and a palette where colour N is
     /// (N, N+1, N+2).

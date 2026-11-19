@@ -385,4 +385,11 @@ const PHRASES: &[(&str, &str)] = &[
     ("Reputation", "Репутация"),
     ("Adventure guide", "Путеводитель"),
     ("Probabilities", "Вероятности"),
+    ("There is no such book.", "Такой книги нет."),
+    ("Read", "Читать"),
+    ("Auto Read", "Читать вслух"),
+    ("Bookmark", "Закладка"),
+    ("Previous", "Назад"),
+    ("Next", "Вперёд"),
+    ("Close", "Закрыть"),
 ];

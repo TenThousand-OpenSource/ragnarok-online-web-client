@@ -51,7 +51,17 @@ pub enum Tab {
     Favourite,
 }
 
+/// Where arrows and the like are worn (the client's wear location `0x8000`).
+pub const WORN_AS_AMMO: u32 = 0x8000;
+
 impl Item {
+    /// Whether the inventory window shows it: what is not worn, and the arrows that are. (The client takes what
+    /// is worn out of its list of what is carried, but leaves the arrows in it and only remembers which are
+    /// readied: `CSession::equippedArrowIndex`, looked up among `m_inventoryItems`.)
+    pub fn in_bag(&self) -> bool {
+        self.worn == 0 || self.worn == WORN_AS_AMMO
+    }
+
     /// Which tab the item is under: what is used up, what is worn, and everything else.
     pub fn tab(&self) -> Tab {
         match self.kind {

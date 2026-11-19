@@ -40,6 +40,7 @@ mod whispers;
 mod emotions;
 mod tips;
 mod worldmap;
+mod books;
 pub(in crate::web) use mail::{MAIL_SAID, Mail, MailAsk, Writing};
 pub(in crate::web) use choosing::{Choice, Choosing, Shape};
 pub(in crate::web) use quests::Quests;
@@ -57,6 +58,7 @@ pub(in crate::web) use {commands::*, cooldowns::*, exchange::*, friends::*, guid
 pub(in crate::web) use {settings::*, shops::*, statuses::*, viewequip::*, whispers::*};
 pub(in crate::web) use fight::*;
 pub(in crate::web) use {emotions::Emotions, tips::Tips, worldmap::WorldMap};
+pub(in crate::web) use books::{Aloud as BookAloud, BOOK_SAID, BookButton, BookNews, Books, OpenBook, Reading};
 
 pub(in crate::web) struct Game {
     pub name: String,

@@ -2,9 +2,12 @@
 
 pub mod ai;
 pub mod ailments;
+pub mod aura;
 pub mod blow;
 pub mod bmp;
+pub mod books;
 pub mod carts;
+pub mod falcon;
 pub mod chat_tabs;
 pub mod body;
 pub mod cursor;
@@ -39,6 +42,7 @@ pub mod snap;
 pub mod sprite;
 pub mod stack;
 pub mod song_talk;
+pub mod spirits;
 pub mod state_effects;
 pub mod statuses;
 pub mod cooldowns;

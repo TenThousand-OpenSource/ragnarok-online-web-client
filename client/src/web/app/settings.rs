@@ -76,6 +76,9 @@ impl App {
             quake: self.option("TT_QUAKE_ON_OFF"),
             name_above: self.option("TT_NAME_ABOVE_HEAD_ON_OFF"),
             emblems: self.option("TT_SHOW_EMBLEM_ON_OFF"),
+            // (The client keeps these two the other way round from their rows: `crate::aura::Options`.)
+            auras: self.option("TT_HIDE_AURA_ON_OFF"),
+            aura_full: !self.option("TT_FULL_AURA_ON_OFF"),
         });
         // The fog of maps shows or not (`/fog`).
         world::fog(self.option("TT_FOG_ON_OFF"));

@@ -6,13 +6,15 @@ use super::*;
 mod landing;
 
 pub use landing::number_over;
-pub(super) use landing::{Landing, landings};
+pub(super) use landing::{Landing, Struck, landings};
 
 /// A blow or a skill that strikes, as the app tells it: who strikes whom (`own` is the player's own ID, who
 /// is not among the others), the speed of the swing and the time the one struck flinches as the server sent
 /// them, the hits it is made of (`crate::blow::landing`), whether each lands with the ring of a plain blow
 /// (`EF_HIT1`: a skill's does not, it shows what the client has for that skill), and whether the player's own
-/// character is under a state that wards blows off.
+/// character is under a state that wards blows off. Of a skill: which it is (the striker is posed by it,
+/// `crate::pose::strikes_with`), and the effect that follows it on the one struck, which the client's message
+/// of its first hit carries (`effectId`: the one struck flashes by it, `crate::blow::signs::flash`).
 pub struct Strike {
     pub source: u32,
     pub target: u32,
@@ -22,13 +24,15 @@ pub struct Strike {
     pub hits: Vec<crate::blow::landing::Hit>,
     pub ring: bool,
     pub guarded: bool,
+    pub skill: Option<u16>,
+    pub follow: Option<u32>,
 }
 
 /// Someone strikes someone: the one turns to the other and swings, and each hit of the blow lands in its
 /// time: the other flinches, the hit sounds, and its numbers rise (`landing.rs`). Gives back how long from now
 /// the first hit lands (milliseconds).
 pub fn struck(strike: Strike) -> f64 {
-    let Strike { source, target, own, lasts, flinch, hits, ring, guarded } = strike;
+    let Strike { source, target, own, lasts, flinch, hits, ring, guarded, skill, follow } = strike;
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &mut state.scene else { return 0.0 };
         let time = now();
@@ -50,6 +54,12 @@ pub fn struck(strike: Strike) -> f64 {
             };
             striker.motion = Some((action, time, lasts.clamp(250.0, 2000.0)));
             lands = lands_after(striker, action, lasts, flinch);
+            // A monk's combos and fists pose a character in frames of their own, some for as long as the
+            // window of the combo the server told last (`CGameActor::ProcessSkillMessage`).
+            if let (Look::Character(figure), Some(sequence)) = (&striker.look, skill.and_then(|skill| crate::pose::strikes_with(skill, striker.pose.combo))) {
+                figure::prepare(figure, sequence.action);
+                (striker.motion, striker.pose.sequence) = (None, Some((sequence, time)));
+            }
             if let (Some(from), Some(to)) = (from, to) {
                 if from != to {
                     striker.facing = crate::map::direction(to.0 - from.0, to.1 - from.1);
@@ -57,16 +67,54 @@ pub fn struck(strike: Strike) -> f64 {
             }
         }
         // Each hit lands a moment into the swing, the later ones their time after the first.
-        for hit in hits {
+        for (index, hit) in hits.into_iter().enumerate() {
             let when = time + lands + hit.after.clamp(0.0, 8000.0);
-            // The one struck stops and flinches as a hit that hurts lands, unless it endures it (the client's
-            // two messages "no motion").
-            let hurts = if hit.how.flinches() { hit.damage.max(0) } else { 0 };
-            state.landing.push((when, target, own, hurts, None, false, false));
-            state.blows.push((when, target, Landing { own, striker: source, hit, ring, guarded }));
+            // (Only the first hit's message carries the effect that follows: the later ones carry none.)
+            state.blows.push((when, target, Landing { own, striker: source, hit, ring, guarded, follow: follow.filter(|_| index == 0) }));
         }
         lands
     })
+}
+
+/// The server tells the window of someone's combo (ZC_COMBODELAY, the client's `ReceiveActorSequenceDeadline`):
+/// it is kept for that one's next combos, and the frames it runs through now last so long from now
+/// (`CRenderObject::SetSequenceDeadline`).
+pub fn combo_window(who: u32, own: u32, milliseconds: f64) {
+    STATE.with_borrow_mut(|state| {
+        let Some(scene) = &mut state.scene else { return };
+        let Some(mover) = (if who == own { Some(&mut scene.player) } else { scene.units.get_mut(&who) }) else { return };
+        let time = now();
+        mover.pose.combo = milliseconds;
+        if let Some((sequence, began)) = &mut mover.pose.sequence {
+            *sequence = sequence.until(time - *began, milliseconds);
+        }
+    });
+}
+
+/// One catches another's blade, or lets it go (ZC_BLADESTOP, the client's `ReceiveActorPairFreeze`). Caught,
+/// and only with both in sight: the one who catches is held in the fifth picture of its casting action, the
+/// other's motion is held where it was, and both are grey (64, 64, 64), the colour locked as a state's is.
+/// Let go: each that is in sight is white again and moves as before.
+pub fn blade_caught(who: u32, whose: u32, own: u32, held: bool) {
+    STATE.with_borrow_mut(|state| {
+        let Some(scene) = &mut state.scene else { return };
+        let time = now();
+        let there = |scene: &Scene, id: u32| id == own || scene.units.contains_key(&id);
+        if held && !(there(scene, who) && there(scene, whose)) {
+            return;
+        }
+        for (id, catches) in [(who, true), (whose, false)] {
+            let Some(mover) = (if id == own { Some(&mut scene.player) } else { scene.units.get_mut(&id) }) else { continue };
+            mover.ail.body.locked(if held { [64; 3] } else { crate::body::WHITE });
+            if !catches {
+                mover.pose.frozen = held;
+            } else if held && matches!(mover.look, Look::Character(_)) {
+                (mover.motion, mover.pose.sequence) = (None, Some((crate::pose::CATCHES, time)));
+            } else if mover.pose.sequence.is_some_and(|(sequence, _)| sequence == crate::pose::CATCHES) {
+                mover.pose.sequence = None;
+            }
+        }
+    });
 }
 
 /// Whether the client shows the other hand's damage of a blow that someone strikes (`crate::blow::signs`).

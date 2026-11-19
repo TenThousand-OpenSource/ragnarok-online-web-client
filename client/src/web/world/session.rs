@@ -73,7 +73,6 @@ pub fn leave() {
         state.sounds_due.clear();
         state.heard.clear();
         state.effects.clear();
-        state.landing.clear();
         state.blows.clear();
         state.scopes.clear();
         state.bursts.clear();
@@ -200,7 +199,6 @@ pub fn jump(cell: (u16, u16)) {
         state.sounds_due.clear();
         state.heard.clear();
         state.effects.clear();
-        state.landing.clear();
         state.blows.clear();
         state.scopes.clear();
         state.bursts.clear();

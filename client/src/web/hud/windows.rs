@@ -59,6 +59,7 @@ mod chat;
 mod emotions;
 mod tips;
 mod worldmap;
+mod books;
 pub(in crate::web) use {exchange::*, friends::*, guide::*, guild::*, inventory::*, mail::*, party::*, pets::*, player_menu::*, quests::*};
 pub(in crate::web) use choosing::*;
 pub(in crate::web) use {homunculus::*, mercenary::*};
@@ -67,6 +68,7 @@ pub(in crate::web) use {chat_rooms::*, family::*, scripted::*};
 pub(in crate::web) use broadcast::*;
 pub(in crate::web) use {chat::*, emotions::*, tips::*, worldmap::*};
 pub(in crate::web) use fight::*;
+pub(in crate::web) use books::*;
 pub(in crate::web) use {cart::*, vending::*};
 pub(in crate::web) use {settings::*, shops::*, skills::*, status::*, storage::*, talk::*, viewequip::*, whispers::*};
 
@@ -203,7 +205,7 @@ const ALWAYS: fn(&App) -> bool = |_| true;
 
 /// Every window of the screen, as they are written to the page: a later one lies over an earlier one where
 /// neither has a place in the order and both are of one layer.
-pub(in crate::web) static ALL: [&Window; 122] = [
+pub(in crate::web) static ALL: [&Window; 124] = [
     &STATUSES,
     &SIGNS, &CUTIN, &ROOM, &ROOM_MAKE, &ROOM_PASSWORD, &ROOM_MENU, &FAMILY_ASKS,
     &BASIC, &MENU, &HOTKEYS, &STATUS, &INVENTORY, &SKILLS, &STORAGE, &STORAGE_APART_0, &STORAGE_APART_1, &STORAGE_APART_2, &STORAGE_APART_3, &STORAGE_APART_4, &STORAGE_APART_5, &STORAGE_APART_6, &STORAGE_APART_7, &STORAGE_FOUND, &STORAGE_COUNT,
@@ -213,6 +215,7 @@ pub(in crate::web) static ALL: [&Window; 122] = [
     &FRIEND_SETUP, &FRIEND_ASKS, &FRIEND_MENU, &VIEW_EQUIP, &WHISPER_0, &WHISPER_1, &WHISPER_2, &WHISPER_3, &WHISPER_4, &WHISPER_5, &WHISPER_6, &WHISPER_7, &WHISPER_MENU, &UNREAD, &CHOOSE_PLACE, &CHOOSE_PICTURED, &CHOOSE_LINE, &BROADCAST, &CHAT,
     &CHAT_OWN_0, &CHAT_OWN_1, &CHAT_OWN_2, &CHAT_OWN_3, &CHAT_OWN_4, &CHAT_OWN_5, &CHAT_OWN_6, &CHAT_OWN_7, &CHAT_OWN_8, &CHAT_OWN_9, &CHAT_OPTIONS, &EMOTIONS, &SHORTCUTS, &TIPS, &LARGE_MAP, &WORLD_MAP,
     &SENSE_WINDOW, &STAR_ASKS,
+    &BOOK, &BOOK_LINE,
 ];
 
 impl Window {

@@ -45,14 +45,15 @@ pub(super) fn frame() {
         let (camera, aim) = camera::shaken(&mut state.quake, scene.camera, aim, time);
         let view = camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32);
 
-        sprites::landings(state, time);
-        combat::landings(state, time);
+        let landed = combat::landings(state, time);
+        sprites::landings(state, time, &landed);
         earshot::due(state, time);
         let mut standing = sprites::standing(state, own, time, yaw);
         // The marks over NPCs that have a quest stand among them.
         quests::marks(state, time, &mut standing);
         // The carts merchants pull stand among them too.
         cart::drawn(state, &mut standing);
+        falcon::drawn(state, time, &mut standing);
         let (rings, marks) = marks::ground(state, &view, time);
         let numbers = marks::numbers(state, time);
         skill_units::step(state, time);

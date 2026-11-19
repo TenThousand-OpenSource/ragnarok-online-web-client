@@ -34,6 +34,20 @@ pub fn number_colour(effect: u32) -> Option<u32> {
     })
 }
 
+/// The one colour the sprite of the one struck is drawn in for a tenth of a second as a skill's hit that hurts
+/// lands (`render.overrideColor` with `isSingleColor`, in the client's handler of `AM_ATTACKED_SKILL` and
+/// `AM_ATTACKEDNOMOTION_SKILL`): a dark blue when the effect that follows the skill is 198 (0xFF042BA4), a grey
+/// when it is 184 (0xFF505050); none for any other hit. `follow` is the `effectId` the hit's message carries:
+/// the effect the client's table has follow the skill, on its first hit alone. (Of the skills of a classic
+/// server the table gives 184 to `NPC_DARKNESSATTACK` and 198 to `NPC_TELEKINESISATTACK`.)
+pub fn flash(how: How, follow: Option<u32>) -> Option<[u8; 3]> {
+    match follow.filter(|_| how.of_skill())? {
+        198 => Some([0x04, 0x2b, 0xa4]),
+        184 => Some([0x50; 3]),
+        _ => None,
+    }
+}
+
 /// One thing a hit shows.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Sign {
@@ -125,6 +139,14 @@ mod tests {
 
     const ON_MONSTER: Between = Between { struck_is_character: false, striker_is_character: Some(true), guarded: false };
     const ON_PLAYER: Between = Between { struck_is_character: true, striker_is_character: Some(false), guarded: false };
+
+    #[test]
+    fn a_skills_hit_flashes_the_one_struck_by_the_effect_that_follows() {
+        assert_eq!(flash(How::Skill, Some(198)), Some([4, 43, 164]));
+        assert_eq!(flash(How::SkillStill, Some(184)), Some([80, 80, 80]));
+        // No other effect, no hit that carries none, and no hit that is not a skill's one.
+        assert_eq!((flash(How::Skill, Some(115)), flash(How::Skill, None), flash(How::Many, Some(198)), flash(How::Plain, Some(184))), (None, None, None, None));
+    }
 
     #[test]
     fn a_monster_struck_shows_white_and_a_player_red() {

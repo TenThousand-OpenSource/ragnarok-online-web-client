@@ -179,6 +179,8 @@ pub(super) enum Action {
     StatusTick,
     /// A time something of an NPC's script runs by has come: a bar is full, a sound repeats, a mark goes.
     Scripted,
+    /// Something of the books has come back: a book's text, a button's picture, the next line read aloud.
+    Book(BookNews),
     /// A moment has passed while the player has a homunculus or a mercenary: its script may be due.
     AiTick,
     /// The mouse commanded the homunculus, or the mercenary (true): to fight someone or to walk to a cell, at
@@ -298,6 +300,7 @@ pub(super) struct App {
     pub emotions: Emotions,
     pub worldmap: WorldMap,
     pub tips: Tips,
+    pub books: Books,
     pub choosing: Choosing,
     pub notices: Notices,
     pub link: Link,

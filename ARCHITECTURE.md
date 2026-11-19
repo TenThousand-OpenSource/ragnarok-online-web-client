@@ -84,6 +84,8 @@ client/src/
                     double-clicked, dragged, what a thing dragged is let go over (`Drop`), and the forms ──
   scope.rs          the circle on the ground of a skill cast on a place: its size, turn and cells (drawn by
                     web/world/scopes.rs)
+  aura.rs           the aura of the highest level: who shows which of its effects (the job, the level, the
+                    hiding states, the options `/aura` and `/aura2`; kept by web/world/aura.rs)
   ailments.rs       body and health states (stone, frozen, poisoned, cursed…): the colour they give, the
                     sounds, the marks by the one ailing, the two veils over the screen (drawn by
                     web/world/ailments.rs)
@@ -101,8 +103,12 @@ client/src/
                     as it arrives on a map (`reapplied`), and which effects of a skill wait on another;
                     state_effects/kept.rs: the effects a bit of someone's state keeps going (Sight, Ruwach)
   song_talk.rs      the lines of Frost Joke and Scream: which file, and how a line is drawn from it
+  spirits.rs        the spirit spheres of a monk and the coins of a gunslinger: which effect a job shows them
+                    as, where each sphere of it begins (kept by web/world/spirits.rs)
   skill_units.rs    the units skills leave on the ground: which effect each kind launches and how often, the
-                    effect at a place a skill is used on; skill_units/pulse.rs: Sanctuary's box of light
+                    effect at a place a skill is used on; skill_units/pulse.rs: Sanctuary's box of light;
+                    skill_units/traps.rs: the traps, which are models (which model a kind is, how it stands
+                    and springs, what it launches when it has sprung)
                     (kept and drawn by web/world/skill_units.rs)
   stack.rs          the order the game's windows lie in: one opened or pressed in front, Escape closes it
   cursor.rs         the game's mouse pointer: which of its pictures shows when (the client's timings)
@@ -110,6 +116,9 @@ client/src/
   carts.rs          the merchant's cart behind its owner: which sprite a kind of cart is, how it is pulled on
                     its rope, which way it is seen and which picture of its roll shows; the looks offered for
                     it (drawn by web/world/cart.rs)
+  falcon.rs         the hunter's falcon by its owner: which sprite it is, how it hovers and follows, how it
+                    flies at what a skill sends it to and comes back, which picture shows (drawn by
+                    web/world/falcon.rs)
   jobs.rs           what the client knows of a job by its number alone (whether it has Activity Points)
   said.rs           the lines of the chat window: the kinds the client gives them (which tabs list them) and
                     the colours it writes them in, each named once
@@ -169,7 +178,10 @@ client/src/
                     another effect where they are, `Prim::asks`), aid.rs (the glitter of First Aid; a
                     footprint that fades), lights.rs (a light that goes round someone with upright squares
                     about it), sky.rs (squares that come and go over the whole view: the clouds and stars
-                    of a sky), each with its tests;
+                    of a sky), spheres.rs (a sphere of light that goes round someone: a spirit sphere),
+                    max_level.rs (the lights of the aura of the highest level, particles of the client's
+                    kept as parts: squares that breathe over the ground, bands that go round, lights that rise),
+                    each with its tests;
                     glow.rs: a sprite standing on the ground with a rim of its own light; petals.rs: a sprite
                     that rises wandering (each with its tests); fourfold.rs: a sprite drawn four times, once
                     at each of its parts, every layer twice in colours made of its own (with its tests);
@@ -203,6 +215,8 @@ client/src/
                     tools/client-tables/commands.py)
   links.rs          the links written into what an NPC says (`<ITEM>`, `<NAVI>`, `<URL>`…): taken out of a
                     text, and put back as what shows of each
+  books.rs          the books read in a window of their own (`UIBookWnd`): which items are books, a text cut
+                    into lines and pages, the page a book opens at, turning, reading aloud line by line
   whispers.rs       a talk with one player in a window of its own: what the window is called, where a new one
                     stands, how a line is written, what a command typed into it does
   net/
@@ -262,6 +276,7 @@ client/src/
     viewequip.rs    looking at what another player wears, the switch that lets others look, ZC_MSG
     scripted.rs     what an NPC's script shows and plays: a picture over the screen, a mark on the minimap, the
                     bar that fills over someone and the answer to it, a sound, a piece of music, words over a head
+    books.rs        a book an NPC's script has the player read (ZC_READ_BOOK)
     chat_rooms.rs   chat rooms: the sign of one, who is in the one sat in, making, entering, changing, leaving
     family.rs       the family: a wedding's confetti, a divorce, one who asks to adopt and the answer
     fight.rs        what the server says of a fight beside the blows: the combo's window, a blade caught,
@@ -283,6 +298,7 @@ client/src/
     data.rs         the client's tables fetched from the gateway: what is shared, and `load`  ── children in data/ ──
       jobs.rs  items.rs  skills.rs  pets.rs  interface.rs  maps.rs  guide.rs  statuses.rs  commands.rs
       worldmap.rs  tips.rs
+      books.rs (which items are books, and the text of one: files of the client's data read as they are)
       cards.rs (the cards' words and illustrations, what an item is kept from, what a smith's things are
       made of, the names of makers as the server told them, and `item_title`: the one way a name is written)
       quests.rs  song_talk.rs (two files of the client's data read as they are: `crate::song_talk`)
@@ -290,6 +306,7 @@ client/src/
       figures.rs (the shadows' sizes by job and the order of what is worn on the head: `shadow`,
       `head_layers`)
       ai.rs (the scripts of a homunculus and a mercenary, fetched when one is first out)
+      aura.rs (the highest level and the effects of its aura: `aura_table`)
                       each kind of table: what it keeps, how it is read (`read`), how it is asked (`data::…`)
     figure.rs       sprites as pictures: one frame of a monster's sprite, a character put together
                     (figure/compose.rs: body, head, weapon, its trail, shield and headgear in the client's
@@ -306,7 +323,7 @@ client/src/
                       bag, the skills, the chat, an NPC's window); every other system's group in a file of
                       its name in state/: chat_rooms  choosing  commands  cooldowns  exchange  family  fight  friends  guide  guild  mail  party  scripted
                       pets  player_menu  pvp  quests  settings  shops  statuses  storage  viewequip  whispers
-                      unread  notices  link  broadcast  marks  cart  vending
+                      unread  notices  link  broadcast  marks  cart  vending  books
       wiring.rs       page events (click, key, timer) -> Action
       dragging.rs     taking a thing out of a window and letting it go, as the client does (its sprite under the pointer)
       actions.rs      which code sees to each Action (the one place everything arrives at); the longer ones in actions/
@@ -328,11 +345,14 @@ client/src/
         of the talk, or to the chat)
         mail.rs (what the server says of the mail; it overhears the state that counts the letters sent)
         cart.rs (the cart; it overhears the inventory's lists, of which the cart's is one kind, and the
-        state that says who pushes which cart)  vending.rs (shops and signs; it overhears who goes out of sight)
+        state that says who pushes which cart)  falcon.rs (it overhears the skills that send a falcon
+        flying)  vending.rs (shops and signs; it overhears who goes out of sight)
         scripted.rs (what an NPC's script shows and plays)  chat_rooms.rs (signs, the room sat in, and what is
         said near while one sits in a room)  family.rs
+        books.rs (a book a script opens)
         homunculus.rs  mercenary.rs (what the server says of the two)  ai.rs (it overhears who struck
         whom: the scripts of the two are told)
+        spirits.rs (how many spirit spheres someone has; it overhears who goes out of sight)
         unread.rs (a packet nobody read is counted)  notices.rs (the server's lines for the chat)
         broadcast.rs (an announcement: into the chat and across the top of the screen)
         link.rs (ZC_PING_LIVE; the words for why a server ends the session)  marks.rs (the guild's
@@ -362,6 +382,8 @@ client/src/
                       homunculus  mercenary (the window of each, what it asks, the list of its skills,
                       the menu on it)
                       unread (the list of packets not read: `/packets` and its buttons)
+                      books (a book asked for and read, its pages turned with the buttons and the arrow
+                      keys, its bookmark kept in the browser, its lines said when it is read aloud)
       settings.rs     the Game Settings: the player's options, kept in the browser, and what they switch
       ai.rs           the scripts of the homunculus and the mercenary at work: called when due, told what is
                       in sight, obeyed; the commands the player gives the two, their skills used
@@ -417,6 +439,8 @@ client/src/
       homunculus.rs   the homunculus window, what it asks, the list of its skills, the menu on it
       mercenary.rs    the same of the mercenary
       skill_list.rs   the list of a homunculus's skills and of a mercenary's (the client's `UISkillListWnd`)
+      tabs.rs         the tabs down a window's left side, their words a letter under a letter (the client's
+                      `UITabControl` in its layout 0: the skill window's and the inventory's; `side_tabs`)
       unread.rs       the developer's list of the packets this client does not read (`/packets`)
       broadcast.rs    the server's announcements across the top of the screen (`UIBroadcastBalloon`)
       marks.rs        the guild's members and the boss monster on the minimap (written with the party's marks)
@@ -425,20 +449,26 @@ client/src/
       emotions.rs     the window of emotions and the Shortcut List
       worldmap.rs     the World Map and the large window of the map one is on
       tips.rs         the Tipbox
+      books.rs        the window a book is read in, the line of one read aloud, "Read" and "Auto Read" on
+                      an item that is a book
       windows.rs      the list of the screen's windows: one interface for drawing, redrawing, order, layer,
                       Escape. Here the type (`Window`, `Order`, `Layer`), what entries are written with
                       (`framed`, `middle`, `centred`, `staged`, `ordered`, `Window::question`,
                       `Window::count`, `Window::menu`) and the one list `ALL`; the entries in windows/, a
                       file to a system: scripted  chat_rooms  family  status  inventory  skills  talk  shops  storage  pets  settings  guide  party
                       player_menu  exchange  quests  guild  mail  friends  fight  viewequip  choosing  whispers (a window to
-                      each of the talks that may be open at once)  unread  broadcast  cart  vending
+                      each of the talks that may be open at once)  unread  broadcast  cart  vending  books
     world.rs        the world: its types and what all of it needs     ── children in world/ ──
       state.rs        what the world keeps between frames
       session.rs      entering/leaving a map, the player's own character      (called by the app)
       actors.rs       everyone else and the loot                                (called by the app)
+      aura.rs         the aura of the highest level kept on those who show it, held to `crate::aura` once
+                      a frame
       ailments.rs     body and health states: the colour, the marks, the veils   (called by the app);
                       everyone's body as effects leave it, the footprints and the copies they leave
       skill_units.rs  the units of skills on the ground, their effects          (called by the app)
+                      skill_units/traps.rs: the traps' models, read, stood on their cells and played
+                      (the models themselves are land.rs's: `Models::raise`)
       combat.rs       blows and casts: who strikes, casts, aims, bends down     (called by the app);
                       combat/landing.rs: the hits that land: each sounds from where it lands and shows its
                       numbers and words (`crate::blow::signs`); a number over someone in a colour
@@ -468,10 +498,14 @@ client/src/
                       under a player
       quests.rs       the marks over NPCs that have a quest                     (called by the app)
       cart.rs         the carts merchants pull, each a sprite that follows its owner (called by the app)
+      falcon.rs       the falcons hunters keep, one by everyone whose state has its bit; a skill sends one
+                      at something (`falcon_sent`)                              (called by the app)
       signs.rs        the signs over heads, of chat rooms and of shops: kept over their owners on the page
                       (called by the app; what a sign is made of is its system's, in `hud/`)
       scripted.rs     what an NPC's script shows in the world: the bar that fills over someone, a sound from
                       where someone stands                                      (called by the app)
+      spirits.rs      the spirit spheres and coins about someone, as the server tells how many: the effect
+                      of them ended and begun anew, told the count              (called by the app)
       input.rs        the mouse over the world: which event goes where   ── children in input/ ──
         press.rs  pointer.rs  wheel.rs   a button down; the pointer moved or a button up; the wheel
       gpu.rs          pipelines, textures and buffers   ── children ──
@@ -555,7 +589,11 @@ client/src/
         songs.rs        the songs of minstrels and wanderers: the monsters that come up round one who sings,
                         the lights of the circles, the sign of Randomize Spell, the lines of Great Echo, the
                         note of Reverberation
+        max_level.rs    the aura of the highest level: the squares and bands of the full aura, the lights
+                        that rise, those of the baby jobs
         souls.rs        the link of a soul: the light that flies over the one linked, its sparks, the letters
+        spirits.rs      the spirit spheres of a monk and the coins of a gunslinger, going round the one
+                        who has them
         waves.rs        walls of light that fly to the one struck: the bubbles and waves of Sonic Wave, the
                         elemental's Wind Slash
         pillars.rs      shafts of light out of the ground: Tetra Vortex and its blast, Hesperus Lit
@@ -582,6 +620,7 @@ gateway/src/
                       ai (the Lua files of the client's `AI` folder, for the scripts of a homunculus and a
                       mercenary: `/tables/ai.json`, and with the player's own `/tables/ai-user.json`)
                       cards (the cards' words and illustrations, what may not be moved, a smith's materials)
+                      aura (the highest level and the effects of its aura: `ExternalSettings_kr.lub`)
   images.rs         game pictures as PNG
   bridge.rs         WebSocket <-> TCP, only to the configured server ports; a debug delay each way
                     (`--lag`, `--jitter`: never where others play)

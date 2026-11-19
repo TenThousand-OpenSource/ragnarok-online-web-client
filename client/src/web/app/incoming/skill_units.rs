@@ -8,10 +8,21 @@ impl App {
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn skill_unit_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
+            // (A trap that is not for everyone to see is seen by the one who laid it: the client's
+            // `AM_SKILLSTANDENTRY`.)
             skill_units::ZC_SKILL_ENTRY5 => {
-                if let Some(entry) = skill_units::entry(packet) {
+                if let Some(mut entry) = skill_units::entry(packet) {
+                    entry.visible |= entry.creator == self.own_account();
                     world::skill_unit_shown(&entry);
                 }
+            }
+            // A skill strikes: if it is a unit's (a trap going off), the unit is told (the client's `AM_SKILL`
+            // to its `CSkill`). Overheard only: the blow itself is the fight's to read.
+            skills::ZC_NOTIFY_SKILL => {
+                if let Some(landing) = skills::landing(packet) {
+                    world::skill_unit_strikes(landing.source);
+                }
+                return false;
             }
             skill_units::ZC_SKILL_DISAPPEAR => {
                 if let Some(id) = skill_units::gone(packet) {

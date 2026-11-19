@@ -45,6 +45,10 @@
 //!   petals (`tei/flowers.rs`); the kinds 155 and 170: lights whose way wanders (`tei/flames.rs`);
 //!   `PP_FOREST` (66): shafts of light that slant down (`tei/forest.rs`); `PP_SMA` (120) and the kind 151,
 //!   which show nothing and ask for other effects where they are (`tei/launchers.rs`).
+//! - the kind 32: a sphere of light that goes round someone, a monk's spirit sphere (`tei/spheres.rs`).
+//! - the lights of the aura of the highest level, which the client keeps as particles of three effects of
+//!   their own and not as primitives: squares that breathe over the ground, bands that go round, lights that
+//!   rise (`tei/max_level.rs`).
 //!
 //! The places of a part are in the client's directions, from the effect's place as the primitive was launched:
 //! x east, y DOWN, z north. `Rect` gives them in this client's (east, up, north).
@@ -94,6 +98,7 @@ mod layers;
 mod lights;
 mod links;
 mod low_rings;
+mod max_level;
 mod orbit;
 mod panels;
 mod peong;
@@ -107,6 +112,7 @@ mod sky;
 pub use sky::PUT_ANEW;
 mod slashes;
 mod souls;
+mod spheres;
 mod squares;
 mod stretch;
 mod twinkles;
@@ -228,6 +234,12 @@ pub enum Tei {
     /// The kind 33: squares facing the screen that come and go over the whole view: the clouds and the
     /// stars of a sky (`tei/sky.rs`).
     Sky,
+    /// The kind 32 (`tei/spheres.rs`).
+    DriftingOrbs,
+    /// The lights of the aura of the highest level, which are no kinds of `CEffectPrim` (`tei/max_level.rs`).
+    Level99Glow,
+    Level99Swirl,
+    Level99Orb,
 }
 
 impl Prim {
@@ -243,6 +255,7 @@ impl Prim {
             Tei::GustChase => return self.chase_as_gust(),
             Tei::GustSwerve => return self.swerve_as_gust(),
             Tei::DriftingSparks => return self.drift_as_lights(),
+            Tei::DriftingOrbs => return self.drift_as_sphere(),
             _ => {}
         }
         for (index, part) in self.parts.iter_mut().enumerate().filter(|(_, part)| part.live) {
@@ -276,6 +289,9 @@ impl Prim {
                 Tei::SpiralFade => part.circle_as_light(),
                 Tei::Forest => part.shine_as_shaft(index),
                 Tei::Sky => part.drift_as_cloud(),
+                Tei::Level99Glow => part.breathe_as_glow(),
+                Tei::Level99Swirl => part.turn_as_swirl(),
+                Tei::Level99Orb => part.rise_as_orb(),
                 Tei::TaperedQuad => part.draw_out(),
                 Tei::BladeFins => part.flash_and_fade(),
                 Tei::Hover if index == 0 => part.hover(),
@@ -304,6 +320,7 @@ impl Prim {
                 Tei::FirstAid if index == 0 => part.glitter_as_aid(),
                 Tei::Footprint if index == 0 => part.fade_as_print(),
                 Tei::FirstAid | Tei::Footprint | Tei::DriftingSparks => {}
+                Tei::DriftingOrbs => {}
                 Tei::LineLink => {}
             }
         }
@@ -332,6 +349,10 @@ impl Prim {
             Tei::GrandCross2 => live.flat_map(|part| part.open_box(self.picture)).collect(),
             Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky => self.field_panels(right, up),
             Tei::DriftingSparks => self.pillar_squares(right, up),
+            Tei::Level99Glow => self.level99_glows(right),
+            Tei::Level99Swirl => self.level99_swirls(right),
+            Tei::Level99Orb => self.level99_orbs(right, up),
+            Tei::DriftingOrbs => self.layered_glow(right, up),
             Tei::HitLine => live.flat_map(|part| part.bouncing(self.picture)).collect(),
             Tei::Magnum2 => live.flat_map(|part| part.cone(self.picture, self.size)).collect(),
             Tei::Intimidate => live.filter_map(|part| part.coin(self.picture, right, up)).collect(),

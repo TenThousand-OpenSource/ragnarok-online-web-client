@@ -25,8 +25,9 @@ impl Gpu {
         self.frame_figures(scene, view);
         self.load_effects(effects);
 
-        // The farthest first, so that nearer ones cover them where their see-through edges overlap.
-        sprites.sort_by(|a, b| dot(subtract(b.1, view.eye), view.forward).total_cmp(&dot(subtract(a.1, view.eye), view.forward)));
+        // The farthest first, so that nearer ones cover them where their see-through edges overlap; and the
+        // shadows before every body (`Quad::under`).
+        sprites.sort_by(|a, b| b.3.under.cmp(&a.3.under).then(dot(subtract(b.1, view.eye), view.forward).total_cmp(&dot(subtract(a.1, view.eye), view.forward))));
         let rings = if self.ring.is_some() { rings } else { &[] };
         let marks = if self.mark.is_some() { marks } else { &[] };
         let numbers: Vec<_> = numbers.iter().filter(|number| self.sprite_textures.contains_key(&number.0)).collect();

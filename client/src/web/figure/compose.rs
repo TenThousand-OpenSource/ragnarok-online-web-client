@@ -59,6 +59,9 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
     BODIES.with_borrow_mut(|bodies| {
         bodies.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().enumerate().map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0)).collect());
     });
+    BODY_VOICES.with_borrow_mut(|voices| {
+        voices.entry((figure.job, figure.sex)).or_insert_with(|| body_act.actions.iter().map(|frames| frames.iter().map(|frame| frame.sound.and_then(|sound| body_act.sounds.get(sound)).filter(|name| name.contains(".wav")).cloned()).collect()).collect());
+    });
     BODY_STRIKES.with_borrow_mut(|strikes| {
         strikes.entry((figure.job, figure.sex)).or_insert_with(|| lands_at(&body_act));
     });
@@ -77,7 +80,10 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
     // Standing or sitting still, the pictures of a body and a head are it looking ahead, right and left
     // (the client's `curMotion = headDir`): the frame says which. In other actions the head has a picture for
     // each of the body's.
-    let (body_frame, head_frame) = (frame(&body_act, figure.action, figure.frame)?, frame(&head_act, figure.action, figure.frame)?);
+    // (A Taekwon's head, and what it wears, show a standing head's picture in some frames of its kicks:
+    // `CPc::SelectStanceFrame`.)
+    let (head_action, head_at) = crate::pose::stance_head(figure.job, figure.sex, figure.action, figure.frame).unwrap_or((figure.action, figure.frame));
+    let (body_frame, head_frame) = (frame(&body_act, figure.action, figure.frame)?, frame(&head_act, head_action, head_at)?);
     let attach = |part: &Frame| {
         let offset = sprite::head_offset(&body_frame, part);
         (FEET.0 + offset.0, FEET.1 + offset.1)
@@ -109,7 +115,7 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
         let Some(name) = data::headgear(figure.headgear[slot]) else { continue };
         match sprite(&format!("data/sprite/악세사리/{sex}/{sex}{name}")).await {
             Ok((pictures, actions)) => {
-                if let Ok(part) = frame(&actions, figure.action, figure.frame) {
+                if let Ok(part) = frame(&actions, head_action, head_at) {
                     canvas.draw(attach(&part), &pictures, None, &part);
                 }
             }

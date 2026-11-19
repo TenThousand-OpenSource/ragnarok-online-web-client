@@ -89,9 +89,12 @@ impl App {
                 if self.bag.equipment_open {
                     figure::paint("pc-equip", self.shown_figure());
                 }
-                // The character in the skill window.
+                // The character in the skill window: its body and head alone, sitting and turned as the
+                // client's action 23 is (`UINewSkillListWnd::DrawCharacter`: neither what it wears on its
+                // head nor what it holds, nor what it rides). The client has it look about, a frame of the
+                // three every 900 milliseconds; here it shows the first.
                 if self.skills.open {
-                    figure::paint("pc-skill", self.shown_figure());
+                    figure::paint("pc-skill", Figure { headgear: [0; 3], weapon: 0, shield: 0, action: SITTING + 7, frame: 0, ..self.own_figure() });
                 }
             }
             Screen::CharCreate(_) => {

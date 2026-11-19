@@ -29,11 +29,14 @@ pub(super) struct Ail {
     pub(super) body: crate::body::Body,
     /// Up to when the passes of its body have been counted.
     passed: f64,
+    /// A skill's hit flashed it: since when, and the one colour its sprite is drawn in meanwhile
+    /// (`render.started`, `overrideColor`; `crate::blow::signs::flash`).
+    pub(super) flash: Option<(f64, [u8; 3])>,
 }
 
 impl Default for Ail {
     fn default() -> Self {
-        Self { states: Ailing::default(), still: false, since: 0.0, broke: None, body: crate::body::Body::default(), passed: 0.0 }
+        Self { states: Ailing::default(), still: false, since: 0.0, broke: None, body: crate::body::Body::default(), passed: 0.0, flash: None }
     }
 }
 

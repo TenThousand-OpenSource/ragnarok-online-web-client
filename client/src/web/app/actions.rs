@@ -45,6 +45,10 @@ impl App {
                 // With the item, the cards set into it where it is carried: its window draws them in its slots.
                 let cards: Vec<u32> = self.bag.items.iter().filter(|item| item.id == id).flat_map(|item| crate::item_names::Named::from(item).cards_set()).collect();
                 data::want_items(std::iter::once(id).chain(cards), || dispatch(Action::ItemsKnown));
+                // A book has its two buttons there, whose pictures are read.
+                if data::is_book(id) {
+                    self.book_pictures_wanted();
+                }
                 self.refresh_items();
             }
             Action::ItemsKnown => {
@@ -117,6 +121,7 @@ impl App {
             Action::TamingTick => self.taming_tick(),
             Action::StatusTick => self.status_tick(),
             Action::Scripted => self.scripted_due(),
+            Action::Book(news) => self.book_news(news),
             Action::AiTick => self.ai_tick(),
             Action::Commanded(mercenary, whom, cell, later) => self.commanded(mercenary, whom, cell, later),
             // A skill of the homunculus or of the mercenary is used by its script, which is told where.

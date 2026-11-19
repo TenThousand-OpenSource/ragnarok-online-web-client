@@ -23,6 +23,7 @@ mod choosing;
 mod inventory;
 mod equipment;
 mod skills;
+mod tabs;
 mod status;
 mod chat;
 mod dialogs;
@@ -60,6 +61,7 @@ mod lists;
 mod emotions;
 mod tips;
 mod worldmap;
+mod books;
 pub(super) mod windows;
 
 use boxes::*;
@@ -70,9 +72,9 @@ use lists::*;
 pub const CHAT_KEPT: usize = 240;
 
 const BLACK: &str = "#000";
-/// How many columns and rows of items the inventory shows, and how many skills the list shows.
+/// How many columns of items the inventory shows (its rows are as many as fit beside its tabs:
+/// `App::inventory_body`).
 const ITEM_COLUMNS: i32 = 7;
-const ITEM_ROWS: i32 = 5;
 
 /// A piece of the window's art at its place and size (stretched to it).
 fn art(name: &str, x: i32, y: i32, width: i32, height: i32) -> String {

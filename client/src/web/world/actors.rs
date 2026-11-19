@@ -308,7 +308,7 @@ pub fn unit_gone(id: u32, died: bool) {
             // through the pictures of its dying, each for as long as its sprite says (`ST_DEAD`, action 32), and
             // then lies as its last picture and fades (`MakeCorpse`).
             let time = now();
-            let falls = state.landing.iter().filter(|blow| blow.1 == id).map(|blow| blow.0).fold(time, f64::max);
+            let falls = state.blows.iter().filter(|blow| blow.1 == id).map(|blow| blow.0).fold(time, f64::max);
             // A player struck down lies where it fell (the client's `AM_DEAD`): it is gone when it leaves,
             // and stands up when it is raised (`poses::risen`).
             if let Some(player) = scene.units.get_mut(&id).filter(|unit| died && matches!(unit.look, Look::Character(_))) {

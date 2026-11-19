@@ -110,6 +110,11 @@ impl App {
                 self.weight_told(name, was, heavy);
             }
             self.refresh_values();
+            // The skill window writes the points left to give and marks what they can raise (the client's
+            // `UINewSkillListWnd` is told `m_skillPoints` anew): it follows them while it is open.
+            if name == packets::parameter::SKILL_POINTS && was != i64::from(value) {
+                self.redraw(&[&wnd::SKILLS]);
+            }
             // Under a quarter of its life left, the player's pet may tell of it: half the time, and
             // not more than once in five seconds (the client, on `SP_HP`).
             let most = self.hero.params.get(&packets::parameter::MAX_HP).copied().unwrap_or(0);

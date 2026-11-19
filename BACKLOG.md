@@ -12,7 +12,7 @@ Workers add to it what they meet and leave for later; nothing here is to be buil
 - Buying stores; shop search; barter and NPC markets.
 - Refine UI, grade enchant, enchant, item reform, Lapine boxes, random options, select-package boxes.
 - Item names: the grade after the refinement (`ITEM_INFO::Grade`); an item's description: the lines of its
-  random options, the comparison with what is worn (`UIItemCollection_ComparisonWnd`), books to read.
+  random options, the comparison with what is worn (`UIItemCollection_ComparisonWnd`).
 - Lists a skill opens: Shadow Spell's (ZC_SKILL_SELECT_REQUEST 0x0442 into `UISpellListWnd`), runes and new
   poisons through the forging list (the results 4 to 7 of ZC_ACK_REQMAKINGITEM), `UIChangeMaterialWnd`.
 - Equip switch, inventory expansion, stack merging, item compare, favourites tab.

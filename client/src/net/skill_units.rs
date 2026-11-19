@@ -1,9 +1,11 @@
 //! Skill units, what skills leave standing on the ground, as the map server tells of them (rAthena's
 //! `clif_getareachar_skillunit` and `clif_skill_delunit`, at PACKETVER 20260219).
 //!
-//! Not read here: ZC_SKILL_UPDATE (0x01ac: a trap that was hidden is seen), which matters only to the traps'
-//! models, not drawn yet; and the packet Graffiti's unit comes in (0x01c9), not drawn either. A unit of Ice Wall
-//! comes with a ZC_UPDATE_MAPINFO (0x0192) that closes its cell to walking, which is not read either.
+//! A trap comes in the same ZC_SKILL_ENTRY5 as every unit, under its own kind (143 to 153); the server makes
+//! another kind of it with ZC_SPRITE_CHANGE of its base (`net/units.rs`) when it springs, and a trap that was
+//! not to be seen is shown with ZC_SKILL_UPDATE (0x01ac, `seen`; its number is `net/fight.rs`'s). The packet
+//! Graffiti's unit comes in (0x01c9) is `net/fight.rs`'s too. A unit of Ice Wall comes with a
+//! ZC_UPDATE_MAPINFO (0x0192) that closes its cell to walking.
 
 use super::bytes::{long, word};
 
@@ -46,6 +48,12 @@ pub fn cell_changed(packet: &[u8]) -> Option<((u16, u16), u16)> {
     Some(((word(packet, 2)?, word(packet, 4)?), word(packet, 6)?))
 }
 
+/// Reads ZC_SKILL_UPDATE (0x01ac, 6 bytes: `u32 id`; rAthena's `clif_skillunit_update`): which unit is seen
+/// from now on.
+pub fn seen(packet: &[u8]) -> Option<u32> {
+    long(packet.get(..6)?, 2)
+}
+
 /// Reads ZC_SKILL_DISAPPEAR: which unit is gone.
 pub fn gone(packet: &[u8]) -> Option<u32> {
     long(packet.get(..6)?, 2)
@@ -69,6 +77,38 @@ mod tests {
         assert_eq!(crate::net::packet_length(ZC_SKILL_ENTRY5), Some(23));
         assert_eq!(entry(&packet), Some(Entry { id: 1000, creator: 2000, cell: (150, 160), unit: 127, range: 1, visible: true, level: 10 }));
         assert_eq!(entry(&packet[..22]), None);
+    }
+
+    #[test]
+    fn reads_a_trap_on_the_ground() {
+        // An Ankle Snare (`UNT_ANKLESNARE`, 145) as rAthena's `clif_getareachar_skillunit` writes it at
+        // PACKETVER 20260219: the header 0x09ca, its length, and the trap's own kind, for everyone to see.
+        let mut packet = vec![0xca, 0x09, 23, 0];
+        packet.extend(0x0500_0001u32.to_le_bytes());
+        packet.extend(2_000_001u32.to_le_bytes());
+        packet.extend(101u16.to_le_bytes());
+        packet.extend(215u16.to_le_bytes());
+        packet.extend(145u32.to_le_bytes());
+        packet.extend([0, 1, 5]);
+        let trap = entry(&packet).unwrap();
+        assert_eq!((trap.unit, trap.cell, trap.creator, trap.visible, trap.level), (145, (101, 215), 2_000_001, true, 5));
+        // Every trap of the Hunter's comes under a kind the client has a model for.
+        for unit in [143u32, 144, 145, 147, 148, 149, 150, 151, 152, 153] {
+            packet[16..20].copy_from_slice(&unit.to_le_bytes());
+            assert!(crate::skill_units::traps::model(entry(&packet).unwrap().unit).is_some());
+        }
+        // One hidden from the player comes as the kind 134 and not to be seen: nothing shows.
+        packet[16..20].copy_from_slice(&134u32.to_le_bytes());
+        packet[21] = 0;
+        let hidden = entry(&packet).unwrap();
+        assert!(!hidden.visible && crate::skill_units::traps::model(hidden.unit).is_none());
+    }
+
+    #[test]
+    fn reads_a_unit_being_seen() {
+        assert_eq!(crate::net::packet_length(crate::net::fight::ZC_SKILL_UPDATE), Some(6));
+        assert_eq!(seen(&[0xac, 0x01, 0xe8, 0x03, 0, 0]), Some(1000));
+        assert_eq!(seen(&[0xac, 0x01, 0xe8]), None);
     }
 
     #[test]

@@ -79,6 +79,11 @@ pub(super) struct Pose {
     pub(super) vanishes: Option<f64>,
     /// The puff of smoke of one that hides or comes out of hiding: since when, and where (in cells).
     pub(super) smoke: Option<(f64, (f32, f32))>,
+    /// The window of a combo the server told of it last, in milliseconds (ZC_COMBODELAY; the client's
+    /// `CSession::InsertPair`): its combos hold their frames for as long (`crate::pose::strikes_with`).
+    pub(super) combo: f64,
+    /// Its blade is caught: its motion is held where it was (`isMotionFreezed`, `combat::blade_caught`).
+    pub(super) frozen: bool,
 }
 
 impl Pose {

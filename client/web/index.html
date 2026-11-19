@@ -64,10 +64,6 @@
   /* What someone says, over their head: white on a dark plate, as the original's. */
   .say { position: fixed; transform: translate(-50%, -100%); max-width: 220px; padding: 2px 6px; pointer-events: none; text-align: center;
          font: 13px var(--face); color: #fff; background: rgba(0, 0, 0, .55); border-radius: 2px; overflow-wrap: break-word; }
-  /* The storage's tabs: names written up the side. */
-  .side { padding: 0; border: 1px solid #b9bfdc; border-right: 0; border-radius: 4px 0 0 4px; background: #e9ecf7; cursor: pointer; }
-  .side.open { background: #fff; font-weight: bold; }
-  .side i { display: block; font: 10px var(--face); font-style: normal; color: #313131; transform: rotate(-90deg); white-space: nowrap; }
   .row { outline: 0; color: #000; }
   .row:focus { background: #5b9bf0; color: #fff; }
   .opt:hover { background: #c6d6f7; }
@@ -227,9 +223,6 @@
   .cell.worn { outline: 1px solid #e0a000; outline-offset: -2px; background: rgba(255, 220, 120, .35); }
   .n { position: absolute; right: 1px; bottom: 0; font-size: 11px; line-height: 11px; color: #000; pointer-events: none;
        text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff; }
-  .tab { padding: 4px 0 0; border: 1px solid #c3c3c3; background: #e8e8e8; font: 13px var(--face); color: #000; cursor: pointer; }
-  .tab.open { background: #fff; border-right-color: #fff; width: 18px !important; }
-  .tab span { display: block; line-height: 13px; text-align: center; }
   .chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: thin; scrollbar-color: #9aa3c8 transparent;
               color: #fff; font: 13px var(--face); user-select: text; }
   .chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }

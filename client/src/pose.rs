@@ -148,6 +148,38 @@ fn used(job: u16) -> Posed {
     }
 }
 
+/// The frames a character runs through as a skill of its strikes (`CGameActor::ProcessSkillMessage`, of the
+/// skills a classic server has: the monk's). `combo` is the window of a combo the server told of that one
+/// last, in milliseconds (ZC_COMBODELAY, kept by `CSession::InsertPair` and asked with
+/// `FindActorSkillAnimationValue`): the combos hold their frame for as long. None for any other skill, whose
+/// striker swings as for a plain blow. (`CH_PALMSTRIKE` asks for frames that last one millisecond: left out.)
+pub fn strikes_with(skill: u16, combo: f64) -> Option<Sequence> {
+    Some(match skill {
+        // MO_TRIPLEATTACK, and MO_EXTREMITYFIST for three and a half seconds.
+        263 => Sequence::once(STRIKES_OTHERWISE, 0, 7, 4, combo),
+        271 => Sequence::once(STRIKES_OTHERWISE, 0, 7, 4, 3500.0),
+        // MO_INVESTIGATE, MO_FINGEROFFENSIVE.
+        266 | 267 => Sequence::once(CASTS, 3, 4, 10, 1100.0),
+        // MO_CHAINCOMBO, MO_COMBOFINISH, CH_TIGERFIST.
+        272 => Sequence::once(CASTS, 5, 5, 4, combo),
+        273 => Sequence::once(CASTS, 1, 2, 6, combo),
+        371 => Sequence::once(CASTS, 4, 4, 6, combo),
+        _ => return None,
+    })
+}
+
+/// The picture of one who has caught a blade, held until the blade is let go (`ReceiveActorPairFreeze`:
+/// `SetFrameSequence(96, 4, 4, 96, 4, 1, 99999999, 0)`).
+pub const CATCHES: Sequence = Sequence::once(CASTS, 4, 4, 10, 99_999_999.0);
+
+impl Sequence {
+    /// The same frames, to last so long from now on, `passed` milliseconds into them
+    /// (`CRenderObject::SetSequenceDeadline`: the deadline of the sequence under way is put anew).
+    pub fn until(self, passed: f64, more: f64) -> Self {
+        Self { lasts: passed.max(0.0) + more, ..self }
+    }
+}
+
 /// Whether a character stands ready, not at ease, once a motion of this action is over
 /// (`CPc::SetState(ST_STAND)` coming from `ST_ATTACK`, `ST_DAMAGE` or `ST_BEGIN_SKILL`: action 32 and not 0).
 /// It stands so until it walks or sits. One whose health state is not 0 stands ready after anything.
@@ -169,6 +201,45 @@ pub fn size(job: u16) -> f32 {
         4023..=4029 | 4045 | 4191 => 0.75,
         4030..=4044 | 4096..=4112 => 0.82,
         _ => 1.0,
+    }
+}
+
+/// The picture of the head, and of what is worn on it, that a Taekwon or a Star Gladiator shows in place of
+/// the frame's own in some frames of its kicks (`CPc::SelectStanceFrame`, for the layers 1 to 4): an action
+/// and the frame of it, which is the first of a standing head seen from another side. In the second attack
+/// (88 to 95) a woman's fifth and sixth frames and a man's fourth and fifth are replaced, in the casting
+/// action (96 and on) the second frame. `sex` is 1 for a man. None: the frame's own. (The client leaves one
+/// who rides out: such a one is drawn as another job here. Of the jobs it names, the Star Emperors and their
+/// like are Renewal's and not named here.)
+pub fn stance_head(job: u16, sex: u8, action: usize, frame: usize) -> Option<(usize, usize)> {
+    if !matches!(job, 4046..=4048 | 4225 | 4226 | 4238) {
+        return None;
+    }
+    let stands = match action {
+        88..=95 => {
+            // Which of the two replaced frames it is: the first or the second.
+            let which = frame.checked_sub(if sex == 1 { 3 } else { 4 }).filter(|which| *which < 2)?;
+            [[6, 5], [6, 7], [2, 1], [2, 3]][(action - 88) / 2][which]
+        }
+        96..=97 if frame == 1 => 0,
+        98..=99 if frame == 1 => 6,
+        100.. if frame == 1 => 2,
+        _ => return None,
+    };
+    Some((stands, 0))
+}
+
+/// The kind of weapon whose sprite a job shows for a weapon of a kind that has no sprite of its own for that
+/// job (`CPc::MapMotion`, by the client's numbers of the kinds, `Weapon_IDs`): a thief swings an axe or a
+/// mace as a sword, an assassin and a rogue a mace and a two-handed axe so (a rogue a one-handed axe as a
+/// dagger), a mage holds a two-handed spear as a staff. (The third jobs the client names are Renewal's.)
+pub fn weapon_shown(job: u16, kind: u16) -> u16 {
+    match (job, kind) {
+        (6 | 4007 | 4029, 6..=8) => 2,
+        (12 | 17 | 4013 | 4018 | 4035 | 4040, 7 | 8) => 2,
+        (17 | 4018 | 4040, 6) => 1,
+        (2 | 9 | 16 | 4003 | 4010 | 4017 | 4025 | 4032 | 4039, 5) => 10,
+        _ => kind,
     }
 }
 
@@ -220,6 +291,21 @@ mod tests {
     }
 
     #[test]
+    fn a_combo_holds_its_frames_for_the_window_the_server_told() {
+        let chain = strikes_with(272, 650.0).unwrap();
+        assert_eq!((chain.action, chain.frame(0.0), chain.frame(600.0)), (CASTS, 5, 5));
+        assert!(!chain.over(649.0) && chain.over(650.0));
+        let triple = strikes_with(263, 300.0).unwrap();
+        assert_eq!((triple.action, triple.frame(0.0), triple.frame(64.0), triple.frame(10_000.0)), (STRIKES_OTHERWISE, 0, 1, 7));
+        assert_eq!(strikes_with(271, 300.0).unwrap().lasts, 3500.0);
+        assert_eq!(strikes_with(5, 300.0), None);
+        // A new window told 200 milliseconds into the frames keeps them 500 more.
+        let longer = chain.until(200.0, 500.0);
+        assert!(!longer.over(699.0) && longer.over(700.0));
+        assert!(!CATCHES.over(1e7) && CATCHES.frame(5000.0) == 4);
+    }
+
+    #[test]
     fn a_skill_is_used_as_the_job_uses_it() {
         assert_eq!(skilled(7, 9, 80), Posed::Plays(CASTS));
         assert_eq!(skilled(7, 19, 80), Posed::Plays(READY));
@@ -246,6 +332,25 @@ mod tests {
         assert_eq!(looks(0, 0, 2), (1, 1));
         assert_eq!(looks(0, 0, 6), (7, 2));
         assert_eq!((looks(3, 1, 3), looks(3, 2, 7)), ((3, 0), (7, 0)));
+    }
+
+    #[test]
+    fn a_taekwons_head_in_its_kicks() {
+        // A woman's fifth and sixth frames, a man's fourth and fifth, by the side it is seen from.
+        assert_eq!((stance_head(4046, 0, 88, 4), stance_head(4046, 0, 89, 5), stance_head(4046, 0, 88, 3)), (Some((6, 0)), Some((5, 0)), None));
+        assert_eq!((stance_head(4047, 1, 90, 3), stance_head(4047, 1, 91, 4), stance_head(4047, 1, 90, 5)), (Some((6, 0)), Some((7, 0)), None));
+        assert_eq!((stance_head(4046, 1, 93, 4), stance_head(4046, 0, 95, 5)), (Some((1, 0)), Some((3, 0))));
+        // The second frame of the casting action.
+        assert_eq!((stance_head(4046, 1, 96, 1), stance_head(4046, 1, 99, 1), stance_head(4046, 1, 101, 1), stance_head(4046, 1, 96, 2)), (Some((0, 0)), Some((6, 0)), Some((2, 0)), None));
+        // No other job, no other action.
+        assert_eq!((stance_head(15, 1, 96, 1), stance_head(4046, 1, 80, 4)), (None, None));
+    }
+
+    #[test]
+    fn a_weapon_without_a_sprite_for_the_job_is_shown_as_another_kind() {
+        assert_eq!((weapon_shown(6, 6), weapon_shown(6, 8), weapon_shown(6, 1)), (2, 2, 1));
+        assert_eq!((weapon_shown(12, 6), weapon_shown(17, 6), weapon_shown(12, 7)), (6, 1, 2));
+        assert_eq!((weapon_shown(9, 5), weapon_shown(1, 5), weapon_shown(4010, 5)), (10, 5, 10));
     }
 
     #[test]

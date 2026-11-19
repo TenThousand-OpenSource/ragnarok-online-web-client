@@ -45,9 +45,11 @@ mod actors;
 mod poses;
 mod ai;
 mod ailments;
+mod aura;
 mod players;
 mod quests;
 mod cart;
+mod falcon;
 mod pvp;
 mod guild;
 mod combat;
@@ -60,6 +62,7 @@ mod scopes;
 mod skill_units;
 mod signs;
 mod scripted;
+mod spirits;
 mod frame;
 mod overlays;
 mod pursuit;
@@ -83,6 +86,7 @@ pub use ailments::ailing;
 pub use players::*;
 pub use quests::quest_mark;
 pub use cart::carted;
+pub use falcon::{Prey, falcon_sent};
 pub use quests::visit;
 pub use pvp::{sides, zone};
 pub use guild::{emblem_known, guild_changed, own_guild, player_card, player_guild, player_position};
@@ -92,9 +96,10 @@ pub use names::{own_level, unit_titled};
 pub use launch::*;
 pub use state_effects::{own_states_again, state_effects, third_option_told};
 pub use scopes::scope_shown;
-pub use skill_units::{cell_retyped, ground_skill, skill_unit_becomes, skill_unit_gone, skill_unit_shown};
+pub use skill_units::{cell_retyped, ground_skill, skill_unit_becomes, skill_unit_gone, skill_unit_seen, skill_unit_shown, skill_unit_strikes};
 pub use signs::{Board, SIGN, sign};
 pub use scripted::{gauge, sounded};
+pub use spirits::{spheres_gone, spheres_seen, spheres_told};
 use frame::*;
 use overlays::*;
 use pursuit::*;
@@ -421,11 +426,14 @@ pub struct Options {
     pub name_above: bool,
     /// The emblem of a player's guild is drawn by the name (`/emblem`).
     pub emblems: bool,
+    /// The aura of the highest level shows (`/aura2`), and it is the full one (`/aura`): `crate::aura::Options`.
+    pub auras: bool,
+    pub aura_full: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false, zoom_out: true, far_walk: false, quake: true, name_above: false, emblems: true }
+        Self { no_ctrl: true, quick_right: false, quick_wheel: false, effects: true, misses: true, monster_life: true, hide_players: false, zoom_out: true, far_walk: false, quake: true, name_above: false, emblems: true, auras: true, aura_full: false }
     }
 }
 

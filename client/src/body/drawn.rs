@@ -20,11 +20,14 @@ pub struct Quad {
     pub of_height: [f32; 2],
     pub scale: f32,
     pub turn: f32,
+    /// Whether it lies under every body, however near: a shadow (the client draws the shadows of all before
+    /// the sprite of any: a nearer one's shadow does not lie over the legs of one farther off).
+    pub under: bool,
 }
 
 impl Quad {
     /// A picture as it is.
-    pub const PLAIN: Quad = Quad { colour: [255; 4], adds: false, edges: [0.0; 4], of_height: [0.0; 2], scale: 1.0, turn: 0.0 };
+    pub const PLAIN: Quad = Quad { colour: [255; 4], adds: false, edges: [0.0; 4], of_height: [0.0; 2], scale: 1.0, turn: 0.0, under: false };
 
     /// Whether it is the picture as it is.
     pub fn plain(&self) -> bool {

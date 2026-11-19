@@ -103,16 +103,10 @@ pub(super) struct State {
     pub(super) own: [i64; 4],
     /// Whether life bars are on the page.
     pub(super) bars: bool,
-    /// Blows on their way, for what the body of the one struck does as each lands (`frame/sprites.rs`: it
-    /// stops and flinches): when, on whom, the player's own ID, how much (none for a hit endured), and three
-    /// things `combat/landing.rs` sees to now and leaves empty here (a sound, a critical blow's flare, the ring).
-    pub(super) landing: Vec<(f64, u32, u32, i32, Option<String>, bool, bool)>,
-    /// The same hits, for what each sounds like and shows: when it lands, on whom, and what it is
-    /// (`combat/landing.rs`).
+    /// The hits on their way, the one queue of them: when each lands, on whom, and what it is. As one lands
+    /// it sounds and shows its numbers (`combat/landing.rs`), and the one struck stops and flinches
+    /// (`frame/sprites.rs`, told by the former).
     pub(super) blows: Vec<(f64, u32, combat::Landing)>,
-    /// What `frame/sprites.rs` hands on of the blows landed; nothing reads it since the numbers are made by
-    /// `combat/landing.rs`, which empties it.
-    pub(super) hits: Vec<(u32, i32, bool)>,
     /// Where the turning marks in the world stand this frame: at the feet of the monster being fought, and of
     /// another monster the pointer is on.
     pub(super) target_at: [Option<Vector>; 2],
@@ -165,6 +159,8 @@ pub(super) struct State {
     pub(super) quest_marks: (u32, HashMap<u32, usize>),
     /// The carts merchants pull (`cart.rs`).
     pub(super) carts: cart::Carts,
+    /// The falcons hunters keep (`falcon.rs`).
+    pub(super) falcons: falcon::Falcons,
     /// The signs standing over heads: of chat rooms, of shops (`signs.rs`).
     pub(super) signs: signs::Signs,
     /// What an NPC's script shows in the world: the bars that fill over someone (`scripted.rs`).

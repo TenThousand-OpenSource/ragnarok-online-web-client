@@ -19,16 +19,20 @@
 //! The kinds of the first and second jobs are here as far as their effects are drawn; `shows` says nothing for
 //! the others, which then show nothing:
 //!
-//! - the traps (138 to 153), which the client shows as models (`CSkill::GetTrapModelName`), and Talkie Box's
-//!   words; Graffiti (176), which comes in a packet of its own;
+//! - Graffiti (176), which comes in a packet of its own;
 //! - the kind 134, which the server shows instead of a unit that is not to be seen and for which the client
 //!   has nothing either; and every kind of the later jobs, most of which the client hands to its
 //!   `CSkillActionMgr`.
+//!
+//! The traps (143 to 153) the client shows as models standing on their cells, not as effects: `traps.rs` has
+//! which model each is, how it moves and what it launches when it springs. A Shockwave Trap has an effect
+//! over it besides.
 //!
 //! The server also tells of a skill used on a place (ZC_NOTIFY_GROUNDSKILL): the client then plays an effect at
 //! that place (`CGameActor::PlayGroundSkillEffect`); `ground_effect` has those of the first and second jobs.
 
 mod pulse;
+pub mod traps;
 
 pub use pulse::Pulse;
 
@@ -95,6 +99,9 @@ pub fn shows(unit: u32) -> Option<Shows> {
         141 => Shows::Kept(EF_ICEWALL),
         142 => again(EF_QUAGMIRE, 20),
         146 => Shows::Kept(EF_VENOMDUST2),
+        // UNT_SHOCKWAVE: its file over the trap, begun anew whenever it ends (`EF_SHOCKWAVE`'s case in
+        // `CRagEffect::OnProcess`).
+        traps::SHOCKWAVE => Shows::Again(traps::EF_SHOCKWAVE, traps::SHOCKWAVE_TICKS),
         // UNT_VOLCANO, UNT_DELUGE, UNT_VIOLENTGALE, UNT_LANDPROTECTOR.
         154 => Shows::Kept(EF_BOTTOM_VO),
         155 => Shows::Kept(EF_BOTTOM_DE),
@@ -196,8 +203,9 @@ mod tests {
         // An open Warp Portal launches its effect anew 8 ticks before it would end, as one about to open does.
         assert_eq!((shows(128), shows(129)), (Some(Shows::Again(EF_PORTAL2, 9991)), Some(Shows::Again(EF_READYPORTAL2, 192))));
         assert_eq!((shows(154), shows(157)), (Some(Shows::Kept(EF_BOTTOM_VO)), Some(Shows::Kept(EF_BOTTOM_LA))));
-        // The traps are not drawn yet; the kind 134 shows nothing in the client either.
-        assert_eq!((shows(145), shows(134)), (None, None));
+        // A trap is a model, not an effect (`traps.rs`), but for the file over a Shockwave Trap; the kind 134
+        // shows nothing in the client either.
+        assert_eq!((shows(145), shows(134), shows(148)), (None, None, Some(Shows::Again(145, 75))));
         assert_eq!((appears_with(127), appears_with(126)), (Some("effect/ef_firewall.wav"), None));
     }
 

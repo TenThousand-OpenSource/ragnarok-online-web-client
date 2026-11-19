@@ -4,8 +4,9 @@ use super::*;
 use crate::press::Step;
 use crate::press::skills::{LevelStep, Press};
 
-/// How wide the tabs of the jobs are, down the left of the skill window.
-const SKILL_TABS: i32 = 20;
+/// How wide the tabs of the jobs are, down the left of the skill window: the window's body begins where they
+/// end (`UINewSkillListWnd::Paint`, its `left`).
+const SKILL_TABS: i32 = tabs::SIDE_TABS;
 
 impl App {
     /// What a skill does, as the client shows it (`UISkillDescribeWnd`): a white box 304 wide inside a rounded
@@ -93,18 +94,10 @@ impl App {
         let page = self.skills.tab.min(pages.len().saturating_sub(1));
         let mut window = String::new();
         window.push_str(&Self::skill_window_frame(width, height));
-        // The tabs: one for each job the character grew through, their words in the usual text, not bold
-        // whether open or not (`UITabControl::DrawVerticalTab`, its `fontSize` 12).
-        let font = Font(0, 12, false).style();
-        for tab in 0..pages.len() {
-            let open = if tab == page { " open" } else { "" };
-            window.push_str(&format!(
-                r#"<button type="button" class="a side{open}" style="{};{font}" {}>{}</button>"#,
-                at(0, 22 + tab as i32 * 50, SKILL_TABS + 1, 48),
-                pressed(Press::Tab(tab)),
-                tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or(""))
-            ));
-        }
+        // The tabs: one for each job the character grew through, down the window's left from 6 under its top
+        // (`UINewSkillListWnd::OnCreate`: a `UITabControl` of 15 round each tab's letters; `hud/tabs.rs`).
+        let tabs: Vec<(String, Option<&str>, String)> = (0..pages.len()).map(|tab| (tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or("")).to_owned(), None, pressed(Press::Tab(tab)))).collect();
+        window.push_str(&tabs::side_tabs(0, 6, 15, false, page, &tabs));
         // The cells, empty ones first.
         for cell in 0..42 {
             window.push_str(&art("basic_interface/no_skill.bmp", cell % 7 * 68 + 76, cell / 7 * 56 + 44, 24, 24));
@@ -169,10 +162,12 @@ impl App {
         let icon = Self::icon(known.as_ref().map(|(resource, ..)| resource.to_lowercase()).as_deref());
         window.push_str(&format!(r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#, at(x + 4, y + 44, 24, 24), escape(&name)));
         let shade = if level == 0 { "#787878" } else { "#666666" };
-        // The name, over the cell: as much of it as fits in 48 pixels, in the smaller text (`DrawSkillTree`:
-        // (0, 11), and the level under the cell the same in bold).
+        // The name, over the cell, in the smaller text (`DrawSkillTree`: (0, 11), and the level under the cell
+        // the same in bold): in the middle of 48 pixels, and one that is wider cut from their left edge to what
+        // fits with three dots after it (`UIWindow::ClipTextToWidth`; the page's own mark for a text cut
+        // stands for the dots). The whole name is what the picture says when pointed at.
         window.push_str(&format!(
-            r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;overflow:hidden;pointer-events:none">{}</div>"#,
+            r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none">{}</div>"#,
             at(x - 8, y + 30, 48, 13),
             SMALL.style(),
             escape(&name)

@@ -193,6 +193,8 @@ systems! {
     Cart = cart,
     /// A merchant's shop.
     Vending = vending,
+    /// The books that are read: the buttons of a book's window, and those an item that is a book has.
+    Books = books,
 }
 
 #[cfg(test)]

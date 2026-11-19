@@ -132,7 +132,7 @@ impl App {
                 // The hits it is made of, each with what it shows and sounds like as it lands (a monster's
                 // own sounds are in its sprite).
                 let hits = crate::blow::landing::of_act(act.kind, act.damage, i32::from(act.hits), act.extra, world::two_handed(act.source, own));
-                let lands = world::struck(world::Strike { source: act.source, target: act.target, own, lasts: f64::from(act.speed), flinch: f64::from(act.delay), hits, ring: true, guarded: self.wards_blows() });
+                let lands = world::struck(world::Strike { source: act.source, target: act.target, own, lasts: f64::from(act.speed), flinch: f64::from(act.delay), hits, ring: true, guarded: self.wards_blows(), skill: None, follow: None });
                 // One who holds a bow sends an arrow, which arrives as the blow lands.
                 world::arrow(act.source, act.target, own, lands);
             }
@@ -181,7 +181,7 @@ impl App {
             let hits = blows.len() as i32;
             let (each, later): (i32, Vec<f64>) = (blows[0].damage, blows.iter().map(|blow| blow.after).collect());
             let delay = f64::from(landed.attack_motion.clamp(0, 1500));
-            let lands = world::struck(world::Strike { source: landed.source, target: landed.target, own, lasts: f64::from(landed.attack_motion), flinch: delay, hits: blows, ring: false, guarded: false });
+            let lands = world::struck(world::Strike { source: landed.source, target: landed.target, own, lasts: f64::from(landed.attack_motion), flinch: delay, hits: blows, ring: false, guarded: false, skill: Some(landed.skill), follow: effect_tables::skill_follow(landed.skill) });
             // What the skill looks and sounds like on the one struck (the client's `PlaySkillEffect`
             // for the bolts themselves, and the effect of each hit by the skill's element).
             let on = (landed.target != own).then_some(landed.target);

@@ -39,11 +39,19 @@ impl App {
             // The reward could not be carried: said in red.
             fight::ZC_THROW_MVPITEM => self.chat_line(Self::words(147, "You are the MVP, but you can't take the reward because you are over your weight limit."), RED),
             fight::ZC_DEVOTIONLIST => self.devotion_shown(packet, own),
-            // The window of a combo and a blade caught change how the two are posed and coloured (the client's
-            // `SetSequenceDeadline`, and `ReceiveActorPairFreeze`: the action of a skill held on its fifth
-            // picture, both greyed and still). Neither is shown here yet: the poses of characters are not this
-            // file's to give.
-            fight::ZC_COMBODELAY | fight::ZC_BLADESTOP => {}
+            // The window of a combo: the frames of the one who struck are held for as long (the client's
+            // `SetSequenceDeadline`).
+            fight::ZC_COMBODELAY => {
+                if let Some((who, milliseconds)) = fight::combo_delay(packet) {
+                    world::combo_window(who, own, f64::from(milliseconds));
+                }
+            }
+            // A blade caught, or let go (`ReceiveActorPairFreeze`): the two are held still and grey.
+            fight::ZC_BLADESTOP => {
+                if let Some((who, whose, held)) = fight::blade_stop(packet) {
+                    world::blade_caught(who, whose, own, held);
+                }
+            }
             fight::ZC_MONSTER_INFO => {
                 if let Some(sensed) = fight::sensed(packet).filter(|sensed| fight::sense_shown(sensed.job)) {
                     // Named as the one the skill was used on is called (`UIMonsterInfoWnd::OnCreate`).
@@ -71,8 +79,12 @@ impl App {
                     self.refresh_items();
                 }
             }
-            // A trap sprung is seen by everyone: the client changes the trap's model, which is not drawn here.
-            fight::ZC_SKILL_UPDATE => {}
+            // A trap that was not to be seen is seen by everyone: its model shows (`world/skill_units/traps.rs`).
+            fight::ZC_SKILL_UPDATE => {
+                if let Some(unit) = crate::net::skill_units::seen(packet) {
+                    world::skill_unit_seen(unit);
+                }
+            }
             fight::ZC_TALKBOX_CHATCONTENTS => {
                 if let Some((unit, words)) = fight::talkie(packet) {
                     world::spot_says(unit, &words, false);

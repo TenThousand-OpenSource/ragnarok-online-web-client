@@ -111,13 +111,16 @@ impl App {
         // One who pushes a cart has the button of the cart's window here too (`hud/cart.rs`).
         window.push_str(&self.cart_equipment_button());
         window.push_str(&Self::worn_places(&self.bag.items, true));
-        // The ammunition in use (arrows): its picture at 115, 64 under the character's hands and its name under
-        // it, 40 wide, as the client's window has them. A double click takes it off, as with anything worn.
-        if let Some(item) = self.bag.items.iter().find(|item| item.kind == 10 && item.worn != 0) {
+        // The arrows readied (`UIEquipWnd::Paint`, after the character is drawn, so over it): their picture
+        // with no number on it, 25 left of the window's middle and 44 under where its page begins (115, 64),
+        // and their name from the same 115 at 88, in lines no wider than 40 (`DrawItemIcon`, `DrawItemName`).
+        // The client does put both there, beside and over the character's head. A double click takes them off,
+        // as with anything worn.
+        if let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::net::items::WORN_AS_AMMO) {
             let resource = data::item(item.id).map(|(_, resource)| resource);
             window.push_str(&format!(
-                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{} : {} {}"><div style="position:absolute;left:-4px;top:-4px">{}</div>{}</div>
-                   <div class="a t" style="left:107px;top:88px;width:40px;line-height:12px;text-align:center;white-space:nowrap;overflow:hidden">{}</div>"#,
+                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{} : {} {}"><div style="position:absolute;left:-4px;top:-4px">{}</div></div>
+                   <div class="a t" style="left:115px;top:88px;width:40px;line-height:12px;white-space:normal;overflow:hidden;max-height:24px;pointer-events:none">{}</div>"#,
                 // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
                 // begins the same drag); a double click takes it off.
                 format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))),
@@ -126,7 +129,6 @@ impl App {
                 item.amount,
                 tr("ea"),
                 Self::icon(resource.as_deref()),
-                count(item.amount),
                 escape(&Self::item_name(item)),
             ));
         }

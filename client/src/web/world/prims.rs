@@ -28,7 +28,7 @@ macro_rules! files {
         const FILES: &[&File] = &[$(&$file::FILE),*];
     };
 }
-files!(auras, blasts, blows, bodies, bolts, bursts, falls, grounds, gusts, heals, held, hits, links, marks, missiles, motes, pillars, places, played, prints, puffs, rays, shields, songs, souls, sounds, sprays, sprites, struck, trails, walls, waves, weather, winds);
+files!(auras, blasts, blows, bodies, bolts, bursts, falls, grounds, gusts, heals, held, hits, links, marks, max_level, missiles, motes, pillars, places, played, prints, puffs, rays, shields, songs, souls, sounds, spirits, sprays, sprites, struck, trails, walls, waves, weather, winds);
 mod launched;
 
 /// What a file of effects answers for the effects it has.

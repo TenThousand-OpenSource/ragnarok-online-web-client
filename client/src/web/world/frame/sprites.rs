@@ -2,50 +2,32 @@
 
 use super::*;
 
-/// The blows that land now: the one struck flinches, the ring and the number show, the blow sounds.
-pub(super) fn landings(state: &mut State, time: f64) {
+/// The hits that landed now, as `combat/landing.rs` tells them: the one struck stops and flinches, and a
+/// skill's hit may have its sprite drawn in one colour for a moment.
+pub(super) fn landings(state: &mut State, time: f64, landed: &[combat::Struck]) {
     let Some(scene) = &mut state.scene else { return };
-    let mut landed = Vec::new();
-    state.landing.retain(|blow| {
-        if blow.0 > time {
-            return true;
-        }
-        landed.push((blow.1, blow.2, blow.3, blow.4.clone(), blow.5, blow.6));
-        false
-    });
-    for (target, own, damage, heard, critical, ring) in landed {
+    for &combat::Struck { target, own, flinches, flash } in landed {
         let Some(hurt) = (if target == own { Some(&mut scene.player) } else { scene.units.get_mut(&target) }) else { continue };
-        if damage > 0 {
-            // A blow that hurts stops the one struck where it walks, as it lands: the client puts it in its
-            // struck state there and then (`ST_DAMAGE`, in `CGameActor::SendMsg`), and the server stops it at
-            // that moment without a word, on the middle of the nearest cell (rAthena's `unit_set_walkdelay`,
-            // with `synchronize_damage` on so that its moment is the client's). The player's own character
-            // walks on only when asked again; a held button asks again a moment later.
-            if target == own && hurt.walk.take().is_some() {
-                state.held_asked = time;
-            }
-            // (One that runs through the frames of a state does not flinch: `ST_DAMAGE` is refused while a
-            // sequence is under way.)
-            if hurt.motion.is_none() && hurt.dying.is_none() && !hurt.dead && hurt.pose.sequence.is_none() {
-                hurt.motion = Some((if matches!(hurt.look, Look::Character(_)) { 48 } else { 24 }, time, 280.0));
-            }
-            // The ring of a plain blow that lands (the client's `EF_HIT1`).
-            if ring {
-                prims::begin(0, (target != own).then_some(target), None, time, &mut state.bursts, &mut state.sounds_due);
-            }
-            // A critical blow lands with the flare of a skill's hit over that (the client's `EF_HIT2`, what its
-            // `ProcessHitMessage` gives a `DMG_CRITICAL`), and with that effect's own sound.
-            if critical {
-                if let Some((burst, sound)) = prims::burst(1, (target != own).then_some(target), None, time) {
-                    state.bursts.push(burst);
-                    sound::effect(sound, 1.0);
-                }
-            }
-            if let Some(heard) = heard {
-                sound::effect(&heard, 1.0);
-            }
+        // (`render.started` and `isSingleColor` with the colour of `AM_ATTACKED_SKILL`: `Ail::flash`.)
+        if let Some(colour) = flash {
+            hurt.ail.flash = Some((time, colour));
         }
-        state.hits.push((target, damage, critical && damage > 0));
+        if !flinches {
+            continue;
+        }
+        // A blow that hurts stops the one struck where it walks, as it lands: the client puts it in its
+        // struck state there and then (`ST_DAMAGE`, in `CGameActor::SendMsg`), and the server stops it at
+        // that moment without a word, on the middle of the nearest cell (rAthena's `unit_set_walkdelay`,
+        // with `synchronize_damage` on so that its moment is the client's). The player's own character
+        // walks on only when asked again; a held button asks again a moment later.
+        if target == own && hurt.walk.take().is_some() {
+            state.held_asked = time;
+        }
+        // (One that runs through the frames of a state does not flinch: `ST_DAMAGE` is refused while a
+        // sequence is under way. Nor does one whose motion is held: a blade caught, stone, ice.)
+        if hurt.motion.is_none() && hurt.dying.is_none() && !hurt.dead && hurt.pose.sequence.is_none() && !hurt.pose.frozen {
+            hurt.motion = Some((if matches!(hurt.look, Look::Character(_)) { 48 } else { 24 }, time, 280.0));
+        }
     }
 }
 
@@ -53,7 +35,7 @@ pub(super) fn landings(state: &mut State, time: f64) {
 /// and the effects on it have left its body (`crate::body`), `left` of each to see. A weapon that an effect
 /// has drawn by itself (`Body::weapon`) is the picture of the weapon alone over the body, which is then the
 /// character without its weapon if the effect says so and that picture is ready.
-fn bodied(gpu: &mut Gpu, mover: &Mover, shown: &SpriteKey, feet: Vector, left: f32, sprites: &mut Vec<Stood>) {
+fn bodied(gpu: &mut Gpu, mover: &Mover, shown: &SpriteKey, feet: Vector, left: f32, time: f64, sprites: &mut Vec<Stood>) {
     // (`character` tells the client's two ways of drawing apart.)
     let (character, tall) = (matches!(mover.look, Look::Character(_)), gpu.sprite_textures.get(shown).map_or(0.0, |texture| texture.size.1));
     let armed = match shown {
@@ -65,7 +47,11 @@ fn bodied(gpu: &mut Gpu, mover: &Mover, shown: &SpriteKey, feet: Vector, left: f
     let bare = armed.as_ref().filter(|(.., bare)| *bare).map(|(_, figure, ..)| SpriteKey::Player(Figure { weapon: 0, ..(*figure).clone() })).filter(|bare| gpu.has_sprite(bare));
     // A baby job is drawn smaller, whatever else is done to it (`GetSkillFactor`, over `ScaleByPulse`).
     let size = if character { crate::pose::size(mover.job) } else { 1.0 };
-    let sized = |quad: crate::body::Quad| crate::body::Quad { scale: quad.scale * size, ..quad };
+    // One a skill's hit has flashed is drawn in that colour and no other for 100 milliseconds (the client's
+    // `isSingleColor`: the colour takes the place of the sprite's own in `CRenderObject`'s quads, and its
+    // `OnProcess` puts it back once `timeGetTime() > render.started + 100`).
+    let flash = mover.ail.flash.filter(|(since, _)| time <= since + 100.0).map(|(_, [red, green, blue])| [red, green, blue, 255]);
+    let sized = |quad: crate::body::Quad| crate::body::Quad { scale: quad.scale * size, colour: flash.filter(|_| !quad.adds).unwrap_or(quad.colour), ..quad };
     for quad in mover.ail.body.quads(character, tall, &mut lot) {
         sprites.push((bare.clone().unwrap_or_else(|| shown.clone()), feet, left, sized(quad)));
     }
@@ -83,7 +69,7 @@ fn shadow() -> SpriteKey {
 fn shadowed(gpu: &mut Gpu, feet: Vector, scale: f32, sprites: &mut Vec<Stood>) {
     let key = shadow();
     if scale > 0.0 && gpu.has_sprite(&key) {
-        sprites.push((key, feet, 1.0, crate::body::Quad { scale, ..crate::body::Quad::PLAIN }));
+        sprites.push((key, feet, 1.0, crate::body::Quad { scale, under: true, ..crate::body::Quad::PLAIN }));
     }
 }
 
@@ -151,20 +137,32 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
                 }
             }
         }
+        // So may a frame of a character's body: the swing of its weapon, heard from where it is
+        // (`CRenderObject::PlayFrameSounds`, `crate::sprite::frames_sounding`).
+        if let SpriteKey::Player(figure) = &wanted {
+            let (action, count) = (figure.action - figure.action % 8, figure::body_frames(figure.job, figure.sex, figure.action).unwrap_or(0));
+            let frame = if count > 0 { figure.frame % count } else { figure.frame };
+            for due in crate::sprite::frames_sounding(mover.heard.replace((action, frame)), action, frame, count.max(frame + 1)) {
+                if let Some(name) = figure::body_sound_of(figure.job, figure.sex, figure.action, due) {
+                    sound::at(&name, (position.0 - feet_cell.0) * CELL, (position.1 - feet_cell.1) * CELL);
+                }
+            }
+        }
         // Which of the eight ways it is seen from: the marks of its states that turn with it need it.
         let turned = match &wanted {
             SpriteKey::Player(figure) | SpriteKey::Weapon(figure) => figure.action % 8,
             SpriteKey::Creature(_, action, _) => action % 8,
         };
-        // One turned to stone or frozen stays in the picture it had (the client's `isMotionFreezed`).
-        if gpu.has_sprite(&wanted) && !(mover.ail.still() && mover.shown.is_some()) {
+        // One turned to stone or frozen, or whose blade is caught, stays in the picture it had (the client's
+        // `isMotionFreezed`).
+        if gpu.has_sprite(&wanted) && !((mover.ail.still() || mover.pose.frozen) && mover.shown.is_some()) {
             mover.shown = Some(wanted);
         }
         // Other players are see-through when the player has it so (the client's Hide other Players). One that
         // hides, cloaks or is invisible is not drawn, the player's own character neither.
         let faint = hide_players && !is_own && matches!(mover.look, Look::Character(_));
         if let Some(shown) = mover.shown.as_ref().filter(|_| !mover.hidden()) {
-            bodied(gpu, mover, shown, feet, left_of(mover, faint, time), &mut sprites);
+            bodied(gpu, mover, shown, feet, left_of(mover, faint, time), time, &mut sprites);
             // The marks of its body and health states stay by it.
             ailments::marks(gpu, gat, mover, feet, turned, time, &mut sprites);
         }

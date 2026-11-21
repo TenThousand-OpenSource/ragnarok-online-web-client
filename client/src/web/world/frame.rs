@@ -11,6 +11,8 @@ mod effects;
 mod marks;
 mod sprites;
 
+pub(super) use sprites::left_of;
+
 /// Draws one frame, and asks for the next while there is a world to draw: a list of steps and nothing else.
 pub(super) fn frame() {
     due();
@@ -77,7 +79,7 @@ fn camera_step(state: &mut State, time: f64, yaw: f32) -> Option<(((f32, f32), S
     scene.models.animate(gpu, aim, time);
     // A shake of the screen throws the camera about, a step every frame, and leaves it as it was.
     let (camera, aim) = camera::shaken(&mut state.quake, scene.camera, aim, time);
-    Some((own, feet, camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32)))
+    Some((own, feet, camera.view(aim, gpu.config.width as f32 / gpu.config.height as f32, &scene.gat)))
 }
 
 /// Everything of the world lives on to `time` and is drawn as that view sees it. Gives back the casts under
@@ -100,7 +102,7 @@ fn drawn(state: &mut State, view: &View, own: ((f32, f32), SpriteKey), time: f64
     let mut quads = Quads::default();
     skill_units::drawn(state, view, &mut quads);
     effects::files(state, view, time, &mut quads);
-    scope::drawn(state, time, &mut quads);
+    scope::drawn(state, view, time, &mut quads);
     let casts = effects::casts(state, time, &mut quads);
     let asked = effects::bursts(state, view, time, &mut quads);
     // What the effects do to the bodies of those they are on, and the shakes of the screen they ask for.
@@ -111,6 +113,10 @@ fn drawn(state: &mut State, view: &View, own: ((f32, f32), SpriteKey), time: f64
     }
     effects::arrows(state, view, time, &mut quads);
     ailments::veils(state, view, time, &mut quads);
+    // The particles of the emitters the map places.
+    scenery::emitters_drawn(state, view);
+    // Those drawn as models, not sprites, are moved and put on the GPU.
+    granny::drawn(state, view, time);
     let (Some(gpu), Some(scene)) = (&mut state.gpu, &state.scene) else { return None };
     gpu.draw(scene, view, &mut standing, &rings, &marks, &numbers, &quads);
     Some(casts)

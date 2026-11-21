@@ -79,14 +79,18 @@ impl App {
         let wanted: Vec<(u32, String)> = shown
             .iter()
             .filter(|monster| monster.id != 0 && !self.guide.pictures.contains_key(&monster.id) && self.guide.asked.insert(monster.id))
-            .filter_map(|monster| Some((monster.id, data::sprite(u16::try_from(monster.id).ok()?)?)))
+            .filter_map(|monster| {
+                // (Out of the folder of its job: `crate::creatures::sprite`.)
+                let job = u16::try_from(monster.id).ok()?;
+                Some((monster.id, crate::creatures::sprite(job, &data::sprite(job)?)))
+            })
             .collect();
         if wanted.is_empty() {
             return;
         }
         wasm_bindgen_futures::spawn_local(async move {
             for (id, sprite) in wanted {
-                if let Ok(picture) = figure::frame_picture(&format!("몬스터/{sprite}"), 0, 0).await {
+                if let Ok(picture) = figure::frame_picture(&sprite, 0, 0).await {
                     dispatch(Action::GuideRead(id, picture));
                 }
             }

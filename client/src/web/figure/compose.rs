@@ -15,13 +15,14 @@ use crate::sprite::imf::{self, Part};
 const SHIELDS: [&str; 5] = ["", "_가드", "_버클러", "_쉴드", "_미러쉴드"];
 
 /// The shield on a figure's arm as it is in the frame the figure is in (`GetShieldResourceName`): the sprite
-/// made for that very shield if the client has it, else the one of its view. Nothing in an action that shows
-/// no shield, or for a shield without a sprite.
-async fn shield(figure: &Figure, sex: &str, job: &str) -> Option<(Sprite, Frame)> {
+/// made for that very shield if the client has it, else the one of its view, both among the shields of the job
+/// the client's table of shields names (`crate::dress::shield`). Nothing in an action that shows no shield, or
+/// for a shield without a sprite.
+async fn shield(figure: &Figure) -> Option<(Sprite, Frame)> {
     if figure.shield == 0 || !crate::pose::armed(figure.action) {
         return None;
     }
-    let base = format!("data/sprite/방패/{job}/{job}_{sex}");
+    let base = crate::dress::shield(figure.job, figure.sex);
     let (pictures, actions) = match sprite(&format!("{base}_{}_방패", figure.shield)).await {
         Ok(own) => own,
         Err(_) => {
@@ -32,10 +33,10 @@ async fn shield(figure: &Figure, sex: &str, job: &str) -> Option<(Sprite, Frame)
     Some((pictures, frame(&actions, figure.action, figure.frame).ok()?))
 }
 
-/// Which of the body and the head lies under the other in the figure's frame, as the job's `.imf` says; the
-/// body, where the file is missing or does not reach that far.
-async fn head_under(figure: &Figure, sex: &str, job: &str) -> bool {
-    let read = file(&format!("data/imf/{job}_{sex}.imf")).await.and_then(|bytes| imf::parse_imf(&bytes).ok());
+/// Which of the body and the head lies under the other in the figure's frame, as the `.imf` the client names
+/// for the job says (`crate::dress::imf`); the body, where the file is missing or does not reach that far.
+async fn head_under(figure: &Figure) -> bool {
+    let read = file(&crate::dress::imf(figure.job, figure.sex)).await.and_then(|bytes| imf::parse_imf(&bytes).ok());
     read.is_some_and(|imf| imf.head_under(figure.action, figure.frame))
 }
 
@@ -73,7 +74,6 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
     let sex = if figure.sex == 1 { "남" } else { "여" };
     let doram = crate::jobs::doram(figure.job);
     let race = if doram { "도람족" } else { "인간족" };
-    let job = crate::jobs::body_sprite(figure.job);
     // The first human hair styles are numbered differently in the sprites than in the game's data.
     let hair = if doram { figure.hair_style } else { hair_sprite(figure.sex, figure.hair_style) };
 
@@ -85,7 +85,7 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
             return Err(LATER.to_owned());
         }
     }
-    let (body_sprite, body_act) = sprite(&format!("data/sprite/{race}/몸통/{sex}/{job}_{sex}")).await?;
+    let (body_sprite, body_act) = sprite(&crate::dress::body(figure.job, figure.sex)).await?;
     body_known(figure, &body_act);
     let (head_sprite, head_act) = sprite(&format!("data/sprite/{race}/머리통/{sex}/{hair}_{sex}")).await?;
     // Colour 0 is the sprite's own; the others are palettes of their own.
@@ -94,9 +94,11 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
         0 => None,
         colour => file(&format!("{palette_folder}/머리/머리{hair}_{sex}_{colour}.pal")).await.and_then(|bytes| sprite::parse_palette(&bytes)),
     };
-    let body_palette = match figure.body_palette {
-        0 => None,
-        palette => file(&format!("{palette_folder}/몸/{job}_{sex}_{palette}.pal")).await.and_then(|bytes| sprite::parse_palette(&bytes)),
+    // The clothes' colour is the one the client shows for what the server tells, in the palette its own table
+    // names for the job (`crate::dress`).
+    let body_palette = match crate::dress::palette(figure.job, figure.sex, crate::dress::clothes_colour(figure.job, figure.body_palette), data::korea()) {
+        Some(palette) => file(&palette).await.and_then(|bytes| sprite::parse_palette(&bytes)),
+        None => None,
     };
 
     // Standing or sitting still, the pictures of a body and a head are it looking ahead, right and left
@@ -112,9 +114,9 @@ pub(super) async fn compose(figure: &Figure) -> Result<Canvas, String> {
     };
     // The weapon in hand has a sprite of its own, with a picture for each of the body's; so have its trail
     // and the shield.
-    let (weapon, trail, shield) = (weapon::part(figure, false).await, weapon::part(figure, true).await, shield(figure, sex, job).await);
+    let (weapon, trail, shield) = (weapon::part(figure, false).await, weapon::part(figure, true).await, shield(figure).await);
     let mut canvas = Canvas::new(WIDTH, HEIGHT);
-    for part in imf::order(figure.action % 8, head_under(figure, sex, job).await) {
+    for part in imf::order(figure.action % 8, head_under(figure).await) {
         match part {
             Part::Body => canvas.draw(FEET, &body_sprite, body_palette.as_ref(), &body_frame),
             Part::Head => canvas.draw(attach(&head_frame), &head_sprite, hair_palette.as_ref(), &head_frame),

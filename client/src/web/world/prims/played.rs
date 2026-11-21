@@ -6,10 +6,20 @@
 //!   `EF_HAMIBLOOD` (571), `EF_M02` (584, Full Buster), `EF_M07` (589), `EF_KIRIKAGE` (630), `EF_KASUMIKIRI`
 //!   (632), `EF_ISSEN` (633), `EF_DESPERADO` (637), `EF_RAPIDSHOWER` (643), `EF_MAGICALBULLET` (644),
 //!   `EF_SPREADATTACK` (645), `EF_TRACKING` (647), `EF_TRIPLEACTION` (648), `EF_SPR_MASH` (729);
-//!   `EF_NPC_EARTHQUAKE` (666), which shakes the screen three times besides (`MM_QUAKE`);
+//!   `EF_NPC_EARTHQUAKE` (666), which shakes the screen three times besides (`MM_QUAKE`); and what things
+//!   that are used show: `EF_ITEM_THUNDER` (576) to `EF_ITEM_RAIN` (580), the five boxes of a mood;
+//!   `EF_POK_LOVE` (682) to `EF_POK_CHRISTMAS` (686), the firecrackers of the feasts; `EF_ITEM318` (707);
+//! - the hearts of chocolate and their like, a sprite that plays once on the one the effect is on
+//!   (`Vallentine`): `EF_VALLENTINE` (363) and `EF_VALLENTINE2` (364), the first and the second action of one
+//!   sprite; `EF_05VAL` (509); `EF_ITEMFAST` (519), the sign of a potion of speed. (`EF_RO2YEAR`, 545, is the
+//!   same function with `ro2effect.spr`, which this client's files do not have: it is left out.)
 //! - `EF_EL_GUST` (947) to `EF_EL_HEATER` (958), `EF_SILENT_BREEZE` (961), `EF_MAGMA_FLOW` (962) and
 //!   `EF_NPC_WIDEWEB` (1053): a sprite at the feet of the one it is on (`TexturedClassChange`, kinds 70 to 83
 //!   and 87);
+//! - `EF_TATAMI` (631), `EF_KAEN` (634) and `EF_LIGHTNING_S` to `EF_FLARE_S` (638 to 642): the sprite on a
+//!   cell of Tatami Gaeshi, of Kaensin and of Ground Drift (`TexturedClassChange`, kinds 16, 19 and 21 to 25),
+//!   which the units launch on themselves (`crate::skill_units`);
+//! - `EF_POISONHIT` (53): the hit of poison, a sprite that plays once on the one struck (in `OnProcess` itself);
 //! - `EF_THUNDERSTORM2` (622): the lightning of Raigekisai (in `OnProcess` itself);
 //! - `EF_DARKBREATH` (212): the dark breath (in `OnProcess` itself);
 //! - `EF_CHIMTO` (267): the palm of Investigate at the one struck (`CHIMTO`, flag 0);
@@ -30,10 +40,25 @@
 use super::*;
 use crate::prim::quarter;
 
-pub(super) const FILE: File = File { known, thrown, stays: none, run, pictures: &[], sprites: &[&SPRITES, &KINDS_FROM_70] };
+pub(super) const FILE: File = File { known, thrown, stays: none, run, pictures: &[], sprites: &[&SPRITES, &KINDS_FROM_70, &ON_CELLS] };
 
 /// The sprites the effects here show, among the client's sprites (the client names them `이팩트\name.spr`).
-const SPRITES: [&str; 22] = [
+const SPRITES: [&str; 37] = [
+    "이팩트/poisonhit",
+    "이팩트/vallentine",
+    "이팩트/05vallentine",
+    "이팩트/fast",
+    "이팩트/item_thunder",
+    "이팩트/item_cloud",
+    "이팩트/item_curse",
+    "이팩트/item_zzz",
+    "이팩트/item_rain",
+    "이팩트/폭죽_러브",
+    "이팩트/폭죽_화이트데이",
+    "이팩트/폭죽_발렌타인",
+    "이팩트/폭죽_생일",
+    "이팩트/폭죽_크리스마스",
+    "이팩트/mobile_ef04",
     "이팩트/fvoice",
     "이팩트/wink",
     "이팩트/어스퀘이크",
@@ -81,6 +106,18 @@ const KINDS_FROM_70: [&str; 15] = [
     "이팩트/wideweb",
 ];
 
+/// The sprites of `TexturedClassChange`'s kinds 16, 19 and 21 to 25, in that order: the mat of Tatami Gaeshi,
+/// the fire of Kaensin and the five spheres of Ground Drift (wind, dark, poison, water, fire).
+const ON_CELLS: [&str; 7] = [
+    "이팩트/다다미",
+    "이팩트/화염진",
+    "이팩트/라이트닝스피어",
+    "이팩트/블라인드스피어",
+    "이팩트/포이즌스피어",
+    "이팩트/프리징스피어",
+    "이팩트/플레어스피어",
+];
+
 /// Which kind of `TexturedClassChange` an effect is, counted from its kind 70 (the kind 87 comes after the
 /// kind 83 here); nothing for any other effect.
 fn ground_sprite(effect: u32) -> Option<usize> {
@@ -96,13 +133,20 @@ fn ground_sprite(effect: u32) -> Option<usize> {
 /// nothing for an effect that is not one of these. The sounds an effect starts later are in `sounds`.
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
+        53 => (50, ""),
         212 => (500, ""),
         267 => (16, "effect/mon_침투경.wav"),
+        363 | 364 | 509 | 519 => (100, "effect/vallentine.wav"),
+        576..=580 | 707 => (100, ""),
+        // (The client starts this one at the listener's own place, wherever the firecracker is.)
+        682..=686 => (100, "effect/itempokjuk.wav"),
         570 | 584 | 589 | 643 | 645 | 647 | 648 => (100, ""),
         571 => (100, "effect/h_blood_lust.wav"),
         606 | 607 => (100, ""),
         622 => (100, "effect/ef_thunderstorm.wav"),
         630 => (100, "effect/그림자베기.wav"),
+        631 => (100, ""),
+        634 | 638..=642 => (23, ""),
         632 => (100, "effect/안개베기.wav"),
         633 => (100, "effect/일섬.wav"),
         637 => (200, ""),
@@ -150,6 +194,7 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         607 if first => prims.push(chimto_once("이팩트/wink", course)),
         622 if first => prims.push(thunder(course.lasts)),
         723 if first => prims.push(spears(course)),
+        631 | 634 | 638..=642 if first => prims.push(on_cell(effect, course.lasts)),
         _ => prims.extend(played_once(effect, course).or_else(|| ground_sprite(effect).filter(|_| first).map(|kind| class_change(kind, course.lasts)))),
     }
 }
@@ -171,8 +216,29 @@ fn sprite(name: &'static str, lasts: i32, ticks_a_frame: i32) -> Prim {
 /// - Kirikage (15) and Kasumikiri (17) draw one of two actions by lot;
 /// - Issen (18) stands 6 above the feet;
 /// - Sienna Execrate (60) is the monster Stapo, 8 above the feet, in its first action or its eighth by lot.
+///
+/// `EF_POISONHIT` in `CRagEffect::OnProcess` launches the same sprite, `PoisonHit.spr` at one and a half times
+/// its size.
+///
+/// `CRagEffect::Vallentine` launches the same sprite (but for a bit of `renderFlag`, see the head of this
+/// file): its kinds 0 and 1 are the first and the second action of `vallentine.spr`.
 fn played_once(effect: u32, course: &Course) -> Option<Prim> {
     let (name, ticks_a_frame) = match effect {
+        53 => ("이팩트/poisonhit", 2),
+        363 | 364 => ("이팩트/vallentine", 2),
+        509 => ("이팩트/05vallentine", 2),
+        519 => ("이팩트/fast", 4),
+        576 => ("이팩트/item_thunder", 2),
+        577 => ("이팩트/item_cloud", 2),
+        578 => ("이팩트/item_curse", 2),
+        579 => ("이팩트/item_zzz", 2),
+        580 => ("이팩트/item_rain", 2),
+        682 => ("이팩트/폭죽_러브", 4),
+        683 => ("이팩트/폭죽_화이트데이", 4),
+        684 => ("이팩트/폭죽_발렌타인", 4),
+        685 => ("이팩트/폭죽_생일", 4),
+        686 => ("이팩트/폭죽_크리스마스", 4),
+        707 => ("이팩트/mobile_ef04", 4),
         570 => ("이팩트/캐슬링", 2),
         571 => ("이팩트/블러드러스트", 2),
         584 => ("이팩트/m_ef02", 4),
@@ -198,6 +264,7 @@ fn played_once(effect: u32, course: &Course) -> Option<Prim> {
     sprite.repeats = false;
     let points = quarter(course.yaw, course.shared.aim[0], course.shared.aim[2]);
     sprite.action = match effect {
+        364 => 1,
         584 => [0, 3, 2, 1][points],
         645 => [0, 6, 4, 2][points],
         630 if lot(2) == 0.0 => 4,
@@ -211,6 +278,9 @@ fn played_once(effect: u32, course: &Course) -> Option<Prim> {
     if effect == 797 {
         sprite.put.1 = -8.0;
     }
+    if effect == 53 {
+        sprite.size = 1.5;
+    }
     Some(sprite)
 }
 
@@ -223,6 +293,24 @@ fn played_once(effect: u32, course: &Course) -> Option<Prim> {
 fn class_change(kind: usize, lasts: i32) -> Prim {
     let mut sprite = sprite(KINDS_FROM_70[kind], lasts, if kind < 12 { 2 } else { 4 });
     sprite.repeats = kind < 13;
+    sprite
+}
+
+/// `CRagEffect::TexturedClassChange`, its kinds 16 (`EF_TATAMI`), 19 (`EF_KAEN`) and 21 to 25
+/// (`EF_LIGHTNING_S` to `EF_FLARE_S`): at its first tick a sprite on the cell, each layer of its frames in the
+/// colour its file gives it. The mat stands 6 over the ground and plays once, six ticks a frame, ending with
+/// its last; the fire and the spheres stand 1 over it and play over and over for the 23 ticks the effect
+/// lives (their unit launches the next as this one ends), the fire a frame every 3 to 7 ticks by lot, the
+/// spheres every other tick. (These kinds take the bit `renderFlag & 0x200` off again, which the others
+/// keep: see the head of this file.)
+fn on_cell(effect: u32, lasts: i32) -> Prim {
+    let (kind, ticks_a_frame, up) = match effect {
+        631 => (0, 6, 6.0),
+        634 => (1, lot(5) as i32 + 3, 1.0),
+        _ => (effect as usize - 636, 2, 1.0),
+    };
+    let mut sprite = sprite(ON_CELLS[kind], lasts, ticks_a_frame);
+    (sprite.repeats, sprite.put.1) = (effect != 631, -up);
     sprite
 }
 

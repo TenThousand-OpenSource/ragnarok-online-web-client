@@ -3,6 +3,8 @@
 use super::*;
 
 mod draw;
+mod emitters;
+mod granny;
 mod land;
 mod layers;
 mod textures;
@@ -80,6 +82,10 @@ pub(super) struct Gpu {
     /// The pictures of the sprites of the effects made of the client's primitives, each by itself: by the
     /// sprite's path, then by whether the picture is a truecolor one and its number (`gpu/layers.rs`).
     pub(super) effect_layers: HashMap<String, HashMap<(bool, usize), Rc<[wgpu::BindGroup; 2]>>>,
+    /// The Granny models' pipeline, pictures and corners (`gpu/granny.rs`), once one was drawn.
+    pub(super) granny: Option<granny::Kept>,
+    /// The particle emitters' pipelines, pictures and corners (`gpu/emitters.rs`), once a particle was drawn.
+    pub(super) emitters: Option<emitters::Kept>,
 }
 
 pub(super) fn canvas() -> Result<HtmlCanvasElement, String> {
@@ -276,14 +282,13 @@ impl Gpu {
         let sprite_adding_camera_bind = camera(&sprite_adding_pipeline);
         let sprite_room = 64;
         let (sprite_vertices, effect_vertices) = (quad_buffer(&device, sprite_room), quad_buffer(&device, 64));
-        let depth = depth_view(&device, &config);
         Ok(Self {
             canvas,
+            depth: depth_view(&device, &config),
             surface,
             device,
             queue,
             config,
-            depth,
             camera_buffer,
             camera_bind,
             sprite_camera_bind,
@@ -310,6 +315,7 @@ impl Gpu {
             effect_pictures: HashMap::new(),
             effect_sprites: HashMap::new(),
             effect_layers: HashMap::new(),
+            granny: None, emitters: None,
         })
     }
 

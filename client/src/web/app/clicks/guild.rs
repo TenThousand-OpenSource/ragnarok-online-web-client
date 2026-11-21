@@ -1,17 +1,23 @@
 //! The guild: what its window's tabs, rows and buttons do, the menus in it, the answers to what it asks, and
 //! what is typed for it (the client's `UIGuildWnd` and its tabs, `UIGuildLeaveReasonDescWnd`,
 //! `UIGuildBanReasonDescWnd`, `UIJoinGuildAcceptWnd`, and the `MM_*` arms of `CGameMode::SendMsg` they call).
-//! What the master does with the guild is in `guild/manage.rs`.
+//! What the master does with the guild is in `guild/manage.rs`, the castles it holds in `guild/castles.rs`.
 
 use super::*;
 use crate::net::guild;
 
+mod castles;
 mod manage;
 
 impl App {
     /// A press of the guild (`crate::press::guild`).
     pub(super) fn guild_pressed(&mut self, press: crate::press::guild::Press) {
         use crate::press::guild::Press;
+        // A press anywhere in the window puts the menu on a castle away (`UIGuildInfoManageWnd::OnLBtnDown`).
+        let castle_menu = self.guild.castle_menu.take();
+        if castle_menu.is_some() {
+            self.redraw(&[&wnd::GUILD]);
+        }
         match press {
             // The window is for one who is of a guild. (For anyone else the client opens a helper for finding
             // one, `UIGuildHelperWnd`, which is not made here: nothing opens.)
@@ -76,6 +82,7 @@ impl App {
             }
             Press::Yes | Press::No => self.guild_answered(press == Press::Yes),
             Press::Do(entry) => self.guild_menu_row(entry),
+            Press::Castle(_) | Press::CastleGo | Press::CastleAsk => self.guild_castle_pressed(press, castle_menu),
         }
     }
 
@@ -92,6 +99,7 @@ impl App {
     fn guild_tab_left(&mut self) {
         let guild = &mut self.guild;
         (guild.picked, guild.menu, guild.combo, guild.skill) = (None, None, None, None);
+        (guild.castle, guild.castle_menu) = (None, None);
         guild.position_edits.clear();
         guild.member_moves.clear();
     }
@@ -155,7 +163,7 @@ impl App {
 
     /// Puts the menu of the guild window away, if it is open.
     pub(in crate::web::app) fn close_guild_menu(&mut self) {
-        if self.guild.menu.take().is_some() {
+        if self.guild.menu.take().is_some() | self.guild.castle_menu.take().is_some() {
             self.render();
         }
     }
@@ -201,7 +209,10 @@ impl App {
                 self.send_on_map(&guild::expel(self.guild.id, account, character, reason.trim())),
             // The guild goes to the member: the first position is the master's (`MM_REQ_CHANGE_MEMBERPOS`).
             GuildAsk::Hand(account, character, _) if yes && self.guild.master => self.send_on_map(&guild::move_members(&[(account, character, 0)])),
-            GuildAsk::Leave | GuildAsk::Expel(..) | GuildAsk::Hand(..) => {}
+            // The character is moved to the castle, for its zeny (`UIAgitMessageBox::SendMsg`:
+            // `MM_REQ_MOVE_GUILD_AGIT`). What was told of a castle is only put away.
+            GuildAsk::Castle(castle) if yes => self.send_on_map(&guild::go_to_castle(castle)),
+            GuildAsk::Leave | GuildAsk::Expel(..) | GuildAsk::Hand(..) | GuildAsk::Castle(_) | GuildAsk::Invested(_) => {}
         }
         self.redraw(&[&wnd::GUILD_ASKS]);
     }
@@ -220,6 +231,9 @@ impl App {
         let one = !rest.is_empty() && !rest.contains(' ');
         match command.to_lowercase().as_str() {
             "/gc" | "/guildchat" if !rest.is_empty() => self.guild_say(rest),
+            // A name with a word that is not let be written is not asked for: the chat says the client's line
+            // 3335 in its 0x6E96FF (`MM_REQ_MAKE_GUILD`, `crate::manner`).
+            "/guild" if one && data::foul(rest) => self.chat_line(Self::words(3335, "Names with bad words can not be registered."), "#ff966e"),
             "/guild" if one => self.send_on_map(&guild::make(self.own_character(), rest)),
             // Only the master breaks it up, and only by its own name: anything else is refused before it is
             // sent (`MM_REQ_DISORGANIZE_GUILD`, whose message box says line 366).

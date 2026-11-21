@@ -18,6 +18,10 @@
 //!   a state has locked it (`colorLocked`). So the colour of an effect fades when the effect is over, the
 //!   colour of a state stays, and an effect on one whose colour a state has locked leaves its last colour
 //!   there until the state is told again. That is kept here as it is.
+//! - The alpha of that colour is written and comes back in the same way (`SetColor` with an alpha alone:
+//!   `EF_CLOAKING`). It is the alpha the body itself is drawn at; the copies and the lights that flags lay
+//!   about it keep the alphas the client gives them. (One who hides or cloaks by its state is not drawn at
+//!   all, `crate::pose::hidden`: the two do not meet.)
 //! - The turn is the actor's own way of facing: it stays turned when the effect is over.
 //!
 //! The client draws a character a layer at a time (body, head, what it wears) and a monster as one picture;
@@ -93,6 +97,8 @@ pub struct Touch {
     pub flags: u32,
     /// The colour it writes (`SetColor(-1, red, green, blue)`).
     pub colour: Option<[u8; 3]>,
+    /// The alpha it writes (`SetColor(alpha, -1, -1, -1)`): how much of the body is left to see, of 255.
+    pub alpha: Option<u8>,
     /// The counts it writes.
     pub effect_phase: Option<i16>,
     pub tint_phase: Option<u8>,
@@ -154,6 +160,9 @@ pub struct Body {
     /// white (`colorLocked`).
     colour: [u8; 3],
     locked: bool,
+    /// The alpha it is drawn at (the alpha of `render.colorChannels`): what an effect wrote, coming back to
+    /// the whole 8 a pass as the colour does.
+    alpha: u8,
     /// The colour its states gave it last (`crate::ailments::change`): what the next telling of its states
     /// goes on from, whatever effects have written over the colour it is drawn in since.
     stated: [u8; 3],
@@ -191,6 +200,7 @@ impl Default for Body {
         Self {
             colour: WHITE,
             locked: false,
+            alpha: 255,
             stated: WHITE,
             flags: 0,
             effect_phase: 0,
@@ -228,11 +238,13 @@ impl Body {
     }
 
     /// So many passes of the actor go by (`OnProcess`): each brings a colour that is not locked 8 nearer to
-    /// white, and the counts of the outline and the aura move on.
+    /// white and its alpha 8 nearer to the whole (`ModifyArgb(8, 8, 8, 8)`), and the counts of the outline and
+    /// the aura move on.
     pub fn pass(&mut self, ticks: u32) {
         let ticks = ticks.min(255);
         if !self.locked {
             self.colour = self.colour.map(|part| part.saturating_add((ticks * 8).min(255) as u8));
+            self.alpha = self.alpha.saturating_add((ticks * 8).min(255) as u8);
         }
         if self.flags & flag::OUTLINE != 0 {
             self.wave_phase = ((u32::from(self.wave_phase) + ticks) % 181) as u8;
@@ -304,6 +316,7 @@ impl Body {
         self.held = touch.held.or(self.held);
         if fresh {
             self.colour = touch.colour.unwrap_or(self.colour);
+            self.alpha = touch.alpha.unwrap_or(self.alpha);
             self.turn += touch.turn;
         }
     }

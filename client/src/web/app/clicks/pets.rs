@@ -55,6 +55,12 @@ impl App {
                 }
             }
             Press::Yes | Press::No => {
+                // A name with a word that is not let be written is not sent: the client's message box says
+                // its line 2948 and the name stays (`UIPetInfoWnd::SendMsg`, `crate::manner`).
+                if press == Press::Yes && self.pets.asks == 2 && data::foul(&self.pets.named) {
+                    (self.pets.asks, self.message) = (0, Some(Self::words(2948, "Name isn't available")));
+                    return self.render();
+                }
                 if let (true, Some(socket)) = (press == Press::Yes, &self.socket) {
                     if self.pets.asks == 1 {
                         socket.send(&pets::command(pets::order::FEED));

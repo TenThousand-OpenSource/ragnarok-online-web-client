@@ -9,6 +9,9 @@ use super::bytes::{i32_at, id, int, long, short, u16_at, word, Writer};
 /// ZC_USESKILL_ACK (0x0b1a): `u32 who, u32 on whom, u16 x, u16 y, u16 skill, u32 element, u32 milliseconds,
 /// u8 disposable, u32 attack motion`. Someone starts to cast.
 pub const ZC_USESKILL_ACK: u16 = 0x0b1a;
+/// ZC_SKILL_SCALE (0x0a41; the client's `ZC_EF_WARNING_PLANE`): sent with ZC_USESKILL_ACK for a skill that
+/// warns of the area it will strike (rAthena's `clif_skill_scale`, for a skill with `ShowScale`).
+pub const ZC_SKILL_SCALE: u16 = 0x0a41;
 /// ZC_NOTIFY_SKILL (0x01de): `u16 skill, u32 who, u32 on whom, u32 tick, i32 attack motion, i32 attacked motion,
 /// i32 damage, i16 level, i16 hits, i8 action`. A skill lands.
 pub const ZC_NOTIFY_SKILL: u16 = 0x01de;
@@ -134,6 +137,16 @@ pub fn use_on_ground(level: u16, skill: u16, cell: (u16, u16)) -> Vec<u8> {
     Writer::new(0x0366).u16(level).u16(skill).u16(cell.0).u16(cell.1).done()
 }
 
+/// CZ_USE_SKILL_TOGROUND_WITHTALKBOX (0x0367, 31 bytes): `u16 level, u16 skill, u16 x, u16 y, char[21] words`,
+/// a Talkie Box or Graffiti placed with its words. The client writes 20 bytes of them and a zero
+/// (`CGameMode::SendMsg`, `MM_USE_SKILL_TOGROUND_WITH_TALKBOX`: `_snprintf_s(text, 21, …)`), and rAthena at
+/// this PACKETVER reads as many (`clif_shuffle.hpp`: 0x0367 is 31 long from 20190904, `TALKBOX_MESSAGE_SIZE`
+/// 21; the 0x0190 of 90 bytes is the packet of clients before 2008). The client cuts at a byte; here the words
+/// are cut at the end of a whole letter, for they go as UTF-8.
+pub fn use_on_ground_with_words(level: u16, skill: u16, cell: (u16, u16), words: &str) -> Vec<u8> {
+    Writer::new(0x0367).u16(level).u16(skill).u16(cell.0).u16(cell.1).field_whole_chars::<21>(words).done()
+}
+
 /// What ZC_ACK_TOUSESKILL tells of a skill that was not used.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Failed {
@@ -190,10 +203,42 @@ pub fn out_of_reach(packet: &[u8]) -> Option<(u32, i16)> {
     Some((long(packet, 2)?, short(packet, 14)?))
 }
 
+/// A skill that warns of its area is being cast.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Warned {
+    /// Who casts.
+    pub source: u32,
+    pub skill: u16,
+    pub level: u16,
+    /// The cell the area is around: the caster's own.
+    pub cell: (u16, u16),
+    /// How long the cast takes.
+    pub milliseconds: u32,
+}
+
+/// ZC_SKILL_SCALE (0x0a41, 18 bytes): `u32 who, i16 skill, i16 level, i16 x, i16 y, u32 milliseconds`.
+pub fn warned(packet: &[u8]) -> Option<Warned> {
+    Some(Warned {
+        source: long(packet, 2)?,
+        skill: word(packet, 6)?,
+        level: word(packet, 8)?,
+        cell: (word(packet, 10)?, word(packet, 12)?),
+        milliseconds: long(packet, 14)?,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::skills::failure;
+
+    #[test]
+    fn reads_a_skill_that_warns_of_its_area() {
+        // An earthquake of the fourth level, cast for two seconds by a monster on cell (120, 87).
+        let packet = [0x41, 0x0a, 0x40, 0x9c, 0, 0, 0x8d, 0x02, 4, 0, 120, 0, 87, 0, 0xd0, 0x07, 0, 0];
+        assert_eq!(warned(&packet), Some(Warned { source: 40_000, skill: 653, level: 4, cell: (120, 87), milliseconds: 2000 }));
+        assert_eq!(warned(&packet[..17]), None);
+    }
 
     #[test]
     fn reads_what_else_the_server_says_of_blows_and_effects() {
@@ -244,6 +289,18 @@ mod tests {
         );
         assert_eq!((landed.attack_motion, landed.attacked_motion), (500, 300));
         assert_eq!(use_on_ground(3, 47, (150, 160)).len(), 10);
+    }
+
+    #[test]
+    fn a_skill_placed_with_words_carries_twenty_bytes_of_them() {
+        let placed = use_on_ground_with_words(1, 125, (150, 160), "hello");
+        assert_eq!(crate::net::packet_length(0x0367), Some(31));
+        assert_eq!(placed.len(), 31);
+        assert_eq!(&placed[..10], &[0x67, 0x03, 1, 0, 125, 0, 150, 0, 160, 0]);
+        assert_eq!(&placed[10..16], b"hello\0");
+        // Longer than the field: twenty bytes of it and a zero.
+        let long = use_on_ground_with_words(1, 220, (1, 2), "abcdefghijklmnopqrstuvwxyz");
+        assert_eq!((long.len(), &long[10..30], long[30]), (31, &b"abcdefghijklmnopqrst"[..], 0));
     }
 
     #[test]

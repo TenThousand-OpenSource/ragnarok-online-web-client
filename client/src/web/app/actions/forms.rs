@@ -36,6 +36,8 @@ impl App {
             Form::RoomPassword => self.room_password_typed(),
             Form::Shortcuts => self.shortcuts_kept(),
             Form::TipSearch => self.tip_searched(),
+            Form::SkillWords => self.skill_words_typed(),
+            Form::AwayWords => self.away_typed(),
             Form::Chat => self.chat_typed(),
         }
     }

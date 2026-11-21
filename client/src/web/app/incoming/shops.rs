@@ -29,7 +29,7 @@ impl App {
         self.shops.basket.clear();
         self.shops.counting = None;
         self.shops.shop = Some(shop);
-        self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
+        self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COMPARE, &wnd::SHOP_COUNT]);
     }
 
     /// What the shop answers to a deal (`CGameMode`'s handlers of ZC_PC_PURCHASE_RESULT and
@@ -51,7 +51,7 @@ impl App {
             self.shops.shop = None;
             self.shops.basket.clear();
             self.shops.counting = None;
-            self.redraw(&[&wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
+            self.redraw(&[&wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COMPARE, &wnd::SHOP_COUNT]);
         }
     }
 }

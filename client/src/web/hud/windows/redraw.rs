@@ -76,7 +76,7 @@ impl App {
 
     /// Redraws the windows that show items and skills.
     pub(in crate::web) fn refresh_items(&self) {
-        self.redraw(&[&INVENTORY, &SKILLS, &HOTKEYS, &ITEM_INFO, &SKILL_INFO, &EQUIPMENT]);
+        self.redraw(&[&INVENTORY, &SKILLS, &HOTKEYS, &ITEM_INFO, &SKILL_INFO, &EQUIPMENT, &SHOP_COMPARE]);
         self.redraw(&STORAGE_WINDOWS);
     }
 }

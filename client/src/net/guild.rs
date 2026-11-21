@@ -2,7 +2,7 @@
 //! join, leave and break one. The layouts are rAthena's for PACKETVER 20260219 (`clif_guild_*` and
 //! `clif_parse_Guild*` in `clif.cpp`, `packets_struct.hpp`, `clif_packetdb.hpp`).
 
-use super::bytes::{Writer, body, long, records, text, text_at, word};
+use super::bytes::{Writer, body, int, long, records, short, text, text_at, word};
 
 /// ZC_RESULT_MAKE_GUILD (0x0167, 3 bytes): `u8 result`: how making a guild went (`made`).
 pub const ZC_RESULT_MAKE_GUILD: u16 = 0x0167;
@@ -115,7 +115,7 @@ pub struct Info {
     pub next_exp: u32,
     pub emblem: u32,
     pub name: String,
-    /// The castles it holds, as the server words it.
+    /// The castles it holds, as the server words it (the client's list of castles lies over these words).
     pub land: String,
     pub master_character: u32,
     pub master: String,
@@ -282,10 +282,11 @@ pub fn names(packet: &[u8]) -> Option<(u32, Names)> {
     }))
 }
 
+mod castles;
 mod manage;
 mod members;
 mod requests;
-pub use {manage::*, members::*, requests::*};
+pub use {castles::*, manage::*, members::*, requests::*};
 
 #[cfg(test)]
 mod tests;

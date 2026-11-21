@@ -271,8 +271,8 @@ impl App {
     /// The shop is asked to be opened, after the client's checks in its order (`UIMerchantShopMakeWnd`, at
     /// `ID_OK`): every price a number (its line 602), something to sell (2494), nothing unidentified (603), a
     /// thing that costs nothing only if the player says so (604, asked unless `free` says it was), a title
-    /// (225), and no more zeny in all than a character can hold (3826). The client says these in message
-    /// boxes; here the chat says them, in red.
+    /// (225) with no word that is not let be written (14), and no more zeny in all than a character can hold
+    /// (3826). The client says these in message boxes; here the chat says them, in red.
     fn stall_opened(&mut self, free: bool) {
         let Some(making) = &self.vending.making else { return };
         let prices: Option<Vec<u32>> = making.rows.iter().map(|stalled| crate::vending::price_typed(&stalled.price)).collect();
@@ -287,6 +287,8 @@ impl App {
                 return self.redraw(&[&wnd::VENDING_ASKS]);
             }
             Some(_) if making.title.trim().is_empty() => Some((225, "Please enter the stall's name")),
+            // A title with a word that is not let be written (`g_forbiddenWords.Allows`, `crate::manner`).
+            Some(_) if data::foul(&making.title) => Some((14, "Foul Language Detected.")),
             Some(prices) if zeny + prices.iter().zip(&making.rows).map(
                 |(price, stalled)| u64::from(*price) * u64::from(stalled.amount)
             ).sum::<u64>() > i32::MAX as u64 => {

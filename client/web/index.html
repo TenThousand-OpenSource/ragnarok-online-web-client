@@ -141,6 +141,10 @@
   .b:disabled { color: #909090; cursor: default; background-image: var(--n); }
   .b img { display: block; pointer-events: none; }
   .b[data-big] { font-size: 14px; font-weight: bold; }
+  /* What a button shows only while it is held down (`hud::basic_button_holding`): it may lie outside the button. */
+  .b[data-holds] { overflow: visible; }
+  .held { display: none; pointer-events: none; }
+  .b:active > .held { display: block; }
   .check { padding: 0; border: 0; background: no-repeat 0 0; cursor: pointer; }
   .in { padding: 0 3px; border: 0; outline: 0; background: transparent; font: 13px var(--face); color: #000; user-select: text; }
   .in::placeholder { color: #9c9c9c; }

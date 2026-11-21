@@ -3,6 +3,8 @@
 //! effect is its function of `CRagEffect` with the same figures:
 //!
 //! - `EF_RG_COIN` (274): the coins of Steal Coin (`TexturedSpray`);
+//! - `EF_INTIMIDATE` (227): the pale blue squares thrown out from where one who Intimidates stood (`WhiteSpray`
+//!   with its kind 0, twenty times);
 //! - `EF_RG_COIN2` (495), `EF_RG_COIN3` (627), `EF_RG_COIN4` (770), `EF_RG_COIN5` (820), `EF_RG_COIN6` (869),
 //!   `EF_RG_COIN7` (907), `EF_RG_COIN_BLUE` (2436), `EF_RG_COIN_BLUE_2` (2437): the shields and swords, the
 //!   weapons, the rings and the notes that a Strip and its like tear off (`TexturedSprayKind`). Some of them
@@ -11,9 +13,9 @@
 //!   name that begins so from there;
 //! - `EF_TEIHIT2` (264), `EF_BACKSTAP` (275): the sparks struck out of the one hit by Investigate and by Back
 //!   Stab (`TEIHIT2`);
-//! - `EF_TEIHIT1X` (266), `EF_TEIHIT1T` (889), `EF_TEIHIT3` (276): the streaks that burst from the one struck
-//!   by Asura Strike and by Tiger Cannon, and from the one who Raids (`TexturedScatter`,
-//!   `TexturedScatterLow`).
+//! - `EF_TEIHIT1` (262), `EF_TEIHIT1X` (266), `EF_TEIHIT1T` (889), `EF_TEIHIT3` (276): the streaks that burst
+//!   from the one struck by Chain Combo, by Asura Strike and by Tiger Cannon, and from the one who Raids
+//!   (`TexturedScatter`, `TexturedScatterLow`).
 //! - `EF_HITLINE4` (429), `EF_HITLINE6` (431): the sparks that leap from one kicked (`White02Burst`,
 //!   `WhiteSparkStreak`); `EF_HITLINE5` (430): those that leap from one kicked back, away from the one who
 //!   kicked (`WhiteSparkRing`);
@@ -32,8 +34,8 @@ use crate::prim::{Tei, angle_of};
 pub(super) const FILE: File = File { known, thrown, stays: none, run, pictures: &[&PICTURES, &RINGS, &WEAPONS, &GUNS], sprites: &[] };
 
 /// The pictures the effects here are drawn with, among the client's pictures of effects.
-const PICTURES: [&str; 11] = [
-    "coin_a.bmp", "shield.bmp", "sword.bmp", "melody_a.bmp", "melody_b.bmp", "thunder_center.bmp", "lens1.tga",
+const PICTURES: [&str; 12] = [
+    "white01.bmp", "coin_a.bmp", "shield.bmp", "sword.bmp", "melody_a.bmp", "melody_b.bmp", "thunder_center.bmp", "lens1.tga",
     "lens2.tga", "alpha_center.tga", "white02.bmp", "whitelight.tga"
 ];
 
@@ -66,10 +68,11 @@ const GUNS: [&str; 4] = ["유저인터페이스\\item\\골드룩스.bmp", "유�
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
         274 => (300, "effect/rog_steal coin.wav"),
+        227 => (999, "effect/ef_bash.wav"),
         // The sound of Asura Strike is started by what launches the effect for the skill, with it
         // (`MO_EXTREMITYFIST` in `Contents/Jobs/JobInheritance.cpp`), not by the effect's own function.
         266 => (300, "effect/mon_아수라 패황권.wav"),
-        264 | 275 | 276 | 495 | 627 | 770 | 820 | 869 | 889 | 907 => (300, ""),
+        262 | 264 | 275 | 276 | 495 | 627 | 770 | 820 | 869 | 889 | 907 => (300, ""),
         2436 | 2437 => (3000, ""),
         429 | 430 | 431 | 518 => (200, ""),
         _ => return None,
@@ -78,17 +81,21 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
 
 /// Whether an effect of this file is one the striker launches and is then told the place of the one struck
 /// (`CSession::PlaySkillEffect`: `source->LaunchEffect` and `AM_SETPOS`, for Investigate, Back Stab and
-/// Pinpoint Attack). The others that are told a place are launched on the one struck and told that one's own.
+/// Pinpoint Attack). `EF_INTIMIDATE` the client launches on the player's own character, whoever uses the
+/// skill, and tells where that one stands (`RG_INTIMIDATE`, `NPC_EXPULSION` in
+/// `Contents/Jobs/JobInheritance.cpp`): its squares are in the world round the place it is told, so it is the
+/// same seen on the one who uses the skill. The others that are told a place are launched on the one struck and told that one's own.
 /// `EF_HITLINE5` is on the one struck and told where the striker stands (`TK_COUNTER` in
 /// `Contents/Jobs/JobInheritance.cpp`).
 fn thrown(effect: u32) -> bool {
-    matches!(effect, 264 | 275 | 430 | 907)
+    matches!(effect, 227 | 264 | 275 | 430 | 907)
 }
 
 /// One tick of an effect of this file; nothing for any other effect.
 fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     let tick = course.tick;
     match effect {
+        227 if tick == 35 => course.sound("effect/rog_intimidate.wav"),
         275 if tick == 20 => course.sound("effect/rog_back stap.wav"),
         495 | 770 | 820 | 869 | 2436 | 2437 if matches!(tick, 1 | 11 | 21 | 31) => course.sound("effect/복호격.wav"),
         627 if tick == 21 => course.sound("effect/디스암.wav"),
@@ -114,6 +121,7 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     }
     let gear = |number: i8| (0..4).flat_map(move |_| [("shield.bmp", 5.0, number), ("sword.bmp", 9.0, number)]);
     match effect {
+        227 => prims.extend((0..20).map(|_| spray_after(70, "white01.bmp", 1.5, 3.5, 0, course))),
         274 => prims.extend((0..30).map(|_| spray("coin_a.bmp", 1.5, 3.5, 1, course))),
         495 => prims.extend(gear(2).map(|(picture, large, number)| spray(picture, 1.0, large, number, course))),
         627 => prims.extend(GUNS.map(|picture| spray(picture, 1.0, 5.0, 2, course))),
@@ -131,6 +139,7 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
             course.quake = Some(0);
             prims.extend((0..24).map(|_| scatter("lens1.tga", 1, false, course)));
         }
+        262 => prims.extend((0..20).map(|_| scatter("alpha_center.tga", 0, false, course))),
         889 => prims.extend((0..20).map(|_| scatter("alpha_center.tga", 2, false, course))),
         276 => prims.extend((0..20).map(|_| scatter("lens2.tga", 2, true, course))),
         _ => {}
@@ -150,11 +159,17 @@ fn aimed(course: &Course) -> [f32; 3] {
 /// any other. It gives the colour and whether the square stands spinning like a coin or faces the screen
 /// (`prim/tei/orbit.rs`).
 fn spray(picture: &'static str, speed: f32, large: f32, number: i8, course: &Course) -> Prim {
+    spray_after(18, picture, speed, large, number, course)
+}
+
+/// The squares of `spray` that wait `waits` ticks at the least; and `CRagEffect::WhiteSpray` with its kind 0,
+/// which launches the same four squares with the number 0 (a pale blue, slower to come up), waiting 70 to 99 ticks.
+fn spray_after(waits: i32, picture: &'static str, speed: f32, large: f32, number: i8, course: &Course) -> Prim {
     let mut squares = of_parts(Tei::Intimidate, picture, false, course);
     squares.parts.extend((0..4).map(|_| {
         let mut square = part();
         square.at[0] = aimed(course);
-        (square.process, square.out) = (-18 - lot(30) as i32, 12.0);
+        (square.process, square.out) = (-waits - lot(30) as i32, 12.0);
         square.heights[0] = speed;
         (square.rise, square.round, square.turned) = (lot(360) as i32, lot(360) as i32, lot(360) as i32);
         (square.heights[2], square.heights[1]) = (lot(360), large);

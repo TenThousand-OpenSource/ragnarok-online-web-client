@@ -82,6 +82,22 @@ pub fn heard(name: &str, friend: bool, guild: bool, from: &str, words: &str) -> 
     }
 }
 
+/// The away message (`/am`, `/automsg`). The line of the client's message table it is until the player types
+/// one (`MSI_AUTO_MSG`), the line every answer begins with (`MSI_AUTO_MSG2`), the lines said as it goes on and
+/// off (`MSI_AUTO_MSG_ON`, `MSI_AUTO_MSG_OFF`), and how many letters the box takes (`UIAutoMessageWnd::OnCreate`).
+pub const AWAY_UNSET: usize = 940;
+pub const AWAY_MARK: usize = 941;
+pub const AWAY_ON: usize = 942;
+pub const AWAY_OFF: usize = 943;
+pub const AWAY_LETTERS: usize = 100;
+
+/// What is whispered back to one who whispers while the away message is on (`CGameMode::ProcessWhisper`): the
+/// mark and the message. A whisper that itself begins with the mark is not answered, or two who are both away
+/// would answer each other without end.
+pub fn away_reply(heard: &str, mark: &str, message: &str) -> Option<String> {
+    (!heard.starts_with(mark)).then(|| format!("{mark}{message}"))
+}
+
 /// What a line typed into a talk's window is (`UIWhisperWnd::SendMsg`, `ID_OK`): one that begins with a slash
 /// is a command, of which `/q` closes the window (the client's `TT_EX_EXIT_CHAT_ROOM`); anything else is said
 /// to the other.
@@ -140,6 +156,12 @@ mod tests {
     #[test]
     fn an_answer_says_why_a_whisper_did_not_arrive() {
         assert_eq!((failure(answer::ABSENT), failure(answer::REFUSED), failure(answer::REFUSES_ALL), failure(9)), (148, 149, 150, 148));
+    }
+
+    #[test]
+    fn one_who_whispers_is_answered_while_away_but_not_an_answer() {
+        assert_eq!(away_reply("are you there?", "[Automated Message]", "(Away)"), Some("[Automated Message](Away)".to_owned()));
+        assert_eq!(away_reply("[Automated Message](Away)", "[Automated Message]", "back soon"), None);
     }
 
     #[test]

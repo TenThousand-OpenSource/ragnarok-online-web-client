@@ -20,13 +20,17 @@ mod ai;
 mod aura;
 mod books;
 mod cards;
+mod castles;
 mod commands;
+mod emitters;
 mod figures;
 mod guide;
 mod interface;
 mod items;
 mod jobs;
+mod manner;
 mod maps;
+mod monster_skills;
 mod pets;
 mod quests;
 mod scenery;
@@ -40,13 +44,17 @@ pub use ai::ai_scripts;
 pub use aura::aura_table;
 pub use books::{book_text, is_book};
 pub use cards::*;
+pub use castles::castle;
 pub use commands::*;
+pub use emitters::emitters;
 pub use figures::{head_layers, shadow};
 pub use guide::*;
 pub use interface::*;
 pub use items::*;
 pub use jobs::*;
+pub use manner::{foul, starred};
 pub use maps::*;
+pub use monster_skills::monster_skill;
 pub use pets::*;
 pub use quests::*;
 pub use scenery::{Sky, sky};
@@ -147,7 +155,7 @@ pub fn map_name(map: &str) -> String {
 /// built-in names and nobody wears headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=27").await?;
+    let tables = fetch_json("/tables.json?v=30").await?;
     jobs::read(&tables);
     skills::read(&tables);
     pets::read(&tables);
@@ -163,6 +171,9 @@ pub async fn load() -> Result<(), String> {
     cards::read(&tables);
     scenery::read(&tables);
     aura::read(&tables);
+    manner::read(&tables);
+    monster_skills::read(&tables);
+    castles::read(&tables);
     // (Not of the gateway's tables: two files of the client's data, read as they are.)
     song_talk::fetch();
     books::fetch();

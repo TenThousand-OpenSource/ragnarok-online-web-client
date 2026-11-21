@@ -55,7 +55,7 @@ impl Body {
         let alone = self.flags & flag::WEAPON_ADDS != 0;
         let twice = self.flags & flag::WEAPON_TWICE != 0 && !self.blink_skipped;
         (alone || twice).then(|| (
-            Quad { colour: [self.colour[0], self.colour[1], self.colour[2], 255], adds: true, scale: self.scale(), ..Quad::PLAIN },
+            Quad { colour: [self.colour[0], self.colour[1], self.colour[2], self.alpha], adds: true, scale: self.scale(), ..Quad::PLAIN },
             alone
         ))
     }
@@ -84,7 +84,7 @@ impl Body {
     pub fn quads(&self, character: bool, height: f32, lot: &mut dyn FnMut(u32) -> u32) -> Vec<Quad> {
         let has = |flag: u32| self.flags & flag != 0;
         let phase = i32::from(self.effect_phase);
-        let mut main = Quad { colour: [self.colour[0], self.colour[1], self.colour[2], 255], adds: has(flag::ADDS), scale: self.scale(), ..Quad::PLAIN };
+        let mut main = Quad { colour: [self.colour[0], self.colour[1], self.colour[2], self.alpha], adds: has(flag::ADDS), scale: self.scale(), ..Quad::PLAIN };
         self.shape(&mut main, lot);
         // A character that flies up or comes down has neither outline nor copies (`flags & 0x30000`).
         let bare = character && has(flag::RISES | flag::LANDS);

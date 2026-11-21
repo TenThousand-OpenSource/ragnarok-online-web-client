@@ -25,10 +25,10 @@ impl App {
 
     /// The shop's question is answered, or its basket's Buy, Sell or Cancel is pressed. The client sends the
     /// basket and closes both windows (`MM_REQ_PURCHASE`, `MM_REQ_SELL`); with nothing in the basket, and for
-    /// Cancel, it sends no list. Whenever the window of the question, of what is bought or of what is sold
-    /// closes, it tells the server the shop is left — CZ_NPC_TRADE_QUIT (`UIWindowMgr::DeleteWindow` for
-    /// `WID_CHOOSESELLBUYWND`, `WID_ITEMPURCHASEWND` and `WID_ITEMSELLWND` sends `MM_NPC_TRADE_QUIT`) — after
-    /// a deal as well, and after Buy or Sell of the question, whose window closes before the list comes.
+    /// Cancel, it sends no list. When the windows close without a deal it tells the server the shop is left —
+    /// CZ_NPC_TRADE_QUIT (`UIWindowMgr::DeleteWindow` sends `MM_NPC_TRADE_QUIT`). Here that is sent only then:
+    /// sent after the question's Buy or Sell it made the server forget the shop it had just opened, and every
+    /// deal failed (seen in the game).
     fn shop_answered(&mut self, press: crate::press::shops::Press) {
         use crate::press::shops::Press;
         let Some(shop) = self.shops.shop.take() else { return };
@@ -36,9 +36,10 @@ impl App {
         self.shops.counting = None;
         let dealt = press == Press::Ok && !basket.is_empty();
         match (press, shop) {
+            // The server takes the shop as open from this answer on (rAthena's `npc_buysellsel` sets
+            // `npc_shopid`): nothing is said of leaving here, or the list that comes could not be dealt with.
             (Press::Buy, Shop::Choose(npc)) => self.send(&net::shops::deal(npc, false)),
             (Press::Sell, Shop::Choose(npc)) => self.send(&net::shops::deal(npc, true)),
-            (_, Shop::Choose(_)) => {}
             (_, Shop::Buy(offers)) if dealt => {
                 let wanted: Vec<(u32, u16)> = basket.iter().filter_map(|(row, amount)| Some((offers.get(*row)?.id, *amount))).collect();
                 self.send(&net::shops::buy(&wanted));
@@ -47,10 +48,11 @@ impl App {
                 let sold: Vec<(u16, u16)> = basket.iter().filter_map(|(row, amount)| Some((bids.get(*row)?.index, *amount))).collect();
                 self.send(&net::shops::sell(&sold));
             }
-            _ => {}
+            // Cancelled, or nothing in the basket: the shop is left (CZ_NPC_TRADE_QUIT), so that the server
+            // lets go of it. After a deal the server lets go by itself.
+            _ => self.send(&net::shops::quit()),
         }
-        self.send(&net::shops::quit());
-        self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COUNT]);
+        self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET, &wnd::SHOP_COMPARE, &wnd::SHOP_COUNT]);
     }
 
     /// How many of a row of the list of what is sold to the shop are carried.

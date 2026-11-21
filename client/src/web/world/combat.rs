@@ -50,7 +50,7 @@ pub fn struck(strike: Strike) -> f64 {
             // `attack_action`); monsters have one.
             let action = match &striker.look {
                 Look::Character(figure) => attack_action(figure),
-                Look::Creature(_) => 16,
+                Look::Creature(_) | Look::Model(_) => 16,
             };
             striker.motion = Some((action, time, lasts.clamp(250.0, 2000.0)));
             lands = lands_after(striker, action, lasts, flinch);
@@ -59,6 +59,12 @@ pub fn struck(strike: Strike) -> f64 {
             if let (Look::Character(figure), Some(sequence)) = (&striker.look, skill.and_then(|skill| crate::pose::strikes_with(skill, striker.pose.combo))) {
                 figure::prepare(figure, sequence.action);
                 (striker.motion, striker.pose.sequence) = (None, Some((sequence, time)));
+            }
+            // A monster's skill may have an action of its own in the client's table, shown in the place of
+            // the swing (`crate::monster_skills`); the blow lands when the swing's would.
+            let listed = skill.and_then(|skill| data::monster_skill(striker.job, skill));
+            if let Some(shown) = crate::monster_skills::shown(striker.job, source == own, listed) {
+                striker.shows(shown, time);
             }
             if let (Some(from), Some(to)) = (from, to) {
                 if from != to {
@@ -133,6 +139,7 @@ fn lands_after(striker: &Mover, action: usize, speed: f64, otherwise: f64) -> f6
     let frame = match &striker.look {
         Look::Character(figure) => figure::body_strike_frame(figure.job, figure.sex, action),
         Look::Creature(path) => figure::strike_frame(path, action),
+        Look::Model(_) => None,
     };
     frame.map_or(otherwise, |frame| crate::blow::lands_after(frame, speed, striker.job)).clamp(0.0, 1500.0)
 }
@@ -294,6 +301,13 @@ pub fn uses_skill(who: u32, own: u32, body: u8) {
             Look::Creature(path) => {
                 if mover.lively && mover.dying.is_none() {
                     let lasts = figure::timing(path, 16).map_or(600.0, |(pictures, each)| pictures as f64 * each);
+                    mover.motion = Some((16, time, lasts.max(250.0)));
+                }
+                return;
+            }
+            Look::Model(name) => {
+                if mover.lively && mover.dying.is_none() {
+                    let lasts = state.granny.lasts(name, crate::model::granny::shown::Action::Attack).unwrap_or(600.0);
                     mover.motion = Some((16, time, lasts.max(250.0)));
                 }
                 return;

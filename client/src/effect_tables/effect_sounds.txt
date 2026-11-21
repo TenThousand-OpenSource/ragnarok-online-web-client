@@ -1,3 +1,54 @@
+12	effect/EF_BeginSpell.wav
+30	effect/magician_thunderstorm.wav
+34	effect/EF_Teleportation.wav
+39	effect/EF_Aqua.wav
+41	effect/EF_Angelus.wav
+54	effect/EF_BeginSpell.wav
+55	effect/EF_BeginSpell.wav
+56	effect/EF_BeginSpell.wav
+57	effect/EF_BeginSpell.wav
+58	effect/EF_BeginSpell.wav
+59	effect/EF_BeginSpell.wav
+65	effect/thief_invenom.wav
+66	effect/Acolyte_cure.wav
+67	effect/swordman_provoke.wav	5
+67	effect/swordman_provoke.wav	30
+68	effect/st_mvp.wav
+69	effect/hunter_skidtrap.wav
+75	effect/priest_gloria.wav
+76	effect/priest_magnificat.wav
+77	effect/priest_resurrection.wav
+78	effect/priest_recovery.wav
+83	effect/priest_sanctuary.wav
+84	effect/priest_impositio.wav	60
+85	effect/priest_lexaeterna.wav	15
+88	effect/priest_suffragium.wav
+91	effect/priest_benedictio.wav
+92	effect/wizard_meteor.wav
+96	effect/wizard_fire_pillar_a.wav	75
+97	effect/wizard_fire_pillar_b.wav
+101	effect/black_weapon_repair_a.wav	20
+101	effect/black_weapon_repair_a.wav	55
+103	effect/black_weapon_perfection.wav
+104	effect/black_maximize_power_circle.wav
+104	effect/black_maximize_power_sword.wav	40
+104	effect/black_maximize_power_sword.wav	47
+104	effect/black_maximize_power_sword_bic.wav	65
+106	effect/hunter_blastmine.wav	20
+107	effect/hunter_claymoretrap.wav
+108	effect/hunter_freezingtrap.wav
+111	effect/hunter_springtrap.wav
+112	effect/priest_kyrie_eleison_a.wav	15
+112	effect/priest_kyrie_eleison_b.wav
+113	effect/priest_magnus.wav
+118	effect/wizard_fire_ivy.wav
+121	effect/EF_StoneCurse.wav
+124	effect/assasin_poisonreact.wav
+127	effect/assasin_poisonreact.wav
+129	effect/assasin_venomsplasher.wav	10
+131	effect/knight_autocounter.wav
+154	effect/bs_refinesuccess.wav	15
+155	effect/bs_refinefailed.wav	5
 164	effect/EF_BeginSpell.wav
 204	_heal_effect.wav
 205	_heal_effect.wav
@@ -7,6 +58,24 @@
 209	effect/흡기.wav
 210	_heal_effect.wav
 211	effect/흡기.wav
+218	effect/ac_concentration.wav
+219	effect/ac_concentration.wav	30
+227	effect/EF_Bash.wav
+227	effect/rog_intimidate.wav	35
+234	effect/sage_spell breake.wav
+245	effect/cru_holy cross.wav
+253	effect/흡기.wav
+255	_enemy_hit_wind1.wav	10
+256	_enemy_hit_wind1.wav	10
+257	_enemy_hit_wind1.wav	10
+258	_enemy_hit_wind1.wav	10
+269	effect/복호격.wav	6
+270	effect/복호격.wav	6
+271	effect/복호격.wav	6
+272	effect/복호격.wav	6
+273	effect/mon_연환.wav
+274	effect/rog_steal coin.wav
+275	effect/rog_back stap.wav	20
 300	apocalips_attack.wav
 303	effect/연주붕격.wav
 305	effect/p_success.wav
@@ -18,6 +87,37 @@
 366	effect/세크리파이스.wav
 369	effect/knight_twohandquicken.wav
 373	effect/black_overthrust.wav
+377	effect/mon_맹룡과강.wav	5
+380	effect/매직 크래쉬.wav	25
+384	effect/소울 체인지.wav
+386	effect/hunter_detecting.wav
+388	effect/샤프슈팅.wav	30
+389	effect/윈드워크.wav
+390	effect/black_overthrust.wav
+392	effect/kyrie_guard.wav
+393	effect/애로우 발칸.wav	30
+395	effect/소울 체인지.wav
+399	effect/헤드 크러쉬.wav
+400	effect/비트 조인트.wav	22
+403	effect/swordman_provoke.wav	25
+408	effect/EF_Blessing.wav
+409	effect/메테오 어썰트.wav
+413	effect/T_내려찍기.wav	5
+415	effect/EF_hit2.wav	17
+415	effect/EF_hit4.wav	25
+432	effect/T_전기.wav	25
+435	effect/T_회오리차기.wav	5
+438	effect/T_마법반사.wav
+440	effect/아숨프티오.wav
+444	effect/T_효과음1.wav
+445	effect/T_회피2.wav	30
+457	effect/T_날라차기.wav	5
+460	ice_titan_attack.wav	5
+462	effect/T_회피.wav	15
+463	effect/T_회피.wav	15
+464	effect/REVERBERATION.wav
+466	effect/T_돌려차기.wav	5
+488	effect/T_안락한마법.wav	5
 495	effect/복호격.wav
 501	effect/EF_BeginSpell.wav
 502	effect/EF_BeginSpell.wav

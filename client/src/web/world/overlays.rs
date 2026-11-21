@@ -40,7 +40,7 @@ fn pointed(state: &mut State, view: &View) -> Option<Option<(u32, (f32, f32))>> 
     state.target_at = [fought, pointed].map(
         |id| id.and_then(|id| scene.units.get(&id)).filter(|unit| unit.dying.is_none()).map(|unit| on_ground(&scene.gat, unit.at))
     );
-    state.over = unit.filter(|(id, unit)| matches!(unit.look, Look::Creature(_)) || foe(*id, unit)).map(|(id, unit)| (id, unit.lively || foe(id, unit)));
+    state.over = unit.filter(|(id, unit)| unit.look.creature() || foe(*id, unit)).map(|(id, unit)| (id, unit.lively || foe(id, unit)));
     Some(over)
 }
 

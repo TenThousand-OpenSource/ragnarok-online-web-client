@@ -178,7 +178,8 @@ impl App {
         let Screen::CharCreate(slot) = self.screen else { return };
         let name = field("char-name");
         let name = name.trim();
-        if !NAME_LENGTH.contains(&name.len()) || !name.chars().all(|character| character.is_ascii_alphanumeric()) {
+        // (Nor a name with a word that is not let be written: `UINewMakeCharWnd::SendMsg`, `crate::manner`.)
+        if !NAME_LENGTH.contains(&name.len()) || !name.chars().all(|character| character.is_ascii_alphanumeric()) || data::foul(name) {
             return self.say(Key::BadName);
         }
         if let Some(socket) = &self.socket {

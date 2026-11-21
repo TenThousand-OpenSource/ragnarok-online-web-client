@@ -17,6 +17,9 @@ pub(in crate::web) struct Hero {
     /// Basic Information is in its small form; the Status window is open.
     pub basic_small: bool,
     pub status_open: bool,
+    /// A base level was gained and the Status window not opened since: the button that tells of it shows
+    /// (the client's `WID_NOTIFYLEVELUPWND`), and the menu's icon of the Status window wears its mark.
+    pub level_told: bool,
 }
 
 impl Hero {

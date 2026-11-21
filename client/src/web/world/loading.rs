@@ -12,7 +12,10 @@ pub(super) fn progress(percent: u32) {
     }
 }
 
+/// Reads the map the server named. A copy of a map made for one party (`0011@tower`) is read as the map it
+/// is a copy of: its files, whether it is indoors, and its surroundings (`crate::maps::original`).
 pub(super) async fn load(map: &str, cell: (u16, u16), figure: Figure) -> Result<(Gpu, Scene), String> {
+    let map = &*crate::maps::original(map);
     progress(0);
     let gpu = match STATE.with_borrow_mut(|state| state.gpu.take()) {
         Some(gpu) => gpu,

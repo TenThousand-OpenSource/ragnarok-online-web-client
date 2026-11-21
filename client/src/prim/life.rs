@@ -21,9 +21,19 @@ impl Prim {
             self.count += 1;
             return self.count <= self.duration;
         }
+        // (A ghost fades and lives by `PrimGhost` alone.)
+        if self.kind == Shape::Ghost {
+            return self.haunt(master, frames);
+        }
         self.shift();
         match self.kind {
-            Shape::Texture2d | Shape::Quad2d => self.slide(),
+            Shape::Texture2d | Shape::Quad2d => {
+                self.slide();
+                // (`Move2DPrimitive` ends as `MoveEffectPrimitive` does: with the next of its pictures.)
+                if !self.next_picture() {
+                    return false;
+                }
+            }
             Shape::Flash2d => self.bounce(),
             Shape::Circle2d => self.widen(),
             Shape::Texture3d => {
@@ -55,8 +65,11 @@ impl Prim {
             Shape::Roamer => self.roam(),
             Shape::Petal { slow } => self.fall_as_petal(slow),
             Shape::ParticleUp | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Streak { .. } | Shape::Cast(_) => {}
+            Shape::Ghost | Shape::CastingLow => {}
         }
-        self.fade(master.left);
+        if self.spike_fades() {
+            self.fade(master.left);
+        }
         // A sprite whose frames do not start over ends with its last one.
         let shown = !self.shows_sprite() || self.trail_and_frame(frames);
         self.count += 1;

@@ -1,4 +1,5 @@
-//! The skill tree, a skill's description, and the hotkey bar.
+//! The skill tree, a skill's description, and the hotkey bar; the button that tells of a job level gained, and
+//! the box that asks the words of a Talkie Box or of Graffiti.
 
 use super::*;
 use crate::press::Step;
@@ -9,6 +10,37 @@ use crate::press::skills::{LevelStep, Press};
 const SKILL_TABS: i32 = tabs::SIDE_TABS;
 
 impl App {
+    /// The button that tells of a job level gained (`UINotifyJobLevelUpWnd`, which is the base level's button
+    /// with another answer to its press): a press opens the skill window.
+    pub(in crate::web) fn job_level_told(&self) -> String {
+        pictured(0, 0, (43, 43), status::LEVEL_PICTURES, Press::JobLevelGained, "")
+    }
+
+    /// The box that asks the words of a Talkie Box (`UITalkboxTrapInputWnd`) or of Graffiti
+    /// (`UIGraffiStrboxWnd`), 280 by 120: a title bar, the white panel and the bar of buttons; the client's
+    /// message 436 at 16,22, black over a white copy of itself a pixel right and down; the line at 22,50 (240
+    /// by 16, on `242, 242, 242`), of as many letters as the skill takes (`crate::skills::words_asked`); OK at
+    /// 189,96 and Cancel at 234,96. Enter is its OK (`m_message0`). The Talkie Box's has the message 435 in
+    /// its title bar, at 16,2; the box of Graffiti has none, and asks in the same words.
+    pub(in crate::web) fn skill_words_window(&self) -> String {
+        let Some((skill, ..)) = self.skills.writing else { return String::new() };
+        let title = if skill == crate::skills::TALKIE_BOX { Self::words(435, "Record a message in the Talkie Box") } else { String::new() };
+        [
+            format!(r#"<form {} class="a" style="{}">"#, sent(Form::SkillWords), at(0, 0, 280, 120)),
+            title_bar(280, ""),
+            titled(16, 2, &title),
+            panel(280, 120),
+            format!(
+                r#"<div class="a t" style="left:16px;top:22px;color:#000;text-shadow:1px 1px 0 #fff">{}</div>"#,
+                escape(&Self::words(436, "Please type a message for the Talkie Box"))
+            ),
+            field(&windows::SKILL_WORDS.field(), (22, 50, 240, 16), "", crate::skills::words_asked(skill).unwrap_or(0), "background:#f2f2f2"),
+            picture_press(189, 96, "btn_ok", Press::WordsOk),
+            picture_press(234, 96, "btn_cancel", Press::WordsCancel),
+            r#"<button type="submit" hidden></button></form>"#.to_owned()
+        ].concat()
+    }
+
     /// What a skill does, as the client shows it (`UISkillDescribeWnd`): a white box 304 wide inside a rounded
     /// line, as tall as the client's description of the skill needs at 18 pixels a line (the first line is the
     /// skill's name), with the close button in its corner. Only a text taller than the screen scrolls.

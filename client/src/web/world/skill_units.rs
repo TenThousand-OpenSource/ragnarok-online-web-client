@@ -13,12 +13,13 @@ use super::*;
 
 mod traps;
 
-pub use traps::{skill_unit_seen, skill_unit_strikes};
+pub use traps::{skill_unit_seen, skill_unit_strikes, skill_unit_used};
 use crate::net::skill_units::Entry;
 use crate::skill_units::{Pulse, Shows};
 
-/// The pictures of the boxes of light of Sanctuary and Magnus Exorcismus, among the client's pictures of effects.
-pub(super) const PICTURES: [&str; 2] = ["alpha_down.tga", "ring_red.tga"];
+/// The pictures of the boxes of light of Sanctuary, Magnus Exorcismus and Fog Wall, among the client's pictures
+/// of effects.
+pub(super) const PICTURES: [&str; 3] = ["alpha_down.tga", "ring_red.tga", "ring_white.tga"];
 
 /// One more than the most the client's `rand()` gives: under it is any number, for the rules that take one.
 const RAND_MAX: u32 = 32768;
@@ -86,7 +87,7 @@ pub fn skill_unit_shown(entry: &Entry) {
             scene.models.lower(entry.id);
         }
     });
-    if let Some(sound) = crate::skill_units::appears_with(entry.unit) {
+    if let Some(sound) = crate::skill_units::appears_with(entry.unit, lot(RAND_MAX)) {
         sound::effect(sound, 1.0);
     }
 }
@@ -136,11 +137,22 @@ pub fn skill_unit_becomes(id: u32, unit: u32) {
     }
 }
 
-/// A skill was used on a place (ZC_NOTIFY_GROUNDSKILL): the effect the client has for that skill plays there
-/// (`CGameActor::PlayGroundSkillEffect`, `LaunchDummyEffect`).
-pub fn ground_skill(skill: u16, cell: (u16, u16), by: Option<u32>) {
-    let Some((effect, ticks)) = crate::skill_units::ground_effect(skill) else { return };
+/// A skill of that level was used on a place (ZC_NOTIFY_GROUNDSKILL): the effect the client has for that skill
+/// plays there (`CGameActor::PlayGroundSkillEffect`, `LaunchDummyEffect`), or on the one who used it
+/// (`crate::skill_units::on_caster`).
+pub fn ground_skill(skill: u16, level: i16, cell: (u16, u16), by: Option<u32>) {
+    if let Some(effect) = crate::skill_units::on_caster(skill) {
+        launch::burst(effect, by, None, 0.0);
+    }
     STATE.with_borrow_mut(|state| {
+        // The sounds the client's handlers start beside the effect (Gospel's, Basilica's, Gravitation's), heard
+        // from the place. (The client plays them whole.)
+        if let Some(scene) = &state.scene {
+            for (_, sound) in crate::effect_tables::skill_sounds(skill, crate::effect_tables::Sounds::Placed) {
+                earshot::heard_at(scene, sound, (f32::from(cell.0), f32::from(cell.1)));
+            }
+        }
+        let Some((effect, ticks)) = crate::skill_units::ground_effect(skill, level) else { return };
         let time = now();
         let id = spot(state, (f32::from(cell.0), f32::from(cell.1)), ticks, time);
         // The effect is on the place and told who used the skill (none named: the player's own character).
@@ -161,16 +173,12 @@ pub(super) fn spot(state: &mut State, cell: (f32, f32), ticks: i32, time: f64) -
 }
 
 /// Launches one of the client's effects on a unit or a place: its files, if it is played from files
-/// (`launch::files`; Pneuma's, picked by lot, is the units' own), with the sound a unit's effect starts with
+/// (`launch::files`), with the sound a unit's effect starts with
 /// when the client's table has none; and, unlike an effect on someone (`launch::burst`), what of it is made
 /// of primitives besides, if that is ported: a Safety Wall is its file and its wall of light.
 fn launch(state: &mut State, effect: u32, on: u32, blow: Option<Blow>, time: f64) {
-    let mut played = launch::files(state, effect, Some(on), blow, time);
-    if let Some(file) = crate::skill_units::picked_file(effect, lot(RAND_MAX)).filter(|_| !played) {
-        state.effects_due.push((time, file, Some(on), None));
-        played = true;
-    }
-    if played && crate::effect_tables::effect_sound(effect).is_none() {
+    let played = launch::files(state, effect, Some(on), blow, time);
+    if played && crate::effect_tables::effect_sounds(effect).is_empty() {
         state.sounds_due.extend(crate::skill_units::starts_with(effect, lot(RAND_MAX)).map(|sound| (time, sound.to_owned())));
     }
     prims::begin(effect, Some(on), blow, time, &mut state.bursts, &mut state.sounds_due);
@@ -249,8 +257,8 @@ pub(super) fn drawn(state: &State, view: &View, quads: &mut Quads) {
         let Some(binds) = gpu.effect_pictures.get(pulse.picture) else { continue };
         let place = on_ground(&scene.gat, standing.cell);
         let nearer = nearer(view, place, 25.0);
-        let colour = [pulse.colour[0] / 255.0, pulse.colour[1] / 255.0, pulse.colour[2] / 255.0, pulse.alpha() / 255.0];
-        for wall in pulse.walls() {
+        for (alpha, wall) in pulse.walls() {
+            let colour = [pulse.colour[0] / 255.0, pulse.colour[1] / 255.0, pulse.colour[2] / 255.0, alpha / 255.0];
             // `RenderTeiRect`'s two triangles: the first three corners, then the fourth, the third and the first.
             for index in [0, 1, 2, 3, 2, 0] {
                 let (at, uv) = wall[index];

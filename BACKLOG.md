@@ -80,15 +80,19 @@ What the classic game has and this client lacks is not here: that is a debt, and
 - The newer clouds of a sky (`Cloud_Effect` of MapSkyData.lub: `CCloud`, effect 0x47A) and the fog of its
   background (`BG_Fog`), left out in `gateway/src/tables/scenery.rs`; the kinds of `CRagEffect::SkyCloud`
   only later maps use (7, 8, 10 and on).
-- The effects later maps place in their `.rsw` (974, 946, 690 and on: lights, coloured torches, ghosts), and
-  the emitters of the newer maps' `effecttool` files.
+- The effects later maps place in their `.rsw` (946, 690, 713, 1073 and on: lights, coloured torches, animated
+  emitters; `EF_MAP_MAGICZONE` 650 and 651, which two classic maps, ice_dun03 and ice_dun04, place too: see
+  `docs/DEBTS.md`). The plain emitters (974) are made, for the classic maps that place them (Prontera,
+  Morocc, Comodo) and so for every map; of the `effecttool` files what no classic map uses is left: emitters
+  turned by their own angles (`billboard_off`) or drawn over everything, the wind (`windEffectInfo`, effect
+  2343), animated emitters, magic floors, the evil's paw, `ez2strInfo`, and the first version's `_map_Effect`.
+- `EF_M01` (583): only skills of the third jobs launch it.
 
 ## Of the years before Renewal, put off with the rest
 These were in the original game before Renewal, so by this file's own rule they may belong in
 `docs/DEBTS.md` instead; they stand here until the owner decides, because they were put here on purpose.
 - Battlegrounds queue and status; the instances window (memorial dungeons).
 - Buying stores.
-- Granny models (`.gr2`: guardians and the Emperium of sieges) — needed for War of Emperium.
 
 ## Two servers
 - Classic and Renewal as two separate servers on separate databases, chosen at login (asked for on 2026-11-18).

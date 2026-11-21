@@ -22,6 +22,44 @@ impl App {
                     self.friend_wanted(&name);
                 }
             }
+            Press::AwayOk => self.away_typed(),
+        }
+    }
+
+    /// `/am`, `/automsg` (the client's `TT_AUTO_MSG_ON_OFF`): the away message goes on or off. Going on, the
+    /// box that asks for it opens; going off, the chat says so (the line 943, in the client's `0x64FFFF`).
+    pub(in crate::web::app) fn away_switched(&mut self) {
+        self.whispers.away = !self.whispers.away;
+        if self.whispers.away {
+            self.whispers.away_asked = true;
+            self.redraw(&[&wnd::AWAY]);
+        } else {
+            let off = Self::words(whispers::AWAY_OFF, "Cancel automated away message.");
+            self.chat_line(off, crate::said::colour::PALE_YELLOW);
+        }
+    }
+
+    /// OK of the box that asks the away message, and Enter in its line (`UIAutoMessageWnd::SendMsg`): what
+    /// was typed is the message, the chat says that it is on (the line 942), and the box closes.
+    pub(in crate::web::app) fn away_typed(&mut self) {
+        if !self.whispers.away_asked {
+            return;
+        }
+        self.whispers.away_words = Some(field(&wnd::AWAY.field()));
+        self.whispers.away_asked = false;
+        self.redraw(&[&wnd::AWAY]);
+        self.chat_line(Self::words(whispers::AWAY_ON, "Send an automated message while you are away."), crate::said::colour::PALE_YELLOW);
+    }
+
+    /// Someone whispered while the away message is on (`CGameMode::ProcessWhisper`): the message is whispered
+    /// back, after the client's mark of such an answer, unless what was heard is such an answer itself.
+    pub(in crate::web::app) fn away_answers(&mut self, name: &str, heard: &str) {
+        if !self.whispers.away {
+            return;
+        }
+        let mark = Self::words(whispers::AWAY_MARK, "[Automated Message]");
+        if let Some(reply) = whispers::away_reply(heard, &mark, &self.away_words()) {
+            self.whisper_send(name, &reply);
         }
     }
 
@@ -104,7 +142,8 @@ impl App {
         }
         let Some(place) = self.whispers.with(name) else { return false };
         if let Some(talk) = &mut self.whispers.talks[place] {
-            talk.lines.push((line, colour));
+            // (With stars for a word that is not let be written: `UIWhisperWnd::SendMsg`, `UM_ADDCHAT`.)
+            talk.lines.push((data::starred(&line), colour));
             if talk.lines.len() > KEPT {
                 talk.lines.remove(0);
             }
@@ -120,6 +159,8 @@ impl App {
         if self.game.as_ref().is_some_and(|game| game.name == to) {
             return;
         }
+        // (Sent with stars for a word that is not let be written: `MM_WHISPERMSG`, `crate::manner`.)
+        let words = &data::starred(words);
         self.whispers.last = (to.to_owned(), words.to_owned());
         self.send_on_map(&crate::net::whispers::whisper(to, words));
     }

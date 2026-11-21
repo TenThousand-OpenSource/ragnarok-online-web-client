@@ -97,6 +97,18 @@ impl App {
         self.redraw(&[&wnd::PARTY_ASKS]);
     }
 
+    /// The server is asked to make a party of a name with what the setup window has (`MM_CONFORM_MAKEGROUP`):
+    /// not of a name with a word that is not let be written, of which the client's message box says its line
+    /// 14 (`crate::manner`).
+    fn party_make_asked(&mut self, name: &str) {
+        if data::foul(name) {
+            self.message = Some(Self::words(14, "Foul Language Detected."));
+            return self.render();
+        }
+        let draft = self.party.draft;
+        self.send_on_map(&party::make(name, draft.pickup, draft.items));
+    }
+
     /// OK of the setup window: a party is made with the name typed or given, or the leader's changes are sent.
     fn party_setup_ok(&mut self) {
         let draft = self.party.draft;
@@ -109,11 +121,11 @@ impl App {
                 if name.is_empty() {
                     return self.chat_line(Self::words(2073, "You must enter the name of the party."), RED);
                 }
-                self.send_on_map(&party::make(&name, draft.pickup, draft.items));
+                self.party_make_asked(&name);
             }
             Some(PartySide::Named) => {
                 let name = std::mem::take(&mut self.party.making);
-                self.send_on_map(&party::make(&name, draft.pickup, draft.items));
+                self.party_make_asked(&name);
             }
             Some(PartySide::Setup) if self.leads_party() && draft != self.party.sharing => {
                 self.send_on_map(&party::share(draft));

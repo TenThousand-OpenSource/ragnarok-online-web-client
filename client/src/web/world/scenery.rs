@@ -9,8 +9,10 @@ use crate::scenery::fog::Fog;
 use crate::scenery::makers::EffectMaker;
 use crate::scenery::views::MapView;
 
+mod emitters;
 mod placed;
 
+pub(super) use emitters::{Corners as EmitterCorners, drawn as emitters_drawn};
 pub(super) use placed::step;
 
 /// One frame of the client's, which the camera's easing, the turning of the models, the waves of the water
@@ -40,6 +42,8 @@ struct Placed {
 /// What surrounds the player on the map shown.
 pub(super) struct Surroundings {
     effects: Vec<Placed>,
+    /// The particle emitters the map places (`scenery/emitters.rs`).
+    pub(super) emitters: emitters::Emitters,
     /// The sounds placed, each with where it is in the world and when it was last played.
     sounds: Vec<(MapSound, Vector, f64)>,
     /// How high the place of each placed effect is, by its ID.
@@ -83,9 +87,14 @@ impl Surroundings {
     /// the sky (`data::sky`). Gives with them the places of the effects, in cells, for `Scene::spots`.
     pub(super) async fn read(map: &str, rsw: Option<&Rsw>, map_size: (f32, f32)) -> (Self, HashMap<u32, (f32, f32)>) {
         let in_world = |[x, y, z]: Vector| [x + map_size.0 / 2.0, -y, z + map_size.1 / 2.0];
-        let (mut effects, mut raised, mut spots) = (Vec::new(), HashMap::new(), HashMap::new());
+        let (mut effects, mut raised, mut spots, mut emitting) = (Vec::new(), HashMap::new(), HashMap::new(), Vec::new());
         for (index, placed) in rsw.iter().flat_map(|rsw| &rsw.effects).enumerate() {
             let (spot, at) = (FIRST_PLACE + index as u32, in_world(placed.position));
+            // An emitter is made once, at its place, and has no maker (`CWorld::LoadMapEffects`).
+            if placed.effect == crate::emitters::EF_EMITTER {
+                emitting.push(at);
+                continue;
+            }
             // (A place on cell 3 is drawn at 3.5 cells: `on_ground`.)
             spots.insert(spot, (at[0] / CELL - 0.5, at[2] / CELL - 0.5));
             raised.insert(spot, at[1]);
@@ -98,6 +107,7 @@ impl Surroundings {
         let sky = data::sky(map);
         let surroundings = Self {
             effects,
+            emitters: emitters::Emitters::read(map, emitting).await,
             sounds,
             raised,
             fog: Fog::of(&fogs, map),

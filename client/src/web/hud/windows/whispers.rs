@@ -1,5 +1,6 @@
 //! The entries of the list of windows for the talks with one player each: a window to a talk, as many as
-//! there are places for them (`crate::whispers::WINDOWS`), and the one menu of them.
+//! there are places for them (`crate::whispers::WINDOWS`), the one menu of them, and the box that asks the away
+//! message.
 
 use super::*;
 use crate::web::parts::menued;
@@ -34,3 +35,16 @@ pub(in crate::web) static WHISPERS: [&Window; crate::whispers::WINDOWS] =
 /// The menu of a talk's window, opened with the right button on it, where the pointer was.
 pub(in crate::web) static WHISPER_MENU: Window =
     Window::menu("whisper-menu", |app| app.whispers.menu.is_some(), |app, _| menu_frame(app.whispers.menu.map(|(at, _)| at)), App::whisper_menu);
+
+/// The box that asks the away message (`WID_AUTOMESSAGEWND`): 280 by 48, 185 across the client's stage and
+/// 180 of 480 down (`CenterOnViewportX(185)`, `CenterOnViewportY(180)`); its line has the keyboard, what
+/// stands in it ready to be typed over (`SelectAll`). It has no place in the order (`IsOrderFixed`).
+pub(in crate::web) static AWAY: Window = Window {
+    id: "away",
+    open: |app| app.whispers.away_asked,
+    frame: |_, view| framed(format!("left:{}px;top:{}px;width:280px;height:48px", (view.0 as i32 - 640) / 2 + 185, (view.1 as i32 - 480) / 2 + 180)),
+    draw: App::away_window,
+    order: None,
+    layer: Layer::Asks,
+    drawn: Some(typed_over),
+};

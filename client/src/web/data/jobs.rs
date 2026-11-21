@@ -16,6 +16,15 @@ thread_local! {
     static WEAPONS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
     /// The sound of a weapon's blow, by the client's number for the kind of weapon.
     static WEAPON_HITS: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
+    /// Whether the client's files are set up for Korea (its `clientinfo.xml`); so they are until the gateway
+    /// says otherwise, as the client's own `g_serviceType` starts.
+    static KOREA: std::cell::Cell<bool> = const { std::cell::Cell::new(true) };
+}
+
+/// Whether the client is set up for Korea: its table of the clothes' palettes differs by it
+/// (`crate::dress::palette`).
+pub fn korea() -> bool {
+    KOREA.get()
 }
 
 /// The ending of the sprite files of a weapon (`_단검` for a dagger), by the client's number for its kind
@@ -57,6 +66,7 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     INHERITS.set(entries::<u16>(&field(tables, "inherits")).into_iter().filter_map(|(job, from)| Some((job, from.as_f64()? as u16))).collect());
     WEAPONS.set(names::<u16>(&field(tables, "weapons")).into_iter().collect());
     WEAPON_HITS.set(names::<u16>(&field(tables, "weapon_hits")).into_iter().collect());
+    KOREA.set(field(tables, "korea").as_bool().unwrap_or(true));
 }
 
 /// The first job a job grew out of, among the classic ones (`crate::jobs::first_job`), each job grown out of

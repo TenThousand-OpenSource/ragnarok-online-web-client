@@ -1,4 +1,4 @@
-//! The entries of the list of windows for the Shortcut Settings and the Game Settings.
+//! The entries of the list of windows for the Shortcut Settings, the Hotkey Guide and the Game Settings.
 
 use super::*;
 
@@ -18,4 +18,13 @@ pub(in crate::web) static SETTINGS: Window = Window::usual(
     |_, view| framed(centred(view, 400, 350)),
     App::settings_window,
     switched_off!(settings.open)
+);
+
+/// The Hotkey Guide (`WID_HOTKEYGUIDEWND`): 934 by 498 in the very middle of the screen.
+pub(in crate::web) static KEY_GUIDE: Window = Window::usual(
+    "key-guide",
+    |app| app.keys.guide,
+    |_, view| framed(format!("{};height:498px", centred(view, 934, 498))),
+    App::key_guide,
+    switched_off!(keys.guide)
 );

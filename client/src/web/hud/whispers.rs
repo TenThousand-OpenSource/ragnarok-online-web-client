@@ -1,5 +1,6 @@
 //! The window of a talk with one player (the client's `UIWhisperWnd`, 280 by 120), and the menu the right
-//! button opens on it. The rules of it that need no page are `crate::whispers`.
+//! button opens on it; and the box that asks the away message (`UIAutoMessageWnd`). The rules of it that need
+//! no page are `crate::whispers`.
 
 use super::*;
 use crate::press::whispers::Press;
@@ -64,5 +65,29 @@ impl App {
             return String::new();
         }
         menu_row(&Self::words(358, "Register as a Friend"), Press::Friend)
+    }
+
+    /// The box that asks the away message (`UIAutoMessageWnd::OnCreate` and `Paint`), 280 by 48 in the frame
+    /// of the system boxes: the client's message 944 at 15,6; the line at 15,22, 77 short of the box's width
+    /// and 16 high, on `232, 232, 232`, of a hundred letters, with the message as it stands in it; OK 55 from
+    /// the right and 32 from the bottom. Enter is its OK (`m_message0`).
+    pub(in crate::web) fn away_window(&self) -> String {
+        if !self.whispers.away_asked {
+            return String::new();
+        }
+        [
+            system_box(0, 280, 48),
+            format!(r#"<form {} class="a" style="{}">"#, sent(Form::AwayWords), at(0, 0, 280, 48)),
+            text(15, 6, BLACK, &Self::words(944, "Please enter Away Message.")),
+            field(&windows::AWAY.field(), (15, 22, 280 - 77, 16), &self.away_words(), crate::whispers::AWAY_LETTERS, "background:#e8e8e8"),
+            picture_press(280 - 55, 48 - 32, "btn_ok", Press::AwayOk),
+            r#"<button type="submit" hidden></button></form>"#.to_owned()
+        ].concat()
+    }
+
+    /// The away message as it stands: what the player typed, or until then the client's line 940
+    /// (`LoginMode`: `autoReplyText = LookupMessage(MSI_AUTO_MSG)`).
+    pub(in crate::web) fn away_words(&self) -> String {
+        self.whispers.away_words.clone().unwrap_or_else(|| Self::words(crate::whispers::AWAY_UNSET, "(Away)"))
     }
 }

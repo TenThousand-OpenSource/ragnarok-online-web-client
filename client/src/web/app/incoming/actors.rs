@@ -8,6 +8,9 @@ impl App {
         match id {
             // Everyone else on the map: coming into sight, walking, and leaving it.
             net::actors::ZC_NOTIFY_STANDENTRY | net::actors::ZC_NOTIFY_NEWENTRY | net::actors::ZC_NOTIFY_MOVEENTRY => self.unit_entered(id, packet),
+            // The font of someone's words over the head (`case ID_ZC_NOTIFY_FONT` keeps it for the balloon):
+            // the balloons here are written in one font, so nothing is kept (`docs/DEBTS.md`).
+            net::actors::ZC_NOTIFY_FONT => {}
             net::actors::ZC_HP_INFO => {
                 if let Some((id, left, most)) = net::actors::life(packet) {
                     world::unit_life(id, left, most);
@@ -80,6 +83,11 @@ impl App {
             // A player of a guild: its name and emblem are asked for (`incoming/guild.rs`).
             if unit.kind == net::actors::Kind::Player {
                 self.guild_looked_up(unit.id, unit.guild, u32::from(unit.emblem));
+            }
+            // A guild flag: the emblem drawn on it is asked for (the client's `C3dGrannyGameActor` reads it
+            // from `CGuildMgr` as it draws the flag).
+            if unit.kind != net::actors::Kind::Player && unit.job == crate::model::granny::shown::FLAG {
+                self.guild_emblem_wanted(unit.guild, u32::from(unit.emblem));
             }
         }
     }

@@ -1,5 +1,5 @@
-//! The entries of the list of windows for an NPC's shop: its question, its list, its basket, and the box that
-//! asks how many go across.
+//! The entries of the list of windows for an NPC's shop: its question, its list, its basket with the panel
+//! over it, and the box that asks how many go across.
 
 use super::*;
 
@@ -33,6 +33,20 @@ pub(in crate::web) static SHOP_BASKET: Window = Window::usual(
     App::shop_basket_window,
     |app| app.pressed(crate::press::shops::Press::Cancel),
 );
+
+/// The panel that compares what is worn, over the basket of what is bought (the client opens
+/// `WID_ITEMPARAMCHANGEDISPLAYWND` with `WID_ITEMPURCHASEWND` and closes it as the dealing ends;
+/// `ItemParamChangeDisplayWndInfo::Reset`: 280, 246, 280 by 34). It has no part in the order: nothing closes
+/// it but the end of the dealing.
+pub(in crate::web) static SHOP_COMPARE: Window = Window {
+    id: "shop-compare",
+    open: |app| matches!(app.shops.shop, Some(Shop::Buy(_))),
+    frame: |_, _| framed(at(280, 246, 280, 34)),
+    draw: App::shop_compare_window,
+    order: None,
+    layer: Layer::Usual,
+    drawn: None,
+};
 
 /// How many of a row go across the shop's windows.
 pub(in crate::web) static SHOP_COUNT: Window = Window::count("shop-count", |app| app.shops.counting.is_some(), App::shop_count_window);

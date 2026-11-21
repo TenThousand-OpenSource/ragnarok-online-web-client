@@ -43,6 +43,10 @@
 //! - the kind 167: a sprite drawn four times, once at each of its parts, in colours of its own
 //!   (`prim/fourfold.rs`).
 //!
+//! - `PP_GHOST` (84): a sprite that goes round a place, a ghost or a bat of Niflheim (`prim/ghost.rs`), and
+//!   `PP_HEAL_LOW` (110): walls of light in ten pieces that stand aside, turned with the camera
+//!   (`prim/low_walls.rs`). Both look at the camera as they live: `Prim::watched` (`prim/facing.rs`).
+//!
 //! The other kind that shows a sprite (`PP_3DPARTICLE_NOMASTER`, 21) is not ported.
 
 mod casts;
@@ -50,9 +54,11 @@ mod change;
 mod facing;
 mod flat;
 mod fourfold;
+mod ghost;
 mod glow;
 mod horn;
 mod life;
+mod low_walls;
 mod master;
 mod outdoors;
 mod particle;
@@ -92,6 +98,7 @@ pub use casts::Cast;
 pub use change::{Change, UNSET};
 pub use facing::{angle_of, camera_yaw, faced, heading, pointing};
 pub use fourfold::Rim;
+pub use horn::Spike;
 pub use master::Master;
 pub use particle::Seen;
 pub use quarter::quarter;
@@ -143,6 +150,11 @@ pub enum Shape {
     /// `PP_SAKURA` (40): a sprite that falls wandering from high over the ground, a petal or a leaf; a `slow`
     /// one drifts half as far to the sides (`prim/outdoors.rs`).
     Petal { slow: bool },
+    /// `PP_GHOST` (84): a sprite that goes round a place and picks its action by the camera (`prim/ghost.rs`).
+    Ghost,
+    /// `PP_HEAL_LOW` (110): walls of light in ten pieces, aside by a way turned with the camera
+    /// (`prim/low_walls.rs`).
+    CastingLow,
 }
 
 /// A primitive's figures: the client's `EffectPrimitiveState`, the fields the ported kinds use, with the values
@@ -164,6 +176,8 @@ pub struct Prim {
     /// The tick from which a flat picture neither grows nor shrinks any more (the client's `pattern & 2` with
     /// its `chCnt`); of a spike, the tick at which it stops (its `pattern & 1` with its `chCnt`).
     pub settles_at: Option<i32>,
+    /// Of a spike: what it does besides being pushed (`prim/horn.rs`).
+    pub spike: Spike,
     /// Of a flat picture or kite: the tick at which its width and its height take new speeds (the client's
     /// `changePoint` with `changeWidthSpeed` and `changeHeightSpeed`); none: never.
     pub turns_at: Option<(i32, f32, f32)>,
@@ -185,6 +199,8 @@ pub struct Prim {
     pub height: f32,
     pub height_speed: f32,
     pub height_accel: f32,
+    /// Of a band: how high it grows at the most (`maxHeightSize`).
+    pub max_height: f32,
     pub radius: f32,
     pub radius_speed: f32,
     pub radius_accel: f32,
@@ -218,6 +234,8 @@ pub struct Prim {
     pub yaw_first: bool,
     /// How fast it turns in the plane of the screen (`rollSpeed`) and changes size (`sizeSpeed`), a tick.
     pub roll_speed: f32,
+    /// Of a flat picture or kite: how its speed of turning changes, a tick (`rollAccel`).
+    pub roll_accel: f32,
     pub size_speed: f32,
     /// How fast it falls, down being more, and how that changes (`gravSpeed`, `gravAccel`).
     pub grav_speed: f32,
@@ -286,6 +304,7 @@ impl Prim {
             duration: 100,
             first_pattern: false,
             settles_at: None,
+            spike: Spike::Plain,
             turns_at: None,
             put: (0.0, 0.0),
             gone: (0.0, 0.0),
@@ -302,6 +321,7 @@ impl Prim {
             height: 0.0,
             height_speed: 0.0,
             height_accel: 0.0,
+            max_height: 100.0,
             radius: 0.0,
             radius_speed: 0.0,
             radius_accel: 0.0,
@@ -323,6 +343,7 @@ impl Prim {
             flickers: false,
             yaw_first: false,
             roll_speed: 0.0,
+            roll_accel: 0.0,
             size_speed: 0.0,
             grav_speed: 0.0,
             grav_accel: 0.0,

@@ -21,6 +21,7 @@
 //! - `PP_INTIMIDATE` (43) and the kind 44: squares that fly out spinning like coins, and long plates that
 //!   shoot out every way (`tei/orbit.rs`, `tei/plates.rs`);
 //! - `PP_GUARD` (61): half a ball of panels before someone (`tei/cage.rs`);
+//! - `PP_ATTACKENERGY2` (106): bands of light that run over a dome before someone (`tei/domes.rs`);
 //! - `PP_HITLINE` (70), `PP_MAGNUM2` (73) and the kind 87: sparks that leap and leap on, walls that lean out
 //!   like a funnel, a square that comes down turning (`tei/bounces.rs`, `tei/cones.rs`, `tei/drops.rs`).
 //! - `PP_LINELINK` (38): a tube of light from one actor to another, which it follows (`tei/links.rs`).
@@ -45,10 +46,18 @@
 //!   petals (`tei/flowers.rs`); the kinds 155 and 170: lights whose way wanders (`tei/flames.rs`);
 //!   `PP_FOREST` (66): shafts of light that slant down (`tei/forest.rs`); `PP_SMA` (120) and the kind 151,
 //!   which show nothing and ask for other effects where they are (`tei/launchers.rs`).
+//! - the kind 41: walls that stand up after a long wait and sink again, the pillars of light a map places
+//!   (`tei/map_pillars.rs`); the kinds 79 and 80: the sheets of a waterfall and its spray (`tei/sheets.rs`,
+//!   `tei/spray.rs`).
 //! - the kind 32: a sphere of light that goes round someone, a monk's spirit sphere (`tei/spheres.rs`).
+//! - the kind 29: lights that rise wandering and begin anew (`tei/floating.rs`); the kind 81: spikes of
+//!   light that stand out from a point (`tei/spikes.rs`).
 //! - the lights of the aura of the highest level, which the client keeps as particles of three effects of
 //!   their own and not as primitives: squares that breathe over the ground, bands that go round, lights that
 //!   rise (`tei/max_level.rs`).
+//! - `PP_BOTTOM` (47): a picture that hovers over a place with fainter ones behind it (`tei/bottom.rs`);
+//!   `PP_RECT_UP2` (90): walls round a square and lights that run along them (`tei/fences.rs`); `PP_HERMODE`
+//!   (114): a small box of light that turns (`tei/cubes.rs`).
 //!
 //! The places of a part are in the client's directions, from the effect's place as the primitive was launched:
 //! x east, y DOWN, z north. `Rect` gives them in this client's (east, up, north).
@@ -74,12 +83,16 @@ mod arcs;
 mod auras;
 mod beams;
 mod blades;
+mod bottom;
 mod boomerang;
 mod bounces;
 mod boxes;
 mod cage;
 mod chasers;
 mod columns;
+mod cubes;
+mod domes;
+mod fences;
 mod drifts;
 mod dust;
 mod cones;
@@ -88,6 +101,7 @@ mod field;
 mod fins;
 mod flames;
 mod flecks;
+mod floating;
 mod flowers;
 mod forest;
 mod gust_rings;
@@ -99,6 +113,7 @@ mod layers;
 mod lights;
 mod links;
 mod low_rings;
+mod map_pillars;
 mod max_level;
 mod orbit;
 mod panels;
@@ -108,12 +123,15 @@ mod plates;
 mod quarters;
 mod ripples;
 mod scans;
+mod sheets;
 mod sizes;
 mod sky;
 pub use sky::PUT_ANEW;
 mod slashes;
 mod souls;
 mod spheres;
+mod spikes;
+mod spray;
 mod squares;
 mod stretch;
 mod twinkles;
@@ -172,6 +190,8 @@ pub enum Tei {
     HitLine,
     /// `PP_MAGNUM2` (73) (`tei/cones.rs`).
     Magnum2,
+    /// `PP_ATTACKENERGY2` (106) (`tei/domes.rs`).
+    AttackEnergy2,
     /// The kind 87 (`tei/drops.rs`).
     Drop,
     /// `PP_SLASH1` (75) (`tei/slashes.rs`).
@@ -235,12 +255,25 @@ pub enum Tei {
     /// The kind 33: squares facing the screen that come and go over the whole view: the clouds and the
     /// stars of a sky (`tei/sky.rs`).
     Sky,
+    /// The kind 41 (`tei/map_pillars.rs`), and the kinds 79 and 80 (`tei/sheets.rs`, `tei/spray.rs`).
+    MapPillar,
+    Sheet,
+    Spray,
     /// The kind 32 (`tei/spheres.rs`).
     DriftingOrbs,
+    /// The kind 29 (`tei/floating.rs`).
+    FloatingMotes,
+    /// The kind 81 (`tei/spikes.rs`).
+    Spike,
     /// The lights of the aura of the highest level, which are no kinds of `CEffectPrim` (`tei/max_level.rs`).
     Level99Glow,
     Level99Swirl,
     Level99Orb,
+    /// `PP_BOTTOM` (47) (`tei/bottom.rs`), `PP_RECT_UP2` (90) (`tei/fences.rs`), `PP_HERMODE` (114)
+    /// (`tei/cubes.rs`).
+    Bottom,
+    RectUp2,
+    Hermode,
 }
 
 impl Prim {
@@ -269,6 +302,7 @@ impl Prim {
             Tei::GustSwerve => self.swerve_as_gust(),
             Tei::DriftingSparks => self.drift_as_lights(),
             Tei::DriftingOrbs => self.drift_as_sphere(),
+            Tei::Bottom => self.hover_with_a_tail(),
             _ => return false,
         }
         true
@@ -307,10 +341,15 @@ impl Part {
             Tei::Sma => part.fly_as_sma(),
             Tei::SpiralFade => part.circle_as_light(),
             Tei::Forest => part.shine_as_shaft(index),
+            Tei::MapPillar => part.stand_as_map_pillar(),
+            Tei::Sheet => part.run_as_sheet(),
+            Tei::Spray => part.rise_as_spray(),
             Tei::Sky => part.drift_as_cloud(),
             Tei::Level99Glow => part.breathe_as_glow(),
             Tei::Level99Swirl => part.turn_as_swirl(),
             Tei::Level99Orb => part.rise_as_orb(),
+            Tei::FloatingMotes => part.float_as_motes(),
+            Tei::Spike => part.pulse_as_spike(),
             Tei::TaperedQuad => part.draw_out(),
             Tei::BladeFins => part.flash_and_fade(),
             Tei::Hover if index == 0 => part.hover(),
@@ -329,6 +368,7 @@ impl Part {
             Tei::Guard => part.guard(),
             Tei::HitLine => part.bounce_as_spark(),
             Tei::Magnum2 => part.flash_as_cone(),
+            Tei::AttackEnergy2 => part.run_as_dome(),
             Tei::Columns => part.turn_as_columns(index),
             Tei::LowRing => part.widen_as_low_ring(index),
             Tei::Halo if index < 2 => part.breathe_as_halo(),
@@ -339,9 +379,12 @@ impl Part {
             Tei::Footprint if index == 0 => part.fade_as_print(),
             Tei::FirstAid | Tei::Footprint => {}
             Tei::LineLink => {}
+            Tei::RectUp2 => part.stand_as_fence(index),
+            Tei::Hermode if index == 0 => part.turn_as_cube(),
+            Tei::Hermode => {}
             // Ticked whole (`Prim::tick_whole`).
             Tei::ShieldBoomerang3 | Tei::Ripple | Tei::ShieldBoomerang | Tei::Drop | Tei::Gust | Tei::GustRing
-            | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs => {}
+            | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs | Tei::Bottom => {}
         }
     }
 }

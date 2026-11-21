@@ -29,6 +29,7 @@ impl Prim {
             self.kind,
             Shape::Particle3d | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d
             | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer | Shape::Petal { .. }
+            | Shape::Ghost
         )
     }
 
@@ -65,8 +66,9 @@ impl Prim {
 
     /// `Prim3DParticleOrbit`: it stands its radius out from where it was put, the way its longitude says about
     /// the upright, and goes round as that turns; where it was put goes down by a speed that changes
-    /// (`gravSpeed`: up when under nothing); its radius, its size and its roll change by their speeds. (Not
-    /// ported, as no effect ported uses them: the change of its speeds at a tick, and the turn of its own
+    /// (`gravSpeed`: up when under nothing); its radius, its size and its roll change by their speeds; at a
+    /// tick it may be given (`chPoint`, here `changes`) its radius takes a new speed. (Not ported, as no
+    /// effect ported uses them: the change of its falling at a tick, `changePoint`, and the turn of its own
     /// that the client adds for kinds drawn by it, `latiSpeed`.)
     pub(super) fn orbit(&mut self) {
         self.long_speed += self.long_accel;
@@ -76,6 +78,10 @@ impl Prim {
         self.put.1 += self.grav_speed;
         self.radius += self.radius_speed;
         self.roll += self.roll_speed;
+        // (`chRadiSpeed`: at the tick it was given, its radius takes a new speed and a new change of it.)
+        if let Some(change) = self.changes.filter(|change| change.at == self.count) {
+            (self.radius_speed, self.radius_accel) = (change.speed, change.accel);
+        }
         self.moved = [sine(self.longitude) * self.radius, 0.0, cosine(self.longitude) * self.radius];
         self.size += self.size_speed;
     }

@@ -79,6 +79,7 @@ impl App {
         // What an NPC's script showed and the chat room sat in are of the place left.
         self.scripted_moved(same);
         self.chat_rooms_moved();
+        self.guild_castles_moved(same);
         self.refresh_values();
         self.redraw(&[&wnd::DIALOG]);
         if same {

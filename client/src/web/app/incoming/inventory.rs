@@ -29,6 +29,14 @@ impl App {
             net::inventory::ZC_REQ_TAKEOFF_EQUIP_ACK => self.taken_off(packet),
             net::inventory::ZC_INVENTORY_TAB => self.favourite_moved(packet),
             net::inventory::ZC_EQUIP_ARROW => self.ammunition_told(packet),
+            // The lists of one kind are all sent: the client draws that kind's windows anew
+            // (`CGameMode::RefreshItemListWindow`). Here they are drawn as each list arrives.
+            net::inventory::ZC_INVENTORY_END => {}
+            // The places the inventory has over its hundred (`CGameMode::ReceiveExtraInventorySlots`) and the
+            // things of the equipment switch (`ReceiveSwapEquipmentList`), both sent as the game is entered:
+            // the client keeps them for the inventory expansion and the switch window, neither of the classic
+            // game (`BACKLOG.md`). Nothing is shown of them.
+            net::inventory::ZC_EXTEND_BODYITEM_SIZE | net::inventory::ZC_SEND_SWAP_EQUIPITEM_INFO => {}
             _ => return false,
         }
         true
@@ -248,11 +256,13 @@ impl App {
     pub(in crate::web::app) fn items_known(&mut self) {
         self.chat_links_named();
         self.tell_obtained();
+        self.party_obtained_said();
         self.mvp_item_said();
         self.tell_fed();
         self.tell_homunculus_fed();
         self.refresh_items();
-        self.redraw(&[&wnd::TRADE]);
+        // The shop's list and basket name what they hold, as the question's window does.
+        self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET]);
         self.redraw(&[&wnd::GUIDE]);
         self.redraw(&[&wnd::QUEST_PANE]);
         self.redraw(&[&wnd::MAIL_READ, &wnd::MAIL_WRITE]);

@@ -1,4 +1,4 @@
-//! Three more kinds made of walls of light round the place of the effect, each wall a band of twenty pieces
+//! Four more kinds made of walls of light round the place of the effect, each wall a band of twenty pieces
 //! as the kind 60 is (`slots.rs`), drawn the same way (`Render3DCasting`, `Slot::band`), but living otherwise:
 //!
 //! - the kind 30 (`Walls::Spell`): walls that lean outwards more and more as they widen, and begin anew while
@@ -8,7 +8,9 @@
 //!   (`Walls::SlowSpin`);
 //! - the kind 149 (`Walls::Wave`): walls that turn slowly, come up over thirty ticks and fade over the last 46
 //!   of their primitive, their picture changing every tick (`PrimWaveHeights`, drawn by
-//!   `RenderGroundArcGlow`).
+//!   `RenderGroundArcGlow`);
+//! - the kind 57 (`Walls::Rise`): walls that turn, rise and sink back once as a sine does over ninety ticks,
+//!   and are gone (`CEffectPrim::OnProcess`, `case 57`).
 //!
 //! And one kind that is no wall but lives as these do, by the count and the alpha of its part:
 //!
@@ -34,6 +36,8 @@ pub enum Walls {
     /// a colour, its light added, at that alpha taken `gain` times (255 at most). A primitive here is one of
     /// the two drawings: `gain` is 1 for the first.
     Wave { gain: i32 },
+    /// The kind 57.
+    Rise,
     /// The kind 88; `quick` for the primitive whose `size` is 113, which comes up three times as fast.
     Square { quick: bool },
 }
@@ -48,6 +52,7 @@ impl Prim {
                 Walls::Spin => slot.spin_as_wall(index as i32, false),
                 Walls::SlowSpin => slot.spin_as_wall(index as i32, true),
                 Walls::Wave { .. } => slot.wave_as_wall(index as i32, duration),
+                Walls::Rise => slot.rise_and_sink(index as i32),
                 Walls::Square { quick } => slot.grow_as_square(quick),
             }
         }
@@ -58,7 +63,7 @@ impl Prim {
         let middle = self.middle([0.0; 3]);
         let live = self.slots.iter().filter(|slot| slot.live);
         match walls {
-            Walls::Spell | Walls::Spin | Walls::SlowSpin => live.flat_map(|slot| slot.band(self.picture, middle)).collect(),
+            Walls::Spell | Walls::Spin | Walls::SlowSpin | Walls::Rise => live.flat_map(|slot| slot.band(self.picture, middle)).collect(),
             Walls::Wave { gain } => live.flat_map(|slot| slot.glow(self.pictures, gain, middle)).collect(),
             Walls::Square { .. } => live.map(|slot| slot.square(self.picture, middle)).collect(),
         }
@@ -154,6 +159,33 @@ impl Slot {
             self.alpha = (self.alpha - 2).max(0);
         }
         self.sway(index);
+    }
+
+    /// The kind 57, for the wall of that number: every tick it turns 5 degrees, the second 4, the third 3 and
+    /// the fourth 2. Over its first ninety ticks it stands as high as its height times the sine of twice its
+    /// count, so that it is back at nothing at the ninetieth and stays there (the client keeps the wall's
+    /// whole height in `flag1[1]` and writes what it stands at into `maxHeight`; here `tall` stays the whole
+    /// height); from its 68th tick it goes down by 1 a tick, and after the ninetieth by 10. Its edges stand up
+    /// to three tenths more or less as a sine goes along the wall and as another goes with the ticks.
+    fn rise_and_sink(&mut self, index: i32) {
+        self.process += 1;
+        self.turned += 5 - index;
+        if self.turned >= 360 {
+            self.turned -= 360;
+        }
+        if self.process <= 0 {
+            return;
+        }
+        if self.process > 90 {
+            self.alpha = (self.alpha - 10).max(0);
+        } else if self.process < 90 && self.process * 2 > 134 {
+            self.alpha = (self.alpha - 1).max(0);
+        }
+        let stands = if self.process <= 90 { self.tall * sine((self.process * 2) as f32) } else { 0.0 };
+        let angle = if index * 90 < 180 { self.process + index * 90 } else { (self.process + index * 30) * 3 };
+        for (edge, height) in self.heights.iter_mut().enumerate() {
+            *height = stands + sine((edge * 9) as f32) * stands * 0.3 * sine((angle % 360) as f32);
+        }
     }
 
     /// `RenderGroundArcGlow`, one of its two drawings of a wall: the band as `Render3DCasting` makes it, but

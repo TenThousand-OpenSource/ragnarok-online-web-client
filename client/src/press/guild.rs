@@ -1,5 +1,6 @@
 //! The presses of the guild: its window with its tabs, the list of members and the menu on one, the positions
-//! and the skills, the emblem, the notice, and the questions asked on the way.
+//! and the skills, the emblem, the notice, the castles held with the menu on one, and the questions asked on
+//! the way.
 
 /// A row of a menu the right button opens in the guild window: on a member (the client's
 /// `UIGuildMemberManageWnd`, `UM_MAKEMENU`) or on a guild allied or opposed (`UIGuildInfoManageWnd`).
@@ -81,6 +82,12 @@ presses! {
         No = "guild-no",
         /// A row of the menu on a member.
         Do(Entry) = "guild-do",
+        /// A castle in the list of those the guild holds, by its line: it is picked.
+        Castle(usize) = "guild-castle",
+        /// The rows of the menu on a castle (the client's `UIListBoxAgitMenu`): going there, and asking for its
+        /// economy and defence.
+        CastleGo = "guild-castle-go",
+        CastleAsk = "guild-castle-ask",
     }
 }
 
@@ -97,6 +104,7 @@ mod tests {
             Press::Stores(3), Press::PositionsOk, Press::Emblem, Press::Skill(0), Press::Raise(10000), Press::UseSkill
         ]);
         all.extend(Entry::ALL.map(Press::Do));
+        all.extend([Press::Castle(2), Press::CastleGo, Press::CastleAsk]);
         crate::press::testing::read_back(all);
     }
 

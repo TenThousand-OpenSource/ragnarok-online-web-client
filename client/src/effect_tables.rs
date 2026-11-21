@@ -3,8 +3,9 @@
 //!
 //! An effect is a number of the client's (`EF_…`). Most play a `.str` file; the others the client draws by code,
 //! and only those of them this client has drawn too are shown (`effect_tables/effects_missing.txt` lists the
-//! rest, with the skills that use them: its generator counts only what the five tables of skills reach, so an
-//! effect that only a state starts is not in it, drawn or not).
+//! rest, with the skills and items that use them: its generator counts only what the five tables of skills and
+//! the table of items reach, so an effect that only a state, a map or a script starts is not in it, drawn or
+//! not).
 
 /// The entry of a table of lines `number<TAB>value` whose number is `wanted`.
 fn found(table: &'static str, wanted: u32) -> Option<&'static str> {
@@ -23,9 +24,18 @@ pub fn effect_file(effect: u32) -> Option<&'static str> {
     found(include_str!("effect_tables/effect_files.txt"), effect)
 }
 
-/// The sound an effect starts with (the first the client's `CRagEffect` plays for it), among the client's sounds.
-pub fn effect_sound(effect: u32) -> Option<&'static str> {
-    found(include_str!("effect_tables/effect_sounds.txt"), effect)
+/// The sounds an effect that is a file starts (those the client's `CRagEffect::OnProcess` plays in the
+/// effect's arm, or the event of `CEZ2STRScreenEffect::InitEvents`), each with the tick of the effect it
+/// starts at, among the client's sounds. A sound the client starts by lot is not here (`crate::skill_units::
+/// starts_with` has Quagmire's).
+pub fn effect_sounds(effect: u32) -> Vec<(i32, &'static str)> {
+    crate::tables::tabbed(include_str!("effect_tables/effect_sounds.txt"))
+        .filter(|(number, _)| number.parse() == Ok(effect))
+        .map(|(_, rest)| {
+            let (sound, tick) = rest.split_once('\t').unwrap_or((rest, "0"));
+            (tick.parse().unwrap_or(0), sound)
+        })
+        .collect()
 }
 
 /// The effects of a skill that strikes nobody (the client's `CGameMode::ReceiveSkillUse`): each with whether it
@@ -57,6 +67,37 @@ pub fn skill_follow(skill: u16) -> Option<u32> {
 /// the older skills, the hit of an element for some, none for the rest.
 pub fn skill_struck(skill: u16) -> Option<u32> {
     found(include_str!("effect_tables/skill_struck.txt"), u32::from(skill))?.parse().ok()
+}
+
+/// When the client's handler of a skill starts a sound beside the skill's effects.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Sounds {
+    /// As the skill is used (`CGameMode::ReceiveSkillUse`).
+    Used,
+    /// As a skill that strikes is shown (`CSession::PlaySkillEffect`).
+    Strikes,
+    /// As the skill is used on a place (`CGameActor::PlayGroundSkillEffect`, `CGameMode::
+    /// ReceiveNotifyGroundSkill`).
+    Placed,
+}
+
+/// The sounds the client's handler of a skill starts beside its effects (`g_soundMgr->PlayWave` in the skill's
+/// arm), each once, with whether the arm is its target's (or else of the one who used it; for a skill used on
+/// a place, the place's). The songs of a Bard and of a Dancer are here: the client starts each once as the
+/// song begins, and not again while it stands.
+pub fn skill_sounds(skill: u16, when: Sounds) -> Vec<(bool, &'static str)> {
+    let letter = match when {
+        Sounds::Used => "u",
+        Sounds::Strikes => "h",
+        Sounds::Placed => "g",
+    };
+    crate::tables::tabbed(include_str!("effect_tables/skill_sounds.txt"))
+        .filter(|(id, _)| id.parse() == Ok(skill))
+        .filter_map(|(_, rest)| {
+            let mut fields = rest.split('\t');
+            (fields.next() == Some(letter)).then_some((fields.next()? == "t", fields.next()?))
+        })
+        .collect()
 }
 
 /// The lines `skill<TAB>s or t<TAB>effect` of a table that are of that skill.
@@ -109,6 +150,36 @@ mod tests {
         // Each hit of Bash shows the ring of a plain blow, of Fire Bolt the hit of fire, of Cold Bolt that of
         // cold, of Lightning Bolt that of lightning; Pierce shows none, nor does a skill of the later jobs.
         assert_eq!([5, 19, 14, 20, 56, 2001].map(skill_struck), [Some(0), Some(49), Some(51), Some(52), None, None]);
+    }
+
+    /// The second switch of `CRagEffect::OnProcess` (the effects under 300): a sound at the first tick, one
+    /// started late, an arm with several, and one the client starts by lot, which the table leaves out.
+    #[test]
+    fn an_effect_that_is_a_file_has_its_sounds_with_their_ticks() {
+        assert_eq!(effect_sounds(30), [(0, "effect/magician_thunderstorm.wav")]);
+        assert_eq!(effect_sounds(83), [(0, "effect/priest_sanctuary.wav")]);
+        assert_eq!(effect_sounds(84), [(60, "effect/priest_impositio.wav")]);
+        assert_eq!(effect_sounds(112), [(15, "effect/priest_kyrie_eleison_a.wav"), (0, "effect/priest_kyrie_eleison_b.wav")]);
+        assert_eq!(effect_sounds(104).len(), 4);
+        assert_eq!(effect_sounds(255), [(10, "_enemy_hit_wind1.wav")]);
+        assert!(effect_sounds(95).is_empty() && effect_sounds(0).is_empty());
+        // An effect that is nothing but its file: the event at its first frame.
+        assert_eq!(effect_sounds(204), [(0, "_heal_effect.wav")]);
+    }
+
+    /// The handlers' own sounds: a song as it begins, Berserk, a sound from the target, one of a skill that
+    /// strikes, one of a skill used on a place; none for a skill whose handler starts none, nor at another time.
+    #[test]
+    fn a_skill_has_the_sounds_its_handler_starts() {
+        assert_eq!(skill_sounds(321, Sounds::Used), [(false, "effect/브라기의 시.wav")]);
+        assert_eq!(skill_sounds(359, Sounds::Used), [(false, "effect/버서크.wav")]);
+        assert_eq!(skill_sounds(16, Sounds::Used), [(true, "_stonecurse.wav")]);
+        assert_eq!(skill_sounds(654, Sounds::Strikes), [(true, "effect/EF_FireWall.wav")]);
+        assert_eq!(skill_sounds(369, Sounds::Placed), [(false, "effect/가스펠.wav")]);
+        assert_eq!(skill_sounds(484, Sounds::Placed), [(false, "effect/wizard_earthspike.wav")]);
+        assert!(skill_sounds(321, Sounds::Placed).is_empty() && skill_sounds(5, Sounds::Used).is_empty());
+        // Asura Strike's is the first sound of its effect here (`world/prims/sprays.rs`): not twice.
+        assert!(skill_sounds(271, Sounds::Strikes).is_empty());
     }
 
     #[test]

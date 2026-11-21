@@ -104,6 +104,9 @@ fn world(lines: &mut Vec<(&'static str, Vec<u8>)>) {
     built!(lines; trade::sell; &[(2, 30), (7, 1)]);
     built!(lines; trade::quit;);
     built!(lines; skills::use_on_ground; 10, 89, (153, 207));
+    for text in [SHORT, LONG] {
+        built!(lines; skills::use_on_ground_with_words; 1, 125, (153, 207), text);
+    }
     built!(lines; items::raise_skill; 28);
     built!(lines; items::use_skill; 10, 28, 0x0102_0304);
     built!(lines; fight::agree_star_place; 1);
@@ -273,6 +276,8 @@ fn guild_and_mail(lines: &mut Vec<(&'static str, Vec<u8>)>) {
     built!(lines; guild::change_positions; &[]);
     built!(lines; guild::move_members; &[(2_000_002, 150_002, 3), (2_000_003, 150_003, 19)]);
     built!(lines; guild::set_emblem; &[0x78, 0x9c, 1, 2, 3, 4, 5]);
+    built!(lines; guild::go_to_castle; 16);
+    built!(lines; guild::ask_castle; 16);
     built!(lines; mail::open; true, [0, 0, 0]);
     built!(lines; mail::open; false, [0x0102_0304_0506_0708, -1, 77]);
     built!(lines; mail::close;);

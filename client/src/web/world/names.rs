@@ -30,14 +30,18 @@ pub(super) fn ranked(state: &mut State, id: u32, level: u16, boss: u8) {
 pub(super) fn written(state: &State, id: u32, unit: &Mover, label: String) -> (String, &'static str, Option<String>) {
     let who = match &unit.look {
         _ if unit.lively => Who::Monster,
-        Look::Creature(_) if !unit.companion => Who::Npc,
+        look if look.creature() && !unit.companion => Who::Npc,
         _ => Who::Other,
     };
     let none = Card::default();
     let card = state.cards.get(&id).unwrap_or(&none);
     let colour = crate::names::colour(who, unit.job, card.level, state.own_level);
     // A title and a group are a monster's or an NPC's: a player's name is written by its own rules.
-    let creature = matches!(unit.look, Look::Creature(_));
+    let creature = unit.look.creature();
+    // The name of a pet or a homunculus that is no monster by its job, which is a homunculus's, has stars for
+    // a word that is not let be written (`UpdateNameBalloon`, `crate::manner`). (A mercenary's, which the
+    // client does not go through, is not told apart here: it is of the server's own words.)
+    let label = if unit.companion && !crate::jobs::monster(unit.job) { data::starred(&label) } else { label };
     let label = if creature { crate::names::written(&label, &card.title) } else { label };
     (label, colour, Some(card).filter(|_| creature).and_then(|card| crate::names::mark(card, unit.lively)))
 }

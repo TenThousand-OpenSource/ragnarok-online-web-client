@@ -1,11 +1,30 @@
 //! What the server says of everyone else on the map and of the things lying on it.
 
 use super::*;
+use crate::creatures::Shape;
 
 /// The sprite numbers of things that are there without being seen: portals' touch areas and invisible NPCs.
 pub(super) const UNSEEN: [u16; 3] = [111, 139, 32767];
 /// The sprite number of a portal: drawn as rings of light, not as a sprite.
 pub(super) const PORTAL: u16 = 45;
+
+/// The character the packet that shows someone describes. `armed`: with what it holds, as a player is; an
+/// NPC that wears a player's job is dressed by the packet's job, sex, hair, colours and headgear alone (the
+/// client's `CCharacterNpc`, `FillCharacterNpcRenderPrimary`).
+fn figure_of(unit: &Unit, armed: bool) -> Figure {
+    Figure {
+        job: unit.job,
+        sex: unit.sex,
+        hair_style: unit.hair_style,
+        hair_colour: unit.hair_colour,
+        headgear: unit.headgear,
+        body_palette: unit.body_palette,
+        weapon: if armed { unit.weapon } else { 0 },
+        shield: if armed { unit.shield } else { 0 },
+        action: 0,
+        frame: 0,
+    }
+}
 
 /// Someone comes into sight, or someone in sight starts to walk.
 pub fn unit_shown(unit: &Unit) {
@@ -27,32 +46,29 @@ pub fn unit_shown(unit: &Unit) {
             scene.portals.insert(unit.id, (i32::from(unit.cell.0), i32::from(unit.cell.1)));
             return;
         }
+        // One that is there without being seen is a place effects play on and sounds are heard from (what a
+        // script's `specialeffect` aims at it), and nothing else: not drawn, not picked, not named. (The
+        // client has no case of its own for these jobs in `CGameMode`: it makes an NPC as any other, whose
+        // sprite shows nothing.)
         if UNSEEN.contains(&unit.job) && unit.kind != Kind::Player {
+            scene.spots.insert(unit.id, (f32::from(unit.cell.0), f32::from(unit.cell.1)));
             return;
         }
-        let look = match unit.kind {
-            Kind::Player => Look::Character(Figure {
-                job: unit.job,
-                sex: unit.sex,
-                hair_style: unit.hair_style,
-                hair_colour: unit.hair_colour,
-                headgear: unit.headgear,
-                body_palette: unit.body_palette,
-                weapon: unit.weapon,
-                shield: unit.shield,
-                action: 0,
-                frame: 0,
-            }),
-            // Monsters and NPCs are one sprite each, in folders of their own.
-            kind => match data::sprite(unit.job) {
-                // A pet that comes into sight wearing its accessory (what would be a player's lower headgear) is
-                // drawn with the actions for that, as when it puts it on (`dressed`).
-                Some(name) => match Some(unit.headgear[0]).filter(|worn| kind == Kind::Companion && *worn != 0).and_then(data::pet_act) {
-                    Some(actions) => Look::Creature(format!("몬스터/{name}@몬스터/{actions}")),
-                    None => Look::Creature(format!("{}/{name}", if kind == Kind::Npc { "npc" } else { "몬스터" })),
-                },
-                None => return,
+        // A player's object is a character with what it holds. Anyone else is what its job makes it, whatever
+        // kind of object the server calls it (`crate::creatures`): a character's body for a player's job, or
+        // one sprite out of the folder of its job.
+        let look = match (unit.kind, crate::creatures::shape(unit.job, data::sprite(unit.job).as_deref())) {
+            (Kind::Player, _) => Look::Character(figure_of(unit, true)),
+            (_, Some(Shape::Character)) => Look::Character(figure_of(unit, false)),
+            // A pet that comes into sight wearing its accessory (what would be a player's lower headgear) is
+            // drawn with the actions for that, as when it puts it on (`dressed`).
+            (kind, Some(Shape::Sprite(path))) => match Some(unit.headgear[0]).filter(|worn| kind == Kind::Companion && *worn != 0).and_then(data::pet_act) {
+                Some(actions) => Look::Creature(format!("{path}@몬스터/{actions}")),
+                None => Look::Creature(path),
             },
+            // A job whose name is a model's file is drawn as that model (`web/world/granny.rs`).
+            (_, Some(Shape::Model(name))) => granny::look(&mut state.granny, name),
+            (_, None) => return,
         };
         let cell = (i32::from(unit.cell.0), i32::from(unit.cell.1));
         let mover = scene.units.entry(unit.id).or_insert_with(|| Mover::new(look.clone(), cell));
@@ -74,7 +90,7 @@ pub fn unit_shown(unit: &Unit) {
             mover.life = unit.life;
         }
         mover.companion = unit.kind == Kind::Companion;
-        mover.guild = if unit.kind == Kind::Player { (unit.guild, u32::from(unit.emblem)) } else { (0, 0) };
+        mover.guild = if unit.kind == Kind::Player || unit.job == granny::FLAG { (unit.guild, u32::from(unit.emblem)) } else { (0, 0) };
         // Its body and health states: one who comes into sight poisoned or frozen is seen so.
         ailments::seen(mover, unit.body, unit.health);
         mover.speed = if unit.speed > 0 { f64::from(unit.speed) } else { DEFAULT_SPEED };
@@ -164,23 +180,32 @@ pub fn drop_gone(id: u32) {
 }
 
 /// A monster or an NPC becomes another kind (the server's ZC_NPCSPRITE_CHANGE: a Fabre turns into a Pupa, a
-/// Pupa into a Creamy): it is drawn as the new kind from now on.
+/// Pupa into a Creamy; a script's `setnpcdisplay`): it is drawn as the new kind from now on, its sprite out of
+/// the folder of the new job (the client's `CNpc::SetSprAct`, which ends in `SetSprJob`).
 pub fn unit_becomes(id: u32, job: u16) {
     STATE.with_borrow_mut(|state| {
-        let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)) else { return };
-        let Look::Creature(path) = &unit.look else { return };
-        let Some(name) = data::sprite(job) else { return };
-        let folder = path.split('/').next().unwrap_or("몬스터").to_owned();
-        unit.look = Look::Creature(format!("{folder}/{name}"));
-        unit.motion = None;
-        unit.shown = None;
+        if let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)) {
+            reshaped(unit, job);
+        }
     });
+}
+
+/// Gives one drawn as a sprite the sprite of another job (`CNpc::SetSprJob`: a `CNpc` stays one sprite, so a
+/// job that has none in the client's table changes nothing). Says whether it did.
+fn reshaped(unit: &mut Mover, job: u16) -> bool {
+    if !matches!(unit.look, Look::Creature(_)) {
+        return false;
+    }
+    let Some(name) = data::sprite(job).filter(|name| !name.contains(".gr2")) else { return false };
+    (unit.job, unit.look) = (job, Look::Creature(crate::creatures::sprite(job, &name)));
+    (unit.motion, unit.shown) = (None, None);
+    true
 }
 
 /// The server tells what a monster or an NPC is called (after it became another kind, for one).
 pub fn unit_named(id: u32, name: &str) {
     STATE.with_borrow_mut(|state| {
-        if let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)).filter(|unit| matches!(unit.look, Look::Creature(_))) {
+        if let Some(unit) = state.scene.as_mut().and_then(|scene| scene.units.get_mut(&id)).filter(|unit| unit.look.creature()) {
             unit.name = name.split('#').next().unwrap_or_default().trim().to_owned();
         }
     });
@@ -198,7 +223,7 @@ pub fn looked(id: Option<u32>, kind: u8, value: u32, second: u32) {
         let mover = scene.mover_mut(id);
         let Some(mover) = mover else { return };
         // The body itself: the job changed (the server's `LOOK_BASE`).
-        if kind == 0 {
+        if kind == 0 && !reshaped(mover, value as u16) {
             mover.job = value as u16;
             mover.dress();
         }
@@ -317,6 +342,7 @@ pub fn unit_gone(id: u32, died: bool) {
                 Some(unit) => {
                     let lasts = match &unit.look {
                         Look::Creature(path) => figure::timing(path, 32).map(|(pictures, each)| pictures as f64 * each),
+                        Look::Model(name) => state.granny.lasts(name, crate::model::granny::shown::Action::Dead),
                         Look::Character(_) => None,
                     }
                     .unwrap_or(700.0);
@@ -334,6 +360,11 @@ pub fn unit_gone(id: u32, died: bool) {
                 }
             }
             scene.portals.remove(&id);
+            // (One that was only a place for effects is no place any more; its effects end with it.)
+            if !scene.units.contains_key(&id) && scene.spots.remove(&id).is_some() {
+                state.bursts.retain(|burst| burst.on != Some(id));
+                state.effects.retain(|playing| playing.on != Some(id));
+            }
         }
     });
 }

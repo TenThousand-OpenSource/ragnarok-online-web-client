@@ -7,6 +7,9 @@ impl App {
     pub(super) fn travel_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {
             packets::ZC_ACCEPT_ENTER => self.entered_map(packet),
+            // The account's number as the connection opens, and the server's word that it heard the map is
+            // loaded: the client does nothing that is seen with either (`net/packets.rs`).
+            packets::ZC_AID | packets::ZC_NOTIFY_ACTORINIT => {}
             packets::ZC_REFUSE_ENTER => self.leave(Some(Key::Rejected.text(self.lang).to_owned())),
             packets::ZC_NOTIFY_PLAYERMOVE => {
                 if let Some(walk) = packets::player_move(packet) {

@@ -28,11 +28,17 @@ pub(in crate::web) struct Whispers {
     pub last: (String, String),
     /// The menu of a talk's window, opened with the right button: where on the stage, and which window.
     pub menu: Option<((i32, i32), usize)>,
+    /// The away message is on (`/am`, the client's `m_autoReplyEnabled`): one who whispers is answered with
+    /// it. What it says, once the player has typed it (`autoReplyText`; until then it is the client's line
+    /// 940), and whether the box that asks for it is open (`WID_AUTOMESSAGEWND`).
+    pub away: bool,
+    pub away_words: Option<String>,
+    pub away_asked: bool,
 }
 
 impl Default for Whispers {
     fn default() -> Self {
-        Self { talks: Default::default(), strangers: true, friends: true, sound: true, last: Default::default(), menu: None }
+        Self { talks: Default::default(), strangers: true, friends: true, sound: true, last: Default::default(), menu: None, away: false, away_words: None, away_asked: false }
     }
 }
 

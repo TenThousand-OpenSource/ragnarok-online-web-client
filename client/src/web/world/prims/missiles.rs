@@ -13,7 +13,8 @@
 //! - `EF_NEW_TRIPLEATTACK` (1409), `EF_NEW_CROSSIMPACT_HIT` (1568), `EF_NEW_GATEOFHELL` (1575): streaks of light
 //!   that run over the ground from the striker towards the one struck (`LineStreak`, `LineStreakTextured`);
 //!   and so `EF_CHEMICAL3` (439: the flying kick, Dark Illusion), `EF_CHEMICAL4` (623: Piercing Shot) and
-//!   `EF_CHEMICAL2DASH2` (835: Hundred Spear, which also shakes the screen and colours the striker)
+//!   `EF_CHEMICAL2DASH2` (835: Hundred Spear, which also shakes the screen and colours the striker), as
+//!   which `EF_CHEMICAL2DASH` (512: Chain Crush Combo, launched by `CGameActor::ProcessSkillMessage`) is, with a sound
 //!   (`LineStreakLayered`), and `EF_CHEMICAL3S` (893: Knuckle Arrow; `LineStreakKind`).
 //! - `EF_TRIPLEATTACK2` (388), `EF_TRIPLEATTACK3` (393): the streaks of Sharp Shooting and of Arrow Vulcan,
 //!   from near the archer to the one shot at and past (`AlphaCenterTrail`, `AlphaCenterStream`; the kind 69).
@@ -21,7 +22,7 @@
 //! None of these takes its parent's place every tick: all stay where they began (the two of the archers are
 //! not named in `stays`: their primitives stay in the world by themselves).
 
-use super::launched::{PARTICLE1, of_parts, part};
+use super::launched::{PARTICLE1, glowing, of_parts, part};
 use super::*;
 use crate::prim::{Tei, angle_of, quarter};
 
@@ -60,7 +61,7 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
         // `EL_TYPOON_MIS` in `Contents/Jobs/JobInheritance.cpp`), not by the effect's own function.
         806 | 935 => (100, "effect/맹호경파산.wav"),
         // (`EF_CHEMICAL4` starts its sound at its 29th tick, in `run`.)
-        439 | 623 | 835 | 893 | 1409 | 1568 | 1575 => (300, ""),
+        439 | 512 | 623 | 835 | 893 | 1409 | 1568 | 1575 => (300, ""),
         388 | 393 => (200, ""),
         _ => return None,
     })
@@ -71,13 +72,13 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
 /// on the one struck and is told where the striker stands (`AM_SETPOS` as the blow lands, in
 /// `CGameActor::SendMsg`).
 fn thrown(effect: u32) -> bool {
-    matches!(effect, 93 | 117 | 123 | 216 | 217 | 378 | 388 | 393 | 439 | 623 | 806 | 835 | 893 | 935 | 1052 | 1409 | 1568 | 1575)
+    matches!(effect, 93 | 117 | 123 | 216 | 217 | 378 | 388 | 393 | 439 | 512 | 623 | 806 | 835 | 893 | 935 | 1052 | 1409 | 1568 | 1575)
 }
 
 /// Whether an effect stays where it began: all of this file but the archers' two do, their functions do not take their parent's
 /// place every tick (and `PrimChemical3`, the streak, does not follow its master).
 fn stays(effect: u32) -> bool {
-    matches!(effect, 93 | 117 | 123 | 216 | 217 | 378 | 439 | 623 | 806 | 835 | 893 | 935 | 1052 | 1409 | 1568 | 1575)
+    matches!(effect, 93 | 117 | 123 | 216 | 217 | 378 | 439 | 512 | 623 | 806 | 835 | 893 | 935 | 1052 | 1409 | 1568 | 1575)
 }
 
 /// One tick of an effect of this file: it launches what it launches at that tick into `prims`.
@@ -113,6 +114,11 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
                 streaks_both_sides(20, course, prims);
             }
         }
+        // `EF_CHEMICAL2DASH`: the same, and its sound at the tick of the shake.
+        512 => {
+            course.starts(&[(44, "effect/연주붕격.wav")]);
+            hundred_spear_streaks(course, prims);
+        }
         835 => hundred_spear_streaks(course, prims),
         893 if first => streaks_both_sides(30, course, prims),
         1409 if first => (0..8).for_each(|turn| line_streak(None, turn % 2 == 1, course, prims)),
@@ -127,7 +133,8 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     }
 }
 
-/// `EF_CHEMICAL2DASH2` in `CRagEffect::OnProcess`: the yellow streaks of Hundred Spear at its first tick; at
+/// `EF_CHEMICAL2DASH2` and `EF_CHEMICAL2DASH` in `CRagEffect::OnProcess`: the yellow streaks of Hundred Spear
+/// and of Chain Crush Combo at the first tick; at
 /// its 45th the screen shakes; and from its 21st to its 101st the one who strikes has a pale copy behind
 /// (`render.flags` with 8) and is a pale yellow.
 fn hundred_spear_streaks(course: &mut Course, prims: &mut Vec<Prim>) {
@@ -140,14 +147,6 @@ fn hundred_spear_streaks(course: &mut Course, prims: &mut Vec<Prim>) {
     if (20..=100).contains(&course.tick) {
         course.touch.flagged(crate::body::flag::OUTLINE, 255, 255, 150);
     }
-}
-
-/// A primitive the client draws by adding its picture's colours to what is behind it, whatever its alpha is
-/// (a `renderFlag` with 2: both blends are "one"). Its alpha is put at its most and left there: nothing the
-/// client does to the alpha of such a primitive shows.
-fn glowing(mut prim: Prim) -> Prim {
-    (prim.adds, prim.alpha, prim.fade_out) = (true, prim.max_alpha, -1);
-    prim
 }
 
 /// `CRagEffect::Yufitel`: two pictures turned to the camera, 5 above the caster, that fly level to where the

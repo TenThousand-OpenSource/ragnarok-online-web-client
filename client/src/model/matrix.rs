@@ -9,6 +9,11 @@ pub struct Matrix([f32; 16]);
 impl Matrix {
     pub const IDENTITY: Matrix = Matrix([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]);
 
+    /// A matrix of its sixteen numbers, column by column.
+    pub fn columns(parts: [f32; 16]) -> Self {
+        Matrix(parts)
+    }
+
     pub fn translation(by: Vector) -> Self {
         let mut matrix = Self::IDENTITY;
         matrix.0[12..15].copy_from_slice(&by);

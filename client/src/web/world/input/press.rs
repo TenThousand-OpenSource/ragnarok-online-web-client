@@ -138,7 +138,7 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
             // another player, except on a map where players are fought: there one who is no friend is fought
             // as a monster is (the client's `CGameMode::HandleActorPick`; see `pvp.rs`).
             let foe = scene.units.get(&id).is_some_and(|unit| state.pvp.foe(id, unit));
-            let unit = scene.units.get(&id).filter(|unit| foe || (matches!(unit.look, Look::Creature(_)) && !unit.companion))?;
+            let unit = scene.units.get(&id).filter(|unit| foe || (unit.look.creature() && !unit.companion))?;
             // A thing lying at an NPC's feet is picked up, not the NPC talked to.
             if !unit.lively && lying_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).is_some() {
                 return None;

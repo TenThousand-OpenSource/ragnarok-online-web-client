@@ -1,9 +1,27 @@
-//! The Status window: the six stats, what they give, and the points to raise them.
+//! The Status window: the six stats, what they give, and the points to raise them; and the button that tells
+//! of a base level gained (`UINotifyLevelUpWnd`).
 
 use super::*;
 use crate::press::status::Press;
 
+/// The three pictures of the buttons that tell of a level gained, base or job: the job's is made of the base's
+/// (`UINotifyJobLevelUpWnd` has no `OnCreate` of its own) and shows the same (`UINotifyLevelUpWnd::OnCreate`:
+/// `lv_up_off.bmp` as it stands and under the pointer, `lv_up_on.bmp` pressed).
+pub(in crate::web) const LEVEL_PICTURES: [&str; 3] = ["basic_interface/lv_up_off.bmp", "basic_interface/lv_up_off.bmp", "basic_interface/lv_up_on.bmp"];
+
+/// Where a button that tells of a level gained stands: 43 by 43 at the bottom of the screen, `left` across
+/// (`UIWindowMgr::EnsureWindow`: the base level's in the right corner, the job level's in the left).
+pub(in crate::web) fn told_place(left: i32, view: (f64, f64)) -> String {
+    format!(r#"class="a" style="{};z-index:10;pointer-events:auto""#, at(left, view.1 as i32 - 43, 43, 43))
+}
+
 impl App {
+    /// The button that tells of a base level gained: a press opens the Status window
+    /// (`UINotifyLevelUpWnd::SendMsg`).
+    pub(in crate::web) fn level_told(&self) -> String {
+        pictured(0, 0, (43, 43), LEVEL_PICTURES, Press::LevelGained, "")
+    }
+
     pub(in crate::web) fn status_window(&self) -> String {
         let width = 280;
         let mut window = title_bar(width, "Status");

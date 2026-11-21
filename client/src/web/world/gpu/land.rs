@@ -15,7 +15,8 @@ impl Gpu {
         let mut figures = Vec::with_capacity(40);
         figures.extend(view.matrix);
         figures.extend([view.eye[0], view.eye[1], view.eye[2], 1.0]);
-        let fog = surroundings.fog.filter(|_| surroundings.fogged);
+        // The fog goes out with a camera beyond the client's near limit (`Fog::seen_from`).
+        let fog = surroundings.fog.filter(|_| surroundings.fogged).map(|fog| fog.seen_from(scene.camera.distance));
         figures.extend(fog.map_or([0.0; 4], |fog| [fog.start, fog.end, 1.0, 0.0]));
         figures.extend(fog.map_or([0.0; 4], |fog| [fog.colour[0], fog.colour[1], fog.colour[2], 1.0]));
         figures.extend([surroundings.light[0], surroundings.light[1], surroundings.light[2], 1.0]);

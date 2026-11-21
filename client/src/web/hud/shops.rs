@@ -1,6 +1,7 @@
 //! An NPC's shop: the question whether to buy or to sell, and the client's two windows of a shop, the list
 //! (`UIItemShopWnd`) and the basket of what is bought (`UIItemPurchaseWnd`) or sold (`UIItemSellWnd`), with the
-//! box that asks how many go across.
+//! box that asks how many go across, and the panel over the basket that compares what is worn
+//! (`UIItemParamChangeDisplayWnd`).
 
 use super::*;
 use crate::item_names::Named;
@@ -148,6 +149,47 @@ impl App {
             picture_press(174, 128, deal, Press::Ok),
             picture_press(219, 128, "btn_cancel", Press::Cancel),
         )
+    }
+
+    /// The panel over the basket of what is bought (`UIItemParamChangeDisplayWnd::Paint`, 280 by 34): in the
+    /// frame of the system boxes, the client's line 269 ("ATK") at 20,10 with the figure of what is worn at 70
+    /// and what it would be at 110, a mark of the change at 90 between them; and its line 270 ("DEF") at 152
+    /// with its figures at 202 and 242 and its mark at 222 (`crate::shops::compared`).
+    ///
+    /// The second figures are those of an item pointed at: the window is told of one (`UM_PARAM`) by the
+    /// window of an item's description when that was opened by a press on a row of `UIItemShopWnd2` or of
+    /// the windows of what is sold (`UM_ITEMEXPLANATION` with 1). The list of an NPC's shop, `UIItemShopWnd`,
+    /// never does that, so beside it the panel says what is worn twice with the grey bar between.
+    pub(in crate::web) fn shop_compare_window(&self) -> String {
+        use crate::shops::{Change, Worn, change, compared};
+        if !matches!(self.shops.shop, Some(Shop::Buy(_))) {
+            return String::new();
+        }
+        let worn: Vec<Worn> =
+            self.bag.items.iter().filter(|item| item.worn != 0).map(|item| Worn { place: item.worn, places: item.wearable, id: item.id }).collect();
+        let said = compared(&worn, None, data::item_worn);
+        // `DrawParamChangeArrow`: a triangle 8 wide from 11 to 19 down, red and pointing up for more, blue and
+        // pointing down for less; for the same a bar 8 by 4 at 13, of the grey 80, 80, 80.
+        let mark = |x: i32, before: i32, after: i32| match change(before, after) {
+            Change::Same => fill(x, 13, 8, 4, "#505050"),
+            Change::More => format!(r#"<div class="a" style="{};background:#f00;clip-path:polygon(50% 0,0 100%,100% 100%)"></div>"#, at(x, 11, 8, 8)),
+            Change::Less => format!(r#"<div class="a" style="{};background:#00f;clip-path:polygon(0 0,100% 0,50% 100%)"></div>"#, at(x, 11, 8, 8)),
+        };
+        let figures = |x: i32, line: usize, otherwise: &str, before: i32, after: i32| {
+            [
+                text(x, 10, BLACK, &Self::words(line, otherwise)),
+                text(x + 50, 10, BLACK, &before.to_string()),
+                mark(x + 70, before, after),
+                text(x + 90, 10, BLACK, &after.to_string()),
+            ]
+            .concat()
+        };
+        [
+            system_box(0, 280, 34),
+            figures(20, 269, "ATK", said.before.0, said.after.0),
+            figures(152, 270, "DEF", said.before.1, said.after.1),
+        ]
+        .concat()
     }
 
     /// How many of a row go across the shop's windows: the box that asks how many, with the row's name.

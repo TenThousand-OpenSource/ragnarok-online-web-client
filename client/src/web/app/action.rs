@@ -98,6 +98,8 @@ pub(in crate::web) enum Action {
     PetIdle,
     /// A second has passed while a state of the character has a time running: the times are written anew.
     StatusTick,
+    /// A second has passed while a ranking waits for the names of its characters.
+    RankingLooked,
     /// A time something of an NPC's script runs by has come: a bar is full, a sound repeats, a mark goes.
     Scripted,
     /// Something of the books has come back: a book's text, a button's picture, the next line read aloud.

@@ -35,14 +35,17 @@ impl Prim {
                 .flat_map(|(number, part)| part.quarter(self.picture, number, self.size))
                 .collect(),
             Tei::GrandCross2 => live.flat_map(|part| part.open_box(self.picture)).collect(),
-            Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky => self.field_panels(right, up),
+            Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky | Tei::Bottom => self.field_panels(right, up),
             Tei::DriftingSparks => self.pillar_squares(right, up),
             Tei::Level99Glow => self.level99_glows(right),
             Tei::Level99Swirl => self.level99_swirls(right),
             Tei::Level99Orb => self.level99_orbs(right, up),
+            Tei::Spike => live.flat_map(|part| part.spike(self.picture)).collect(),
+            Tei::FloatingMotes => live.flat_map(|part| part.floating_motes(self.picture, right, up)).collect(),
             Tei::DriftingOrbs => self.layered_glow(right, up),
             Tei::HitLine => live.flat_map(|part| part.bouncing(self.picture)).collect(),
             Tei::Magnum2 => live.flat_map(|part| part.cone(self.picture, self.size)).collect(),
+            Tei::AttackEnergy2 => live.flat_map(|part| part.dome(self.picture, self.size)).collect(),
             Tei::Intimidate => live.filter_map(|part| part.coin(self.picture, right, up)).collect(),
             Tei::ExpandPulse => live.filter_map(|part| part.plate(self.picture)).collect(),
             Tei::Guard => live.flat_map(|part| part.cage(self.pictures)).collect(),
@@ -69,8 +72,18 @@ impl Prim {
             Tei::WanderingFlames | Tei::WanderingFlames2 => live.flat_map(|part| part.twin_glows(self.picture, right, up)).collect(),
             Tei::Sma | Tei::SpiralFade => Vec::new(),
             Tei::Forest => live.flat_map(|part| part.slanting_shaft(self.picture)).collect(),
+            Tei::MapPillar => live.flat_map(|part| part.casting(self.picture, self.size, 20)).collect(),
+            Tei::Sheet => live.flat_map(|part| part.sheet(self.pictures)).collect(),
+            Tei::Spray => live.flat_map(|part| part.spray(self.picture, right, up)).collect(),
             Tei::ArcWall => live.flat_map(|part| part.arc_walls(self.picture, self.size)).collect(),
             Tei::FrameFade => live.flat_map(|part| part.aura(self.pictures.get(part.flags[0] as usize).copied().unwrap_or(self.picture), right, up)).collect(),
+            Tei::RectUp2 => self.parts
+                .iter()
+                .enumerate()
+                .filter(|(_, part)| part.live)
+                .flat_map(|(number, part)| part.fence(self.picture, number))
+                .collect(),
+            Tei::Hermode => live.flat_map(|part| part.cube(self.picture)).collect(),
         }
     }
 }

@@ -18,6 +18,8 @@ pub const ITEM: u8 = 6;
 pub const EQUIPMENT: u8 = 7;
 /// What a state does to the character: what Gospel gave, too much carried.
 pub const STATUS: u8 = 8;
+/// A thing a member of the party obtained.
+pub const PARTY_ITEM: u8 = 9;
 /// A skill that failed.
 pub const SKILL_FAILED: u8 = 11;
 /// Something worn that was damaged.

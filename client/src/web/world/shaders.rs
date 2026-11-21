@@ -177,3 +177,30 @@ struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>,
     return texel;
 }
 ";
+
+/// The Granny models (`gpu/granny.rs`): a corner's place, where of its picture it is and the grey the client
+/// lit it to, in fog as everything the client draws; what of the picture is see-through is not drawn.
+pub(super) const GRANNY_SHADER: &str = concat!(
+    frame!(),
+    "
+@group(1) @binding(0) var picture: texture_2d<f32>;
+@group(1) @binding(1) var picture_sampler: sampler;
+
+struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) colour: vec4<f32>, @location(2) depth: f32 }
+
+@vertex fn vs(@location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) colour: vec4<f32>) -> Out {
+    var out: Out;
+    out.position = camera.view_projection * vec4<f32>(position, 1.0);
+    out.uv = uv;
+    out.colour = colour;
+    out.depth = out.position.w;
+    return out;
+}
+
+@fragment fn fs(in: Out) -> @location(0) vec4<f32> {
+    let texel = textureSample(picture, picture_sampler, in.uv) * in.colour;
+    if (texel.a < 0.02) { discard; }
+    return vec4<f32>(fogged(texel.rgb, in.depth), texel.a);
+}
+"
+);

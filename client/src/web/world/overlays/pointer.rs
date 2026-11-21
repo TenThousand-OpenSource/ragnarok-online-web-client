@@ -39,7 +39,7 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, over: Option<u32>
         Some(unit) if unit.lively || foe => 2,
         // A thing lying at an NPC's feet is still picked up.
         _ if lying() => 4,
-        Some(unit) if matches!(unit.look, Look::Creature(_)) => 1,
+        Some(unit) if unit.look.creature() => 1,
         None if on_portal => 3,
         // Over ground nobody can walk on, or off the map (the client's action 13, when nothing else is pointed at).
         None if state.pointer.is_some_and(

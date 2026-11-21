@@ -19,6 +19,9 @@ impl App {
     /// ZC_WHISPER: someone whispers. In the chat a friend's and a guild member's are marked as such.
     fn whisper_heard(&mut self, packet: &[u8]) {
         let Some((name, words)) = crate::net::whispers::whispered(packet) else { return };
+        // While the away message is on the one who whispers is answered with it, whether a window of the
+        // talk takes the whisper or the chat does (`ProcessWhisper` has the answer in both of its ways).
+        self.away_answers(&name, &words);
         if self.whisper_shown(&name, whispers::line(&name, &words), whispers::THEIRS) {
             return;
         }

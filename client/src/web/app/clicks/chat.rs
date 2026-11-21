@@ -192,9 +192,12 @@ impl App {
 
     /// The chat's line was sent: a command is done, words with a name beside them are whispered, anything
     /// else is said aloud.
+    ///
+    /// Whatever was typed is sent with stars for a word that is not let be written (`CGameMode::SendMsg`,
+    /// `MM_CHATMSG`, `crate::manner`): the client does that first of all, to a command too.
     pub(in crate::web::app) fn chat_typed(&mut self) {
-        let words = field("chat-input");
-        let words = words.trim();
+        let words = data::starred(field("chat-input").trim());
+        let words = words.as_str();
         // The client's own commands come first; everything else is said (the server reads its
         // @commands).
         if !words.is_empty() && self.typed_command(words) {

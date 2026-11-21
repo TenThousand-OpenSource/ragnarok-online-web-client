@@ -2,6 +2,8 @@
 //! of `CRagEffect`:
 //!
 //! - `EF_LOCKON` (60): the mark that turns under the one looked at by Sense (`LockOnMarker`);
+//! - `EF_TOPRANK` (159): the same mark, small, under one a script marks out, until it is ended (in
+//!   `CRagEffect::OnProcess` itself);
 //! - `EF_DETECT2` (725), `EF_DETECT3` (778), `EF_DETECT4` (780): a ring that widens over the ground
 //!   (`TexturedSkillAura`);
 //! - `EF_STASIS` (799), `EF_GROUNDSHAKE` (894), `EF_GROUNDSHAKE2` (905): squares of light over the ground
@@ -35,6 +37,8 @@ const THUNDER: [&str; 6] = [
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
         60 => (200, ""),
+        // `EF_TOPRANK` puts its count back to nothing at its 9998th tick: it never ends by itself.
+        159 => (99_999_999, ""),
         447 | 448 => (340, ""),
         725 => (250, "effect/priest_benedictio.wav"),
         778 => (250, ""),
@@ -56,6 +60,7 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     let (tick, lasts) = (course.tick, course.lasts);
     match effect {
         60 if tick == 0 => prims.extend(lock_on(lasts)),
+        159 if tick % 9998 == 0 => prims.push(top_rank(course.count)),
         447 if tick == 0 => prims.push(footprint("foot_l2.tga", course)),
         448 if tick == 0 => prims.push(footprint("foot_r2.tga", course)),
         725 | 778 | 780 if tick == 0 => prims.push(skill_aura(match effect {
@@ -86,6 +91,21 @@ fn lock_on(lasts: i32) -> [Prim; 2] {
         mark.cycle = Some(Cycle { speeds: [0.0, -15.0, -15.0], delay: 20, waited: 0 });
         mark
     })
+}
+
+/// `EF_TOPRANK` in `CRagEffect::OnProcess`: the mark `LockOn128.tga` once, 4 to a side, lying 2 above the
+/// ground and turning about the upright by 4.5 degrees a tick, for 9999 ticks; the effect launches it anew
+/// every 9998. Its colour is by the count the effect was told (`AM_SETCOUNT`): green for 11, else red with
+/// 25 less of green and blue for each one of the count (none told: all but white).
+fn top_rank(count: i32) -> Prim {
+    let mut mark = Prim::new(Shape::Texture3d, "lockon128.tga");
+    mark.duration = 9999;
+    (mark.long_speed, mark.roll, mark.put.1) = (4.5, 90.0, -2.0);
+    (mark.width, mark.height) = (4.0, 4.0);
+    // (The client writes the figure into a byte.)
+    let pale = f32::from(((10 - count) * 25) as u8);
+    mark.colour = if count == 11 { [0.0, 250.0, 0.0] } else { [250.0, pale, pale] };
+    mark
 }
 
 /// `EF_STASIS` in `CRagEffect::OnProcess`: six blue squares one after the other, the first ten ticks late and

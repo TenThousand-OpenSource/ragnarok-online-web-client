@@ -89,13 +89,15 @@ pub fn password(typed: &str) -> &str {
 }
 
 /// What is wrong with a setting, as a line of the client's message table and the words until it is read
-/// (`UIChatRoomMakeWnd::SendMsg`, `ID_OK`): no title; a room with a password whose password is missing or
-/// shorter than 4: bytes, as the client counts them (`UIEditCtrl::Length` is `text.size()`), of the password
-/// as it is sent. (The client also refuses a title with a word of its list of bad words, which this client
-/// does not have.)
-pub fn wrong(setting: &Setting) -> Option<(usize, &'static str)> {
+/// (`UIChatRoomMakeWnd::SendMsg` and `UIChatRoomChangeWnd::SendMsg`, `ID_OK`): no title; a title with a word
+/// that is not let be written (`foul`: `crate::manner`, the client's `g_forbiddenWords.Contains`); a room with
+/// a password whose password is missing or shorter than 4: bytes, as the client counts them
+/// (`UIEditCtrl::Length` is `text.size()`), of the password as it is sent.
+pub fn wrong(setting: &Setting, foul: bool) -> Option<(usize, &'static str)> {
     if setting.title.is_empty() {
         Some((13, "Please enter room title."))
+    } else if foul {
+        Some((14, "Foul Language Detected."))
     } else if !setting.public && setting.password.is_empty() {
         Some((15, "Please enter the password."))
     } else if !setting.public && password(&setting.password).len() < 4 {
@@ -121,11 +123,14 @@ mod tests {
     #[test]
     fn a_setting_is_checked_as_the_window_checks_it() {
         let room = |title: &str, password: &str, public: bool| Setting { title: title.to_owned(), password: password.to_owned(), public, limit: 20 };
-        assert_eq!(wrong(&room("", "", true)).map(|said| said.0), Some(13));
-        assert_eq!(wrong(&room("Chat", "", false)).map(|said| said.0), Some(15));
-        assert_eq!(wrong(&room("Chat", "abc", false)).map(|said| said.0), Some(16));
-        assert_eq!(wrong(&room("Chat", "abcd", false)), None);
-        assert_eq!(wrong(&room("Chat", "", true)), None);
+        assert_eq!(wrong(&room("", "", true), false).map(|said| said.0), Some(13));
+        assert_eq!(wrong(&room("Chat", "", false), false).map(|said| said.0), Some(15));
+        assert_eq!(wrong(&room("Chat", "abc", false), false).map(|said| said.0), Some(16));
+        assert_eq!(wrong(&room("Chat", "abcd", false), false), None);
+        assert_eq!(wrong(&room("Chat", "", true), false), None);
+        // A title with a word not let be written: after the empty title, before the password.
+        assert_eq!(wrong(&room("Chat", "", false), true).map(|said| said.0), Some(14));
+        assert_eq!(wrong(&room("", "", true), true).map(|said| said.0), Some(13));
     }
 
     #[test]

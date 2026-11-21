@@ -18,7 +18,12 @@ impl App {
                     }
                 }
             }
-            packets::ZC_PAR_CHANGE | packets::ZC_LONGPAR_CHANGE => self.value_changed(packet),
+            packets::ZC_PAR_CHANGE | packets::ZC_LONGPAR_CHANGE => {
+                self.value_changed(packet);
+                if id == packets::ZC_PAR_CHANGE {
+                    self.level_changed(packet);
+                }
+            }
             packets::ZC_LONGLONGPAR_CHANGE => {
                 if let Some((name, value)) = packets::long_parameter(packet) {
                     self.hero.params.insert(name, value);
@@ -93,6 +98,21 @@ impl App {
             sound::effect("levelup.wav", 1.0);
             self.pet_feels(crate::pets::moment::LEVEL_UP, None);
         }
+    }
+
+    /// ZC_PAR_CHANGE with the base level or the job level (`CGameMode::ReceiveParChange`, `SP_BASELEVEL` and
+    /// `SP_JOBLEVEL`): the button that tells of a level gained shows, in the lower right corner of the screen
+    /// for the base level and in the lower left for the job level, and the menu's icon of the Status window
+    /// or of the skills wears its mark (`ID_NOTICE`), until that window is opened. The client asks nothing
+    /// more: not whether the level went up, nor whether the window is open already, nor whether there are
+    /// points to give. (rAthena sends the packet when a level is gained or set, not on coming in.)
+    fn level_changed(&mut self, packet: &[u8]) {
+        match packets::parameter(packet) {
+            Some((packets::parameter::BASE_LEVEL, _)) => self.hero.level_told = true,
+            Some((packets::parameter::JOB_LEVEL, _)) => self.skills.level_told = true,
+            _ => return,
+        }
+        self.redraw(&[&wnd::LEVEL_TOLD, &wnd::JOB_LEVEL_TOLD, &wnd::MENU]);
     }
 
     fn value_changed(&mut self, packet: &[u8]) {

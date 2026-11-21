@@ -10,6 +10,8 @@ thread_local! {
     static SKILL_TEXTS: RefCell<HashMap<u16, Option<Vec<String>>>> = RefCell::new(HashMap::new());
     /// Skills by ID: the name of their pictures, what they are called, and their highest level.
     static SKILLS: RefCell<HashMap<u16, (String, String, u16)>> = RefCell::new(HashMap::new());
+    /// By skill that warns of its area while it is cast: the area's cells across and down, level by level.
+    static SCALES: RefCell<HashMap<u16, Vec<(i32, i32)>>> = RefCell::new(HashMap::new());
     /// What the translated skills are called in Russian, by ID.
     static SKILL_NAMES_RU: RefCell<HashMap<u16, String>> = RefCell::new(HashMap::new());
 }
@@ -49,12 +51,20 @@ pub fn skill(id: u16) -> Option<(String, String, u16)> {
     Some((resource, name, most))
 }
 
+/// The area a skill warns of at a level, in cells across and down (the client's `GetSkillScale` of
+/// `skillinfo_f.lub`, which reads the skill's `SkillScale` of `skillinfolist.lub`); none for a skill or a level
+/// without.
+pub fn skill_scale(id: u16, level: u16) -> Option<(i32, i32)> {
+    SCALES.with_borrow(|scales| scales.get(&id)?.get(usize::from(level).checked_sub(1)?).copied())
+}
+
 /// Forgets the skills' descriptions: after the language changed they are asked for anew.
 pub(super) fn forget() {
     SKILL_TEXTS.with_borrow_mut(HashMap::clear);
 }
 
-/// Takes its tables out of what the gateway gave: the skills, and where they stand in each job's skill window.
+/// Takes its tables out of what the gateway gave: the skills, the areas some warn of, and where they stand in
+/// each job's skill window.
 pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     SKILLS.set(
         entries::<u16>(&field(tables, "skills"))
@@ -62,6 +72,18 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
             .filter_map(|(id, about)| {
                 let max = number(&about, "max").unwrap_or(1.0) as u16;
                 Some((id, (text_of(&about, "resource")?, text_of(&about, "name")?, max)))
+            })
+            .collect(),
+    );
+    SCALES.set(
+        entries::<u16>(&field(tables, "skills"))
+            .into_iter()
+            .filter_map(|(id, about)| {
+                let levels: Vec<(i32, i32)> = list(&field(&about, "scale"))
+                    .iter()
+                    .filter_map(|level| Some((row(level).get(0).as_f64()? as i32, row(level).get(1).as_f64()? as i32)))
+                    .collect();
+                (!levels.is_empty()).then_some((id, levels))
             })
             .collect(),
     );

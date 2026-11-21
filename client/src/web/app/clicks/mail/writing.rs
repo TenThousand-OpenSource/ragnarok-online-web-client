@@ -82,6 +82,12 @@ impl App {
         if let Some((line, words)) = amiss {
             return self.chat_line(Self::words(line, words), MAIL_SAID);
         }
+        // A title or a text with a word that is not let be written is not sent, and the window stays: the
+        // client's message box says its line 3028 (`MM_SEND_MAIL`, `crate::manner`).
+        if data::foul(&writing.title) || data::foul(&writing.body) {
+            self.message = Some(Self::words(3028, "Profanity detected.\nPlease check again."));
+            return self.render();
+        }
         if let (Some(receiver), Some(game)) = (&writing.receiver, &self.game) {
             self.send_on_map(&mail::send(receiver, &game.name, zeny, &writing.title, &writing.body));
         }

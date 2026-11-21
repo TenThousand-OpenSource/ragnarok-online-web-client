@@ -30,6 +30,8 @@ pub(super) struct State {
     pub(super) ai: ai::Owned,
     /// The guilds of those in sight: their names and emblems (`guild.rs`).
     pub(super) guilds: guild::Guilds,
+    /// The Granny models read and what each one in sight is doing (`granny.rs`).
+    pub(super) granny: granny::Models,
     /// The player's options the world goes by.
     pub(super) options: Options,
     /// What of the surroundings is kept from map to map: the switch of the fog, the night (`scenery.rs`).

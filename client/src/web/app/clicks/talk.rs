@@ -32,6 +32,11 @@ impl App {
             }
             Press::Ok => {
                 let typed = field("dialog-input");
+                // A text with a word that is not let be written is not sent, and the chat says the client's
+                // line 14 in red (`UINpcTextEditDialogWnd::SendMsg`, `crate::manner`).
+                if dialog.asks == Some(true) && data::foul(&typed) {
+                    return self.chat_line(Self::words(14, "Foul Language Detected."), RED);
+                }
                 socket.send(&if dialog.asks == Some(true) { net::talk::words(npc, &typed) } else { net::talk::number(npc, typed.trim().parse().unwrap_or(0)) });
                 dialog.asks = None;
                 dialog.stale = true;

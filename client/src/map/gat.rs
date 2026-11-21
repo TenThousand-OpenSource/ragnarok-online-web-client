@@ -58,6 +58,14 @@ impl Gat {
         x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height && self.walkable[y as usize * self.width + x as usize]
     }
 
+    /// The heights of a cell's own four corners (south-west, south-east, north-west, north-east), as the file has
+    /// them; nothing for a cell outside the map. A cell beside it may have its corners elsewhere (a bridge over
+    /// water, a ledge): what is laid on one cell goes by that cell's corners alone
+    /// (`GroundGeometry::CellRectangle`).
+    pub fn corners(&self, x: i32, y: i32) -> Option<[f32; 4]> {
+        (x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height).then(|| self.heights[y as usize * self.width + x as usize])
+    }
+
     /// The ground's height at a point given in cells (`3.5` is the middle of cell 3), between the cell's corners.
     pub fn height_at(&self, x: f32, y: f32) -> f32 {
         if self.width == 0 || self.height == 0 {

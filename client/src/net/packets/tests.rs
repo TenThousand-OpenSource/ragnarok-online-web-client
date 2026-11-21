@@ -274,6 +274,7 @@ fn builds_and_reads_chat() {
     let mut other = vec![0x8d, 0x00, 0, 0, 1, 2, 3, 4];
     other.extend(b"Friend : hey\0");
     assert_eq!(chat_text(ZC_NOTIFY_CHAT, &other).as_deref(), Some("Friend : hey"));
+    assert_eq!((chat_speaker(&other), chat_speaker(&other[..7])), (Some(0x0403_0201), None));
     assert_eq!(chat_text(0x1234, &own), None);
 }
 

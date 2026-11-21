@@ -153,3 +153,30 @@ fn a_square_waits_widens_comes_up_and_goes_and_lies_level() {
     assert!(close(at(2)[0], -9.0) && close(at(3)[2], -9.0));
     assert_eq!((lit[0].corners[0].1, lit[0].corners[2].1), ([0.0, 1.0], [1.0, 0.0]));
 }
+
+#[test]
+fn a_rising_wall_stands_up_and_sinks_back_once_and_is_gone() {
+    // As `TeleportRings` launches its first two: 100 and 70 tall, showing from the first.
+    let mut slots = vec![Slot::wall(180, 1.5, 90, 100.0, 0), Slot::wall(270, 3.0, 89, 70.0, 0)];
+    (slots[0].alpha, slots[1].alpha) = (100, 80);
+    let mut prim = walls(Walls::Rise, 200, slots);
+    for _ in 0..45 {
+        prim.tick(200);
+    }
+    // At its 45th tick a wall stands its whole height, and three tenths more in its middle as the sine of the
+    // ticks goes (45 degrees for the first, 135 for the second); they have turned 5 and 4 degrees a tick.
+    assert!(close(prim.slots[0].heights[0], 100.0) && close(prim.slots[0].heights[10], 100.0 + 30.0 * 45f32.to_radians().sin()));
+    assert!(close(prim.slots[1].heights[10], 70.0 + 21.0 * 135f32.to_radians().sin()));
+    assert_eq!((prim.slots[0].turned, prim.slots[1].turned, prim.slots[0].alpha), (45, 90, 100));
+    assert_eq!(prim.lit(RIGHT, UP).len(), 40);
+    // From its 68th tick it goes down by 1 a tick; at the ninetieth it is back at nothing.
+    for _ in 0..45 {
+        prim.tick(200);
+    }
+    assert!(close(prim.slots[0].heights[10], 0.0) && prim.slots[0].alpha == 100 - 22);
+    // After that it goes down by 10 a tick and stays flat.
+    for _ in 0..3 {
+        prim.tick(200);
+    }
+    assert!(close(prim.slots[0].heights[10], 0.0) && prim.slots[0].alpha == 100 - 22 - 30);
+}

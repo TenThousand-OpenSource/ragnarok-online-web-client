@@ -3,8 +3,8 @@
 //! Three sorts, asked in this order:
 //!
 //! - an effect whose function picks one of several files by lot (`SelectRagEffectResource`), played as every
-//!   `.str` effect is: `EF_FIREWALL` (25), `EF_FIREHIT` (49), `EF_WINDHIT` (52), `EF_BUBBLE` (109), `EF_PONG`
-//!   (199);
+//!   `.str` effect is: `EF_FIREWALL` (25), `EF_FIREHIT` (49), `EF_WINDHIT` (52), `EF_METEORSTORM` (92),
+//!   `EF_BUBBLE` (109), `EF_PONG` (199);
 //! - an effect a class of the client's own plays and carries (`crate::effect::carried` has the rules of the
 //!   ways and the turns): moved from the one who strikes to the one struck, turned on the screen, put aside,
 //!   begun late or anew:
@@ -65,8 +65,17 @@ pub fn played(effect: u32, lot: &mut dyn FnMut(u32) -> u32, turn: &mut usize) ->
             Launch::one(&file, None, &format!("_enemy_hit_fire{}.wav", lot(2) + 1))
         }
         52 => Launch::one(&format!("windhit{}.str", lot(3) + 1), None, ""),
+        // `EF_FIREHIT2`, what an item shows (12118): the same three files, and no sound of its own.
+        603 => Launch::one(&format!("firehit{}.str", lot(3) + 1), None, ""),
+        // `EF_METEORSTORM`: a meteor of Meteor Storm, one of three, with the sound its arm of
+        // `CRagEffect::OnProcess` starts. (The shake of the screen at its 40th tick is in
+        // `web/world/prims/fields.rs`.)
+        92 => Launch::one(&format!("meteor{}.str", lot(3) + 1), None, "effect/wizard_meteor.wav"),
         // `EF_BUBBLE` and `EF_PONG`: what the maps under the sea and in the caves place about themselves.
         109 => Launch::one(&format!("bubble{}.str", lot(4) + 1), None, ""),
+        // `EF_PNEUMA`: one of three files (`SelectRagEffectResource`), whoever launches it: its unit as it
+        // appears, or a script. It has no sound.
+        141 => Launch::one(&format!("pneuma{}.str", lot(3) + 1), None, ""),
         199 => Launch::one(&format!("pong{}.str", lot(3) + 1), None, ""),
         1357 => cart_cannon(),
         1755 => storm_cannon(),
@@ -90,11 +99,12 @@ pub fn played(effect: u32, lot: &mut dyn FnMut(u32) -> u32, turn: &mut usize) ->
     })
 }
 
-/// An effect that is one file of the client's table, played over the one it is on, with the sound the table
-/// has for it.
+/// An effect that is one file of the client's table, played over the one it is on, with the sounds the table
+/// has for it, each at its tick.
 fn plain(effect: u32) -> Option<Launch> {
     let file = crate::effect_tables::effect_file(effect)?.to_lowercase();
-    Some(Launch::one(&file, None, crate::effect_tables::effect_sound(effect).unwrap_or("")))
+    let sounds = crate::effect_tables::effect_sounds(effect).into_iter().map(|(tick, sound)| (tick, sound.to_owned())).collect();
+    Some(Launch { files: vec![(file, None)], sounds })
 }
 
 /// `CCartCannon`: one file, begun anew for as long as it flies, flown in ten steps and turned by its way; it
@@ -165,6 +175,10 @@ mod tests {
         let fire_hit = launched(49, 2, &mut 0).unwrap();
         assert_eq!((fire_hit.files, fire_hit.sounds), (vec![("firehit3.str".to_owned(), None)], vec![(0, "_enemy_hit_fire1.wav".to_owned())]));
         assert_eq!(launched(52, 0, &mut 0).unwrap().files, vec![("windhit1.str".to_owned(), None)]);
+        let item = launched(603, 1, &mut 0).unwrap();
+        assert_eq!((item.files, item.sounds), (vec![("firehit2.str".to_owned(), None)], Vec::new()));
+        let meteor = launched(92, 5, &mut 0).unwrap();
+        assert_eq!((meteor.files, meteor.sounds), (vec![("meteor3.str".to_owned(), None)], vec![(0, "effect/wizard_meteor.wav".to_owned())]));
         assert_eq!(launched(109, 3, &mut 0).unwrap().files, vec![("bubble4.str".to_owned(), None)]);
         assert_eq!(launched(199, 4, &mut 0).unwrap().files, vec![("pong2.str".to_owned(), None)]);
     }
@@ -177,7 +191,9 @@ mod tests {
         // An effect the client draws by code alone is no file.
         assert_eq!(launched(0, 0, &mut 0), None);
         // None of those named here is left in the table of plain files.
-        for effect in [25, 49, 52, 1357, 1755, 1756, 1837, 1953, 2018, 2050, 2080, 2082, 2114, 2206, 2214, 2222, 2230, 2250, 2252] {
+        // Pneuma is one of its three files, by lot.
+        assert_eq!(launched(141, 2, &mut 0).unwrap().files, vec![("pneuma3.str".to_owned(), None)]);
+        for effect in [25, 49, 52, 92, 141, 1357, 1755, 1756, 1837, 1953, 2018, 2050, 2080, 2082, 2114, 2206, 2214, 2222, 2230, 2250, 2252] {
             assert_eq!(crate::effect_tables::effect_file(effect), None, "{effect}");
         }
     }

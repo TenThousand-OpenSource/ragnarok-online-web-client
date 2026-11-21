@@ -218,3 +218,15 @@ fn a_spark_in_orbit_stands_its_radius_out_and_rises_slowing() {
     let seen = spark.seen()[0];
     assert!(close(seen.at[0], 3.0) && close(seen.at[2], -4.0));
 }
+
+#[test]
+fn a_spark_in_orbit_takes_a_new_speed_of_its_radius_at_the_tick_it_was_given() {
+    // As a spark of `Sphere`: out by 0.15 a tick, and from the tick after its 95th back in as fast.
+    let mut spark = Prim::new(Shape::ParticleOrbit3d, "");
+    (spark.duration, spark.radius, spark.radius_speed) = (300, 0.1, 0.15);
+    spark.changes = Some(crate::prim::Change { speed: -0.15, accel: 0.0, ..crate::prim::Change::at(95) });
+    (0..96).for_each(|_| drop(spark.tick(300)));
+    assert!(close(spark.radius, 0.1 + 96.0 * 0.15));
+    spark.tick(300);
+    assert!(close(spark.radius, 0.1 + 95.0 * 0.15));
+}

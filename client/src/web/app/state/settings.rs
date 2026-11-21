@@ -33,4 +33,6 @@ pub(in crate::web) struct Hotkeys {
     pub mac: bool,
     /// What the window says of the last key pressed in it, when it would not take it.
     pub notice: Option<String>,
+    /// The Hotkey Guide is open (the client's `WID_HOTKEYGUIDEWND`).
+    pub guide: bool,
 }

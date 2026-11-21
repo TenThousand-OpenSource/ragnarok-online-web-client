@@ -1,6 +1,8 @@
 //! Healing and Resurrection, each with the figures of its function of `CRagEffect`:
 //!
-//! - `EF_HEALSP` (7): the light of a small healing (`HealSP`);
+//! - `EF_EXIT` (7): the light of a small healing and of a thing used (`Exit`: the client's handler of Heal
+//!   launches this number for the least healing, and `AM_USEITEM_EFFECT` for an item);
+//! - `EF_HEALSP` (14): the bluish light of spirit given back (`HealSP`);
 //! - `EF_HEAL` (312), `EF_HEAL3` (320): Heal (`HealBurst`);
 //! - `EF_HEAL2` (313), `EF_HEAL4` (325), `EF_ABSORBSPIRITS` (253): the taller healing lights and the blue one
 //!   of Absorb Spirits (`HealRingSparkle`);
@@ -17,7 +19,7 @@
 //! `EffectLists`); Heal, Absorb Spirits and the others ported here are launched with `LaunchEffect`
 //! (`CSession::PlaySkillEffect`, `SkillActionSoulAscetic`), which makes a `CRagEffect`: that is what is here.
 
-use super::launched::PARTICLE2;
+use super::launched::{PARTICLE1, PARTICLE2};
 use super::*;
 
 pub(super) const FILE: File = File { known, thrown: none, stays: none, run, pictures: &[&PICTURES, &SPANNERS], sprites: &[] };
@@ -37,7 +39,8 @@ const PICTURES: [&str; 7] = [
 /// (none: empty); nothing for any other effect.
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
-        7 => (100, "_heal_effect.wav"),
+        // (`Exit` and `HealSP` make themselves last 100 ticks, whatever the client's table of lifetimes has.)
+        7 | 14 => (100, "_heal_effect.wav"),
         // `EF_REVIVE` has no sound in its function.
         140 => (250, ""),
         253 => (100, "effect/흡기.wav"),
@@ -52,7 +55,8 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
 /// One tick of an effect of this file: it launches what it launches at that tick into `prims`.
 fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     match effect {
-        7 => heal_sp(course.tick, prims),
+        7 => exit(course.tick, prims),
+        14 => heal_sp(course.tick, prims),
         140 => revive(course.tick, course.lasts, prims),
         253 => heal_rings("ring_blue.tga", 2, course, prims),
         309 if course.tick == 0 => prims.push(first_aid(course)),
@@ -170,8 +174,7 @@ fn heal_rings(picture: &'static str, kind: u8, course: &mut Course, prims: &mut 
 /// 3.5 and 4.5 out, and 15, 25 and 35 high), each fainter than the next (16, 32 and 64 of 255 at their most),
 /// turning; they come up over 30 ticks and fade over the last 20. And every other tick a spark at any side, 3
 /// out and 3 more (the client puts it out once as it launches it and once more every tick), that rises from
-/// the feet, slowing, at 0.55 of its size, and fades over the last third of its 30 ticks. (The effect makes
-/// itself last 100 ticks, whatever the client's table of lifetimes has for it.)
+/// the feet, slowing, at 0.55 of its size, and fades over the last third of its 30 ticks.
 fn heal_sp(tick: i32, prims: &mut Vec<Prim>) {
     if tick == 0 {
         for (out, tall, most) in [(2.5, 15.0, 16.0), (3.5, 25.0, 32.0), (4.5, 35.0, 64.0)] {
@@ -186,18 +189,42 @@ fn heal_sp(tick: i32, prims: &mut Vec<Prim>) {
             prims.push(band);
         }
     }
-    if tick % 2 != 0 {
-        return;
+    if tick % 2 == 0 {
+        prims.push(rising_spark(PARTICLE2, 30));
     }
-    let mut spark = Prim::new(Shape::ParticleOrbit3d, PARTICLE2);
-    (spark.radius, spark.duration) = (3.0, 30);
+}
+
+/// `CRagEffect::Exit`: one upright band of white light round the one healed, 4.5 out and 35 high, that comes
+/// up to 90 of 255 over 30 ticks and fades over the last 20 of its 100; and every ninth tick a spark as
+/// `HealSP` launches them, of `particle1.spr`, that lives 50 ticks.
+fn exit(tick: i32, prims: &mut Vec<Prim>) {
+    if tick == 0 {
+        let mut band = Prim::new(Shape::Cylinder3d, "alpha_down.tga");
+        band.duration = 100;
+        (band.outer, band.inner, band.height) = (4.5, 4.5, 35.0);
+        (band.alpha, band.max_alpha) = (0.0, 90.0);
+        band.alpha_speed = band.max_alpha / 30.0;
+        band.fade_out = band.duration - 20;
+        prims.push(band);
+    }
+    if tick % 9 == 0 {
+        prims.push(rising_spark(PARTICLE1, 50));
+    }
+}
+
+/// A spark of `HealSP` and of `Exit`: at any side of the one healed, 3 out and 3 more (the client puts it out
+/// once as it launches it and once more every tick), it rises from the feet, slowing, at 0.55 of its size, and
+/// fades over the last third of its ticks.
+fn rising_spark(sprite: &'static str, duration: i32) -> Prim {
+    let mut spark = Prim::new(Shape::ParticleOrbit3d, sprite);
+    (spark.radius, spark.duration) = (3.0, duration);
     spark.longitude = lot(360);
     spark.grav_speed = -1.2;
     spark.grav_accel = -(spark.grav_speed / spark.duration as f32) / 1.5;
     (spark.put.0, spark.deep) = (sine(spark.longitude) * spark.radius, cosine(spark.longitude) * spark.radius);
     spark.size = 0.55;
     spark.fade_out = spark.duration - spark.duration / 3;
-    prims.push(spark);
+    spark
 }
 
 /// `EF_REVIVE` in `CRagEffect::OnProcess`: every 25th tick a ring of yellow round the one raised, a band 7.5

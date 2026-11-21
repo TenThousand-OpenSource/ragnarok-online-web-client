@@ -8,6 +8,15 @@
 use super::bytes::{Writer, long, u16_at, u32_at, word};
 
 pub const ZC_INVENTORY_START: u16 = 0x0b08;
+/// ZC_INVENTORY_END (0x0b0b, 4 bytes; the client's `ZC_SPLIT_SEND_ITEMLIST_RESULT`): `u8 kind, u8 partial`:
+/// the lists of one kind (the inventory, the cart, a storage) are all sent.
+pub const ZC_INVENTORY_END: u16 = 0x0b0b;
+/// ZC_EXTEND_BODYITEM_SIZE (0x0b18, 4 bytes): `u16 more`: how many places the inventory has over its hundred
+/// (`clif_inventory_expansion_info`): the inventory expansion, which is not of the classic game.
+pub const ZC_EXTEND_BODYITEM_SIZE: u16 = 0x0b18;
+/// ZC_SEND_SWAP_EQUIPITEM_INFO (0x0a9b): the things of the equipment switch, sent as the game is entered:
+/// not of the classic game.
+pub const ZC_SEND_SWAP_EQUIPITEM_INFO: u16 = 0x0a9b;
 pub const ZC_INVENTORY_ITEMLIST_NORMAL: u16 = 0x0b09;
 pub const ZC_INVENTORY_ITEMLIST_EQUIP: u16 = 0x0b39;
 pub const ZC_ITEM_PICKUP_ACK: u16 = 0x0b41;

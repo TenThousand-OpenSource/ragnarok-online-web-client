@@ -60,6 +60,7 @@ pub fn router(app: App) -> Router {
         .route("/tables/items.ko/{ids}", get(client_items_korean))
         .route("/tables/ai.json", get(client_ai))
         .route("/tables/ai-user.json", get(client_ai_user))
+        .route("/tables/emitters/{map}", get(client_emitters))
         .with_state(Arc::new(app))
 }
 
@@ -121,6 +122,12 @@ async fn client_ai(State(app): State<Arc<App>>) -> Response {
 /// `GET /tables/ai-user.json`: those and the player's own under `USER_AI`.
 async fn client_ai_user(State(app): State<Arc<App>>) -> Response {
     json(tokio::task::spawn_blocking(move || tables::ai_scripts(&app.client_dir, true)).await.unwrap())
+}
+
+/// `GET /tables/emitters/<map>`: what that map's script sets on its particle emitters (`tables/emitters.rs`),
+/// read as it is asked for: once as a map is entered.
+async fn client_emitters(State(app): State<Arc<App>>, Path(map): Path<String>) -> Response {
+    json(tokio::task::spawn_blocking(move || tables::emitters(&app.grf, &map).to_string()).await.unwrap())
 }
 
 /// `GET /tables.json`: everything the browser is given at once (`tables::for_browser`).

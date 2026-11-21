@@ -5,6 +5,7 @@
 //! - `EF_BASH` (16): the flash a few skills are launched with (`Bash`);
 //! - `EF_TURNUNDEAD` (82): Turn Undead (`TurnUndead`);
 //! - `EF_HASTEUP` (98): Adrenaline Rush (`HasteUp`);
+//! - `EF_FLASHER` (99): the flash of a Flasher trap, and of scripts (`Flasher`);
 //! - `EF_SONICBLOW` (121): the ring Sonic Blow is launched with (in the client's `CRagEffect::OnProcess` itself);
 //! - `EF_OVERTHRUST` (128): Overthrust (`StoneCurseRing`);
 //! - `EF_SUMMONSLAVE` (215): the wedges of light of a monster calling its slaves (`AlphaCenterRise`);
@@ -14,14 +15,14 @@
 //! Not done here, as it is not drawn by primitives: the smoke `AlphaCenterRise` has its parent make at its
 //! 35th tick (`AM_MAKE_SMOKE_FFECT`). What bursts out over the ground is in `blasts.rs`.
 
-use super::launched::PARTICLE1;
+use super::launched::{PARTICLE1, glowing};
 use super::*;
 use crate::prim::{Cast, Change};
 
 pub(super) const FILE: File = File { known, thrown, stays: none, run, pictures: &[&PICTURES], sprites: &[] };
 
 /// The pictures the effects here are drawn with, among the client's pictures of effects.
-const PICTURES: [&str; 5] = ["endure.tga", "alpha_down.tga", "ring_liner.tga", "alpha_center.tga", "shockwave_c.bmp"];
+const PICTURES: [&str; 6] = ["endure.tga", "alpha_down.tga", "ring_liner.tga", "alpha_center.tga", "shockwave_c.bmp", "thunder_center.bmp"];
 
 /// How many ticks an effect of this file lives (the client's `EffectLifetime`, or what its function makes of
 /// it) and the sound it starts with (none: empty); nothing for any other effect.
@@ -33,6 +34,7 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
         82 => (250, ""),
         // `HasteUp` gives itself 300 ticks.
         98 => (300, "effect/black_adrenalinerush_a.wav"),
+        99 => (250, "effect/hunter_flasher.wav"),
         121 => (40, "effect/ef_stonecurse.wav"),
         // `StoneCurseRing` gives itself 9999 ticks and shows nothing after the 40 its ring lives; it is ended
         // here with the ring. It starts a second sound with this one.
@@ -57,12 +59,13 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         16 if tick == 0 => prims.extend(bash()),
         82 => turn_undead(course, prims),
         98 => haste_up(course, prims),
+        99 if tick == 0 => prims.extend(flasher()),
         121 if tick == 0 => prims.push(widening_ring(lasts)),
         128 if tick == 0 => {
             course.sound("effect/ef_stonecurse.wav");
             prims.push(widening_ring(40));
         }
-        215 if tick == 0 => prims.extend((0..20).map(|_| rising_wedge())),
+        215 if tick == 0 => prims.extend((0..20).map(|_| rising_wedge(40, 20.0))),
         300 if tick == 0 => prims.extend([30, 60].into_iter().flat_map(|turned| [false, true].map(|wide| rays(turned, wide, course)))),
         _ => {}
     }
@@ -118,7 +121,7 @@ fn bash() -> Vec<Prim> {
     disc.alpha_speed = disc.max_alpha / 6.0;
     disc.fade_out = disc.duration - 10;
     let mut prims = vec![disc];
-    prims.extend((0..20).map(|_| rising_wedge()));
+    prims.extend((0..20).map(|_| rising_wedge(40, 20.0)));
     prims
 }
 
@@ -176,15 +179,32 @@ fn turning_wedge(duration: i32) -> Prim {
 
 /// A wedge of `CRagEffect::AlphaCenterRise`, which launches twenty at its first tick, 40 above the one it is
 /// on: 20 to 59 long, it lengthens by 2 to 5 a tick as it turns, comes up over 10 ticks and fades over the last
-/// third of its 40. (They are the wedges of `Bash`, without its disc.)
-fn rising_wedge() -> Prim {
-    let mut wedge = turning_wedge(40);
+/// third of its 40. (They are the wedges of `Bash`, without its disc.) `Flasher` launches the same for another
+/// time, lengthening faster: `duration`, and `grows`, the tenths a tick it lengthens by at the least.
+fn rising_wedge(duration: i32, grows: f32) -> Prim {
+    let mut wedge = turning_wedge(duration);
     wedge.height = lot(40) + 20.0;
-    wedge.height_speed = (lot(30) + 20.0) / 10.0;
+    wedge.height_speed = (lot(30) + grows) / 10.0;
     (wedge.alpha, wedge.max_alpha) = (0.0, 200.0);
     wedge.alpha_speed = wedge.max_alpha / 10.0;
     wedge.fade_out = wedge.duration - wedge.duration / 3;
     wedge
+}
+
+/// `CRagEffect::Flasher`, at its first tick: a ball of light turned to the camera 10 above the one it is on,
+/// 20 to each side, its picture added whole for its 70 ticks; and twenty wedges 40 above that one, as those of
+/// `AlphaCenterRise` but for 70 ticks and lengthening by 5 to 8 a tick.
+///
+/// (The function also gives the ball an alpha that comes up over six ticks and fades over the last ten,
+/// which an added picture does not show, and numbers for a change of its radius that only a sprite going round
+/// reads, `Prim3DParticleOrbit`.)
+fn flasher() -> Vec<Prim> {
+    let mut ball = Prim::new(Shape::Texture3d, "thunder_center.bmp");
+    (ball.duration, ball.faces_camera, ball.put.1) = (70, true, -10.0);
+    (ball.width, ball.height, ball.max_alpha) = (20.0, 20.0, 200.0);
+    let mut prims = vec![glowing(ball)];
+    prims.extend((0..20).map(|_| rising_wedge(70, 50.0)));
+    prims
 }
 
 /// `CRagEffect::HasteUp`. At its first tick twenty wedges 40 above the one it is on, that lengthen by about 4

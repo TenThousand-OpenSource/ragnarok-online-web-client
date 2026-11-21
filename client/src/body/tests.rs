@@ -273,3 +273,24 @@ fn the_colour_its_states_gave_it_is_kept_beside_what_effects_write() {
     let drawn = body.quads(true, 100.0, &mut |_| 0);
     assert_eq!(drawn.last().map(|quad| quad.colour), Some([255, 128, 255, 255]));
 }
+
+#[test]
+fn an_alpha_an_effect_writes_comes_back_to_the_whole_as_a_colour_does() {
+    // `AssassinCloaking`: `SetColor(50, -1, -1, -1)` at every tick; the colour stays what it was.
+    let mut body = Body::default();
+    let touch = Touch { alpha: Some(50), ..Touch::default() };
+    body.touch(&touch, false);
+    assert_eq!(quads(&body, true), vec![Quad::PLAIN]);
+    body.touch(&touch, true);
+    assert_eq!(quads(&body, true)[0].colour, [255, 255, 255, 50]);
+    // The effect over, every pass brings it 8 nearer to the whole.
+    body.pass(2);
+    assert_eq!(quads(&body, false)[0].colour, [255, 255, 255, 66]);
+    body.pass(30);
+    assert_eq!(quads(&body, true), vec![Quad::PLAIN]);
+    // A colour a state has locked keeps the alpha too, as the client's `ModifyArgb` leaves all four.
+    body.stated([0x40; 3]);
+    body.touch(&touch, true);
+    body.pass(100);
+    assert_eq!(quads(&body, true)[0].colour, [0x40, 0x40, 0x40, 50]);
+}

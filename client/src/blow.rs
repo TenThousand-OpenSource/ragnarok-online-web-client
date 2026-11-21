@@ -7,6 +7,7 @@
 //! each frame taking 24 milliseconds at full speed. The speed is what the server sends with the blow (432 is
 //! full speed; the client takes no more than that).
 
+pub mod combos;
 pub mod flight;
 pub mod landing;
 pub mod signs;

@@ -54,4 +54,7 @@ pub(in crate::web) struct Party {
     pub asks: Option<PartyAsk>,
     /// The menu on a member, opened with the right button: where on the stage, and which member.
     pub menu: Option<((i32, i32), usize)>,
+    /// What members obtained that the chat has not told yet, each with the member's name: told once the
+    /// gateway has said what the thing is called.
+    pub obtained: Vec<(String, party::Picked)>,
 }

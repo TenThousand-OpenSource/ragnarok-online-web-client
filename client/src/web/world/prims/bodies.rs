@@ -31,6 +31,10 @@
 //! - `EF_MAKEBLUR` (166): for as long as a quickening, Overthrust, Energy Coat or Fury holds, the one in it is
 //!   in the colour the state tells the effect, and leaves afterimages as it moves
 //!   (`CRagEffect::SpawnBlurAfterimage`, `crate::body::copies::blur`);
+//! - `EF_CLOAKING` (120): the one who cloaks is see-through, 50 of 255, for as long as the effect lives
+//!   (`CRagEffect::AssassinCloaking`: `SetColor(50, -1, -1, -1)` at every tick), and comes back into sight
+//!   after it as a colour fades. (The function also puts out a shadow: the effect's own, `this->render`,
+//!   which is never drawn; its parent's shadow is not touched.)
 //! - `EF_ESCAPE` (1081): the one who slides away is yellow, and leaves four yellow copies of itself standing
 //!   on the way (`escape`).
 
@@ -47,6 +51,7 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
         382 | 396 | 419 | 424 | 427 | 474 | 544 => (99_999_999, ""),
         // `EF_RUN` and `EF_MAKEBLUR` live until their states end.
         166 | 442 => (9999, ""),
+        120 => (250, "effect/assasin_cloaking.wav"),
         426 => (14, ""),
         443 => (30, ""),
         457 => (100, ""),
@@ -104,6 +109,8 @@ fn run(effect: u32, course: &mut Course, _prims: &mut Vec<Prim>) {
     let touch = &mut course.touch;
     match effect {
         // `EF_LIGHTBLADE`, `EF_AURABLADE2`: the weapon drawn twice, or with its light added.
+        // `EF_CLOAKING`: see-through.
+        120 => touch.alpha = Some(50),
         382 => touch.flags |= flag::WEAPON_TWICE,
         474 => touch.flags |= flag::WEAPON_ADDS,
         // `EF_RUN`: footprints, and the tick it is at, a byte.

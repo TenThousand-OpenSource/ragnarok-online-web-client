@@ -8,9 +8,25 @@ impl App {
         use crate::press::Step;
         use crate::press::skills::{LevelStep, Press};
         match press {
+            // Opened, the window puts away the button that tells of a job level gained and takes the mark off
+            // its icon (`UIWindowMgr::EnsureWindow`, `WID_SKILLLISTWND`).
             Press::Window => {
                 self.skills.open = !self.skills.open;
+                self.skills.level_told &= !self.skills.open;
                 self.render();
+            }
+            // The button that tells of a job level gained (`UINotifyJobLevelUpWnd::SendMsg`): the skill window
+            // is shown, which puts the button away, and comes to the front.
+            Press::JobLevelGained => {
+                (self.skills.open, self.skills.level_told) = (true, false);
+                self.render();
+                self.window_pressed(wnd::SKILLS.id);
+            }
+            Press::WordsOk => self.skill_words_typed(),
+            // Cancel puts the box away and the skill is not used (`ID_CANCEL`).
+            Press::WordsCancel => {
+                self.skills.writing = None;
+                self.redraw(&[&wnd::SKILL_WORDS]);
             }
             Press::Raise(id) => {
                 if let Some(socket) = &self.socket {
@@ -103,11 +119,36 @@ impl App {
             self.fight.aimed = whom;
         }
         if let (Server::Map, Some(socket), Some((skill, level))) = (self.server, &self.socket, self.skills.aimed.take()) {
+            // A Talkie Box and Graffiti ask for their words first, and are placed when those are given
+            // (`CPlayer::SendMsg`, `AM_REQ_GROUND_SKILL`). The client asks as its character comes within the
+            // skill's reach of the place; this client leaves the way there to the server, and asks at once.
+            if whom.is_none() && crate::skills::words_asked(skill).is_some() {
+                self.skills.writing = Some((skill, level, cell));
+                return self.redraw(&[&wnd::SKILL_WORDS]);
+            }
             socket.send(&match whom {
                 Some(id) => net::inventory::use_skill(level, skill, id),
                 None => crate::net::skills::use_on_ground(level, skill, cell),
             });
         }
+    }
+
+    /// OK of the box that asks the words of a Talkie Box or of Graffiti, and Enter in its line (`ID_OK`, then
+    /// `CGameMode::SendMsg`, `MM_USE_SKILL_TOGROUND_WITH_TALKBOX`): the box closes; a skill that still waits
+    /// is not used, and the chat says so; else the skill is placed with what was typed.
+    pub(in crate::web::app) fn skill_words_typed(&mut self) {
+        let words = field(&wnd::SKILL_WORDS.field());
+        let Some((skill, level, cell)) = self.skills.writing.take() else { return };
+        self.redraw(&[&wnd::SKILL_WORDS]);
+        if !self.cooldowns.waits.ready(skill, now()) {
+            return self.skill_waits(skill);
+        }
+        // The client's filter of words (`g_forbiddenWords`, `manner.txt`; `GameMode.cpp:3543`): with a word of
+        // it in the text nothing is sent, and the chat says the line 50 of the message table in red.
+        if data::foul(&words) {
+            return self.chat_line(Self::words(50, "Chat Filter: Yeah, uh, I don't think so buddy..."), RED);
+        }
+        self.send_on_map(&crate::net::skills::use_on_ground_with_words(level, skill, cell, &words));
     }
 
     /// The level the aimed skill is used at, one up or down, between 1 and the level it is known at

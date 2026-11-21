@@ -9,9 +9,13 @@ Read from the decompiled client (`rodecomp`):
   Source/Contents/Effects/Core/RagEffectInitialization.cpp   which .str file an effect plays
   Source/Contents/Effects/Particles/EZ2STREffect.cpp  CEZ2STRScreenEffect::InitParticle: the .str file of an
                                                       effect that is nothing but its file; InitEvents: its sound
-  Source/Contents/Effects/Core/RagEffect.cpp          which sound an effect starts with
+  Source/Contents/Effects/Core/RagEffect.cpp          which sound an effect starts with: the arms of its
+                                                      switches by the effect, and of the second switch of
+                                                      `CRagEffect::OnProcess`, which stands a step deeper
   Source/Client/Mode/GameModePackets.cpp              CGameMode::ReceiveSkillUse: the effects of a skill that
                                                       strikes nobody, on the one who used it or on its target
+  Source/Client/Mode/GameModeNotices.cpp              CGameMode::ReceiveNotifyGroundSkill: the sounds of a skill
+                                                      used on a place (with CGameActor::PlayGroundSkillEffect)
   Source/Contents/Skills/SkillActionInfo.cpp          CSession::GetSkillActionInfo2: the motion of the body
   Source/Contents/Jobs/JobInheritance.cpp             CSession::PlaySkillEffect: the effects of a skill that
                                                       strikes somebody, and whose place each is put at
@@ -30,7 +34,9 @@ class of the client's), which are the numbers `played` of `../effect/played.rs` 
 Written, one entry a line, tab between the fields:
   effect_files.txt     <effect>  <file.str>       (merged with what the folder already has; without the effects
                                                   a `played` here answers for, whose files the code plays)
-  effect_sounds.txt    <effect>  <sound.wav>
+  effect_sounds.txt    <effect>  <sound.wav>  [<tick>]   (the first sound of the effect; for an effect of the
+                                                  second switch of `OnProcess` every sound, a line each, with
+                                                  the tick of the effect it starts at where that is not its first)
   skill_effects.txt    <skill>   <s|t>  <effect>  (s: on the one who used the skill, t: on its target)
   skill_hits.txt       <skill>   <s|t>  <effect>  (the same, for a skill that strikes: s at the striker's place,
                                                   t at the place of the one struck)
@@ -43,8 +49,12 @@ Written, one entry a line, tab between the fields:
                                                   Drive shows 1708 on anyone but the player's own character, written
                                                   as none here)
   skill_motions.txt    <skill>   <state>          (only skills whose state is not the usual one, 7)
-  effects_missing.txt  <effect>  <EF_NAME>  <skills that use it>   effects of the five tables of skills above
-                       that have no .str file: the client draws them by code, and this client does not yet.
+  skill_sounds.txt     <skill>   <u|h|g>  <s|t>  <sound.wav>   (the sounds the client's handlers of a skill start
+                                                  beside its effects: u as it is used, h as it strikes, g as it
+                                                  is used on a place; s heard from the one who used it, or for g
+                                                  from the place, t from its target)
+  effects_missing.txt  <effect>  <EF_NAME>  <skills and items that use it>   effects of the five tables of skills
+                       above, and of `item_effects.txt`, that have no .str file here and are not drawn by code here.
                        (One is left, and stays: 941 EF_SPR_LIGHTPRINT3, whose colour the client reads from
                        memory nothing has written, so there is nothing to port. The list has no header: a line
                        is an effect.)
@@ -124,11 +134,36 @@ for labels, body in switch(function(read('Source/Contents/Effects/Particles/EZ2S
 # The sound an effect starts with.
 sounds = {}
 for labels, body in switch(read('Source/Contents/Effects/Core/RagEffect.cpp'), '  '):
-    waves = re.findall(r'Play(?:Effect)?Wave\([^"]*"([^"]+\.wav)"', '\n'.join(body))
+    waves = re.findall(r'Play(?:Effect)?Wave(?:At)?\([^"]*"([^"]+\.wav)"', '\n'.join(body))
     if waves:
         for label in labels:
             if label in effects and effects[label] not in sounds:
                 sounds[effects[label]] = waves[0].replace('\\\\', '/')
+
+# The effects under 300 and from 374 to 490 are handed out by a second switch of `CRagEffect::OnProcess`, which
+# stands inside the `else` of the first and so one step deeper. An arm there starts its sounds at ticks of the
+# effect it names (`if (this->state.stateCnt == 20)`): each is kept with its tick, so that one started late is
+# not heard early. A sound started under any other condition (by lot: Quagmire's one time in twelve; again and
+# again) is left to the code that launches the effect.
+more, skipped = {}, []
+process = function(read('Source/Contents/Effects/Core/RagEffect.cpp'), 'bool CRagEffect::OnProcess() {')
+for labels, body in switch(process[process.index('    switch (this->state.type) {'):], '    '):
+    under, found = None, []
+    for line in body:
+        if re.match(r'^    \}', line):
+            break  # (the switch is over: what follows is not this arm's)
+        if re.match(r'\s*(if|\} else|for|while)\b', line):
+            under = line.strip()
+        wave = re.search(r'Play(?:Effect)?Wave(?:At)?\([^"]*"([^"]+\.wav)"', line)
+        if wave:
+            counted = re.fullmatch(r'if \(this->state\.stateCnt == (\d+)\) \{', under or '')
+            if counted:
+                found.append((wave.group(1).replace('\\\\', '/'), int(counted.group(1))))
+            else:
+                skipped.append((labels[-1], under))
+    for label in labels:
+        if found and label in effects and label.startswith('EF_') and effects[label] not in sounds:
+            more[effects[label]] = found
 
 # An effect that is nothing but its file starts its sound as the file begins (`CEZ2STRScreenEffect::InitEvents`,
 # an event at the file's frame 0).
@@ -147,6 +182,9 @@ for labels, body in switch(used, '  '):
     text = '\n'.join(body)
     found = re.findall(r'\b(source|target)->LaunchEffect\((EF_[A-Z0-9_]+)', text)
     found += [(who, effect) for effect, who in re.findall(r'g_effectMgr->Spawn\([^,]*,\s*(EF_[A-Z0-9_]+),\s*(source|target)->', text)]
+    # An effect launched on the player's own character and told the place of one of the two (`AM_SETPOS`) is
+    # seen at that one's place: written as on that one (`NPC_SUICIDE`).
+    found += [(who, effect) for effect, who in re.findall(r'\bplayer->LaunchEffect\((EF_[A-Z0-9_]+)[^\n]*\n[^\n]*AM_SETPOS[^\n]*&(source|target)->render\.position', text)]
     # One told that it guarded (`AM_MAKE_GUARD`) launches the shield of a guard on itself (`CGameActor::SendMsg`).
     found += [(who, 'EF_GUARD') for who in re.findall(r'\b(source|target)->SendMsg\(nullptr, AM_MAKE_GUARD\b', text)]
     for label in labels:
@@ -165,10 +203,15 @@ for labels, body in switch(struck, '  '):
     found = []
     for line in body:
         launched = re.search(r'\b(source|target)->LaunchEffect\((EF_[A-Z0-9_]+)', line)
+        # (One launched on the player's own character and then told a place, as `RG_INTIMIDATE`'s: the place
+        # is what is kept.)
+        own = re.search(r'\bplayer->LaunchEffect\((EF_[A-Z0-9_]+)', line)
         spawned = re.search(r'g_effectMgr->Spawn\([^,]*,\s*(EF_[A-Z0-9_]+),\s*(source|target)->', line)
         placed = re.search(r'position = (source|target)->render\.position', line)
         if launched:
             found.append([launched.group(1), launched.group(2), False])
+        elif own:
+            found.append([None, own.group(1), False])
         elif spawned:
             found.append([spawned.group(2), spawned.group(1), True])
         elif placed and found and not found[-1][2]:
@@ -177,8 +220,37 @@ for labels, body in switch(struck, '  '):
         if label not in skills:
             continue
         for who, effect, _ in found:
-            if effect in effects and (skills[label], who[0], effects[effect]) not in skill_hits:
+            if who and effect in effects and (skills[label], who[0], effects[effect]) not in skill_hits:
                 skill_hits.append((skills[label], who[0], effects[effect]))
+
+# The sounds the client starts in its handlers of a skill, beside the effects (`g_soundMgr->PlayWave` in the
+# skill's arm): `u` as the skill is used (`CGameMode::ReceiveSkillUse`), from the one who used it or, where the
+# arm asks only for a target, from that one; `h` as a skill that strikes is shown (`CSession::PlaySkillEffect`),
+# from the one struck; `g` as a skill is used on a place (`CGameActor::PlayGroundSkillEffect`, and the switch
+# of `CGameMode::ReceiveNotifyGroundSkill`, which stands a step deeper), from the place. A sound this client
+# starts already with an effect of the skill (it is named in the effect's arm of a file of effects, whose
+# `known` has the handler's sound too) is left out: `effect_sounded` below.
+def handler_sounds(text, indent, when):
+    found = []
+    for labels, body in switch(text, indent):
+        under = ''
+        for line in body:
+            if re.match(r'^' + indent + r'\}', line):
+                break  # (the switch is over)
+            if re.match(r'\s*(if|\} else)\b', line):
+                under = line
+            elif re.match(r'^' + indent + r'  \}$', line):
+                under = ''
+            wave = re.search(r'g_soundMgr->PlayWave\("([^"]+\.wav)"', line)
+            if wave:
+                who = 't' if when == 'h' or ('target' in under and 'source' not in under) else 's'
+                found += [(skills[label], when, who, wave.group(1).replace('\\\\', '/')) for label in labels if label in skills]
+    return found
+
+
+skill_sounds = handler_sounds(used, '  ', 'u') + handler_sounds(struck, '  ', 'h')
+skill_sounds += handler_sounds(function(read('Source/Contents/Actors/RenderObject.cpp'), 'void CGameActor::PlayGroundSkillEffect('), '  ', 'g')
+skill_sounds += handler_sounds(function(read('Source/Client/Mode/GameModeNotices.cpp'), 'void CGameMode::ReceiveNotifyGroundSkill('), '    ', 'g')
 
 # The motion of the body: the state a skill puts its user in, where it is not 7.
 motions = {}
@@ -241,6 +313,23 @@ for path in sorted(os.path.join(folder, name) for folder, _, names in os.walk(pr
                 if start.group(1) == 'played':
                     picked.update(numbers)
 
+# The sounds a file of effects here names in an effect's own arm (`266 => (300, "effect/….wav")`).
+effect_sounded = set()
+for folder, _, names in os.walk(prims):
+    for name in names:
+        if name.endswith('.rs'):
+            for arm, sound in re.findall(r'^\s*(\d[\d\s|.=]*?)\s*(?:if [^=]*)?=>.*?"([^"]+\.wav)"', open(os.path.join(folder, name), encoding='utf-8').read(), re.M):
+                for part in arm.split('|'):
+                    first, _, last = part.strip().partition('..=')
+                    effect_sounded.update((number, sound.lower()) for number in range(int(first), int(last or first) + 1))
+shown_by = {}
+for skill, _, effect in skill_effects + skill_hits:
+    shown_by.setdefault(skill, set()).add(effect)
+for skill, effect in list(launch.items()) + list(follow.items()):
+    shown_by.setdefault(skill, set()).add(effect)
+doubled = [row for row in skill_sounds if any((effect, row[3].lower()) in effect_sounded for effect in shown_by.get(row[0], ()))]
+skill_sounds = sorted(set(skill_sounds) - set(doubled))
+
 os.makedirs(out, exist_ok=True)
 
 
@@ -266,13 +355,15 @@ for number, name in plain.items():
 for number in picked:
     known.pop(number, None)
 write('effect_files.txt', sorted(known.items()))
-write('effect_sounds.txt', sorted(sounds.items()))
+write('effect_sounds.txt', sorted([(number, sound) for number, sound in sounds.items()]
+                                  + [(number, sound) + ((tick,) if tick else ()) for number, waves in more.items() if number not in sounds for sound, tick in waves]))
 write('skill_effects.txt', sorted(skill_effects))
 write('skill_hits.txt', sorted(skill_hits))
 write('skill_launch.txt', sorted(launch.items()))
 write('skill_follow.txt', sorted(follow.items()))
 write('skill_struck.txt', sorted(struck_by.items()))
 write('skill_motions.txt', sorted(motions.items()))
+write('skill_sounds.txt', skill_sounds)
 # The header has other lists of numbers beside the effects' (states, options): a number is named as an effect.
 names = {}
 for name, number in effects.items():
@@ -282,8 +373,22 @@ missing = {}
 for skill, effect in [(skill, effect) for skill, _, effect in skill_effects + skill_hits] + list(launch.items()) + list(follow.items()) + list(struck_by.items()):
     if effect not in known and effect not in ported:
         missing.setdefault(effect, []).append(skill)
+# The effects the items show as they are used (`item_effects.txt`, the folder's own table of the client's
+# `CGameMode::PlayItemUseEffect`) are counted too, each user written as `item <number>`.
+item_users = {}
+items = os.path.join(out, 'item_effects.txt')
+if os.path.exists(items):
+    for line in open(items, encoding='utf-8'):
+        item, _, effect = line.strip().partition('\t')
+        if item.isdigit() and effect.isdigit() and int(effect) not in known and int(effect) not in ported:
+            item_users.setdefault(int(effect), []).append(f'item {item}')
 skill_names = {number: name for name, number in skills.items()}
-write('effects_missing.txt', [(effect, names.get(effect, ''), ' '.join(skill_names.get(skill, str(skill)) for skill in sorted(set(users)))) for effect, users in sorted(missing.items())])
-print(f'{len(skills)} skills, {len(effects)} effects; {len(known)} effect files ({len(files)} and {len(plain)} from the code), {len(sounds)} sounds, '
+write('effects_missing.txt', [
+    (effect, names.get(effect, ''), ' '.join([skill_names.get(skill, str(skill)) for skill in sorted(set(missing.get(effect, ())))] + item_users.get(effect, [])))
+    for effect in sorted(set(missing) | set(item_users))
+])
+print('sounds of a skill left to its effect here:', ', '.join(f'{skill} {sound}' for skill, _, _, sound in sorted(set(doubled))))
+print('sounds left to the code:', ', '.join(f'{label} ({under})' for label, under in skipped))
+print(f'{len(skills)} skills, {len(effects)} effects; {len(known)} effect files ({len(files)} and {len(plain)} from the code), {len(set(sounds) | set(more))} effects with sounds, '
       f'{len(skill_effects)} skill effects of {len(set(skill for skill, _, _ in skill_effects))} skills, '
-      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(launch)} launched and {len(follow)} following effects, {len(struck_by)} effects of a hit, {len(motions)} motions, {len(ported)} effects drawn by code here, {len(missing)} effects neither a file nor drawn here')
+      f'{len(skill_hits)} hit effects of {len(set(skill for skill, _, _ in skill_hits))} skills, {len(launch)} launched and {len(follow)} following effects, {len(struck_by)} effects of a hit, {len(motions)} motions, {len(skill_sounds)} sounds of {len(set(row[0] for row in skill_sounds))} skills, {len(ported)} effects drawn by code here, {len(set(missing) | set(item_users))} effects neither a file nor drawn here')

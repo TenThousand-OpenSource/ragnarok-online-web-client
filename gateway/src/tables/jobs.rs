@@ -1,5 +1,5 @@
 //! The jobs: what each is called, the sprite files of NPCs and monsters, the name a headgear's sprite files end
-//! in, and the weapons' sprite endings and sounds.
+//! in, the weapons' sprite endings and sounds, and the service the client is set up for.
 
 use super::*;
 
@@ -53,4 +53,18 @@ pub(super) fn jobs(read: &Sources) -> (Lua, Names, Names, Names, Names, Names) {
         .map(|(id, name)| (id.to_string(), name.into()))
         .collect();
     (lua, jobs, headgear, sprites, weapons, weapon_hits)
+}
+
+/// Whether the client is set up for Korea (`<servicetype>korea</servicetype>` of its `clientinfo.xml`, read by
+/// the client's `ReadClientInfo` into `g_serviceType`; a client that names no service is Korea's, the value its
+/// `g_serviceType` starts with). The client names the clothes' palettes of the second jobs by it
+/// (`m_palJobNames`; `crate::dress::palette` in the browser client).
+pub(super) fn korea(grf: &Grf) -> bool {
+    grf.read("data\\clientinfo.xml").map_or(true, |bytes| service_korea(&korean(&bytes)))
+}
+
+/// `korea` of the file's text.
+pub(super) fn service_korea(clientinfo: &str) -> bool {
+    let lower = clientinfo.to_lowercase();
+    lower.split_once("<servicetype>").and_then(|(_, rest)| rest.split_once("</servicetype>")).is_none_or(|(service, _)| service.trim() == "korea")
 }

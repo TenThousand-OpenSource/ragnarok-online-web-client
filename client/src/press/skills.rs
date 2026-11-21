@@ -1,5 +1,6 @@
 //! The presses of the skills: the skill window with its tabs and the buttons by each skill, a skill's
-//! description, and the hotkey bar's buttons for its rows.
+//! description, the hotkey bar's buttons for its rows, the button that tells of a job level gained, and the box
+//! that asks the words of a Talkie Box or of Graffiti.
 
 use super::Step;
 
@@ -41,6 +42,13 @@ presses! {
         Tab(usize) = "skill-tab",
         /// An arrow by a skill's level: the level it is used at, one down or up.
         Level(LevelStep) = "skill-level",
+        /// The button that tells of a job level gained (the client's `UINotifyJobLevelUpWnd`): the skill window
+        /// opens.
+        JobLevelGained = "job-level-gained",
+        /// OK and Cancel of the box that asks the words of a Talkie Box or of Graffiti (the client's
+        /// `UITalkboxTrapInputWnd`, `UIGraffiStrboxWnd`).
+        WordsOk = "skill-words-ok",
+        WordsCancel = "skill-words-cancel",
     }
 }
 
@@ -60,6 +68,9 @@ mod tests {
             Press::Tab(1),
             Press::Level(LevelStep { skill: 5, step: Step::More }),
             Press::Level(LevelStep { skill: 5, step: Step::Less }),
+            Press::JobLevelGained,
+            Press::WordsOk,
+            Press::WordsCancel,
         ];
         crate::press::testing::read_back(all);
     }

@@ -120,3 +120,20 @@ fn writes_what_the_client_sends() {
     assert_eq!(say("Anna", "hi"), [&[0x08, 0x01, 13, 0][..], b"Anna : hi"].concat());
     assert_eq!(refuse_invitations(true), [0xc8, 0x02, 1]);
 }
+
+#[test]
+fn reads_a_thing_a_member_obtained() {
+    let mut packet = vec![0x67, 0x0b];
+    packet.extend(2_000_002u32.to_le_bytes());
+    packet.extend(1201u32.to_le_bytes());
+    packet.extend([1, 0]);
+    for card in [4001u32, 0, 0, 0] {
+        packet.extend(card.to_le_bytes());
+    }
+    packet.extend(2u16.to_le_bytes());
+    packet.extend([5, 7, 0]);
+    assert_eq!(packet.len(), 33);
+    let thing = Picked { account: 2_000_002, id: 1201, kind: 5, identified: true, refine: 7, cards: [4001, 0, 0, 0] };
+    assert_eq!(picked(&packet), Some(thing));
+    assert_eq!(picked(&packet[..32]), None);
+}

@@ -26,10 +26,8 @@ pub(super) async fn part(figure: &Figure, trail: bool) -> Option<(Sprite, Frame)
         return None;
     }
     let ending = if trail { "_검광" } else { "" };
-    let sex = if figure.sex == 1 { "남" } else { "여" };
-    let race = if crate::jobs::doram(figure.job) { "도람족" } else { "인간족" };
-    let job = crate::jobs::body_sprite(figure.job);
-    let base = format!("data/sprite/{race}/{job}/{job}_{sex}");
+    // (Among the weapons of the job the client's table of weapons names: a Lord Knight holds a Knight's.)
+    let base = crate::dress::weapon(figure.job, figure.sex);
     let (pictures, actions) = match sprite(&format!("{base}_{}{ending}", figure.weapon)).await {
         Ok(weapon) => weapon,
         Err(_) => {

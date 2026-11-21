@@ -169,6 +169,11 @@ pub fn chat_text(id: u16, packet: &[u8]) -> Option<String> {
     Some(name_at(text, 0, text.len()))
 }
 
+/// Who says a line of ZC_NOTIFY_CHAT (0x008d): the ID after the length.
+pub fn chat_speaker(packet: &[u8]) -> Option<u32> {
+    long(packet, 4)
+}
+
 /// ZC_ACCEPT_ENTER (0x02eb): `u32 start_time, u8[3] position, u8 x_size, u8 y_size, u16 font`. The position packs
 /// x (10 bits), y (10 bits) and the direction (4 bits).
 pub fn map_accepted(packet: &[u8]) -> Option<MapAccepted> {

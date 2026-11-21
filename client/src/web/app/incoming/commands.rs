@@ -1,4 +1,5 @@
-//! What the server answers to the chat commands: how many play, and who may whisper.
+//! What the server answers to the chat commands: how many play, who may whisper, the rankings and the points
+//! of fame, and what a game master's commands hear back.
 
 use super::*;
 use crate::net::commands;
@@ -52,17 +53,74 @@ impl App {
                     self.chat_line(name, CYAN);
                 }
             }
-            // A ranking asked for with `/blacksmith`, `/alchemist` or `/taekwon`: its lines in the chat.
+            // A ranking asked for with `/blacksmith`, `/alchemist` or `/taekwon`: its lines in the chat
+            // (`CGameMode::ReceiveRankingList`).
             commands::ZC_ACK_RANKING => {
                 if let Some(commands::Ranking { kind, ranked, own }) = commands::ranking(packet) {
-                    for line in crate::commands::ranking_lines(kind, &ranked, own) {
-                        self.chat_line(line, YELLOW);
+                    self.ranking_said(kind, &ranked, own, true);
+                }
+            }
+            // The same told by the characters' numbers: it waits for their names. While one waits, another
+            // is not taken (`CSession::SetShowRankingSchedule`).
+            commands::ZC_ACK_RANKING2 => {
+                if let (None, Some(ranking)) = (&self.commands.ranking, commands::ranking_by_number(packet)) {
+                    self.commands.ranking = Some((ranking, crate::web::now()));
+                    self.ranking_looked();
+                }
+            }
+            // Points of fame gained: a line of the message table with the points and their sum, in the
+            // colour of its ranking.
+            commands::ZC_UPDATE_RANKING_POINT => {
+                let gained = commands::fame_gained(packet).and_then(|(kind, points, sum)| Some((crate::commands::fame_line(kind)?, points, sum)));
+                if let Some(((line, colour), points, sum)) = gained {
+                    self.say_filled(said::GENERAL, line, &[&points.to_string(), &sum.to_string()], colour);
+                }
+            }
+            // What a game master's kick came to (`case ID_ZC_ACK_DISCONNECT_CHARACTER`: `MSI_FAIL_DISCONNECT_CHARACTER`
+            // or `MSI_SUCCESS_DISCONNECT_CHARACTER`, in its 0x32FF).
+            commands::ZC_ACK_DISCONNECT_CHARACTER => {
+                if let Some(done) = commands::kicked(packet) {
+                    self.say_filled(said::GENERAL, if done { 151 } else { 152 }, &[], "#ff3200");
+                }
+            }
+            // A player's stats told to a game master: five lines (`CGameMode::ReceiveStatDump`).
+            commands::ZC_ACK_STATUS_GM => {
+                if let Some((stats, more)) = commands::gm_stats(packet) {
+                    for (line, colour) in crate::commands::stat_dump(stats, more) {
+                        self.chat_line(line, colour);
                     }
                 }
             }
+            // The client's handler has an arm for it that does nothing (`CGameMode`'s packet handler: with
+            // `ID_PING` and the others it only takes).
+            commands::ZC_ACK_ACCOUNTNAME => {}
             _ => return false,
         }
         true
+    }
+
+    /// The lines of a ranking in the chat, each in its colour.
+    fn ranking_said(&mut self, kind: u16, ranked: &[(String, u32)], own: u32, padded: bool) {
+        for (line, colour) in crate::commands::ranking_lines(kind, ranked, own, padded) {
+            self.chat_line(line, colour);
+        }
+    }
+
+    /// Looks whether the ranking that waits for names can be written (`CShowRankingScheduler::Process`, run as
+    /// the ranking arrives and every second after): it is once every name is known or three seconds have
+    /// passed, with "Nameless" (`MSI_NAMELESS_USER`) for a name still unknown; until then each look asks the
+    /// server for the names and says "Fetching rank..." (`MSI_RANK_LOADING`, in the client's 0xFFFF).
+    pub(in crate::web::app) fn ranking_looked(&mut self) {
+        use crate::commands::{RANKING_LOADING, RANKING_LOOKS_EVERY, RANKING_WAITS, ranking_named};
+        let Some((ranking, since)) = self.commands.ranking.take() else { return };
+        let (named, known) = ranking_named(&ranking.ranked, data::character_name, &Self::words(581, "Nameless"));
+        if known || crate::web::now() - since >= RANKING_WAITS {
+            return self.ranking_said(ranking.kind, &named, ranking.own, false);
+        }
+        self.ask_names_wanted();
+        self.say_filled(said::GENERAL, RANKING_LOADING, &[], YELLOW);
+        self.commands.ranking = Some((ranking, since));
+        after(RANKING_LOOKS_EVERY, Action::RankingLooked);
     }
 
     /// A line of the client's message table in the chat, in yellow: after `before`, and with `number` written

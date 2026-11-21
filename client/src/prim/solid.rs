@@ -21,7 +21,7 @@ impl Prim {
             | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::ParticleUp
             | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Texture3d | Shape::Cast(_)
             | Shape::Streak { .. } | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer
-            | Shape::Petal { .. } => Vec::new(),
+            | Shape::Petal { .. } | Shape::Ghost | Shape::CastingLow => Vec::new(),
         }
     }
 
@@ -134,7 +134,7 @@ impl Prim {
         self.longitude += self.long_speed;
         self.inner += self.inner_speed;
         self.outer += self.outer_speed;
-        self.height = (self.height + self.height_speed).min(100.0);
+        self.height = (self.height + self.height_speed).min(self.max_height);
         if self.first_pattern && self.count == self.fade_out {
             self.outer_speed = -(self.outer / (self.duration - self.count + 1) as f32);
         }

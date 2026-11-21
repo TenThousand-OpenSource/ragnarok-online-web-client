@@ -47,7 +47,7 @@ impl Mover {
                 figure::prepare(figure, crate::pose::LIES);
                 figure::body_timing(figure.job, figure.sex, crate::pose::LIES)
             }
-            Look::Creature(_) => None,
+            Look::Creature(_) | Look::Model(_) => None,
         };
         (self.dead, self.walk, self.sitting) = (true, None, false);
         self.pose.at_ease();

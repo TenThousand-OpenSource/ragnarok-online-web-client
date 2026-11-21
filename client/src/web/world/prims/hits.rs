@@ -3,6 +3,9 @@
 //! - `EF_HIT1` (0): the ring of a blow that lands and its four sparks (`Hit1`);
 //! - `EF_HIT2` (1): the flare where a skill lands (`Hit2`);
 //! - `EF_HIT3` (2), `EF_HIT4` (3): flares where a blow lands (`Hit3`, `Hit4`);
+//! - `EF_HIT5` (4), `EF_HIT6` (5): a cross of two flares that turns (`Hit5`, `Hit6`);
+//! - `EF_NAPALMBEAT` (32): the bursts round one struck by Napalm Beat (`NapalmFragments`);
+//! - `EF_FIRESPLASHHIT` (50): a ring of fire that opens turning (in `CRagEffect::OnProcess` itself);
 //! - `EF_COLDHIT` (51): shards of ice and a puff of smoke (`ColdHit`);
 //! - `EF_PIERCE` (81): the ring of Pierce and Spear Stab (`RingBurstSparks`);
 //! - `EF_SONICBLOWHIT` (122): the red ring of a hit of Sonic Blow (`SonicBlowHit`);
@@ -23,10 +26,11 @@
 use super::launched::{ahead, band, way, PARTICLE1};
 use super::*;
 
-pub(super) const FILE: File = File { known, thrown: none, stays: none, run, pictures: &[&PICTURES], sprites: &[] };
+pub(super) const FILE: File = File { known, thrown: none, stays: none, run, pictures: &[&PICTURES, &BURST], sprites: &[] };
 
 /// The pictures the effects here are drawn with, among the client's pictures of effects.
-const PICTURES: [&str; 7] = [
+const PICTURES: [&str; 8] = [
+    "firering.tga",
     "ring_blue.tga",
     "lens1.tga",
     "lens2.tga",
@@ -36,6 +40,9 @@ const PICTURES: [&str; 7] = [
     "smoke.tga",
 ];
 
+/// The pictures a burst of `NapalmFragments` runs through (`effect\폭발1.TGA` to `폭발8.TGA`).
+const BURST: [&str; 8] = ["폭발1.tga", "폭발2.tga", "폭발3.tga", "폭발4.tga", "폭발5.tga", "폭발6.tga", "폭발7.tga", "폭발8.tga"];
+
 /// How many ticks an effect of this file lives (the client's `EffectLifetime`) and the sound it starts with
 /// (none: empty); nothing for any other effect.
 fn known(effect: u32) -> Option<(i32, &'static str)> {
@@ -44,7 +51,10 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
         1 => (50, "effect/ef_hit2.wav"),
         2 => (50, "effect/ef_hit3.wav"),
         3 => (50, "effect/ef_hit4.wav"),
-        51 => (50, ""),
+        4 => (50, "effect/ef_hit5.wav"),
+        5 => (50, "effect/ef_hit6.wav"),
+        32 => (100, "effect/ef_napalmbeat.wav"),
+        50 | 51 => (50, ""),
         81 => (250, ""),
         122 => (250, "effect/assasin_sonicblow.wav"),
         180 => (50, ""),
@@ -62,6 +72,10 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         1 if tick == 0 => prims.extend(hit2()),
         2 if tick == 0 => hit3(way(facing), prims),
         3 if tick == 0 => hit4(way(facing), prims),
+        4 if tick == 0 => prims.extend(cross((20.0, 5), (30.0, 10), 2.5)),
+        5 if tick == 0 => prims.extend(cross((10.0, 5), (15.0, 5), 1.7)),
+        32 if tick < 15 => prims.push(napalm_fragment()),
+        50 if tick == 0 => prims.push(fire_ring()),
         51 => cold_hit(tick, prims),
         81 if tick == 0 => prims.push(pierce(way(facing))),
         122 if tick == 0 => prims.push(sonic_blow_hit(way(facing))),
@@ -141,6 +155,62 @@ fn hit2() -> Vec<Prim> {
             flare
         })
         .collect()
+}
+
+/// `CRagEffect::Hit5` and `Hit6`: two flares of `lens2.tga` crossed at a place 20 above the one struck, the
+/// first turned by lot and the second a quarter on, each reaching its height both ways. They turn back at 5
+/// degrees a tick, slowing, narrow to nothing over their 17 ticks and lengthen faster and faster (by `grows`
+/// and half more a tick), and fade from their ninth tick. `wide` and `long` are each the least a flare is at
+/// first and under how much more by lot: `Hit5` has 20 to 24 by 30 to 39, `Hit6` 10 to 14 by 15 to 19.
+fn cross(wide: (f32, u32), long: (f32, u32), grows: f32) -> [Prim; 2] {
+    let turned = lot(360);
+    [turned, turned + 90.0].map(|roll| {
+        let mut flare = Prim::new(Shape::Texture2d, "lens2.tga");
+        flare.duration = 17;
+        flare.put.1 = -20.0;
+        (flare.roll, flare.roll_speed) = (roll, -5.0);
+        flare.roll_accel = -(flare.roll_speed / flare.duration as f32) / 1.5;
+        (flare.width, flare.height) = (lot(wide.1) + wide.0, lot(long.1) + long.0);
+        flare.width_speed = -(flare.width / flare.duration as f32);
+        (flare.height_speed, flare.height_accel) = (grows, 0.5);
+        flare.fade_out = flare.duration - flare.duration / 2;
+        flare
+    })
+}
+
+/// `CRagEffect::NapalmFragments`, at each of its first fifteen ticks: a burst somewhere 10 to 59 from a place
+/// 20 above the one struck, any way across the screen, 20 to 59 to each side, that comes up over ten ticks
+/// and shows a new picture of its eight every other tick, ending after the last (so with its 15th tick, before
+/// the 20th at which it would begin to fade).
+///
+/// (The decompiled function leaves out a tick when `stateCnt % 5 > stateCnt`, which is never so: it reads as
+/// one burst a tick here. If the client's own test was another, every fifth tick, there are three.)
+fn napalm_fragment() -> Prim {
+    let mut burst = Prim::new(Shape::Texture2d, BURST[0]);
+    (burst.pictures, burst.anim_speed, burst.repeats) = (&BURST, 2, false);
+    burst.duration = 30;
+    let (far, turned) = (lot(50) + 10.0, lot(360));
+    burst.put = (sine(turned) * far, -cosine(turned) * far - 20.0);
+    let size = lot(40) + 20.0;
+    (burst.width, burst.height) = (size, size);
+    burst.alpha = 0.0;
+    burst.alpha_speed = burst.max_alpha / 10.0;
+    burst.fade_out = burst.duration - burst.duration / 3;
+    burst
+}
+
+/// `EF_FIRESPLASHHIT` in `CRagEffect::OnProcess`: a ring of fire 20 above the one struck, 10 to each side,
+/// turned any way, that widens by 5.7 a tick and turns back at 18 degrees a tick, slowing, for 30 ticks, and
+/// fades over the second half of them.
+fn fire_ring() -> Prim {
+    let mut ring = Prim::new(Shape::Texture2d, "firering.tga");
+    ring.duration = 30;
+    ring.put.1 = -20.0;
+    (ring.width, ring.height, ring.width_speed, ring.height_speed) = (10.0, 10.0, 5.7, 5.7);
+    (ring.roll, ring.roll_speed) = (lot(360), -18.0);
+    ring.roll_accel = -(ring.roll_speed / ring.duration as f32) / 2.5;
+    ring.fade_out = ring.duration - ring.duration / 2;
+    ring
 }
 
 /// Sparks as `Hit3` and `Hit4` throw them: each from 10 above the one struck, within 40 degrees of the way the

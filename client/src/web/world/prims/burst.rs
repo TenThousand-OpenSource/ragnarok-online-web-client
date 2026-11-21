@@ -128,11 +128,13 @@ impl Burst {
             asked.ends.extend(self.course.ends.drain(..).map(|effect| (self.on, effect)));
             asked.copies.extend(self.course.copies.drain(..).map(|(at, colour, kind)| (self.on, at, colour, kind)));
             // A sprite's frames are counted once the sprite has been read; until then it stays on its first.
-            let (shared, other, lift) = (&mut self.course.shared, self.course.other, self.course.lift);
+            let (shared, other, lift, yaw) = (&mut self.course.shared, self.course.other, self.course.lift, self.course.yaw);
             self.prims.retain_mut(|prim| {
                 // A tube from the one the effect is on to another actor follows that one.
                 prim.link_to(other);
                 prim.lifted(lift);
+                // One that looks at the camera as it lives is told the camera's yaw.
+                prim.watched(yaw);
                 let frames = if prim.shows_sprite() { gpu::frames_of(prim.picture, prim.action).unwrap_or(0) } else { 0 };
                 prim.tick_on(shared, frames, ground)
             });

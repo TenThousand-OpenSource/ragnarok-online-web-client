@@ -92,7 +92,7 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
                 .and_then(|(_, kind)| crate::jobs::weapon_kind(&kind))
                 .unwrap_or(0)
         ),
-        Look::Creature(_) => None,
+        Look::Creature(_) | Look::Model(_) => None,
     });
     let hurt = scene.one(target, own)?;
     let between = Between { struck_is_character: matches!(hurt.look, Look::Character(_)), striker_is_character, guarded: landing.guarded && target == own };

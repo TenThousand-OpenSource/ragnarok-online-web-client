@@ -15,7 +15,8 @@
 //!   purple (`PurpleSlash`);
 //! - `EF_SOULBREAKER` (361), `EF_XENO_SLASHER` (1082): the squares of Soul Breaker and Xeno Slasher that
 //!   slide at the one struck (`SonicWave`);
-//! - `EF_HITLINE` (330): the sparks that leap from the one who ends a combo (`WhiteSparks`);
+//! - `EF_HITLINE` (330): the sparks that leap from the one who ends a combo (`WhiteSparks`); `EF_HITLINE2`
+//!   (376): red ones from the one struck by Palm Strike, who is outlined in orange for a moment;
 //! - `EF_MAGNUM2` (339): Spiral Pierce, funnels of light one after the other (`Magnum2`);
 //! - `EF_PRESSURE` (365), `EF_PRESSURE2` (906): the cross of Pressure and the shield of Shield Press that
 //!   come down on the one struck, over a square of light that widens (`TexturedRain`, `TexturedLevelRing`).
@@ -39,7 +40,7 @@ const PICTURES: [&str; 8] = [
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
         329 | 339 | 892 => (100, ""),
-        330 | 366 | 377 | 885 => (200, ""),
+        330 | 366 | 376 | 377 | 885 => (200, ""),
         628 => (200, "effect/더스트샷.wav"),
         399 => (200, "effect/헤드 크러쉬.wav"),
         400 => (200, ""),
@@ -84,6 +85,8 @@ fn touch(effect: u32, course: &mut Course) {
         (1082, 0..=10) => course.touch.flagged(flag::ADDS, 0, 255, 0),
         (366, 20..=40) => course.touch.flagged(flag::OUTLINE, 255, 200, 200),
         (377, 5..=35) => course.touch.flags |= flag::ADDS,
+        // `EF_HITLINE2`: outlined and orange from the tenth tick to the 20th.
+        (376, 10..=20) => course.touch.flagged(flag::OUTLINE, 255, 120, 50),
         // `EF_BASH3D3`, `EF_BASH3D4`: outlined, and a pale yellow or white, from the 20th tick to the 50th.
         (399 | 400, 20..=50) => course.touch.flagged(flag::OUTLINE, 255, 255, if effect == 399 { 200 } else { 255 }),
         // `EF_SOULBREAKER2`: lit and purple for the first eleven ticks.
@@ -102,6 +105,7 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         892 if tick < 2 => prims.push(cloud_streaks(4.0, course)),
         1030 if tick < 2 => prims.push(cloud_spread(course)),
         330 if tick < 4 => prims.push(white_sparks(0, course)),
+        376 if tick < 4 => prims.push(white_sparks(2, course)),
         339 => prims.extend(funnel(course)),
         // The cross asks for a shake of the screen as it stops, at its 33rd tick (`PrimBubbleSwirl`).
         365 | 906 if tick == 32 => course.quake = Some(0),
@@ -120,8 +124,8 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         409 => prims.extend((0..8).map(|eighth| purple_slash(eighth * 45, course))),
         361 => prims.push(sonic_wave(0, course)),
         1082 => prims.push(sonic_wave(2, course)),
-        365 => prims.extend([falling("cross_old.bmp", course), square("explosive_1_128.bmp", 0, 28, course.lasts)]),
-        906 => prims.extend([falling("shield.bmp", course), square("explosive_1_128.bmp", 0, 28, course.lasts)]),
+        365 => prims.extend([falling("cross_old.bmp", 0, course), square("explosive_1_128.bmp", 0, 28, course.lasts)]),
+        906 => prims.extend([falling("shield.bmp", 0, course), square("explosive_1_128.bmp", 0, 28, course.lasts)]),
         _ => {}
     }
 }
@@ -204,7 +208,7 @@ fn sonic_wave(kind: i8, course: &Course) -> Prim {
 
 /// `CRagEffect::WhiteSparks`, called at the first four ticks: four sparks of `white02.bmp` that leap every
 /// way from where the one the effect is on stood, 6 to 13 far at their first leap's half, a tenth thick, and
-/// begin within 25 ticks. `number` gives their colour (0: orange).
+/// begin within 25 ticks. `number` gives their colour (0: orange; 2: red).
 fn white_sparks(number: i32, course: &Course) -> Prim {
     let mut sparks = of_parts(Tei::HitLine, "white02.bmp", false, course);
     sparks.size = 0.0;
@@ -241,15 +245,17 @@ fn funnel(course: &Course) -> Option<Prim> {
 
 /// `CRagEffect::TexturedRain` of the kind 0: a square of that picture, white and added, 12 from its middle to
 /// a corner, that comes down turning from 115 over the one the effect is on, 3 a tick, three fainter ones
-/// behind it, and stops 19 over the feet.
-fn falling(picture: &'static str, course: &Course) -> Prim {
+/// behind it, and stops 19 over the feet. Of the kinds 1, 2 and 3 (the potions of Slim Potion Pitcher:
+/// `fields.rs`) it is 8 to a corner, mixed in, in red, yellow or its own colours (`RenderFieldPanel`, 9 with
+/// 1, 3 and 4), and comes down from 80 over the feet for 24 ticks, to 8 over them.
+pub(super) fn falling(picture: &'static str, kind: i8, course: &Course) -> Prim {
     let mut drop = of_parts(Tei::Drop, picture, true, course);
     drop.size = 0.0;
     let mut head = part();
-    head.out = 12.0;
-    head.at[2] = [0.0, -115.0, 0.0];
+    head.out = if kind == 0 { 12.0 } else { 8.0 };
+    head.at[2] = [0.0, if kind == 0 { -115.0 } else { -80.0 }, 0.0];
     (head.heights[1], head.round) = (3.0, lot(360) as i32);
-    head.flags[2] = 7;
+    (head.flags[2], head.flags[3], head.flags[4]) = if kind == 0 { (7, 0, 0) } else { (9, [1, 3, 4][kind as usize - 1], kind) };
     drop.parts.push(head);
     drop.parts.extend((0..3).map(|_| part()));
     drop

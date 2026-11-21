@@ -1,5 +1,5 @@
 //! The presses of the Shortcut Settings window (the client's `UIHotKeyWnd`): its tabs, its pages, its rows and
-//! its buttons (see `crate::press`).
+//! its buttons, and of the Hotkey Guide (`UIHotkeyGuideWnd`) (see `crate::press`).
 
 use super::Step;
 
@@ -22,6 +22,13 @@ presses! {
         Ok = "keys-ok",
         /// Close, and the cross of the title bar: the window closes, and what was set is dropped.
         Close = "keys-close",
+        /// The keyboard among the menu's icons: the Hotkey Guide (the client's `UIHotkeyGuideWnd`) opens, or
+        /// closes if it was open.
+        Guide = "key-guide",
+        /// The cross of the Hotkey Guide.
+        GuideClose = "key-guide-close",
+        /// The guide's button at its lower right: the Shortcut Settings open, and the guide closes.
+        GuideSettings = "key-guide-settings",
     }
 }
 
@@ -34,7 +41,7 @@ mod tests {
     fn every_press_is_read_back_from_what_it_is_written_as() {
         let all = [
             Press::Open, Press::Tab(2), Press::Page(Step::More), Press::Page(Step::Less), Press::Row(35), Press::Reset,
-            Press::Cancel, Press::Ok, Press::Close
+            Press::Cancel, Press::Ok, Press::Close, Press::Guide, Press::GuideClose, Press::GuideSettings
         ];
         assert_eq!(all.len(), Press::NAMES.len() + 1, "a press is not tested");
         for press in all {

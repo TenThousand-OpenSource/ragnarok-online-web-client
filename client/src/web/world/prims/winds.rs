@@ -2,6 +2,7 @@
 //! (`crate::prim::Tei`: `PP_WIND`, `PP_SPHEREWIND`, `PP_SPHEREWIND2`, the kind 103); each effect is its
 //! function of `CRagEffect` with the same figures:
 //!
+//! - `EF_WIND` (224): four arcs of cloud that go round one, blue (`HealCloudRings`);
 //! - `EF_PORTAL4` (389): Wind Walk, arcs of cloud round one who is lit a pale green (`Cloud11Burst`);
 //! - `EF_SPHEREWIND2` (394): the bands of leaves that go round one under the moonlight, until that state ends
 //!   (`FeatherRing`; `crate::state_effects`);
@@ -25,6 +26,7 @@ const PICTURES: [&str; 3] = ["cloud11.tga", "fire_ivy.bmp", "storm2.tga"];
 /// its first tick (none: empty); nothing for any other effect.
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
+        224 => (300, "_heal_effect.wav"),
         389 => (200, "effect/윈드워크.wav"),
         394 => (99999, ""),
         408 => (200, "effect/ef_blessing.wav"),
@@ -53,6 +55,7 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         return;
     }
     match effect {
+        224 => prims.push(cloud_rings(course)),
         389 => prims.push(cloud_burst(0, course)),
         394 => prims.extend((0..5).map(|fifth| feather_ring(fifth * 9, course))),
         408 => prims.extend((0..5).map(|fifth| feather_burst(fifth * 9, course))),
@@ -90,6 +93,22 @@ fn cloud_burst(kind: i32, course: &Course) -> Prim {
         };
         wind.rise = lot(21) as i32 + 80;
         wind.heights = [1.0; 21];
+        wind
+    }));
+    winds
+}
+
+/// `CRagEffect::HealCloudRings`: four arcs of `cloud11.tga` that go round the one the effect is on, 8 over the
+/// ground and upright, each shorter (a quarter of a turn, then 20 degrees less each), begun 10 degrees
+/// further round, 0.2 further out (from 3) and half lower (from 3) than the one before. They come up over
+/// eleven ticks and stay for as long as the effect lives. Blue (a `size` of 4), their light added.
+fn cloud_rings(course: &Course) -> Prim {
+    let mut winds = of_parts(Tei::Wind, "cloud11.tga", true, course);
+    winds.size = 4.0;
+    winds.parts.extend((0..4).map(|index| {
+        let step = index as f32;
+        let mut wind = crate::prim::Part { round: 90 - index * 20, tall: 8.0, turned: index * 10, out: 3.0 + step * 0.2, rise: 90, ..Default::default() };
+        wind.heights = [3.0 - step * 0.5; 21];
         wind
     }));
     winds

@@ -70,9 +70,14 @@ impl App {
         if let Some(words) = packets::chat_text(id, packet) {
             // What is said near also hangs over the head of whoever says it.
             let own = self.own_account();
+            // Stars for a word that is not let be written, in the character's own words and in those of a
+            // player in sight (`ReceiveBroadcast`, `ReceiveActorChat`; `crate::manner`).
+            let speaker = packets::chat_speaker(packet).unwrap_or(0);
+            let player = id == packets::ZC_NOTIFY_PLAYERCHAT || world::player_name(speaker).is_some();
+            let words = if player { data::starred(&words) } else { words };
             match id {
                 packets::ZC_NOTIFY_PLAYERCHAT => world::said(own, own, &words),
-                packets::ZC_NOTIFY_CHAT => world::said(net::talk::npc(id, packet).unwrap_or(0), own, &words),
+                packets::ZC_NOTIFY_CHAT => world::said(speaker, own, &words),
                 _ => {}
             }
             let colour = if id == packets::ZC_NOTIFY_PLAYERCHAT { "#0f0" } else { "#fff" };

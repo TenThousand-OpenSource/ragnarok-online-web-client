@@ -9,7 +9,8 @@
 //! - `EF_RUWACH` (33): the light going round the one who sees by Ruwach (in the client's
 //!   `CRagEffect::OnProcess` itself);
 //! - `EF_AQUA` (39): Aqua Benedicta (in the client's `CRagEffect::OnProcess` itself);
-//! - `EF_ENCHANTPOISON` (125): Enchant Poison (`PoisonAttack`);
+//! - `EF_PATTACK` (20), `EF_ENCHANTPOISON` (125): the poison that rises round one poisoned by a script, and
+//!   Enchant Poison (`PoisonAttack` with its flag of 0, for both);
 //! - `EF_EDP` (493): Enchant Deadly Poison, bubbles that rise round the one it is on, who flashes purple
 //!   (`EnchantPoison2`);
 //! - `EF_KOUENKA` (618): the petals of fire that rise round the one struck by Kouenka (`SakuraFireArrow`,
@@ -48,7 +49,8 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
         33 => (200, ""),
         39 => (100, "effect/ef_aqua.wav"),
         42 => (150, "effect/ef_blessing.wav"),
-        // (`PoisonAttack` starts `EF_PoisonAttack.wav` with this one as well; an effect here starts one sound.)
+        // (`PoisonAttack` starts `EF_PoisonAttack.wav` with this one as well, in `run`.)
+        20 => (100, "effect/assasin_enchantpoison.wav"),
         125 => (250, "effect/assasin_enchantpoison.wav"),
         493 => (120, "effect/assasin_enchantpoison.wav"),
         // (`SakuraFireArrow` starts its sounds from its 13th tick, in `kouenka`.)
@@ -72,7 +74,10 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
             }
             blessing(tick, lasts, prims);
         }
-        125 => rising_sparks(true, tick, prims),
+        20 | 125 => {
+            course.starts(&[(0, "effect/ef_poisonattack.wav")]);
+            rising_sparks(true, tick, prims);
+        }
         493 => {
             // `EnchantPoison2` starts its sound six times, and flashes its parent purple for the first 80 ticks.
             course.starts(&[5, 11, 18, 26, 40].map(|at| (at, "effect/assasin_enchantpoison.wav")));
@@ -163,7 +168,7 @@ fn risen(sprite: &'static str, fast: u32, (larger, small): (u32, f32)) -> Prim {
     spark
 }
 
-/// `CRagEffect::Detoxication` (`poison`: no) and `CRagEffect::PoisonAttack` as `EF_ENCHANTPOISON` runs it
+/// `CRagEffect::Detoxication` (`poison`: no) and `CRagEffect::PoisonAttack` as `EF_PATTACK` and `EF_ENCHANTPOISON` run it
 /// (`poison`: yes): a rising spark every fifth tick.
 fn rising_sparks(poison: bool, tick: i32, prims: &mut Vec<Prim>) {
     if tick % 5 == 0 {

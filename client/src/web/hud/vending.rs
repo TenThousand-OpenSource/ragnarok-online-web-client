@@ -26,7 +26,9 @@ impl App {
     /// its vendor's head (`world::sign`). Two presses on it ask what the shop sells, and one does with the
     /// client's `/shopping` on (`OnLBtnDblClk`, `OnLBtnDown`); the hand shows over it.
     pub(in crate::web) fn shop_sign(vendor: u32, title: &str) -> String {
-        // The client cuts a title at the first end of a line.
+        // The client writes stars for a word that is not let be written (`UIMerchantShopTitle::SendMsg`,
+        // `crate::manner`), and cuts a title at the first end of a line.
+        let title = data::starred(title);
         let title = title.split('\r').next().unwrap_or_default();
         [
             format!(

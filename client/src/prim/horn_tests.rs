@@ -90,3 +90,44 @@ fn a_sprite_that_seeks_ends_near_the_aim() {
     assert_eq!(lived, 8);
     assert!(close(ball.moved[0], 18.0) && close(ball.moved[2], 0.0));
 }
+
+#[test]
+fn a_spike_of_the_second_pattern_draws_back_before_its_end_and_does_not_fade() {
+    // As a stone of Heaven's Drive is: upright, stopped at its fourteenth tick, and 30 ticks before its end
+    // sent down at 1 a tick, quickening.
+    let mut stone = Prim::new(Shape::QuadHorn3d, "");
+    (stone.duration, stone.first_pattern, stone.settles_at, stone.spike) = (60, true, Some(14), Spike::Withdraws(-1.0, -0.01));
+    (stone.latitude, stone.speed, stone.fade_out) = (90.0, 1.0, 5);
+    for _ in 0..=14 {
+        stone.tick(100);
+    }
+    let risen = stone.moved[1];
+    assert!(close(risen, 15.0) && stone.speed == 0.0);
+    for _ in 15..=30 {
+        stone.tick(100);
+    }
+    // At its 30th tick it still stands, and has its new speed for the next.
+    assert!(close(stone.moved[1], risen) && (stone.speed, stone.accel) == (-1.0, -0.01));
+    stone.tick(100);
+    assert!(close(stone.moved[1], risen - 1.01));
+    // Its time to fade came and went: it is as bright as it began, to its end and with its effect's.
+    stone.tick(0);
+    assert_eq!(stone.alpha, 254.0);
+}
+
+#[test]
+fn a_spike_that_pumps_goes_up_and_down_every_six_ticks() {
+    // As a spike of Gravitation Field is.
+    let mut spike = Prim::new(Shape::QuadHorn3d, "");
+    (spike.duration, spike.first_pattern, spike.settles_at, spike.spike) = (250, true, Some(15), Spike::Pumps(-1.2, 0.0));
+    (spike.latitude, spike.speed, spike.accel) = (90.0, 1.0, 0.01);
+    let mut heights = Vec::new();
+    for _ in 0..20 {
+        spike.tick(1000);
+        heights.push(spike.moved[1]);
+    }
+    // Two ticks up at 1.01 and 1.02, three down at 1.2, three up at 1.19, 1.2 and 1.21, and so on; the tick
+    // it would stop at with the first pattern is not looked at.
+    assert!(close(heights[1], 2.03) && close(heights[4], 2.03 - 3.6) && close(heights[7], 2.03) && close(heights[10], 2.03 - 3.6));
+    assert!(close(heights[16], 2.03 - 3.6) && close(heights[19], 2.03));
+}

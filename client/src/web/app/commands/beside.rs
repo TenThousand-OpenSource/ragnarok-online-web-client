@@ -1,6 +1,6 @@
 //! The client's commands beside those that switch a row of the Game Settings: the options that have a command
 //! and no row, the commands that switch several at once, and those that do something of their own (`/hi`,
-//! `/savechat`, the rankings, `/tip`, `/buildinfo`).
+//! `/savechat`, the rankings, `/tip`, `/am`, `/buildinfo`).
 
 use super::*;
 
@@ -49,6 +49,8 @@ impl App {
             "TT_SET1_ON_OFF" => SET1.into_iter().for_each(|option| self.switch_saying(option)),
             "TT_SET2_ON_OFF" => SET1.into_iter().chain(QUICK).for_each(|option| self.switch_saying(option)),
             "TT_SET3_ON_OFF" => SET1.into_iter().chain(SET3).for_each(|option| self.switch_saying(option)),
+            // `/am`, `/automsg`: the away message goes on, and its box opens, or off (`clicks/whispers.rs`).
+            "TT_AUTO_MSG_ON_OFF" => self.away_switched(),
             // `/tip` opens the Tipbox, or closes it.
             "TT_OPEN_TIP" => self.pressed(crate::press::tips::Press::Window),
             // `/buildinfo`: the client's four lines, in yellow; the build is this client's own.

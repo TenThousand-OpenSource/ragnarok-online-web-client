@@ -34,7 +34,9 @@ How to read the sections:
 Login, registration and password recovery, the server list, character select, creation and deletion.
 
 **Files**
-- Rules: `account.rs`, `jobs.rs`
+- Rules: `account.rs`, `jobs.rs`; the names of the files of a character's parts (body, weapon, shield, `.imf`,
+  clothes' palette, each by the client's own table): `dress.rs`, its tables `web/data/job_files.txt` and
+  `job_sprites.txt`
 - Packets: `net/packets.rs`, `net/packets/chars.rs` (tests in `net/packets/tests.rs`)
 - App: `web/app/account.rs`, `web/app/connection.rs`, `web/app/screen.rs`, `web/app/actions/forms.rs`,
   `web/app/{incoming,clicks}/account.rs`
@@ -52,9 +54,21 @@ Login, registration and password recovery, the server list, character select, cr
   (`Source/Contents/Jobs/JobInheritance.cpp`), `jobinheritlist.lub`
 - `CPc::SelectStanceFrame`, `CPc::MapMotion`, `CPc::ApplyLayerEffects` (`Source/Contents/Actors/Player.cpp`),
   `SpriteLayerRenderer::Render`, `CSession::m_robeNames`
+- The names of the parts' files: `CSession::InitResourceNameTables` (`m_bodyJobNames`, `m_imfNames`,
+  `m_shieldJobNames`, `m_palJobNames`, the last by `g_serviceType`) and `CSession::InitJobSpriteNames`
+  (`m_jobSpriteNames`, the weapons) in `Source/Client/Session/Session.cpp`, written out by
+  `tools/client-tables/job_files.py`; `CSession::GetSpriteJob` (`Source/Contents/Sprites/SpriteJob.cpp`),
+  `EquipmentResourceMgr::GetWeaponResourceName`, `GetShieldResourceName`, `GetBodyImfName`, `GetBodyPalName`
+  (`Source/Contents/Jobs/JobInheritance.cpp`, `Actors/Resources/*.cpp`), `CSession::GetBodyStyle`
+  (`Session.cpp:1909`: the colour shown for the one told); the service from `clientinfo.xml`
+  (`ReadClientInfo`, the gateway's `korea`)
 
 **State**
 - Login and character creation: seen in the game.
+- The names of the parts' files: tests (`dress.rs`), and every classic job, sex, kind of weapon, shield and
+  colour asked of the gateway by `tools/sprite_files.py` (what is still missing there, the client's files do
+  not have either); in the game only a Lord Knight's body after `@job 4008` was seen: its weapon, shield and dyes were not
+  (the test account was in use by another session).
 - What an ID, a password and an e-mail may be, the packets of the login and character servers, the gateway's
   accounts, guard and limiter: tests only (`account.rs`, `net/packets/tests.rs`, `gateway/src/accounts/tests.rs`,
   `limiter.rs`).
@@ -66,7 +80,8 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
 
 **Files**
 - Rules: `route.rs` (tests `route/tests.rs`), `server_time.rs` (tests `server_time/tests.rs`), `map/paths.rs`,
-  `map/gat.rs`, `pose.rs`, `mounts.rs`, `cursor.rs`
+  `map/gat.rs`, `pose.rs`, `mounts.rs`, `cursor.rs`; what is drawn for an object that is no player, by its
+  job alone (a character's body, or one sprite and its folder): `creatures.rs`
 - Packets: `net/packets/zone.rs`, `net/actors.rs`, `net/actors/changes.rs`, `net/actors/ground.rs`,
   `net/actors/requests.rs` (tests `net/actors/tests.rs`)
 - App: `web/app/incoming/travel.rs`, `web/app/incoming/actors.rs`, `web/app/actions/travel.rs`,
@@ -89,6 +104,13 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
   the messages `AM_MOVE`, `AM_STOPMOVE`, `AM_STANDENTRY`, `AM_OUTOFSIGHT`
 - `CGameMode::ProcessGroundClick` (`Source/Client/Mode/GameMode.cpp`), `CMode::DrawCursor`
   (`Source/Client/Mode/ModeCursorDrawing.cpp`)
+- Who is what: `CGameMode::SpawnMovingActor` (`Source/Client/Mode/GameModePackets.cpp:14402`: object type 0
+  is a `CPc`, the rest `NewActor`), `CGameMode::NewActor` (`GameMode.cpp:8279`: `CCharacterNpc` for
+  `IsPlayerJob`, a model for `.gr2`, else `CNpc`), `CNpc::SetSprJob` (`Source/Contents/Sound/SoundMaker.cpp:926`:
+  `NPC\` for `IsNpcJob`, `인간족\몸통\` for 6017-6046, `homun\` for 6001-6052, else `몬스터\`),
+  `CSession::IsNpcJob` and `IsPlayerJob` (`Source/Contents/Jobs/JobInheritance.cpp:112`, `:720`),
+  `CCharacterNpc::SendMsg` (`Source/Contents/Actors/RenderObject.cpp:2728`), ZC_NPCSPRITE_CHANGE →
+  `CNpc::SetSprAct` (`GameModePackets.cpp:26252`)
 
 **State**
 - Walking, movement by the server's clock under lag, being knocked back by Fire Wall, the sprites of a job
@@ -96,6 +118,10 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
 - The clock, a route's times, the path search, poses, mounts, the pointer's pictures, the packets of those in
   sight: tests only.
 - Pursuit (walking on towards someone to attack or to pick up, `web/world/pursuit.rs`): by reading only.
+- The sprite of one that is no player, by its job: tests (`creatures.rs`), and every monster of the classic
+  database, every sprite the classic scripts give an NPC, the homunculi and the mercenaries asked of the
+  gateway by `tools/sprite_files.py` (none missing); in the game a homunculus (`@makehomun 6001`, a Lif) was seen drawn; a mercenary, an NPC that wears a monster
+  and `setnpcdisplay` were not.
 
 ## 3. Fight
 
@@ -181,6 +207,84 @@ the falcon, spirit spheres.
 - By reading only: every other skill's effect as it is drawn (all of `web/world/prims/` beyond the skills
   above), casting bars and aiming, the aura and the spirit spheres on the screen.
 
+**What the audit of the classic game found silent or not drawn** (added after it; none of it seen in the game)
+- Sounds of effects that are files: `tools/client-tables/skill_effects.py` now reads the second switch of
+  `CRagEffect::OnProcess` too (the effects under 300 and 374 to 490, a step deeper than the first), every
+  sound of an arm with its tick; `effect_tables/effect_sounds.txt` grew by 100 lines of 87 effects, 44 of them
+  files that were silent (Thunder Storm, Angelus, Sanctuary, Kyrie, Magnus, Gloria, the traps, Endow, Strip,
+  the MVP…). `effect_tables::effect_sounds`, `effect/played.rs plain`. State: tests only.
+- Sounds a skill's handler starts beside its effects (`g_soundMgr->PlayWave` in `CGameMode::ReceiveSkillUse`,
+  `CSession::PlaySkillEffect`, `CGameActor::PlayGroundSkillEffect`, `CGameMode::ReceiveNotifyGroundSkill`):
+  the generated `effect_tables/skill_sounds.txt` (238 sounds of 228 skills, 82 of them classic: the songs and
+  dances, Berserk, Aura Blade, Gospel, Basilica, Magic Power, the Taekwon's, the Gunslinger's…),
+  `effect_tables::skill_sounds`, played by `App::skill_sounded` (`web/app/incoming/combat.rs`) through
+  `world::sound_on` and by `world::ground_skill`. State: tests only for the table; heard by nobody yet.
+- The monk's combos (`blow/combos.rs`, `App::combo_shown`; `CGameActor::ProcessSkillMessage`,
+  `RenderObject.cpp:5688`), Spring Trap and Remove Trap on a trap (`skill_units/traps.rs used_with`,
+  `world::skill_unit_used`). State: tests only for the rules.
+- Effects drawn by code, each from its function of `CRagEffect` (the comment over each says which):
+  `prims/fields.rs` (Detect 119, Heaven's Drive 142, Ganbantein 223, Volcano 225, Deluge 236, Violent Gale
+  237, Land Protector 238, Demonstration 302, EF_PORTAL3 341, Gospel 370, Basilica 374, Spider Web 404,
+  Slim Potion Pitcher 497 to 499, Hermode 517, Gravitation 522, Suiton 620, the shake of Meteor Storm 92,
+  whose files are `effect/played.rs`), Fog Wall's box (`skill_units/pulse.rs`, kind 2), `prims/played.rs`
+  (Tatami, Kaensin, Ground Drift 631, 634, 638 to 642; the hit of poison 53; the sprites items show: 363, 364,
+  509, 519, 576 to 580, 682 to 686, 707), `prims/hits.rs` (4, 5, 32, 50), `prims/lights.rs` (9, 63, 72, 100,
+  438), `prims/bursts.rs` (Flasher 99), `prims/heals.rs` (14; 7 is now `Exit`, as in the client),
+  `prims/sprites.rs` (20), `prims/sprays.rs` (227, 262), `prims/puffs.rs` (462), `prims/blows.rs` (376),
+  `prims/missiles.rs` (512), `prims/walls.rs` (the cast circles 12, 54 to 57, 59 through `world::burst`; 328,
+  342, the heart 343), `prims/arrivals.rs` (6, 34, 36, 304, 314), `prims/scenes.rs` (71, 118, 362, 563),
+  `prims/winds.rs` (224), `prims/marks.rs` (159), `prims/auras.rs` (348), `prims/pillars.rs` (581),
+  `prims/bodies.rs` (Cloaking 120, with `Touch::alpha`). New kinds of primitive with their tests:
+  `Spike` of `prim/horn.rs`, `Cast::Fire`, `Walls::Rise`, `Shape::Ghost` (`prim/ghost.rs`),
+  `Shape::CastingLow` (`prim/low_walls.rs`), and in `prim/tei/`: `map_pillars.rs`, `sheets.rs`, `spray.rs`,
+  `floating.rs`, `spikes.rs`, `domes.rs`, `bottom.rs`, `fences.rs`, `cubes.rs`. `skill_units.rs` has the
+  rows of the later classic kinds of units (177 to 197) and of `ground_effect` (459, 478, 483, 484; 491 on
+  the caster). State: tests only for the primitives and the rules; drawn by reading only.
+- An NPC that is there without being seen (jobs 111, 139, 32767) is a place effects play on
+  (`web/world/actors.rs unit_shown`, `Scene::spots`): by reading only.
+
+**The words of a Talkie Box and of Graffiti** (added with the classic gaps)
+- Files: `skills.rs` (`words_asked`), `net/skills.rs` (`use_on_ground_with_words`, 0x0367 of 31 bytes, with its
+  lines in `net/golden.txt`), `web/app/clicks/skills.rs` (`skill_aimed`, `skill_words_typed`),
+  `web/hud/skills.rs` (`skill_words_window`), the entry `SKILL_WORDS` of `web/hud/windows/skills.rs`.
+- Taken from: `CPlayer::SendMsg`, `AM_REQ_GROUND_SKILL` (`Source/Contents/Actors/Player.cpp:3846`),
+  `UITalkboxTrapInputWnd` (`Source/UI/Dialogs/UIMessageBox.cpp:824, 1505, 1986`), `UIGraffiStrboxWnd`
+  (`Source/UI/Skill/UIGraffiStrboxWnd.cpp`, `Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:635, 5404`),
+  `CGameMode::SendMsg`, `MM_USE_SKILL_TOGROUND_WITH_TALKBOX` (`Source/Client/Mode/GameMode.cpp:3526`); the
+  packet's length from rAthena's `clif_shuffle.hpp` and `TALKBOX_MESSAGE_SIZE`.
+- State: tests only (which skills ask and for how many letters, the packet); the box is by reading only.
+
+**The area a skill warns of while it is cast** (added with the classic gaps)
+- Files: `scope.rs` (`warned_cells`, `warned_alpha`, `WARNED_HALF`), `net/skills.rs` (`warned`, 0x0a41),
+  `web/world/scope.rs` (`area_warned`, the planes drawn; `warning_plane.tga` is read when first wanted),
+  `web/app/incoming/combat.rs`, `gateway/src/tables/skills.rs` (`scale`: the skills' `SkillScale`) with
+  `web/data/skills.rs` (`skill_scale`).
+- Taken from: `case skillscale` (`Source/Client/Mode/GameModePackets.cpp:28162`),
+  `CGameMode::SpawnSkillWarningPlanes` (`Source/Client/Mode/GameModeHandlers.cpp:1922`),
+  `CWarningPlaneEffect::AddPlane`, `IsAlive`, `OnProcess`, `Render`
+  (`Source/Contents/Effects/Skills/MonsterSkillEffects.cpp:605`), `GetSkillScale` of
+  `skillinfoz\skillinfo_f.lub` over `SkillScale` of `skillinfolist.lub` (68 skills have one).
+- State: tests only (the cells, the pulse, the packet, the gateway's table); the planes on the ground are by
+  reading only.
+
+**The action a monster is shown in for a skill** (added with the classic gaps)
+- Files: `monster_skills.rs` (`shown`: the rule, with `jobs::monster`), `gateway/src/tables/monster_skills.rs`
+  (`data\MonsterSkillInfo.xml`: 96 monsters, a table only a client set up for Korea finds, as this one is)
+  ↔ `web/data/monster_skills.rs` (`data::monster_skill`, asked by the name of the job's sprite in small
+  letters), `web/world/combat.rs` (`struck`, where a skill lands) and `web/world/mover.rs` (`Mover::shows`,
+  `Pose::loops`).
+- Taken from: `CSession::GetMonsterSkillInfo` (`Source/Contents/Monster/MonsterXmlActions.cpp:43`),
+  `CSession::LoadXmlTables` (`Source/Contents/Tables/ClientXmlTables.cpp:16`), its two callers that act on it,
+  `CGameMode::ReceiveNotifySkill` and `ReceiveActorSkillAction` (`Source/Client/Mode/GameModePackets.cpp:4178,
+  4252`: `SetAction(action * 8 - 8, 1, loopType == 0)`, for a monster that is not the player's own
+  character), `CRenderObject::SetAction` and `ProcessMotion` (`Source/Contents/Actors/RenderObject.cpp:507,
+  343`: `MT_ONETIME`, `MT_LOOP`), `DecodeMessageRot` (`Source/Contents/Tables/MessageTable.cpp:5040`).
+  `ReceiveNotifyGroundSkill` (`GameModeNotices.cpp:4303`) asks the table and does nothing with the answer,
+  and ZC_USE_SKILL does not ask: so here.
+- State: tests only (the rule, the gateway's reading of the file); the monsters in their actions are by
+  reading only. To see it: `@monster 1101` (Baphomet Jr.) or an Orc Warrior (1023, which smokes with skill 195
+  round and round) and let it use its skills; `@spawn`ed Yoyo and Choco heal and strike in actions 6 to 8.
+
 ## 5. Items, inventory, equipment
 
 What is carried and worn, an item's name and description, the character's own numbers, looking at what
@@ -213,6 +317,19 @@ another player wears.
 - Tabs, weight, how an item is named, item links, how numbers are written and typed, the packets: tests only.
 - Another player's equipment, the Fav tab, dragging between windows: by reading only (their packets have
   tests).
+
+**The buttons that tell of a level gained** (added with the classic gaps)
+- Files: `web/app/incoming/status.rs` (`level_changed`), `web/app/clicks/status.rs` and `clicks/skills.rs`
+  (the presses, and the windows that put the buttons away as they open), `web/hud/status.rs` (`level_told`,
+  `told_place`), `web/hud/skills.rs` (`job_level_told`), the entries `LEVEL_TOLD` and `JOB_LEVEL_TOLD`;
+  the marks on the menu's icons and on its folded bar in `web/hud/basic.rs` (`menu_icons`).
+- Taken from: `CGameMode::ReceiveParChange`, `SP_BASELEVEL` and `SP_JOBLEVEL`
+  (`Source/Client/Mode/GameModePackets.cpp:5576, 5637`), `UIWindowMgr::EnsureWindow` at
+  `WID_NOTIFYLEVELUPWND`, `WID_NOTIFYJOBLEVELUPWND`, `WID_STATUSWND` and `WID_SKILLLISTWND`
+  (`Source/UI/Window/UIWindowMgr.cpp:5846, 4917, 4931`), `UINotifyLevelUpWnd::OnCreate` and `SendMsg`,
+  `UINotifyJobLevelUpWnd::SendMsg` (`Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:7737, 6846, 5601`),
+  `UIMenuIconWnd` (`ID_NOTICE`, `notificationButtons`, `notificationOpenButton`).
+- State: by reading only.
 
 ## 6. Cards and making
 
@@ -268,6 +385,28 @@ An NPC's shop, the Kafra's storage and a guild's, the merchant's cart, a merchan
 **State**: tests only (the rules of the four and their packets); the windows, the cart and the signs in the
 world are by reading only.
 
+**The panel that compares what is worn, over the basket of an NPC's shop** (added with the classic gaps)
+- Files: `shops.rs` (`compared`, `change`, `Worn`), `gateway/src/tables/cards.rs` (`worn`:
+  `data\itemslottable.txt` and `data\itemparamtable.txt`, 900 items up to 5019) ↔ `web/data/cards.rs`
+  (`data::item_worn`), `web/hud/shops.rs` (`shop_compare_window`), `web/hud/windows/shops.rs` (`SHOP_COMPARE`).
+- Taken from: `UIItemParamChangeDisplayWnd` (`Source/UI/Items/UIItemParamChangeDisplayWnd.cpp`; its `Paint`,
+  `SumEquippedStats`, `FindEquippedItem` and `SendMsg` at `Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:657,
+  2574, 2108, 7977`, `DrawParamChangeArrow` at 640), `LoadItemNameTables`
+  (`Source/Contents/Items/ItemNaming.cpp:676, 681`), `UIWindowMgr::EnsureWindow`
+  (`Source/UI/Window/UIWindowMgr.cpp:5767, 5936`: opened with the basket of what is bought, 280 by 34),
+  `ItemParamChangeDisplayWndInfo::Reset` (`Source/Contents/UserData/NormalItemSlots.cpp:669`: 280, 246), closed
+  at `MM_RELEASE_QUEST` (`Source/Client/Mode/GameMode.cpp:3292`), `EquipSlotDecoder::Decode`
+  (`Source/Contents/Items/ClientItemLists.cpp:694`: the places in the order of the server's bits).
+- The window is told of an item to compare only by `UIItemCollectionWnd::SendMsg`
+  (`UIChooseSellBuyWnd.cpp:12656`) when a description was opened with 1, which `UIItemShopWnd2`,
+  `UIItemSellWnd` and `UIItemSellWnd2` do (`Source/UI/Edit/UIEditCtrl.cpp:7042, 7077, 7112`) and the list of an
+  NPC's shop, `UIItemShopWnd`, does not (`UIEditCtrl.cpp:7129, 5433`). So beside an NPC's shop the panel says
+  the figures of what is worn twice, with the grey bar between: the rule for an item pointed at is written
+  and tested, and nothing calls it with one.
+- State: tests only (the sums, the comparison, the gateway's reading of the two files); the panel is by
+  reading only. To see it: talk to any NPC that sells, choose Buy; put on and take off a weapon or a guard
+  with the shop open and the first figures follow.
+
 ## 8. Exchange
 
 A deal between two players.
@@ -322,6 +461,86 @@ The chat window and its tabs, whispers, the server's announcements, emotions, ch
 **State**: tests only (tabs, the kinds of line, marks in a text, whispers, rooms, commands, and the packets);
 every window is by reading only. Nothing of this system is on the seen list.
 
+**The away message, `/am` and `/automsg`** (added with the classic gaps)
+- Files: `whispers.rs` (`away_reply` and the lines of the message table), `web/app/clicks/whispers.rs`
+  (`away_switched`, `away_typed`, `away_answers`), `web/app/incoming/whispers.rs`, `web/app/commands/beside.rs`
+  (`TT_AUTO_MSG_ON_OFF`), `web/app/keys.rs` (Escape), `web/hud/whispers.rs` (`away_window`), the entry `AWAY`
+  of `web/hud/windows/whispers.rs`.
+- Taken from: `CGameMode::ExecuteTalkType`, `TT_AUTO_MSG_ON_OFF` (`Source/Client/Mode/GameMode.cpp:9409`),
+  `UIAutoMessageWnd` (`Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:6247, 9368, 9639`),
+  `CGameMode::ProcessWhisper` (`Source/Client/Mode/GameModeNotices.cpp:7672`), `UIWindowMgr::ProcessKeyDown`
+  at `VK_ESCAPE` (`Source/UI/Window/UIWindowMgr.cpp:2464`), `LoginMode.cpp:2237` (the message at first).
+- State: tests only (what is answered, and to what not); the command, the box and the answer sent are by
+  reading only.
+
+**The rankings by number, the points of fame, what a game master hears** (added with the classic gaps)
+- Files: `commands.rs` (`ranking_lines` with the headings and colours of each kind, `ranking_named`,
+  `fame_line`, `stat_dump`), `net/commands.rs` (`ranking_by_number` 0x0af6, `fame_gained` 0x097e, `kicked`
+  0x00cd, `gm_stats` 0x0214; 0x01e0 is taken and does nothing, as in the client),
+  `web/app/incoming/commands.rs` (`ranking_looked`, `ranking_said`), `web/app/state/commands.rs` (`ranking`),
+  `Action::RankingLooked`, `web/data/cards.rs` (`character_name`: the names by number, which the items'
+  makers use too).
+- Taken from: `CGameMode::ReceiveShowRankingSchedule` (`Source/Contents/Items/ClientItemLists.cpp:1837`),
+  `CSession::SetShowRankingSchedule`, `CShowRankingScheduler::Process` and `Show`, `RankingBoardStyles`
+  (`Source/Contents/Events/ShowRankingScheduler.cpp:38, 80, 98, 153`), `CPlayerNameDictionary::Lookup`
+  (`Source/Contents/Actors/PlayerNameDictionary.cpp:38`), `CGameMode::ReceiveRankingList` and
+  `RankNoticeStyles` (`Source/Client/Mode/GameModeNotices.cpp:7496, 7517`), `CGameMode::ReceiveTypedNotice`
+  (`GameModeNotices.cpp:2476`: ZC_UPDATE_RANKING_POINT), `CGameMode::ReceiveStatDump`
+  (`Source/Client/Mode/GameModePackets.cpp:728`), `case ID_ZC_ACK_DISCONNECT_CHARACTER`
+  (`GameModePackets.cpp:25066`).
+- The ranking told with names (0x097d) was written with one heading and all in yellow; it has the client's
+  four headings, its rule of 43 signs and its two colours a kind now.
+- State: tests only (the lines and colours, which names are waited for, the packets); the lines in the chat,
+  the wait of three seconds and "Fetching rank..." are by reading only.
+
+**The words that are not let be written** (added with the classic gaps)
+- Files: `manner.rs` (`Words::allows`, `masked`), `gateway/src/tables/manner.rs` (`data\manner.txt`, 1403
+  words) ↔ `web/data/manner.rs` (`data::foul`, `data::starred`); and a call in each place the client asks
+  its `g_forbiddenWords`:
+  - *refused*: a chat room's title (`chat_rooms.rs wrong`, line 14 in the message box); a stall's title
+    (`web/app/clicks/vending.rs`, 14); what is typed for an NPC (`clicks/talk.rs`, 14 in the chat, red); a
+    pet's and a homunculus's new name (`clicks/pets.rs`, `clicks/homunculus.rs`, 2948); the guild's notice
+    (`clicks/guild/manage.rs`, 14); a party's name (`clicks/party.rs party_make_asked`, 14); a guild's name
+    (`clicks/guild.rs`, 3335 in the chat); a letter's title and text (`clicks/mail/writing.rs`, 3028); a new
+    character's name (`web/app/connection.rs`, this client's own words for a bad name).
+  - *written with stars*: what is typed into the chat's line, before anything else is done with it
+    (`clicks/chat.rs chat_typed`), and a whisper sent (`clicks/whispers.rs whisper_send`); what the
+    character said and what a player in sight says, the party's and the guild's chat, the announcements
+    (`incoming/talk.rs`, `party.rs`, `guild.rs`, `broadcast.rs`); the lines of a whisper's window and of a
+    chat room, the room's sign and title (`clicks/whispers.rs`, `clicks/chat_rooms.rs`,
+    `hud/chat_rooms.rs`); a stall's sign (`hud/vending.rs`); the party's name as kept and in an invitation,
+    the guild's in an invitation and in a request to ally, the guild's notice, the reason one left or was
+    expelled (`incoming/party.rs`, `incoming/guild.rs`, `hud/guild.rs`, `hud/guild/expelled.rs`); under
+    someone the pointer is on, the party's, the guild's and the position's names and a homunculus's name
+    (`web/world/guild.rs`, `web/world/names.rs`).
+- Taken from: `ForbiddenWords::Load`, `Allows`, `Contains`, `Mask`
+  (`Source/Contents/Tables/ForbiddenWords.cpp:54, 89, 125, 132`), `CCommonObject::LoadTokens`
+  (`Source/File/CommonObject.cpp:27`), and the callers: `CGameMode::SendMsg` at `MM_CHATMSG`,
+  `MM_CONFORM_MAKEGROUP`, `MM_WHISPERMSG`, `MM_USE_SKILL_TOGROUND_WITH_TALKBOX`, `MM_REQ_MAKE_GUILD`,
+  `MM_SEND_MAIL`, `MM_CHAT_PARTY`, `MM_CHAT_GUILD` (`Source/Client/Mode/GameMode.cpp:1884, 2229, 3227, 3543,
+  3905, 4081, 4280, 4544`); `ReceiveActorChat`, `ReceiveBroadcast`, `ReceivePartyChat`, `ReceiveGuildChat`,
+  `ReceiveTaggedBroadcast`, `ReceiveColorBroadcast`, `ReceiveGuildNotice`, the party's lists and the three
+  invitations (`Source/Client/Mode/GameModePackets.cpp:11352, 13612, 11404, 11616, 16955, 16853, 12046,
+  17267…17407, 25315, 25911, 25955`), `ReceiveGuildMemberExpelled`, `ReceiveGuildMemberLeft`
+  (`GameModeNotices.cpp:7086, 7180`); `UIChatRoomMakeWnd`, `UIChatRoomChangeWnd`, `UINpcTextEditDialogWnd`,
+  `UIWhisperWnd`, `UIJoinGuildAcceptWnd` (`Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:5842, 5946, 1062, 4705,
+  7631`), `UIChatRoomWnd` (`Source/UI/Window/UIFrameWnd.cpp:909, 958`), `UIChatRoomTitle`
+  (`Source/UI/Chat/UIChatRoomTitle.cpp:173`), `UIMerchantShopTitle` (`Source/UI/Shop/UIMerchantShopTitle.cpp:115`),
+  `UIMerchantShopMakeWnd` (`Source/UI/Edit/UIEditCtrl.cpp:11818`), `UIHomunInfoWnd`, `UIPetInfoWnd`,
+  `UIMakeCharWnd` (`Source/UI/Dialogs/UIMessageBox.cpp:3621, 3830, 4187`), `UIGuildNoticeWnd`,
+  `UIGuildBanishedMemberWnd` (`Source/UI/Guild/UIGuildWnd.cpp:2023, 1855`), `UINameBalloonText::SetName`
+  (`Source/UI/Text/UIBalloonText.cpp:350…398`), `CGameMode::UpdateNameBalloon`
+  (`Source/Contents/World/WorldObjects.cpp:467`).
+- The file is Korea's, with Latin words in it too ("sex", "ass", "cum", "shit"…), and the client finds a
+  word inside a longer one: "class" is sent as "cl***", "Assassin" as "***assin", and an @command with such
+  a word in it is sent with the stars too. That is the Windows client's behaviour with these files.
+- Found on the way and put right: the words of another player were hung over nobody's head, the ID being
+  read two bytes early (`net::talk::npc` for ZC_NOTIFY_CHAT); it is `net/packets/zone.rs chat_speaker` now.
+- State: tests only (the rule, the gateway's reading of the file, the title of a chat room, the speaker of
+  a line); every place it is applied in is by reading only. To see it: type "this is shit" into the chat
+  (it comes back "this is ****"); make a chat room or a stall called "sex" (the box says "Foul Language
+  Detected."); `/organize sex`; rename a pet to "bitch".
+
 ## 10. Party
 
 **Files**
@@ -343,15 +562,27 @@ every window is by reading only. Nothing of this system is on the seen list.
 
 **State**: tests only (the packets, and one rule); the windows are by reading only.
 
+**A thing a member obtained** (added with the classic gaps)
+- Files: `net/party.rs` (`picked`, 0x0b67), `web/app/incoming/party.rs` (`party_obtained_said`),
+  `web/app/state/party.rs` (`obtained`), `said.rs` (`PARTY_ITEM`, the chat tabs' kind 9, "Party member's
+  obtained item").
+- Taken from: `CGameMode::ReceivePartyItemPickup` (`Source/Client/Mode/GameModeNotices.cpp:1172`): line 1276
+  of the message table with the member's name and `ITEM_INFO::DisplayName(0)`, in 0xFFFF00, kind 9; nothing
+  for the player's own account or for one not of the party.
+- State: tests only (the packet); the line is by reading only.
+
 ## 11. Guild
 
 **Files**
-- Rules: none of its own (there is no `guild.rs`)
+- Rules: `guild.rs` (the castles only: the sizes of their list and menu, where the menu opens, the words of
+  their two boxes)
 - Packets: `net/guild.rs`, `net/guild/members.rs`, `net/guild/manage.rs`, `net/guild/requests.rs` (tests
-  `net/guild/tests.rs`)
-- App: `web/app/incoming/guild.rs`, `web/app/incoming/guild/members.rs`, `web/app/clicks/guild.rs`,
-  `web/app/clicks/guild/manage.rs`, `web/app/state/guild.rs`
-- Windows: `web/hud/guild.rs`, `web/hud/guild/{members,positions,skills,expelled,notice}.rs`
+  `net/guild/tests.rs`), `net/guild/castles.rs` (with its tests)
+- Tables: `gateway/src/tables/castles.rs` ↔ `web/data/castles.rs` (the client's `AgitConfig.lub` and
+  `AgitConfig_F.lub`: each castle's name and the two costs of going there, by the client's number of it)
+- App: `web/app/incoming/guild.rs`, `web/app/incoming/guild/{members,castles}.rs`, `web/app/clicks/guild.rs`,
+  `web/app/clicks/guild/{manage,castles}.rs`, `web/app/state/guild.rs`
+- Windows: `web/hud/guild.rs`, `web/hud/guild/{members,positions,skills,expelled,notice,castles}.rs`
 - World: `web/world/guild.rs` (the guild and emblem of each player in sight)
 
 **Taken from**
@@ -364,11 +595,26 @@ every window is by reading only. Nothing of this system is on the seen list.
   (`Source/Client/Mode/GameModeNotices.cpp`)
 - The messages `MM_REQ_GUILD_MENU`, `MM_REQ_JOIN_GUILD`, `MM_REQ_BAN_GUILD`, `MM_SEND_GUILD_EMBLEM`,
   `MM_GUILD_NOTICE`, `MM_REQ_CHANGE_MEMBERPOS`; rAthena's `clif_validate_emblem`
+- The castles (there is no window of their own in the client; the audit's `UIAgitWnd` is the name of a file):
+  the list in the first tab and its menu, `UIListBoxAgit` and `UIListBoxAgitMenu` (`Source/UI/Guild/UIAgitWnd.cpp`),
+  made and filled by `UIGuildInfoManageWnd::OnCreate` and `RefreshAgitList` (`Source/UI/Guild/UIGuildWnd.cpp`);
+  the box before going to one, `UIAgitMessageBox` (`InitializeMessageBox` in `UIGuildWnd.cpp`);
+  `GuildInfo::agitIds` (`Source/Contents/Guild/GuildInfo.cpp`); `CGameMode::ReceiveGuildAgitList`
+  (`GameModeNotices.cpp`), `ReceiveAgitNotice` and `ReceiveGuildAgitMoveResult` (`GameModePackets.cpp`);
+  `MM_REQ_MOVE_GUILD_AGIT` and `MM_REQ_AGIT_INVESTMENT` (`GameMode.cpp`); the lines 333, 1090, 3629 to 3633
+  and 3640 of the message table; rAthena's `clif_guild_castle_list`, `clif_guild_castleinfo`,
+  `clif_guild_castle_teleport_res` and the two `clif_parse_guild_castle_*`
 
 **State**
 - Making a guild, inviting, leaving, expelling, the emblem, the notice: seen in the game.
 - Positions, alliances and oppositions, the guild's skills, the list of the expelled, the guild's chat: tests
   only for their packets; their windows are by reading only.
+- The castles (ZC_GUILD_AGIT_INFO 0x0b27, ZC_REQ_ACK_AGIT_INVESTMENT 0x0b2d, ZC_REQ_ACK_MOVE_GUILD_AGIT 0x0b2e,
+  CZ_REQ_MOVE_GUILD_AGIT 0x0b28, CZ_REQ_AGIT_INVESTMENT 0x0b2c): tests only for the packets, the table and
+  the rules; the list, its menu and the two boxes are by reading only, nothing was seen in the game. The
+  words the server sends of the castles ("None Taken"…) are no longer written: the client's list lies over
+  them. The classic server answers the list and the economy and defence; it does not move the character
+  (`db/pre-re/castle_db.yml` has no `WarpEnabled` for any castle, see `DEBTS.md`).
 
 ## 12. Friends, family and mail
 
@@ -412,7 +658,8 @@ last two.
 - App: `web/app/ai.rs`, `web/app/{incoming,state}/ai.rs`, `web/app/{incoming,clicks,state}/pets.rs`,
   `…/homunculus.rs`, `…/mercenary.rs` (the same three folders), `web/app/actions/taming.rs`
 - Windows: `web/hud/pets.rs`, `web/hud/homunculus.rs`, `web/hud/mercenary.rs`, `web/hud/skill_list.rs`
-- World: `web/world/ai.rs` (what a script is told of the map)
+- World: `web/world/ai.rs` (what a script is told of the map); the sprite each is drawn with, by its job:
+  `creatures.rs` (see "The map world")
 - Tables: `gateway/src/tables/pets.rs`, `tables/ai.rs`; `web/data/pets.rs`, `web/data/ai.rs`
 
 **Taken from**
@@ -510,11 +757,19 @@ The minimap and the marks on it, the World Map, the Tipbox, the Adventure Guide.
   `CAdventureGuideMgr::IsAvailable` (`Source/Contents/AdventureGuide/AdventureGuideMgr.cpp`),
   `CJobCodeForItem::IsJobAllowed` (`Source/Contents/Items/JobCodeForItem.cpp`)
 - `mp3nametable.txt`
+- A map's names: `mapInfo_true.lub` and, written over it, `data\mapNameTable.txt` (`CSession::LoadMapNameTable`,
+  `Source/Contents/Map/MapNameTable.cpp`; `CMapInfoMgr::AddMapDisplayName`): `gateway/src/tables/maps.rs`
+- A copy of a map made for one party (`0011@tower`) looked up as the map (`maps::original`):
+  `ResourceMgr::Resolve` (`Source/Resource/ResourceAliases.cpp:17`), `CMapInfoMgr::FindMapInfo`,
+  `CSession::GetBgmFileName`, `IsIndoorMapName`, `GetFogParameters`, `GetMapViewParameters`, `ScriptMapName`
+  (`Source/File/MapName.cpp`), `CurrentMapScriptName`; used by `web/world/loading.rs` (files, indoors, fog,
+  view, sky, effects), `web/data/maps.rs` (music, name, sign), `web/view/game.rs` (the minimap's picture)
 
 **State**
 - The Tipbox opening as the game is first entered: seen in the game.
 - Where a cell lies on the minimap, a map's name and music, what the Guide shows a character of a level, the
-  marks' packets, the gateway's tables of the Guide and the world map: tests only.
+  marks' packets, the gateway's tables of the Guide and the world map, the names of `mapNameTable.txt`, the
+  name of a copy of a map: tests only (no copy of a map was entered in the game).
 - The World Map, the Adventure Guide's pages, the marks on the minimap: by reading only.
 
 ## 17. Options and hotkeys
@@ -540,6 +795,18 @@ Game Settings, Shortcut Settings, the game's menu, screenshots, what the browser
 
 **State**: tests only (which key does what and how it is written, a screenshot's name and stamp, what is
 kept, the switches' packet); the three windows are by reading only.
+
+**The Hotkey Guide** (added with the classic gaps)
+- Files: `hotkeys/guide.rs` (the client's table of keys, the list, how keys are written), `web/hud/hotkeys/guide.rs`,
+  `web/app/clicks/hotkeys.rs` (`Guide`, `GuideClose`, `GuideSettings`), the entry `KEY_GUIDE` of
+  `web/hud/windows/settings.rs`, `basic_button_holding` in `web/hud/buttons.rs` with the page's `.held`
+  (`client/web/index.html`); the keyboard among the menu's icons opens it (`web/hud/basic.rs`).
+- Taken from: `UIHotkeyGuideWnd` (`Source/UI/GameSettings/UIHotkeyGuideWnd.cpp`: `OnCreate`, `Paint`,
+  `OnProcess`, `SendMsg`, `DrawKey`, `DrawKeyLabel`), `UIMenuIconWnd::SendMsg`, `ID_OPEN_HOTKEY`
+  (`Source/UI/Menu/UIMenuIconWnd.cpp:432`), `UIHotKeyWnd::SendMsg`, `UM_TAB` from the guide
+  (`Source/UI/GameSettings/UIHotKeyWnd.cpp:683`), `UIWindowMgr::EnsureWindow` at `WID_HOTKEYGUIDEWND`
+  (`UIWindowMgr.cpp:7049`); the pictures of `data\texture\유저인터페이스\hotkey_guide\`.
+- State: tests only (the table, the list's places, how keys are written); the window is by reading only.
 
 ## 18. The map world
 
@@ -575,12 +842,66 @@ A map's ground, models, water, fog, sky, weather, night, the camera, and the eff
   (`Source/Resource/Sprites/ImfResource.h`)
 - The layouts of GAT and GND follow korangar's (said in `map/gat.rs`, `map/gnd.rs`)
 
+**Effects of classic maps added after the audit** (none seen in the game)
+- `prims/places.rs`: the pillars of light 231, 247, 259, 260 (`CRagEffect::TexturedCrossStaged`), the great
+  portals of Juperos 561, 562 (`TexturedMagicRing(char)`), the ghosts and bats of Niflheim 358 to 360
+  (`Ghost`, `PrimGhost`), the smoke 373; `prims/waterfalls.rs`: 349 to 356 (`Waterfall`, `FrostScatter`) and
+  557 to 560 (`WaterfallSheets`).
+- The particle emitters a map places (effect 974, `CEmitterEffect`) as its script sets them
+  (`Lua Files\EffectTool\<map>.lub`, `EffectLists::LoadMapEffectScript`, `SetEmitterInfo`): the system
+  `emitters` — `gateway/src/tables/emitters.rs` (asked for a map at a time, `GET /tables/emitters/<map>`),
+  `web/data/emitters.rs`, `emitters.rs` (the rule of an emitter and its particles, `EmitterEffect.cpp`),
+  `web/world/scenery/emitters.rs`, `web/world/gpu/emitters.rs`. Of the classic maps the `.rsw` places them on
+  Prontera (3), Morocc (81) and Comodo (2) only; the scripts of the other classic maps set emitters their
+  `.rsw` does not place, so the client shows nothing there either. State: tests for the gateway's reader
+  (against the client's files) and the rule; drawn by reading only. The owner's gateway must be rebuilt and
+  started anew for the table; until then no emitter is shown.
+
 **State**
 - Tests only: reading GAT, GND, RSW, RSM, SPR, ACT and IMF, a map's fog and view, the darkening at night,
   the makers of a map's effects and sounds.
 - By reading only: everything drawn (ground, models, water, fog, sky, weather, night, camera). The map is on
   the screen behind everything on the seen list, but it is not itself on that list: nobody compared it part
   by part with the Windows client.
+
+### Granny models (guild flags, the Emperium, guardians, treasure boxes)
+
+Whoever the client's table of jobs names with `.gr2` is drawn as a model of bones and skin: the guild flag
+(722), the Emperium (1288, 1846, 3308), the guardians (1285–1287, 1829, 1830, 1899, 1900, 1949, 1950) and
+the castles' treasure boxes (1324–1363 and the later ones, all `TREASUREBOX_2.gr2`).
+
+**Files**
+- Format: `model/granny.rs`, `model/granny/{file,oodle,coder,types,scene,pose}.rs`, `model/granny/bink.rs`,
+  `model/granny/bink/{bands,wavelet,coder}.rs` (tests `model/granny/tests.rs`, `model/granny/bink/tests.rs`;
+  `model/granny/section.bin` is 192 bytes of one of the client's files, for the test of the unpacking)
+- Rules: `model/granny/shown.rs` (actions and their files, speed, turning, place, light, the pointer's reach)
+- World: `web/world/granny.rs`; `Look::Model` in `web/world/mover.rs`, chosen in `web/world/actors.rs`;
+  `web/world/guild.rs` (the emblems' pixels); `web/world/pick.rs`
+- GPU: `web/world/gpu/granny.rs`, `GRANNY_SHADER` in `web/world/shaders.rs`
+- App: `web/app/incoming/actors.rs`, `web/app/incoming/guild.rs` (a flag's emblem asked for; ZC_CHANGE_GUILD)
+
+**Taken from**
+- `CGameMode::NewActor` (`Source/Client/Mode/GameMode.cpp`), `C3dGrannyGameActor` (`SetSprAct`, `SetAction`,
+  `Render`, `RenderLit`, `RenderShadowed`, `OnProcess`: `Source/Contents/Actors/RenderObject.cpp`),
+  `C3dGrannyModelRes::Load`, `InstantiateModel`, `CreateTexture`, `PlayAnimation`, `GetMeshRenderData`,
+  `ProjectBounds`, `GrannyAnimationLibrary::Load` (`Source/Resource/Models/AnimatedModelResource.cpp`,
+  `ModelResource.cpp`)
+- The file's layout and its types: nwn2mdk (`gr2_file.cpp`, Apache-2.0) and opengr2 (`gr2.c`, `typeinfo.c`,
+  MPL-2.0), as descriptions. Neither reads Oodle0 (the packing of these files' sections) nor the Bink
+  packing of the textures: both were read out of the client's own `granny2.dll` 2.1.0.5 (the functions are
+  named in `coder.rs`, `oodle.rs`, `bink.rs` and its children).
+- Curves and poses: Granny's own terms and the usual B-spline; not read out of the DLL.
+
+**State**
+- Tests: the unpacking of a section (a fixture of 192 bytes), the types, a curve, a skin with its bones, the
+  rules of `shown.rs`, the pieces of the texture packing. With the client's files in a folder
+  (`ROWEB_GR2=<folder>`): all six models and the fourteen files of other actions read, every texture unpacks.
+- Seen in the game (2026-11-21, a build of this change alone on a gateway of its own, fog switched off with
+  `/fog`): the two flags at the gate of a castle on `gef_fild13` with their cloth waving, a guardian (1285)
+  and a treasure box (1324) called with `@monster`, the Emperium in its room of `gefg_cas01`; the Emperium's
+  name under the pointer; a press on it walks the character to it.
+- By reading only: a guild's emblem on a flag (no castle had an owner), the other actions of a guardian
+  (walking, a blow, a flinch, the fall), a model's life bar, the fading of one struck down.
 
 ## 19. Sound
 
@@ -596,6 +917,9 @@ A map's ground, models, water, fog, sky, weather, night, the camera, and the eff
 - `CGameMode::PlayBgm` (`Source/Client/Mode/GameModeHandlers.cpp`), `CGameMode::UpdateLoopSounds`
   (`Source/Client/Mode/GameMode.cpp`), `CLoginMode`
 - `CRenderObject::PlayFrameSounds` (the sounds of a sprite's frames), `CSoundMaker`
+
+Which sounds an effect and a skill start is section 4's (`effect_tables/effect_sounds.txt`,
+`effect_tables/skill_sounds.txt`, both generated).
 
 **State**: tests only for how loud a sound is by its distance (`earshot.rs`) and the music table (`maps.rs`);
 playing itself (`web/sound.rs`) is by reading only.
@@ -627,6 +951,20 @@ the screen, and the waits before skills may be used again.
 
 **State**: tests only (which line is said in which colour, the list of states, the waits, the packets); the
 list and the shade on the screen are by reading only.
+
+**Manner points, and the packets taken with nothing to show** (added with the classic gaps)
+- Files: `notices.rs` (`manner_answer`, `manner_given`), `net/notices.rs` (0x014a, 0x014b),
+  `web/app/incoming/notices.rs`. Taken from `case ID_ZC_ACK_GIVE_MANNER_POINT` and
+  `case ID_ZC_NOTIFY_MANNER_POINT_GIVEN` (`Source/Client/Mode/GameModePackets.cpp:25768, 25783`).
+- Taken and left without effect, each after reading the client's handler: 0x0283 `ZC_AID` and 0x01e0
+  `ZC_ACK_ACCOUNTNAME` (an arm that does nothing, `GameModePackets.cpp:23432`), 0x0b1b (`ReceiveDeferredReset`,
+  `GameModeHandlers.cpp:2037`: the hotkeys' lock and the queue of packets held back), 0x0b0b
+  (`RefreshItemListWindow`, `Source/Contents/Items/ClientItemLists.cpp:670`: our windows are drawn as each
+  list arrives), 0x0b18 (`ReceiveExtraInventorySlots`), 0x0a9b (`ReceiveSwapEquipmentList`), 0x0a23
+  (`ReceiveAchievementList`) — the three last are of the Renewal pool (`BACKLOG.md`) — and 0x02ef
+  `ZC_NOTIFY_FONT` (`GameModePackets.cpp:26919`; see `docs/DEBTS.md`). They are arms of
+  `web/app/incoming/{travel,commands,inventory,notices,actors}.rs`.
+- State: tests only (the manner lines and packets); by reading only otherwise.
 
 ## 21. Link watch
 

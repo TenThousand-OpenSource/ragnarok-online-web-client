@@ -5,12 +5,12 @@
 use super::*;
 
 impl Prim {
-    /// `Move2DPrimitive`. (Of its change at a tick only the two speeds of size are ported, and of its turning
-    /// the speed alone, `rollSpeed`: no effect here gives it `rollAccel`.)
+    /// `Move2DPrimitive`. (Of its change at a tick only the two speeds of size are ported.)
     pub(super) fn slide(&mut self) {
         if let Some((_, width_speed, height_speed)) = self.turns_at.filter(|(tick, ..)| *tick == self.count) {
             (self.width_speed, self.height_speed) = (width_speed, height_speed);
         }
+        self.roll_speed += self.roll_accel;
         self.width_speed += self.width_accel;
         self.height_speed += self.height_accel;
         self.speed += self.accel;
@@ -66,7 +66,7 @@ impl Prim {
             | Shape::ParticleGravity3d | Shape::ParticleOrbit3d | Shape::ParticleSpline3d | Shape::QuadHorn3d
             | Shape::ParticleUp | Shape::Casting3d | Shape::Walls(_) | Shape::Tei(_) | Shape::Texture3d | Shape::Cast(_)
             | Shape::Streak { .. } | Shape::SpriteGlow | Shape::Kouenka | Shape::Fourfold | Shape::Roamer
-            | Shape::Petal { .. } => Vec::new(),
+            | Shape::Petal { .. } | Shape::Ghost | Shape::CastingLow => Vec::new(),
         }
     }
 
@@ -144,5 +144,17 @@ mod tests {
         assert!(close(smoke.width, 61.0) && close(smoke.height, 61.0) && close(smoke.roll, 20.0));
         smoke.tick(100);
         assert!(close(smoke.width, 61.5) && close(smoke.height, 61.25));
+        // As a fragment of `NapalmFragments`: a picture every other tick, and it ends after the last.
+        let mut fragment = Prim::new(Shape::Texture2d, "");
+        (fragment.pictures, fragment.anim_speed, fragment.repeats) = (&["a", "b", "c"], 2, false);
+        assert!(fragment.tick(100) && fragment.shown() == "b");
+        assert!(fragment.tick(100) && fragment.tick(100) && fragment.shown() == "c");
+        assert!(fragment.tick(100) && !fragment.tick(100));
+        // As a flare of `Hit5`: its turning slows by its `rollAccel`, the speed first.
+        let mut flare = Prim::new(Shape::Texture2d, "");
+        (flare.roll_speed, flare.roll_accel) = (-5.0, 0.5);
+        flare.tick(100);
+        flare.tick(100);
+        assert!(close(flare.roll, -8.5) && close(flare.roll_speed, -4.0));
     }
 }

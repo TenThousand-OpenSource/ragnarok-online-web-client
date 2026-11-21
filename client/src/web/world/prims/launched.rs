@@ -4,6 +4,7 @@
 //! - sprites: one thrown out from over the one the effect is on (`thrown`), one that flies in a bow (`bowed`),
 //!   one thrown level to a place (`thrown_level`), and the names of the sprites several files show;
 //! - the band of a hit, the way it goes and where it starts (`band`, `way`, `ahead`);
+//! - a primitive whose picture is added whole to what is behind it (`glowing`);
 //! - a primitive of a kind made of the client's parts and a part of one (`of_parts`, `part`,
 //!   `crate::prim::Tei`), and what several effects make of them: the beams of `TexturedQuadSpin`
 //!   (`quad_spin`), the rings of a portal (`ripples`), the sparks of a soul's light (`soul_light`);
@@ -67,6 +68,14 @@ pub(super) fn thrown_level(sprite: &'static str, duration: i32, aim: [f32; 3]) -
     thrown.speed = -(f32::hypot(aim[0], aim[2]) / thrown.duration as f32);
     thrown.anim_speed = 1;
     thrown
+}
+
+/// A primitive the client draws by adding its picture's colours to what is behind it, whatever its alpha is
+/// (a `renderFlag` with 2: both blends are "one"). Its alpha is put at its most and left there: nothing the
+/// client does to the alpha of such a primitive shows.
+pub(super) fn glowing(mut prim: Prim) -> Prim {
+    (prim.adds, prim.alpha, prim.fade_out) = (true, prim.max_alpha, -1);
+    prim
 }
 
 /// The way a band of a hit goes, the client's `(int)(180 - angle)` of the way the one struck faces, a turn
@@ -172,9 +181,10 @@ pub(super) fn skill_aura(kind: i32) -> Prim {
     aura
 }
 
-/// `CRagEffect::TexturedLevelRing`, by its level (0, 3, 4 or 10 here): a square of the kind 88 round the one it
+/// `CRagEffect::TexturedLevelRing`, by its level (0 to 4 or 10 here): a square of the kind 88 round the one it
 /// is on, its light added, that begins `waits` ticks late. Level 0: 15 to its corners, 5 over the ground,
-/// white. Level 3: 13 to its corners, 5 to 10 over the
+/// white; levels 1 and 2 the same in red and in yellow (the sizes 101 and 102; the red one the client draws
+/// twice, and whoever launches it launches two). Level 3: 13 to its corners, 5 to 10 over the
 /// ground, blue. Levels 4 and 10: 15 to its corners and 5 over the ground, a deep blue that comes up three
 /// times as fast, and a dark red. (`RenderSizedSquare` by the primitive's `size`, 111, 113 and 114; the last
 /// two it draws over everything, whatever stands before them, and here they are drawn as the other effects
@@ -184,6 +194,8 @@ pub(super) fn square(picture: &'static str, level: i32, waits: i32, lasts: i32) 
     (square.duration, square.adds) = (lasts, true);
     let (colour, out, up) = match level {
         0 => ([255.0; 3], 15.0, 5.0),
+        1 => ([255.0, 0.0, 0.0], 15.0, 5.0),
+        2 => ([255.0, 255.0, 0.0], 15.0, 5.0),
         3 => ([55.0, 55.0, 255.0], 13.0, 5.0 + lot(6)),
         4 => ([5.0, 5.0, 255.0], 15.0, 5.0),
         _ => ([155.0, 5.0, 5.0], 15.0, 5.0),

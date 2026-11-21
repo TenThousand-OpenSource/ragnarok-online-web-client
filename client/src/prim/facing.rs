@@ -44,6 +44,17 @@ pub fn camera_yaw(right: [f32; 3]) -> f32 {
 }
 
 impl Prim {
+    /// Tells it the camera's yaw, the client's degrees, before a tick of its life: what the kinds that look at
+    /// the camera as they live make of it (`PrimGhost`, `PrimPulsingColumns` for `PP_HEAL_LOW`). Nothing for a
+    /// primitive of any other kind.
+    pub fn watched(&mut self, yaw: f32) {
+        match self.kind {
+            Shape::Ghost => self.ghost_watched(yaw),
+            Shape::CastingLow => self.low_walls_watched(yaw),
+            _ => {}
+        }
+    }
+
     /// How far its sprite is turned on the screen, clockwise, the camera's yaw being `yaw`: its own roll, or for
     /// one that points a way in the world that way less the camera's yaw (`Prim3DParticle`, `pattern & 0x20`).
     pub fn rolled(&self, yaw: f32) -> f32 {

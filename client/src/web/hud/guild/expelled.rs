@@ -16,7 +16,8 @@ impl App {
             .map(
                 |(name, reason)| [
                     fitted(8, 3, EXPELLED_COLUMNS[0] - 4, BLACK, name),
-                    fitted(EXPELLED_COLUMNS[0] + 9, 3, EXPELLED_COLUMNS[1] - 4, BLACK, reason)
+                    // (Stars for a word that is not let be written: `UIGuildBanishedMemberWnd::Paint`.)
+                    fitted(EXPELLED_COLUMNS[0] + 9, 3, EXPELLED_COLUMNS[1] - 4, BLACK, &data::starred(reason))
                 ].concat()
             )
             .collect();

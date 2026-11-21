@@ -75,3 +75,13 @@ fn a_line_takes_what_it_asks_for() {
     assert_eq!(filled("in %02d hour(s) and %02d minute(s)", &["3", "15"]), "in 03 hour(s) and 15 minute(s)");
     assert_eq!(filled("[%3d]", &["7"]), "[  7]");
 }
+
+#[test]
+fn reads_what_is_told_of_manner_points() {
+    assert_eq!(manner_answer(&[0x4a, 0x01, 3, 0, 0, 0]), Some(3));
+    assert_eq!(manner_answer(&[0x4a, 0x01, 3, 0]), None);
+    let mut packet = vec![0x4b, 0x01, 0];
+    packet.extend(crate::net::bytes::name24("Game Master"));
+    assert_eq!(manner_given(&packet), Some((0, "Game Master".to_owned())));
+    assert_eq!(manner_given(&packet[..26]), None);
+}

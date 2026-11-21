@@ -78,6 +78,19 @@ fn a_band_stood_up_goes_the_way_it_is_turned() {
 }
 
 #[test]
+fn a_band_grows_no_higher_than_it_may() {
+    // As the column of `Enhance`: it grows by 2 a tick, to 50 at the most (any other to 100).
+    let mut band = Prim::new(Shape::Cylinder3d, "");
+    (band.height_speed, band.max_height) = (2.0, 50.0);
+    (0..30).for_each(|_| drop(band.tick(100)));
+    assert!(close(band.height, 50.0));
+    let mut band = Prim::new(Shape::Cylinder3d, "");
+    band.height_speed = 2.0;
+    (0..60).for_each(|_| drop(band.tick(100)));
+    assert!(close(band.height, 100.0));
+}
+
+#[test]
 fn a_ring_in_the_world_widens_and_is_filled_until_it_is_wider_than_its_inner_size() {
     // As the rings of Magnum Break are: lying flat, widening as they slow.
     let mut ring = Prim::new(Shape::Circle3d, "");

@@ -8,6 +8,9 @@
 //! - `PP_3DCASTING_2` (24, `Cast::Turning`): walls that turn, come up slowly and fade over the last twenty
 //!   ticks of their primitive, their edges swaying (`CEffectPrim::OnProcess`, `case PP_3DCASTING_2`).
 //!
+//! - `PP_3DCASTING_3` (25, `Cast::Fire`): the walls of the kind 23, but that the fourth, the pillar, comes up
+//!   to an alpha of 100 and, once risen, breathes between a tenth and all of its height (`UpdateFireWall`).
+//!
 //! And `PP_CHEMICALPROTECTION` (54, `Cast::Rays`): rays of light in the flat of the screen (`casts/rays.rs`).
 //!
 //! `RenderTeiRect` draws a wall by its primitive's `size`. A primitive of the kind 23 whose size is 3 has only
@@ -23,6 +26,7 @@ mod rays;
 pub enum Cast {
     Stone { last_only: bool },
     Turning,
+    Fire,
     /// One of the two drawings of the rays: the wide one, or the narrow one at half the alpha.
     Rays { wide: bool },
 }
@@ -36,6 +40,8 @@ impl Prim {
                 Cast::Stone { last_only } if last_only && index < 3 => {}
                 Cast::Stone { .. } => slot.rise_as_wall(index as i32, duration),
                 Cast::Turning => slot.turn_as_wall(index as i32, duration),
+                Cast::Fire if index < 3 => slot.rise_as_wall(index as i32, duration),
+                Cast::Fire => slot.breathe_as_pillar(duration),
                 Cast::Rays { .. } => slot.shine_as_ray(),
             }
         }
@@ -78,6 +84,31 @@ impl Slot {
         if self.process <= 90 {
             for (edge, height) in self.heights.iter_mut().enumerate() {
                 *height = (self.tall * sine((edge * 9) as f32) * sine(self.process as f32)).max(0.0);
+            }
+        }
+    }
+
+    /// `UpdateFireWall`, for the fourth wall of a primitive that lives `duration` ticks (its first three live as
+    /// those of `UpdateStoneCurse` do, but that nothing holds their alpha back). Until 40 ticks before the
+    /// primitive's end it comes up by 8 a tick over its first 20 ticks, to 100 at most; from then on it goes
+    /// down by 3 a tick. Over its first 90 ticks each edge rises as a sine does to its own height; an edge
+    /// that has stood there a tick (the client's `flag1`, set at the 91st) then stands 55 hundredths of it and
+    /// 45 more or less as a sine goes with the ticks.
+    fn breathe_as_pillar(&mut self, duration: i32) {
+        self.process += 1;
+        if self.process < duration - 40 {
+            if self.process < 20 {
+                self.alpha = (self.alpha + 8).min(100);
+            }
+        } else {
+            self.alpha = (self.alpha - 3).max(0);
+        }
+        for (edge, height) in self.heights.iter_mut().enumerate() {
+            let own = self.tall * sine((edge * 9) as f32);
+            if self.process <= 90 {
+                *height = (own * sine(self.process as f32)).max(0.0);
+            } else if self.process > 91 {
+                *height = own * 0.45 * sine((self.process % 360) as f32) + own * 0.55;
             }
         }
     }
@@ -156,6 +187,30 @@ mod tests {
         let lit = walls.lit([1.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
         assert_eq!(lit.len(), 20);
         assert!(lit.iter().all(|lit| lit.alpha == 80.0 && lit.picture == "a"));
+    }
+
+    #[test]
+    fn a_pillar_of_fire_comes_up_to_a_hundred_and_breathes_once_risen() {
+        let mut walls = stone(false, 600);
+        walls.kind = Shape::Cast(Cast::Fire);
+        walls.slots[3].alpha = 70;
+        for _ in 0..30 {
+            walls.tick(600);
+        }
+        // The low walls as those of stone; the pillar at 100, half risen in its middle.
+        assert_eq!([0, 1, 2, 3].map(|index| walls.slots[index].turned), [90, 210, 330, 0]);
+        assert_eq!((walls.slots[0].alpha, walls.slots[3].alpha), (180, 100));
+        assert!(close(walls.slots[3].heights[10], 125.0) && close(walls.slots[0].heights[10], 12.5));
+        // At its 270th tick the sine is at its lowest: a tenth of its height; the low walls stay risen.
+        for _ in 0..240 {
+            walls.tick(600);
+        }
+        assert!(close(walls.slots[3].heights[10], 25.0) && close(walls.slots[0].heights[10], 25.0));
+        // From 40 ticks before the end it goes down by 3 a tick.
+        for _ in 0..300 {
+            walls.tick(600);
+        }
+        assert_eq!(walls.slots[3].alpha, 100 - 11 * 3);
     }
 
     #[test]

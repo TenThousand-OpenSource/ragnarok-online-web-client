@@ -20,7 +20,7 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
             let rank = match (&unit.look, unit.lively, unit.companion) {
                 (_, _, true) => 50,
                 (_, true, _) => 400,
-                (Look::Creature(_), ..) => 200,
+                (Look::Creature(_) | Look::Model(_), ..) => 200,
                 (Look::Character(_), ..) => 100,
             };
             Some((rank, dot(subtract(on_ground(&scene.gat, unit.at), view.eye), view.forward), *id, under))
@@ -34,6 +34,9 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
 pub(super) fn touched(gpu: &Gpu, scene: &Scene, view: &View, unit: &Mover, pointer: (f32, f32)) -> Option<(f32, f32)> {
     let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
     let least = 40.0 * height / 480.0;
+    if matches!(unit.look, Look::Model(_)) {
+        return granny::touched(scene, view, unit, (width, height), pointer);
+    }
     let texture = gpu.sprite_textures.get(unit.shown.as_ref()?)?;
     let feet = on_ground(&scene.gat, unit.at);
     let inside = within(corners(view, feet, texture)?, least, (width, height), pointer);

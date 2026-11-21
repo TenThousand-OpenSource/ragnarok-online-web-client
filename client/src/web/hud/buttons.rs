@@ -117,15 +117,34 @@ pub(in crate::web) fn press_button(x: i32, y: i32, size: i32, off: &str, on: &st
 /// `btn_press_*`); the words in the middle, black over a grey copy of themselves. Without a press it is the
 /// one that cannot be pressed (`btn_disable_*`, its words grey).
 pub(in crate::web) fn basic_button(x: i32, y: i32, width: i32, words: &str, press: Option<crate::press::Press>) -> String {
+    match press {
+        Some(press) => worded(x, y, width, words, true, &pressed(press), ""),
+        None => worded(x, y, width, words, false, "disabled", ""),
+    }
+}
+
+/// The same button with no press of its own, which shows something for as long as it is held down (the
+/// buttons of the Hotkey Guide, whose window draws by which of them is in the pressed state): `held` is
+/// HTML placed from the button's own corner, seen only then (the page's `.held`, in a button that says
+/// `data-holds`), and may lie outside the button.
+pub(in crate::web) fn basic_button_holding(x: i32, y: i32, width: i32, words: &str, held: &str) -> String {
+    worded(x, y, width, words, true, "data-holds", &format!(r#"<span class="held">{held}</span>"#))
+}
+
+/// The client's button with words on it, written once: with its three states or as one that cannot be
+/// pressed, what its tag says besides, and what is in it after its words.
+fn worded(x: i32, y: i32, width: i32, words: &str, live: bool, more: &str, inside: &str) -> String {
     let skin = |state: &str| ["left", "right", "mid"].map(|piece| format!("url('{}')", picture(&format!("basic_interface/btn_{state}_{piece}.bmp")))).join(",");
-    let (states, colours, press) = match press {
-        Some(press) => ([skin("out"), skin("over"), skin("press")], "color:#000;text-shadow:1px 1px 0 #d7d7d7", pressed(press)),
-        None => ([skin("disable"), skin("disable"), skin("disable")], "color:#6f6f6f;text-shadow:-1px -1px 0 #e2e2e2", "disabled".to_owned()),
+    let (states, colours) = if live {
+        ([skin("out"), skin("over"), skin("press")], "color:#000;text-shadow:1px 1px 0 #d7d7d7")
+    } else {
+        ([skin("disable"), skin("disable"), skin("disable")], "color:#6f6f6f;text-shadow:-1px -1px 0 #e2e2e2")
     };
     [
         format!(r#"<button type="button" class="a b" style="{};--n:{};--o:{};--p:{};padding:0 6px;"#, at(x, y, width, 20), states[0], states[1], states[2]),
         format!(r#"background-position:0 0,100% 0,0 0;background-repeat:no-repeat,no-repeat,repeat-x;"#),
         format!(r#"background-clip:border-box,border-box,content-box;"#),
-        format!(r#"background-origin:border-box,border-box,content-box;white-space:nowrap;{colours};{}" {press}>{}</button>"#, USUAL.style(), escape(words))
+        format!(r#"background-origin:border-box,border-box,content-box;white-space:nowrap;{colours};{}" {more}>"#, USUAL.style()),
+        format!(r#"{}{inside}</button>"#, escape(words))
     ].concat()
 }

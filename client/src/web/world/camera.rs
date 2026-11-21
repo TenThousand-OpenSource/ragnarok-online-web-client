@@ -71,10 +71,14 @@ impl Camera {
     }
 
     /// The world is left-handed (x east, y up, z north), and so is this view: depth grows along `forward`.
-    pub(super) fn view(&self, target: Vector, aspect: f32) -> View {
+    /// The eye is never under the ground it is over (`CView::Refresh`, rodecomp
+    /// Source/Contents/Camera/CameraFrame.cpp:23-27: an eye below the terrain's height there is put at that
+    /// height), or a camera laid low behind a hill looks out from inside it and sees nothing of the map.
+    pub(super) fn view(&self, target: Vector, aspect: f32, gat: &Gat) -> View {
         let (yaw, pitch) = (self.yaw.to_radians(), self.pitch.to_radians());
         let horizontal = self.distance * pitch.cos();
-        let eye = [target[0] - horizontal * yaw.sin(), target[1] + self.distance * pitch.sin(), target[2] - horizontal * yaw.cos()];
+        let mut eye = [target[0] - horizontal * yaw.sin(), target[1] + self.distance * pitch.sin(), target[2] - horizontal * yaw.cos()];
+        eye[1] = eye[1].max(gat.height_at(eye[0] / CELL, eye[2] / CELL));
         let forward = normalize(subtract(target, eye));
         let right = normalize(cross([0.0, 1.0, 0.0], forward));
         let up = cross(forward, right);
@@ -123,7 +127,7 @@ impl Scene {
 
     /// The view the camera gives now on that canvas: what the mouse is told the world by between frames.
     pub(super) fn view(&self, gpu: &Gpu) -> View {
-        self.camera.view(self.looked_at(), gpu.config.width as f32 / gpu.config.height as f32)
+        self.camera.view(self.looked_at(), gpu.config.width as f32 / gpu.config.height as f32, &self.gat)
     }
 
     /// Moves the camera's aim towards the character's feet, as far as the time since it was last moved allows

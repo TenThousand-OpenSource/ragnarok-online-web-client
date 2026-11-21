@@ -11,6 +11,8 @@ pub(super) struct Guilds {
     cards: HashMap<u32, (String, String, String)>,
     /// The emblems as pictures for the page, by guild and version.
     emblems: HashMap<(u32, u32), String>,
+    /// The same emblems as pixels, for the flags they are drawn on (`granny.rs`).
+    pixels: HashMap<(u32, u32), bmp::Image>,
     /// The player's own character, which is not among those in sight: its ID, its name, and its guild with
     /// the version of the emblem.
     own: Option<(u32, String, (u32, u32))>,
@@ -70,14 +72,25 @@ pub fn emblem_known(guild: u32, version: u32, picture: String) {
     STATE.with_borrow_mut(|state| state.guilds.emblems.insert((guild, version), picture));
 }
 
+/// An emblem was read: its pixels, for the guild's flags.
+pub fn emblem_pixels(guild: u32, version: u32, pixels: bmp::Image) {
+    STATE.with_borrow_mut(|state| state.guilds.pixels.insert((guild, version), pixels));
+}
+
 impl Guilds {
+    /// A guild's emblem of a version as pixels, once it was read.
+    pub(super) fn emblem(&self, guild: (u32, u32)) -> Option<&bmp::Image> {
+        self.pixels.get(&guild).filter(|_| guild.0 != 0)
+    }
+
     /// What is written under a player the pointer is on: the name, with the party's in brackets after it, and
     /// under it the guild's with the position in brackets (`UINameBalloonText::SetName`, as it writes them
     /// for the Korean service: "%s (%s)" both). The name alone for anyone nothing more is known of.
     pub(super) fn label(&self, id: u32, name: &str) -> String {
         let Some((party, guild, position)) = self.cards.get(&id) else { return name.to_owned() };
-        let first = if party.is_empty() { name.to_owned() } else { format!("{name} ({party})") };
-        if guild.is_empty() { first } else { format!("{first}\n{guild} ({position})") }
+        // (What others named has stars for a word that is not let be written: `crate::manner`.)
+        let first = if party.is_empty() { name.to_owned() } else { format!("{name} ({})", data::starred(party)) };
+        if guild.is_empty() { first } else { format!("{first}\n{} ({})", data::starred(guild), data::starred(position)) }
     }
 
     /// The player's own ID and what is written under the player's own character, once the app has told who

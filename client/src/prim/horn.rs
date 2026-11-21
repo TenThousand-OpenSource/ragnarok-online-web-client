@@ -1,22 +1,58 @@
 //! `PP_3DQUADHORN` (9): a spike of four sides, a picture on each, that is pushed along its own forward: the
-//! ice of Frost Diver and its like.
+//! ice of Frost Diver and its like; and `PP_3DQUADHORN2` (117), the same spike going up and down over and
+//! over (`Spike::Pumps`).
 //!
-//! Not ported, as no effect ported uses them: the change of its speed at a tick (`changePoint`), its second
-//! pattern (`pattern & 2`: a new speed 30 ticks before its end, and no fading), and the spike drawn in a
-//! colour that flickers, its light added (`slots[0].flag1[0] == 3`, which `FrostDiver(3)` asks for).
+//! Not ported, as no effect ported uses it: the spike drawn in a colour that flickers, its light added
+//! (`slots[0].flag1[0] == 3`, which `FrostDiver(3)` asks for). (Its change of speed at a tick,
+//! `changePoint`, is in `prim/change.rs`.)
 
 use super::solid::add;
 use super::*;
 
+/// What a spike does besides being pushed along its forward.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Spike {
+    /// Nothing more.
+    Plain,
+    /// Its second pattern (`pattern & 2`): 30 ticks before its end it takes this speed and this acceleration
+    /// (`changeSpeed3d.y`, `changeAccel3d.y`), and it never fades (the client leaves `ProcessAlpha` out).
+    Withdraws(f32, f32),
+    /// `PP_3DQUADHORN2`: until its 550th tick it takes this speed and this acceleration (`changeSpeed`,
+    /// `changeAccel`) at every sixth tick from its third, and 1.18 and 0.01 at every sixth from its sixth; at
+    /// its 550th it takes the first two for good. Neither its first pattern nor its `changePoint` is looked
+    /// at.
+    Pumps(f32, f32),
+}
+
 impl Prim {
     /// `AdvanceEffectPrimitive`: it goes along its own forward by its speed, which changes by its acceleration;
-    /// with the first pattern it stops for good at the tick it was told (`chCnt`).
+    /// with the first pattern it stops for good at the tick it was told (`chCnt`), and with the second it
+    /// takes its last speed 30 ticks before its end. A spike that pumps is the kind 117's arm of
+    /// `CEffectPrim::OnProcess`.
     pub(super) fn advance(&mut self) {
+        if let Spike::Pumps(speed, accel) = self.spike {
+            match (self.count, self.count % 6) {
+                (550, _) | (..550, 2) => (self.speed, self.accel) = (speed, accel),
+                (..550, 5) => (self.speed, self.accel) = (1.18, 0.01),
+                _ => {}
+            }
+            self.speed += self.accel;
+            self.go_forward();
+            return;
+        }
         self.speed += self.accel;
         self.go_forward();
         if self.first_pattern && self.settles_at == Some(self.count) {
             (self.accel, self.speed) = (0.0, 0.0);
         }
+        if let (Spike::Withdraws(speed, accel), true) = (self.spike, self.count == self.duration - 30) {
+            (self.speed, self.accel) = (speed, accel);
+        }
+    }
+
+    /// Whether it fades as the other kinds do (`ProcessAlpha`): all but a spike of the second pattern.
+    pub(super) fn spike_fades(&self) -> bool {
+        !matches!(self.spike, Spike::Withdraws(..))
     }
 
     /// `RenderPyramid`: four triangles from the corners of a square of twice its size, lying across its own

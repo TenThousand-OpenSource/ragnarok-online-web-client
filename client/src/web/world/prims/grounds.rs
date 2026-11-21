@@ -48,8 +48,8 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
         74 if course.tick == 0 => prims.extend(ice_wall(course.lasts)),
         138 if course.tick == 0 => prims.extend(ring_stack(course.lasts)),
         171 if course.tick % 5 == 0 => prims.push(venom_mote()),
-        239..=241 if course.tick == 0 => prims.push(flare(["ring_red.tga", "ring_blue.tga", "magic_green.tga"][effect as usize - 239], course)),
-        242 if course.tick == 0 => prims.push(halo(course)),
+        239..=241 if course.tick == 0 => prims.push(flare(["ring_red.tga", "ring_blue.tga", "magic_green.tga"][effect as usize - 239], 0.0, course)),
+        242 if course.tick == 0 => prims.push(halo("aaa copy.bmp", 1.0, 7.0, course)),
         315 if course.tick == 0 => prims.push(glass_wall(course.lasts)),
         316 => {
             // `BlueRingWave`: its sound every fourteenth tick, its rings at its first.
@@ -61,9 +61,9 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
             }
         }
         317 => match course.tick {
-            0 => prims.push(portal_walls(course)),
+            0 => prims.push(portal_walls("magic_violet.tga", 4.0, course)),
             1 => prims.push(ripples("ring_blue.tga", 4.0, 3111, 0, course)),
-            2 => prims.push(portal_winds(course)),
+            2 => prims.push(portal_winds(4.0, course)),
             _ => {}
         },
         _ => {}
@@ -152,29 +152,33 @@ fn sized(kind: Tei, picture: &'static str, size: f32, course: &Course) -> Prim {
     prim
 }
 
-/// `CRagEffect::TexturedFlare` with no size: one low wall of light all the way round (the kind 36), 15 tall,
-/// begun 2.6 out at any turn, rising at 80 degrees and showing by lot; mixed in, in its picture's own colours.
-fn flare(picture: &'static str, course: &Course) -> Prim {
-    let mut wall = sized(Tei::LowRing, picture, 0.0, course);
+/// `CRagEffect::TexturedFlare`: one low wall of light all the way round (the kind 36), 15 tall, begun 2.6 out
+/// at any turn, rising at 80 degrees and showing by lot. With no `size` it is mixed in, in its picture's own
+/// colours; with the size 14 (Suiton's: `fields.rs`) in blue.
+pub(super) fn flare(picture: &'static str, size: f32, course: &Course) -> Prim {
+    let mut wall = sized(Tei::LowRing, picture, size, course);
     wall.parts.push(Part { round: 360, tall: 15.0, turned: lot(360) as i32, alpha: lot(100) as i32, out: 2.6, rise: 80, ..Part::default() });
     wall
 }
 
-/// `CRagEffect::TexturedHalo` with its kind 1: a level square of `aaa copy.bmp` 2 over the ground (the kind
-/// 39), 7 out, at an alpha of 100, its breath begun anywhere; white, its light added.
-fn halo(course: &Course) -> Prim {
-    let mut square = sized(Tei::Halo, "aaa copy.bmp", 5.0, course);
+/// `CRagEffect::TexturedHalo` with its kind 1 or 2: a level square 2 over the ground (the kind 39), at an
+/// alpha of 100, its breath begun anywhere; white, its light added. Land Protector's is `aaa copy.bmp`, of
+/// the kind 1 and 7 `out`; the web's (`fields.rs`) of the kind 2, which breathes a third as fast, and 12 out.
+pub(super) fn halo(picture: &'static str, kind: f32, out: f32, course: &Course) -> Prim {
+    let mut square = sized(Tei::Halo, picture, 5.0, course);
     let mut heights = [0.0; 21];
-    (heights[0], heights[4]) = (-2.0, 1.0);
-    square.parts.push(Part { out: 7.0, alpha: 100, rise: lot(360) as i32, heights, ..Part::default() });
+    (heights[0], heights[4]) = (-2.0, kind);
+    square.parts.push(Part { out, alpha: 100, rise: lot(360) as i32, heights, ..Part::default() });
     square
 }
 
-/// `CRagEffect::VioletRingCloud`, its first tick: three upright walls of `magic_violet.tga` round the place
-/// (the kind 60, its columns of the kind 1), 4, 3 and 2 out and 50 tall, each begun at any turn; they turn,
-/// and go down from their 1400th tick. Blue (`RenderTeiRect` for a primitive of size 4), their light added.
-fn portal_walls(course: &Course) -> Prim {
-    let mut walls = sized(Tei::Columns, "magic_violet.tga", 4.0, course);
+/// `CRagEffect::VioletRingCloud`, its first tick: three upright walls round the place (the kind 60, its
+/// columns of the kind 1), 4, 3 and 2 out and 50 tall, each begun at any turn; they turn, and go down from
+/// their 1400th tick. Their light is added, in the colour of the primitive's `size` (`RenderTeiRect`): a Warp
+/// Portal's are `magic_violet.tga` in blue (the size 4), those of its type 3 (`fields.rs`) `ring_red.tga` in
+/// pink (10).
+pub(super) fn portal_walls(picture: &'static str, size: f32, course: &Course) -> Prim {
+    let mut walls = sized(Tei::Columns, picture, size, course);
     walls.parts.extend([4.0, 3.0, 2.0].into_iter().map(
         |out| Part { round: 360, tall: 50.0, turned: lot(360) as i32, out, rise: 90, alpha_top: 1400, flags: [1; 21], ..Part::default() }
     ));
@@ -183,9 +187,9 @@ fn portal_walls(course: &Course) -> Prim {
 
 /// `CRagEffect::VioletRingCloud`, its third tick: four arcs of `cloud11.tga` that go round the place
 /// (`PP_WIND`), a quarter of a turn apart, the nearer the higher (9, 7.5, 6 and 4.5 out; 1.5, 3.5, 5.5 and
-/// 7.5 over the ground), each 1.5 tall and upright; blue as the walls are.
-fn portal_winds(course: &Course) -> Prim {
-    let mut winds = sized(Tei::Wind, "cloud11.tga", 4.0, course);
+/// 7.5 over the ground), each 1.5 tall and upright; of the `size` the walls are, and so of their colour.
+pub(super) fn portal_winds(size: f32, course: &Course) -> Prim {
+    let mut winds = sized(Tei::Wind, "cloud11.tga", size, course);
     winds.parts.extend((0..4).map(|index| Part {
         round: 30,
         tall: index as f32 * 2.0 + 1.5,

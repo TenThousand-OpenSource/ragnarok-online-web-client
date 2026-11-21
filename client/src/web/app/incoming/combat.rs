@@ -38,6 +38,14 @@ impl App {
             }
             net::actors::ZC_NOTIFY_ACT => self.act_seen(packet),
             skills::ZC_USESKILL_ACK => self.cast_begun(packet),
+            // A skill that warns of the area it will strike is being cast: red planes lie on its cells meanwhile
+            // (`CGameMode::SpawnSkillWarningPlanes`: the area is the skill's `SkillScale` at that level).
+            skills::ZC_SKILL_SCALE => {
+                let warned = skills::warned(packet).and_then(|warned| Some((warned, data::skill_scale(warned.skill, warned.level)?)));
+                if let Some((warned, across)) = warned {
+                    world::area_warned(warned.source, own, warned.cell, across, f64::from(warned.milliseconds));
+                }
+            }
             // A cast is broken off (the caster was struck, or moved).
             skills::ZC_DISPEL => {
                 if let Some(who) = skills::dispelled(packet) {
@@ -93,6 +101,34 @@ impl App {
                 None => world::Blow { striker: (whom != own).then_some(whom), place_of: (other != own).then_some(other), hits: 0 },
             };
             self.effect_shown(effect, whom, own, 0.0, Some(blow));
+        }
+    }
+
+    /// The sounds the client's handler of a skill starts beside its effects (`effect_tables::skill_sounds`),
+    /// each heard from where the one its arm asks for stands. (The client plays them whole, wherever in sight
+    /// the skill is used: here they are heard from their place, as every other sound of the world is.)
+    fn skill_sounded(&self, skill: u16, when: effect_tables::Sounds, who: u32, target: u32, own: u32) {
+        for (on_target, sound) in effect_tables::skill_sounds(skill, when) {
+            let whom = if on_target { target } else { who };
+            world::sound_on(sound, (whom != own).then_some(whom));
+        }
+    }
+
+    /// What the client's handler of a skill that strikes does by itself for a monk's combo
+    /// (`crate::blow::combos`), as the skill's packet is read: its effects on the striker or on the one struck
+    /// (one of the striker's that goes by a place is told where the one struck stands), its shake of the
+    /// screen and its sound, heard from where the striker stands (the client plays it whole).
+    fn combo_shown(&self, skill: u16, who: u32, target: u32, own: u32) {
+        let Some(combo) = crate::blow::combos::of_skill(skill) else { return };
+        if combo.quake {
+            world::quake(0);
+        }
+        if !combo.sound.is_empty() {
+            world::sound_on(combo.sound, (who != own).then_some(who));
+        }
+        for &(on_struck, effect) in combo.effects {
+            let told = world::Blow { striker: (who != own).then_some(who), place_of: (target != own).then_some(target), hits: 0 };
+            self.effect_shown(effect, if on_struck { target } else { who }, own, 0.0, (!on_struck).then_some(told));
         }
     }
 
@@ -224,6 +260,7 @@ impl App {
                 // and Fire Bolt send a bolt for each).
                 self.skill_shown(&effect_tables::skill_hits(landed.skill), landed.source, landed.target, own, Some(hits as u32));
             }
+            self.skill_sounded(landed.skill, effect_tables::Sounds::Strikes, landed.source, landed.target, own);
             // What the striker launches as it strikes, and what follows on the one struck as the blow
             // lands (the client's two tables, `CGameActor::ProcessSkillMessage`). The bolts of fire and
             // of lightning have their hits shown above.
@@ -237,6 +274,7 @@ impl App {
                 };
                 self.effect_shown(effect, landed.source, own, 0.0, Some(blow));
             }
+            self.combo_shown(landed.skill, landed.source, landed.target, own);
             // What follows begins at the moment the blow lands, with its number (the client hands both to the one
             // struck in one message, `AM_WILL_BE_ATTACKED`, for one time): so Frost Diver's ice round the one
             // struck, `EF_FROSTDIVER2`, and its sound `EF_FrostDiver2.wav` come then. (The client plays
@@ -279,10 +317,11 @@ impl App {
             // on its target, each with the sound it starts with. An effect that is a `.str` file is
             // played from the file; of those the client draws by code, the ones drawn here too.
             self.skill_shown(&effect_tables::skill_effects(skill), who, target, own, None);
+            self.skill_sounded(skill, effect_tables::Sounds::Used, who, target, own);
             // Heal and its like (`AL_HEAL`, `WE_MALE`, `NPC_CHEAL`, `AB_CHEAL`, `AB_HIGHNESSHEAL`, `HLIF_HEAL`):
             // the packet's level is how much was healed, and the client picks the effect on the one healed by
             // it, in its handler of the packet (`Client/Mode/GameModePackets.cpp`): `EF_HEAL4` from 4000,
-            // `EF_HEAL2` from 2000, `EF_HEAL` from 200, `EF_HEALSP` under that.
+            // `EF_HEAL2` from 2000, `EF_HEAL` from 200, `EF_EXIT` (7) under that.
             if matches!(skill, 28 | 334 | 729 | 2043 | 2051 | 8001) {
                 let effect = match level {
                     4000.. => 325,

@@ -1,4 +1,4 @@
-//! The Shortcut Settings window.
+//! The Shortcut Settings window and the Hotkey Guide.
 
 use super::*;
 
@@ -14,6 +14,20 @@ impl App {
                 self.keys.open = !self.keys.open;
                 (self.keys.row, self.keys.notice) = (None, None);
                 self.keys.edited.clear();
+                self.render();
+            }
+            // The keyboard among the menu's icons (`UIMenuIconWnd`, `ID_OPEN_HOTKEY`: `ToggleWindow` of
+            // `WID_HOTKEYGUIDEWND`), and the guide's cross.
+            Press::Guide | Press::GuideClose => {
+                self.keys.guide = press == Press::Guide && !self.keys.guide;
+                self.render();
+            }
+            // The guide's button (`UIHotkeyGuideWnd::SendMsg`, 342): the Shortcut Settings are shown, on the
+            // tab at the second place (`UM_TAB` with 1 from the guide is `SelectTab(1)`; since the client was
+            // given a second hotkey bar that place is "Hotkey Bar 2"), and the guide closes.
+            Press::GuideSettings => {
+                (self.keys.guide, self.keys.open) = (false, true);
+                (self.keys.tab, self.keys.page, self.keys.row, self.keys.notice) = (1, 0, None, None);
                 self.render();
             }
             Press::Tab(tab) => {

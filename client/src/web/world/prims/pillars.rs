@@ -8,6 +8,7 @@
 //! And one that comes down: `EF_FORESTLIGHT5` (719), the light of Renovatio, four shafts one inside the other
 //! that slant down to the one it is cast on from high in the south west (`ForestLight` with its flag 12;
 //! `PP_FOREST`); the sound is what the client starts with it (its handler of `AB_RENOVATIO`).
+//! `EF_ITEM_LIGHT` (581) is the same light, wider and fainter, let down by a thing that is used (its flag 11).
 
 use super::*;
 use crate::prim::{Part, Tei};
@@ -24,6 +25,7 @@ const BLAST: [&str; 8] = ["tv-1.bmp", "tv-2.bmp", "tv-3.bmp", "tv-4.bmp", "tv-5.
 /// (none: empty; Tetra Vortex starts two at once, in `run`); nothing for any other effect.
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
+        581 => (180, ""),
         719 => (999, "effect/ab_renovatio.wav"),
         804 => (600, ""),
         899 => (999, ""),
@@ -41,7 +43,8 @@ fn thrown(effect: u32) -> bool {
 fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     let tick = course.tick;
     match effect {
-        719 if tick == 0 => prims.push(forest_light(course)),
+        581 if tick == 0 => prims.push(forest_light(11, course)),
+        719 if tick == 0 => prims.push(forest_light(12, course)),
         804 => {
             match tick {
                 0 => course.sounds.extend(["effect/wizard_meteo.wav".to_owned(), "effect/hunter_blastmine.wav".to_owned()]),
@@ -106,12 +109,16 @@ fn shafts(picture: &'static str, size: f32, about: [f32; 3], course: &Course, fi
 /// the middle to a side, each begun 25 degrees further round. They begin at an alpha of 30, come up for 40
 /// ticks and go after the 140th; the fourth begins at a count of 180 and so only goes. They stay in the world
 /// where they are launched.
-fn forest_light(course: &Course) -> Prim {
+///
+/// With its flag 11 (`EF_ITEM_LIGHT`, the light a Box of Sunlight lets down): the same, wider (4, 6, 8 and
+/// 4 to a side), from nothing.
+fn forest_light(flag: i8, course: &Course) -> Prim {
+    let (wider, widest, alpha) = if flag == 11 { (2.0, 4.0, 0) } else { (0.5, 1.0, 30) };
     let mut prim = launched::of_parts(Tei::Forest, "cloud11.tga", false, course);
     prim.parts.extend((0..4).map(|index| {
-        let wide = if index == 3 { 1.0 } else { index as f32 * 0.5 + 1.0 };
-        let mut part = Part { process: if index == 3 { 180 } else { 0 }, alpha: 30, tall: wide, turned: index * 25, ..Part::default() };
-        (part.heights[0], part.at[3], part.flags[0]) = (wide, [-70.0, -300.0, -70.0], 12);
+        let wide = if index == 3 { widest } else { index as f32 * wider + widest };
+        let mut part = Part { process: if index == 3 { 180 } else { 0 }, alpha, tall: wide, turned: index * 25, ..Part::default() };
+        (part.heights[0], part.at[3], part.flags[0]) = (wide, [-70.0, -300.0, -70.0], flag);
         part
     }));
     prim

@@ -104,6 +104,12 @@ impl App {
             |input| crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active == **input)
         );
         let chord = Chord { key: crate::hotkeys::key_of(code).unwrap_or(0), with };
+        // Escape while the box of the away message is open switches the message off, and then does what it
+        // does otherwise (`UIWindowMgr::ProcessKeyDown`, `VK_ESCAPE`: `m_autoReplyEnabled = false`). The box
+        // itself has no place in the order of windows, and stays.
+        if key == "Escape" && self.whispers.away_asked {
+            self.whispers.away = false;
+        }
         // A row of the Shortcut Settings window is picked: the key is its new key, whatever it did before.
         if self.keys.open && self.keys.row.is_some() {
             self.assign_key(chord);

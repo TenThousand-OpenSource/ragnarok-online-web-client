@@ -103,6 +103,8 @@ presses! {
         GuildMember(usize) = "guild-member",
         /// A guild allied to the player's or opposed, by its place among those the server told.
         GuildRelated(usize) = "guild-related",
+        /// A castle the guild holds, by its line in the guild window's list.
+        GuildCastle(usize) = "guild-castle",
         /// A friend, by its place in the list of friends.
         Friend(usize) = "friend",
         /// The window of a talk with one player, by its place in the list of windows.
@@ -179,6 +181,10 @@ presses! {
         Shortcuts = "shortcuts",
         /// What is looked for in the Tipbox.
         TipSearch = "tip-search",
+        /// The words of a Talkie Box or of Graffiti, sent with Enter.
+        SkillWords = "skill-words",
+        /// The away message, sent with Enter.
+        AwayWords = "away-words",
     }
 }
 

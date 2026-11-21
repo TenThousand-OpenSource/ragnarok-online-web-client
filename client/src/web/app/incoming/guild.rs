@@ -6,6 +6,7 @@
 use super::*;
 use crate::net::guild;
 
+mod castles;
 mod members;
 
 impl App {
@@ -26,7 +27,7 @@ impl App {
             // A guild invites the player: the question is asked in a box of its own (`UIJoinGuildAcceptWnd`).
             guild::ZC_REQ_JOIN_GUILD => self.guild.asks = guild::invited(packet).map(|(number, name)| GuildAsk::Invited(number, name)),
             // Another guild's master asks for an alliance (`UIAllyGuildAcceptWnd`).
-            guild::ZC_REQ_ALLY_GUILD => self.guild.asks = guild::ally_asked(packet).map(|(account, name)| GuildAsk::Ally(account, name)),
+            guild::ZC_REQ_ALLY_GUILD => self.guild.asks = guild::ally_asked(packet).map(|(account, name)| GuildAsk::Ally(account, data::starred(&name))),
             guild::ZC_ACK_REQ_ALLY_GUILD => self.guild_ally_answered(byte),
             guild::ZC_ACK_REQ_HOSTILE_GUILD => self.guild_oppose_answered(byte),
             guild::ZC_ACK_REQ_JOIN_GUILD => self.guild_invite_answered(byte),
@@ -36,6 +37,7 @@ impl App {
             guild::ZC_ACK_DISORGANIZE_GUILD_RESULT => self.guild_broken(guild::broken_how(packet).unwrap_or(u32::MAX)),
             guild::ZC_GUILD_EMBLEM_IMG => self.guild_emblem(packet),
             _ if self.guild_lists_packet(id, packet) => {}
+            _ if self.guild_castles_packet(id, packet) => {}
             // What is told of those in sight changes nothing in the guild's windows.
             _ => return self.guild_sight_packet(id, packet),
         }
@@ -50,7 +52,8 @@ impl App {
             // (`/notalkmsg2`).
             guild::ZC_GUILD_CHAT => {
                 if let Some(words) = guild::said(packet).filter(|words| !words.is_empty() && !self.option("TT_NOTALKMSG2_ON_OFF")) {
-                    self.chat_line_of(said::GUILD, words, "#b4ffb4");
+                    // (With stars for a word that is not let be written: `ReceiveGuildChat`, `crate::manner`.)
+                    self.chat_line_of(said::GUILD, data::starred(&words), "#b4ffb4");
                 }
             }
             guild::ZC_CHANGE_GUILD => {
@@ -62,7 +65,13 @@ impl App {
                     }
                     world::guild_changed(who, number, emblem);
                     self.guild.asked.remove(&who);
-                    self.guild_looked_up(who, number, emblem);
+                    // A player's names are asked for again; a guild flag (told so when its castle changes
+                    // hands: rAthena's `flagemblem`) has only an emblem to show.
+                    if world::player_guild(who).is_some() {
+                        self.guild_looked_up(who, number, emblem);
+                    } else {
+                        self.guild_emblem_wanted(number, emblem);
+                    }
                 }
             }
             guild::ZC_GUILD_POSITION => {
@@ -192,6 +201,8 @@ impl App {
     /// square brackets, when the player has such news on (`/loginout`).
     fn guild_notice(&mut self, packet: &[u8]) {
         let Some((subject, notice)) = guild::notice(packet) else { return };
+        // (Both with stars for a word that is not let be written: `ReceiveGuildNotice`, `crate::manner`.)
+        let (subject, notice) = (data::starred(&subject), data::starred(&notice));
         if self.option("TT_LOGINOUT_ON_OFF") {
             for line in [&subject, &notice].into_iter().filter(|line| !line.is_empty()) {
                 self.chat_line(format!("[ {line} ]"), "#ffff80");
@@ -216,6 +227,9 @@ impl App {
     /// is the player, there is no guild any more and its window closes; anyone else is told of in two lines.
     fn guild_member_gone(&mut self, gone: Option<(u32, String)>, expelled: bool) {
         let Some((character, reason)) = gone else { return };
+        // (The reason with stars for a word that is not let be written: `ReceiveGuildMemberLeft`,
+        // `ReceiveGuildMemberExpelled`.)
+        let reason = data::starred(&reason);
         if character == self.own_character() {
             self.guild.left();
             self.chat_line_of(
@@ -263,8 +277,10 @@ impl App {
     /// under players show it from then.
     fn guild_emblem(&mut self, packet: &[u8]) {
         let Some((number, version, packed)) = guild::emblem(packet) else { return };
-        let Some(picture) = guild::emblem_picture(packed).and_then(|picture| page_picture(&picture)) else { return };
+        let Some(pixels) = guild::emblem_picture(packed) else { return };
+        let Some(picture) = page_picture(&pixels) else { return };
         world::emblem_known(number, version, picture.clone());
+        world::emblem_pixels(number, version, pixels);
         self.guild.emblems.insert((number, version), picture);
         // The player's own guild has this emblem now (the client's `SetGuildInfo` on the player's character).
         if number == self.guild.id {
@@ -275,7 +291,7 @@ impl App {
 
     /// Asks for a guild's emblem when that version of it is not read yet (the client's `CGuildMgr`, which
     /// keeps them in files). A guild with no emblem has version 0.
-    fn guild_emblem_wanted(&mut self, number: u32, version: u32) {
+    pub(in crate::web::app) fn guild_emblem_wanted(&mut self, number: u32, version: u32) {
         if number != 0 && version != 0 && !self.guild.emblems.contains_key(&(number, version)) {
             // Marked as asked for with an empty picture, which draws nothing.
             self.guild.emblems.insert((number, version), String::new());

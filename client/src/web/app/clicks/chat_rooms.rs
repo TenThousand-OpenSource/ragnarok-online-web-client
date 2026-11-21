@@ -70,7 +70,7 @@ impl App {
         self.room_lines_read();
         let Some(making) = &self.chat_rooms.making else { return };
         let setting = Setting { title: making.title.trim().to_owned(), password: making.password.clone(), public: making.public, limit: making.limit };
-        if let Some((line, otherwise)) = crate::chat_rooms::wrong(&setting) {
+        if let Some((line, otherwise)) = crate::chat_rooms::wrong(&setting, data::foul(&setting.title)) {
             self.message = Some(Self::words(line, otherwise));
             return self.render();
         }
@@ -142,10 +142,11 @@ impl App {
         }
     }
 
-    /// A line of what is said in the room, in its colour.
+    /// A line of what is said in the room, in its colour, with stars for a word that is not let be written
+    /// (`UIChatRoomWnd::SendMsg`, `UM_ADDCHAT`).
     pub(in crate::web::app) fn room_line(&mut self, words: String, colour: &'static str) {
         let Some(sitting) = &mut self.chat_rooms.sitting else { return };
-        sitting.lines.push((words, colour));
+        sitting.lines.push((data::starred(&words), colour));
         if sitting.lines.len() > crate::web::hud::CHAT_KEPT {
             sitting.lines.remove(0);
         }

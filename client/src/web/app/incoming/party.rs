@@ -13,7 +13,7 @@ impl App {
             party::ZC_ACK_MAKE_GROUP => self.party_made(party::made_how(packet).unwrap_or(u8::MAX)),
             party::ZC_GROUP_LIST => {
                 if let Some((name, members)) = party::list(packet) {
-                    (self.party.name, self.party.members, self.party.picked) = (name, members, None);
+                    (self.party.name, self.party.members, self.party.picked) = (data::starred(&name), members, None);
                     self.party_changed();
                 }
             }
@@ -22,7 +22,7 @@ impl App {
             // A party invites the player: the question is asked in a box of its own (`UIJoinPartyAcceptWnd`).
             party::ZC_PARTY_JOIN_REQ => {
                 if let Some((number, name)) = party::invited(packet) {
-                    self.party.asks = Some(PartyAsk::Invited(number, name));
+                    self.party.asks = Some(PartyAsk::Invited(number, data::starred(&name)));
                     self.redraw(&[&wnd::PARTY_ASKS]);
                 }
             }
@@ -89,6 +89,20 @@ impl App {
                     PALE_YELLOW
                 );
             }
+            // A member obtained a thing: told in the chat, but not of the player's own account nor of one who
+            // is not of the party (`CGameMode::ReceivePartyItemPickup`).
+            party::ZC_ITEM_PICKUP_PARTY => {
+                let own = self.own_account();
+                let by = party::picked(packet).filter(|thing| thing.account != own).and_then(|thing| {
+                    let member = self.party.members.iter().find(|member| member.account == thing.account)?;
+                    Some((member.name.clone(), thing))
+                });
+                if let Some((name, thing)) = by {
+                    data::want_items([thing.id].into_iter().chain(thing.cards), || dispatch(Action::ItemsKnown));
+                    self.party.obtained.push((name, thing));
+                    self.party_obtained_said();
+                }
+            }
             _ => return false,
         }
         true
@@ -135,7 +149,9 @@ impl App {
     fn party_member(&mut self, packet: &[u8]) {
         let Some(party::Joined { member, party: name, cell, pickup, items }) = party::joined(packet) else { return };
         let own = self.own_account();
-        self.party.name = name;
+        // (The party's name is kept with stars for a word that is not let be written, here and where the
+        // list is told: `ReceivePartyMemberInfo`, `ReceivePartyMemberList`; `crate::manner`.)
+        self.party.name = data::starred(&name);
         (self.party.sharing.pickup, self.party.sharing.items) = (pickup, items);
         let here = self.game.as_ref().is_some_and(|game| crate::party::map_name(&game.map) == crate::party::map_name(&member.map));
         if member.account == own {
@@ -233,9 +249,25 @@ impl App {
     /// pink), and over the head of whoever said it when they are in sight.
     fn party_said(&mut self, packet: &[u8]) {
         let Some((account, words)) = party::said(packet).filter(|(_, words)| !words.is_empty()) else { return };
-        let own = self.own_account();
+        // (With stars for a word that is not let be written: `ReceivePartyChat`, `crate::manner`.)
+        let (own, words) = (self.own_account(), data::starred(&words));
         world::said(account, own, &words);
         self.chat_line_of(said::PARTY, words, if account == own { "#ffc800" } else { "#ffc8c8" });
+    }
+
+    /// Tells of the things members obtained whose names are known by now: line 1276 of the message table
+    /// (`MSI_ITEM_PICKUP_PARTY`, "%s has acquired %s.") with the member's name and the thing's as the client
+    /// writes it (`ITEM_INFO::DisplayName(0)`), in its 0xFFFF00, as a line of the kind the chat's tabs list
+    /// under "party item" (kind 9).
+    pub(in crate::web::app) fn party_obtained_said(&mut self) {
+        let (known, waiting): (Vec<_>, Vec<_>) = std::mem::take(&mut self.party.obtained)
+            .into_iter()
+            .partition(|(_, thing)| data::item_as(thing.id, thing.identified).is_some());
+        self.party.obtained = waiting;
+        for (member, thing) in known {
+            let named = crate::item_names::Named { id: thing.id, kind: thing.kind, identified: thing.identified, refine: thing.refine, cards: thing.cards };
+            self.say_filled(said::PARTY_ITEM, 1276, &[&member, &data::item_title(&named, false)], CYAN);
+        }
     }
 
     /// Writes the members' marks on the minimap anew.

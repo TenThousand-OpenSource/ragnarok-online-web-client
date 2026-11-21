@@ -32,6 +32,18 @@ fn reads_a_gat() {
     assert!(Gat::parse(&gat_bytes(3, 2, |_, _| ([0.0; 4], 0))[..40]).is_err());
 }
 
+/// A plank of a bridge (cell 0) beside the river's bed (cell 1): what is laid on the plank goes by its own four
+/// corners (`GroundGeometry::CellRectangle`), none of which is the bed's, though the corner they share on the
+/// map is the bed's own when asked of the cell beside (which tore the mark of the cell under the pointer).
+#[test]
+fn a_cell_has_its_own_corners() {
+    let gat = Gat::parse(&gat_bytes(2, 1, |x, _| (if x == 0 { [-50.0, -51.0, -52.0, -53.0] } else { [90.0; 4] }, 0))).unwrap();
+    assert_eq!(gat.corners(0, 0), Some([50.0, 51.0, 52.0, 53.0]));
+    assert_eq!(gat.corners(1, 0), Some([-90.0; 4]));
+    assert_eq!(gat.height_at(1.0, 0.0), -90.0);
+    assert_eq!((gat.corners(-1, 0), gat.corners(2, 0), gat.corners(0, 1)), (None, None, None));
+}
+
 #[test]
 fn walks_straight_and_diagonally() {
     let gat = Gat::open(10, 10);

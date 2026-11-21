@@ -225,10 +225,16 @@ impl App {
     }
 
     /// The notice's button: what the master typed becomes the guild's notice (`ID_SEND_GUILD_NOTICE`,
-    /// `MM_GUILD_NOTICE`); the server then tells every member of it.
+    /// `MM_GUILD_NOTICE`); the server then tells every member of it. A subject or a notice with a word that
+    /// is not let be written is not sent: the client's message box says its line 14 (`crate::manner`), to
+    /// whoever pressed the button, the master or not.
     pub(super) fn guild_notice_sent(&mut self) {
+        let (subject, notice) = (field("guild-subject"), written("guild-notice").unwrap_or_default());
+        if data::foul(&subject) || data::foul(&notice) {
+            self.message = Some(Self::words(14, "Foul Language Detected."));
+            return self.render();
+        }
         if self.guild.master {
-            let (subject, notice) = (field("guild-subject"), written("guild-notice").unwrap_or_default());
             self.send_on_map(&guild::set_notice(self.guild.id, subject.trim(), notice.trim()));
         }
     }

@@ -30,6 +30,18 @@ pub fn skill_unit_strikes(id: u32) {
     });
 }
 
+/// A skill is used on a unit (ZC_USE_SKILL whose target is a unit's ID: Remove Trap, Spring Trap): the unit
+/// launches on itself the effect the client has for that skill (`traps::used_with`). Nothing for one that
+/// is no unit standing here, or any other skill.
+pub fn skill_unit_used(id: u32, skill: u16) {
+    let Some(effect) = traps::used_with(skill) else { return };
+    STATE.with_borrow_mut(|state| {
+        if state.grounds.units.contains_key(&id) {
+            launch(state, effect, id, None, now());
+        }
+    });
+}
+
 /// A unit that was not to be seen is seen by everyone (ZC_SKILL_UPDATE; the client's `AM_SKILL_UPDATE`): its
 /// model shows, if its kind has one.
 pub fn skill_unit_seen(id: u32) {

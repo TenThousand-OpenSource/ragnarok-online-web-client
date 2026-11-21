@@ -24,6 +24,8 @@ pub(in crate::web::world) fn step(state: &mut State, time: f64) {
     scene.scenery.fogged = state.scenery.fog && scene.scenery.fog.is_some();
     let player = on_ground(&scene.gat, scene.player.at);
     sounds(scene, player, time);
+    // The emitters live on whether they are shown or not (`CEffect::Update`).
+    scene.scenery.emitters.step(player, frames);
     // Effects are not shown when the player has them off (the client's `/effect`).
     if !state.options.effects {
         return;

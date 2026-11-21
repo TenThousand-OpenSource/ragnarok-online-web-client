@@ -1,7 +1,8 @@
 //! An NPC's shop as rules, those of the client's two windows of it (`UIItemPurchaseWnd::SendMsg`,
 //! `UIItemDropCntWnd::SendMsg`): how many of a thing may be bought at once, what goes into the basket, what a
-//! count typed into the box that asks how many means, how wide a name is left beside the prices. The packets of
-//! it are in `net::shops`.
+//! count typed into the box that asks how many means, how wide a name is left beside the prices; and what the
+//! panel beside the basket says of what is worn (`UIItemParamChangeDisplayWnd`). The packets of it are in
+//! `net::shops`.
 
 /// The most of one item that is bought at a time (`UIItemPurchaseWnd::SendMsg`, `UM_DROP`: 30000).
 pub const MOST_BOUGHT: u32 = 30000;
@@ -70,9 +71,122 @@ pub fn total(kept: impl Iterator<Item = (u32, u32)>) -> i64 {
     kept.map(|(price, amount)| i64::from(price) * i64::from(amount)).sum()
 }
 
+/// A thing worn, as the panel beside the basket asks of it: where it is worn now and where it can be worn
+/// (the server's bits), and which item it is.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Worn {
+    pub place: u32,
+    pub places: u32,
+    pub id: u32,
+}
+
+/// What the panel beside the basket of what is bought says (the client's `UIItemParamChangeDisplayWnd`): the
+/// two figures of what is worn, and what they would be with the item pointed at worn in the place of what it
+/// goes over. The client writes the first as ATK and the second as DEF.
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+pub struct Compared {
+    pub before: (i32, i32),
+    pub after: (i32, i32),
+}
+
+/// How a figure changes, which the panel shows between the two: a red triangle that points up, a grey bar,
+/// a blue triangle that points down (`DrawParamChangeArrow`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Change {
+    More,
+    Same,
+    Less,
+}
+
+/// `Change` of a figure from `before` to `after`.
+pub fn change(before: i32, after: i32) -> Change {
+    match after.cmp(&before) {
+        std::cmp::Ordering::Greater => Change::More,
+        std::cmp::Ordering::Equal => Change::Same,
+        std::cmp::Ordering::Less => Change::Less,
+    }
+}
+
+/// The panel's figures. `table` is the client's own of an item (`itemSlotTable.txt`, `itemParamTable.txt`):
+/// the places the table says it is worn in, and its two figures if it has them.
+///
+/// Before (`SumEquippedStats`): the client goes through its first eight places of what is worn, in the
+/// order of the server's bits (lower headgear, right hand, garment, an accessory, armour, left hand, shoes,
+/// the other accessory: the upper and the middle headgear are the ninth and tenth and are not reached), and
+/// adds the figures of each thing, leaving out one whose places by the table meet those of a thing counted
+/// before it (a thing worn in two places is met twice).
+///
+/// After (`SendMsg`, `UM_PARAM` and `UM_REFRESH`): before, more by the figures of the item pointed at, less by
+/// those of the first thing worn that can be worn in a place the table gives the item
+/// (`FindEquippedItem`). With no item pointed at the two are the same: the window begins with item 512, an
+/// apple, of which the table says nothing.
+pub fn compared(worn: &[Worn], pointed: Option<u32>, table: impl Fn(u32) -> (u32, Option<(i32, i32)>)) -> Compared {
+    let reached = || (0..8).filter_map(|bit| worn.iter().find(|thing| thing.place & (1 << bit) != 0));
+    let (mut before, mut counted) = ((0, 0), 0u32);
+    for thing in reached() {
+        let (places, figures) = table(thing.id);
+        let met = places & counted != 0;
+        counted |= places;
+        if let (false, Some(figures)) = (met, figures) {
+            before = (before.0 + figures.0, before.1 + figures.1);
+        }
+    }
+    let Some(pointed) = pointed else { return Compared { before, after: before } };
+    let (places, figures) = table(pointed);
+    let item = figures.unwrap_or_default();
+    let over = reached().find(|thing| thing.places & places != 0).and_then(|thing| table(thing.id).1).unwrap_or_default();
+    Compared { before, after: (item.0 + before.0 - over.0, item.1 + before.1 - over.1) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A table as the client's files have it: a knife (1201), a two-handed sword (1116), a guard (2101),
+    /// a cotton shirt (2301), a hat (2220, upper headgear), and a blade (1108) to point at.
+    fn table(id: u32) -> (u32, Option<(i32, i32)>) {
+        match id {
+            1201 => (2, Some((17, 0))),
+            1116 => (34, Some((60, 0))),
+            2101 => (32, Some((0, 2))),
+            2301 => (16, Some((0, 1))),
+            2220 => (256, Some((0, 2))),
+            1108 => (2, Some((53, 0))),
+            _ => (0, None),
+        }
+    }
+
+    #[test]
+    fn the_panel_sums_what_is_worn_and_compares_the_item_pointed_at() {
+        let worn = [
+            Worn { place: 16, places: 16, id: 2301 },
+            Worn { place: 2, places: 2, id: 1201 },
+            Worn { place: 32, places: 32, id: 2101 },
+            // The upper headgear is not among the places the client goes through.
+            Worn { place: 256, places: 256, id: 2220 },
+        ];
+        assert_eq!(compared(&worn, None, table), Compared { before: (17, 3), after: (17, 3) });
+        // A blade in the place of the knife.
+        assert_eq!(compared(&worn, Some(1108), table), Compared { before: (17, 3), after: (53, 3) });
+        // A two-handed sword goes over the first thing worn in one of its places, the knife; the guard stays.
+        assert_eq!(compared(&worn, Some(1116), table), Compared { before: (17, 3), after: (60, 3) });
+        // What the table does not have changes nothing.
+        assert_eq!(compared(&worn, Some(501), table), Compared { before: (17, 3), after: (17, 3) });
+        assert_eq!(compared(&[], Some(1108), table), Compared { before: (0, 0), after: (53, 0) });
+    }
+
+    #[test]
+    fn a_thing_worn_in_two_places_is_counted_once() {
+        let worn = [Worn { place: 34, places: 34, id: 1116 }, Worn { place: 16, places: 16, id: 2301 }];
+        assert_eq!(compared(&worn, None, table).before, (60, 1));
+        // The guard would go over the sword, which is the first thing worn that can be worn in its place.
+        assert_eq!(compared(&worn, Some(2101), table).after, (0, 3));
+    }
+
+    #[test]
+    fn a_figure_goes_up_stays_or_goes_down() {
+        assert_eq!([change(1, 2), change(2, 2), change(3, 2)], [Change::More, Change::Same, Change::Less]);
+    }
 
     #[test]
     fn the_basket_knows_how_many_of_a_row_it_has_and_their_sum() {

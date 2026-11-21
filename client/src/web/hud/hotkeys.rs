@@ -1,10 +1,13 @@
-//! The Shortcut Settings window: every key of the client, and the setting of another in its place.
+//! The Shortcut Settings window: every key of the client, and the setting of another in its place. The Hotkey
+//! Guide is in `hotkeys/guide.rs`.
 
 use super::*;
 use crate::hotkeys;
 use crate::press::Step;
 use crate::press::hotkeys::Press;
 use crate::web::app::PAGE;
+
+mod guide;
 
 impl App {
     /// The client's `UIHotKeyWnd`, 436 by 432: four tabs (Hotkey Bar, Hotkey Bar 2, Interface, Macros) under

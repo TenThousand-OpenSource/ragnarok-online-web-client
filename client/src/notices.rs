@@ -45,6 +45,26 @@ pub fn map_info(kind: u16) -> Option<(usize, &'static str)> {
     })
 }
 
+/// What ZC_ACK_GIVE_MANNER_POINT says (`case ID_ZC_ACK_GIVE_MANNER_POINT`, the client's `MP_SUCCESS`,
+/// `MP_SUCCESS_BY_ADMIN`, `MP_BYSELF`): a manner point was given (`MSI_SEND_MANNER_POINT`, in `0xFFFF00`), a
+/// game master took the player's chat away (`MSI_GM_BAD_MANNER_START`), the server did by itself
+/// (`MSI_AUTO_BAD_MANNER_START`; the two in `0xFFFF`). The client writes the two last as the table has them,
+/// their `%d` not filled. It says nothing for any other result.
+pub fn manner_answer(result: u32) -> Option<(usize, &'static str)> {
+    Some(match result {
+        0 => (854, crate::said::colour::CYAN),
+        3 => (830, crate::said::colour::YELLOW),
+        4 => (833, crate::said::colour::YELLOW),
+        _ => return None,
+    })
+}
+
+/// The line ZC_NOTIFY_MANNER_POINT_GIVEN says with the giver's name in it (`MSI_RECEIVE_PLUS_MANNER_POINT`, in
+/// `0xFFFF00`): only a point for the better (kind 0) is told (`case ID_ZC_NOTIFY_MANNER_POINT_GIVEN`).
+pub fn manner_given(kind: u8) -> Option<(usize, &'static str)> {
+    (kind == 0).then_some((387, crate::said::colour::CYAN))
+}
+
 /// The line of ZC_MSG_VALUE that takes an item's name where the others take a number
 /// (`CGameMode::ReceiveFormattedMessage`).
 pub const NAMES_AN_ITEM: usize = 3278;
@@ -133,6 +153,9 @@ mod tests {
         assert_eq!(map_info(2).map(|said| said.0), Some(1334));
         assert_eq!(map_info(3).map(|said| said.0), Some(1335));
         assert_eq!(map_info(4), None);
+        assert_eq!((manner_answer(0), manner_answer(3)), (Some((854, crate::said::colour::CYAN)), Some((830, crate::said::colour::YELLOW))));
+        assert_eq!((manner_answer(4), manner_answer(5), manner_answer(1)), (Some((833, crate::said::colour::YELLOW)), None, None));
+        assert_eq!((manner_given(0), manner_given(1)), (Some((387, crate::said::colour::CYAN)), None));
     }
 
     #[test]

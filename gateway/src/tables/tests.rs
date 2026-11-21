@@ -121,3 +121,19 @@ fn the_global_tables_of_a_state_are_described() {
     assert_eq!(own, ["A: 1 entries; \"name\" = \"x\"", "B: 3 entries; 1 = 1, 2 = 2, 3 = 3", "F: function"]);
     assert!(!lines.iter().any(|line| line.starts_with("N:") || line.starts_with("print:") || line.starts_with("string:")));
 }
+
+#[test]
+fn the_service_is_koreas_unless_the_client_names_another() {
+    assert!(jobs::service_korea("<clientinfo>\n\t<servicetype>korea</servicetype>\n</clientinfo>"));
+    assert!(jobs::service_korea("<clientinfo><ServiceType> Korea </ServiceType></clientinfo>"));
+    assert!(!jobs::service_korea("<clientinfo><servicetype>america</servicetype></clientinfo>"));
+    // A file that names none: the client's `g_serviceType` starts as Korea's.
+    assert!(jobs::service_korea("<clientinfo></clientinfo>"));
+}
+
+#[test]
+fn a_skills_warned_area_is_read_level_by_level() {
+    let lua = ran("QUAKE = { 'NPC_EARTHQUAKE', SkillScale = { [1] = { x = 11, y = 11 }, [2] = { x = 15, y = 13 } } } PLAIN = { 'NV_BASIC' }");
+    assert_eq!(skills::scale(&lua.globals().get::<Table>("QUAKE").unwrap()), vec![[11, 11], [15, 13]]);
+    assert!(skills::scale(&lua.globals().get::<Table>("PLAIN").unwrap()).is_empty());
+}

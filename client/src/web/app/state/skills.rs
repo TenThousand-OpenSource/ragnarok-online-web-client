@@ -19,4 +19,10 @@ pub(in crate::web) struct Skills {
     /// The hotkey bar is put away; how many of its rows show beyond the first (none to three).
     pub hotkeys_hidden: bool,
     pub hotkey_rows: u8,
+    /// A job level was gained and the skill window not opened since: the button that tells of it shows (the
+    /// client's `WID_NOTIFYJOBLEVELUPWND`), and the menu's icon of the skills wears its mark.
+    pub level_told: bool,
+    /// A Talkie Box or Graffiti waits for its words: the skill, its level and the cell it was aimed at (the
+    /// client's `UITalkboxTrapInputWnd`, `UIGraffiStrboxWnd`).
+    pub writing: Option<(u16, u16, (u16, u16))>,
 }

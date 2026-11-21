@@ -42,6 +42,22 @@ pub fn effect_later(name: &str, on: Option<u32>, delay: f64, sound: Option<&str>
     });
 }
 
+/// A sound starts where someone stands (none named: the player's own character), and is heard from there
+/// (`earshot.rs`): a sound the client's handler of a skill starts beside the skill's effects.
+pub fn sound_on(sound: &str, on: Option<u32>) {
+    STATE.with_borrow_mut(|state| state.heard.push((now(), sound.to_owned(), on)));
+}
+
+/// The screen shakes (the client's `MM_QUAKE` with that number, `crate::quake`) as a handler of the client's
+/// asks for it beside a skill's effects, not an effect itself; nothing with the shakes off (`/quake`).
+pub fn quake(kind: u32) {
+    STATE.with_borrow_mut(|state| {
+        if state.options.quake {
+            state.quake = Some(crate::quake::Quake::begun(kind, now()));
+        }
+    });
+}
+
 /// What an effect launched for a blow is told besides whom it is on: who strikes, whose place it is told (the
 /// client's `AM_SETPOS`; for both, none named is the player's own character), and of how many hits the blow is
 /// (`AM_SETCOUNT`).

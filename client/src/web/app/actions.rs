@@ -60,6 +60,7 @@ impl App {
             Action::Pictured(saved) => self.screenshot_saved(saved),
             Action::TamingTick => self.taming_tick(),
             Action::StatusTick => self.status_tick(),
+            Action::RankingLooked => self.ranking_looked(),
             Action::Scripted => self.scripted_due(),
             Action::Book(news) => self.book_news(news),
             Action::AiTick => self.ai_tick(),

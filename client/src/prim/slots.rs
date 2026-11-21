@@ -111,7 +111,10 @@ pub struct Lit {
 impl Prim {
     /// Whether it is of a kind made of parts.
     pub fn has_slots(&self) -> bool {
-        matches!(self.kind, Shape::ParticleUp | Shape::Casting3d | Shape::Cast(_) | Shape::Walls(_) | Shape::Tei(_) | Shape::Streak { .. })
+        matches!(
+            self.kind,
+            Shape::ParticleUp | Shape::Casting3d | Shape::CastingLow | Shape::Cast(_) | Shape::Walls(_) | Shape::Tei(_) | Shape::Streak { .. }
+        )
     }
 
     /// One tick of the parts of a kind made of them.
@@ -135,6 +138,7 @@ impl Prim {
                 .map(|slot| slot.panel(self.pictures.get(usize::from(slot.flashing)).copied().unwrap_or(self.picture), right, up))
                 .collect(),
             Shape::Casting3d => live.flat_map(|slot| slot.band(self.picture, self.middle([0.0; 3]))).collect(),
+            Shape::CastingLow => self.lit_low_walls(),
             Shape::Walls(walls) => self.lit_walls(walls),
             Shape::Streak { .. } => self.lit_streaks(),
             Shape::Texture3d => self.plate(right, up),
@@ -224,15 +228,20 @@ impl Slot {
     /// the middle; its top is its height from the foot, leaning outwards as the wall's rise says. The picture
     /// goes once round, a twenty-first to a piece (`RenderTeiRect`), its bottom at the feet.
     pub(super) fn band(&self, picture: &'static str, middle: [f32; 3]) -> Vec<Lit> {
-        let step = self.round / 20;
+        self.band_of(picture, middle, 20)
+    }
+
+    /// The same in so many `pieces`: twenty, or the ten of `Render3DCasting_LowPolygon`.
+    pub(super) fn band_of(&self, picture: &'static str, middle: [f32; 3], pieces: usize) -> Vec<Lit> {
+        let step = self.round / pieces as i32;
         let edge = |order: usize| {
-            let angle = if self.round == 360 && order == 20 { self.turned } else { (self.turned + order as i32 * step) % 360 } as f32;
+            let angle = if self.round == 360 && order == pieces { self.turned } else { (self.turned + order as i32 * step) % 360 } as f32;
             let (cos, sin) = (cosine(angle), sine(angle));
             let (lean, lift) = (cosine(self.rise as f32) * self.heights[order], sine(self.rise as f32) * self.heights[order]);
             let foot = [middle[0] + cos * self.out, middle[1], middle[2] + sin * self.out];
             (foot, [foot[0] + cos * lean, foot[1] + lift, foot[2] + sin * lean])
         };
-        (1..=20)
+        (1..=pieces)
             .map(|order| {
                 let ((before_foot, before_top), (foot, top)) = (edge(order - 1), edge(order));
                 let (left, right) = ((order - 1) as f32 / 21.0, order as f32 / 21.0);

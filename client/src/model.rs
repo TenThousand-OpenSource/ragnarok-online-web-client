@@ -10,6 +10,7 @@
 
 use crate::vector::Vector;
 
+pub mod granny;
 mod matrix;
 mod rsm;
 mod rsw;

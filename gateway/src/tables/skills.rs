@@ -56,7 +56,7 @@ pub fn skill_texts(read: &Sources) -> std::collections::HashMap<u32, Vec<String>
 }
 
 /// The skills, by ID: `{"<id>": {"resource": "NV_BASIC", "name": "Basic Skill", "max": 9}}`. The resource names a
-/// skill's pictures.
+/// skill's pictures. One that warns of its area while it is cast has `"scale": [[11, 11], …]` too (`scale`).
 pub(super) fn skills(read: &Sources) -> serde_json::Map<String, serde_json::Value> {
     // The skill table names the jobs it speaks of through `JOBID`: any number will do for those.
     let lua = read.run(&[]);
@@ -73,7 +73,21 @@ pub(super) fn skills(read: &Sources) -> serde_json::Map<String, serde_json::Valu
             continue;
         }
         let max = skill.get::<i64>("MaxLv").unwrap_or(1);
-        skills.insert(id.to_string(), serde_json::json!({ "resource": resource, "name": text(skill.get::<Value>("SkillName")), "max": max }));
+        let mut about = serde_json::json!({ "resource": resource, "name": text(skill.get::<Value>("SkillName")), "max": max });
+        let scale = scale(&skill);
+        if !scale.is_empty() {
+            about["scale"] = scale.into();
+        }
+        skills.insert(id.to_string(), about);
     }
     skills
+}
+
+/// The area a skill warns of while it is cast, level by level, in cells across and down: the skill's
+/// `SkillScale` (`{ [1] = { x = 11, y = 11 }, … }`), which the client's `GetSkillScale` of `skillinfo_f.lub`
+/// reads for ZC_SKILL_SCALE (that file is compiled; the function names `SKILL_INFO_LIST`, `SkillScale`, `x`
+/// and `y` and nothing else). Empty for a skill that has none.
+pub(super) fn scale(skill: &Table) -> Vec<[i64; 2]> {
+    let Ok(levels) = skill.get::<Table>("SkillScale") else { return Vec::new() };
+    levels.sequence_values::<Table>().flatten().map(|level| [level.get("x").unwrap_or(0), level.get("y").unwrap_or(0)]).collect()
 }

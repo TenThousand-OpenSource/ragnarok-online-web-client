@@ -24,6 +24,14 @@ impl App {
                 }
                 return false;
             }
+            // A skill is used on someone: if that is a unit (Remove Trap, Spring Trap), the unit shows the
+            // skill's effect (the client's `CGameMode::ReceiveSkillUse`, `GetSkillByAID`). Overheard only.
+            skills::ZC_USE_SKILL => {
+                if let Some(used) = skills::used(packet) {
+                    world::skill_unit_used(used.target, used.skill);
+                }
+                return false;
+            }
             skill_units::ZC_SKILL_DISAPPEAR => {
                 if let Some(id) = skill_units::gone(packet) {
                     world::skill_unit_gone(id);
@@ -33,11 +41,11 @@ impl App {
             // the one who used it goes through the motion the client has for the skill, and the skill's
             // effect plays at the place. (The client also turns the caster to the place, which is not done.)
             skills::ZC_NOTIFY_GROUNDSKILL => {
-                if let Some(skills::OnGround { skill, who, cell, .. }) = skills::on_ground(packet) {
+                if let Some(skills::OnGround { skill, who, level, cell }) = skills::on_ground(packet) {
                     let own = self.own_account();
                     world::cast_over(who, own, false);
                     world::uses_skill(who, own, effect_tables::skill_state(skill));
-                    world::ground_skill(skill, cell, (who != own).then_some(who));
+                    world::ground_skill(skill, level, cell, (who != own).then_some(who));
                 }
             }
             // A cell of the map can or cannot be walked on from now on (an Ice Wall): the ways walked, the

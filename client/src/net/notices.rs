@@ -45,6 +45,28 @@ pub const ZC_MSG: u16 = 0x0291;
 /// `CGameMode` has no reader for it.
 pub const ZC_ACK_PVPPOINT: u16 = 0x0210;
 
+/// ZC_ACK_GIVE_MANNER_POINT (0x014a, 6 bytes): `u32 result`: what became of a manner point given, or that
+/// the player's chat was taken away (`clif_manner_message`).
+pub const ZC_ACK_GIVE_MANNER_POINT: u16 = 0x014a;
+/// ZC_NOTIFY_MANNER_POINT_GIVEN (0x014b, 27 bytes): `u8 kind, char name[24]`: who gave the player a manner
+/// point, for the better (0) or the worse (1) (`clif_GM_silence`).
+pub const ZC_NOTIFY_MANNER_POINT_GIVEN: u16 = 0x014b;
+/// ZC_ALL_ACH_LIST (0x0a23): the achievements of the character, sent as the game is entered. The client
+/// keeps them for its Achievements window (`CGameMode::ReceiveAchievementList`), which is not of the classic
+/// game (`BACKLOG.md`).
+pub const ZC_ALL_ACH_LIST: u16 = 0x0a23;
+
+/// ZC_ACK_GIVE_MANNER_POINT: the result.
+pub fn manner_answer(packet: &[u8]) -> Option<u32> {
+    long(packet, 2)
+}
+
+/// ZC_NOTIFY_MANNER_POINT_GIVEN: the kind and the giver's name.
+pub fn manner_given(packet: &[u8]) -> Option<(u8, String)> {
+    let packet = packet.get(..27)?;
+    Some((packet[2], super::bytes::name_at(packet, 3, 24)))
+}
+
 /// The one number of a packet that is nothing else: the kind of ZC_ACTION_FAILURE and ZC_NOTIFY_MAPINFO, the
 /// index of ZC_NOTIFY_BIND_ON_EQUIP.
 pub fn kind(packet: &[u8]) -> Option<u16> {

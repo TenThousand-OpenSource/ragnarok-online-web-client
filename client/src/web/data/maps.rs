@@ -5,7 +5,7 @@ use super::*;
 thread_local! {
     /// The music of each map, as the client's `mp3nametable.txt` names it: `prontera` to `bgm\\08.mp3`.
     static MUSIC: RefCell<HashMap<String, String>> = RefCell::new(HashMap::new());
-    /// What the client calls each map, by the map's name: its full name, the large and the small line of its
+    /// What the client calls each map (`mapInfo_true.lub` and `mapNameTable.txt`), by the map's name: its full name, the large and the small line of its
     /// sign, the sign's picture, and whether the sign is shown on coming in.
     static MAPS: RefCell<HashMap<String, MapSign>> = RefCell::new(HashMap::new());
     /// Who of use stands where in each town, by the map's name (the client's `Towninfo.lub`): the name, the cell
@@ -13,9 +13,10 @@ thread_local! {
     static TOWNS: RefCell<HashMap<String, Vec<(String, i32, i32, i32)>>> = RefCell::new(HashMap::new());
 }
 
-/// The music file of a map, if the client's table has one for it.
+/// The music file of a map, if the client's table has one for it; a copy of a map has the map's
+/// (`crate::maps::original`).
 pub fn music(map: &str) -> Option<String> {
-    MUSIC.with_borrow(|music| music.get(&map.to_ascii_lowercase()).cloned())
+    MUSIC.with_borrow(|music| music.get(&crate::maps::original(map).to_ascii_lowercase()).cloned())
 }
 
 /// Reads the client's table of which music plays on which map: lines of `map.rsw#bgm\\08.mp3#`. The file is
@@ -26,7 +27,7 @@ pub async fn load_music() {
     MUSIC.set(music);
 }
 
-/// What the client calls a map (its `mapInfo_true.lub`).
+/// What the client calls a map (its `mapInfo_true.lub`, and over it the names of `mapNameTable.txt`).
 #[derive(Clone, Default)]
 pub struct MapSign {
     /// The full name, as `/where` gives it.
@@ -49,9 +50,10 @@ pub fn town_marks(map: &str) -> Vec<(String, i32, i32, i32)> {
     )
 }
 
-/// What the client calls that map, if its table has it.
+/// What the client calls that map, if its tables have it; a copy of a map is called as the map is
+/// (`CMapInfoMgr::FindMapInfo`).
 pub fn map_sign(map: &str) -> Option<MapSign> {
-    MAPS.with_borrow(|maps| maps.get(crate::maps::bare(map)).cloned())
+    MAPS.with_borrow(|maps| maps.get(crate::maps::bare(&crate::maps::original(map))).cloned())
 }
 
 /// Takes its tables out of what the gateway gave: what the client calls each map, and who stands where in the

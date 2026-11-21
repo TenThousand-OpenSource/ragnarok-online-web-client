@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use crate::net::guild::{Info, Member, Position, Skill};
+use crate::net::guild::{Info, Investment, Member, Position, Skill};
 
 /// What the guild asks before it acts.
 #[derive(Clone, PartialEq)]
@@ -19,6 +19,12 @@ pub(in crate::web) enum GuildAsk {
     /// Whether the guild is handed to a member: the member's account, character and name (the client's
     /// question of line 2924).
     Hand(u32, u32, String),
+    /// Whether the character is moved to a castle of the guild's, for the zeny it costs: the castle's number
+    /// (the client's `UIAgitMessageBox`).
+    Castle(u8),
+    /// What the server told of a castle's economy and defence, to be read and put away (the client's message
+    /// box of `CGameMode::ReceiveAgitNotice`).
+    Invested(Investment),
 }
 
 /// Something the guild waited for, read.
@@ -66,6 +72,12 @@ pub(in crate::web) struct Guild {
     pub expelled: Vec<(String, String)>,
     pub subject: String,
     pub notice: String,
+    /// The castles the guild holds, by the numbers the client's table has for them (the client's
+    /// `GuildInfo::agitIds`); the line of the list that is picked, and the line the menu is open on (the
+    /// client's `m_agitList->selected`, `m_agitMenu->m_agitIndex`).
+    pub castles: Vec<u8>,
+    pub castle: Option<usize>,
+    pub castle_menu: Option<usize>,
     /// The window is open, on which tab; the member picked in it; members in the game are listed first.
     pub open: bool,
     pub tab: usize,

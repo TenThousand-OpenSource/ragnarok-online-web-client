@@ -21,12 +21,16 @@ use crate::grf::Grf;
 mod ai;
 mod aura;
 mod cards;
+mod castles;
+mod emitters;
 mod figures;
 mod guide;
 mod interface;
 mod items;
 mod jobs;
+mod manner;
 mod maps;
+mod monster_skills;
 mod pets;
 mod quests;
 mod scenery;
@@ -40,6 +44,7 @@ mod worldmap;
 mod tests;
 
 pub use ai::scripts as ai_scripts;
+pub use emitters::emitters;
 pub use interface::{chat_tabs, emotions, hotkeys, options};
 pub use items::{translated, About, Items, Translated, Unidentified};
 pub use skills::skill_texts;
@@ -382,6 +387,7 @@ pub fn for_client(read: &Sources) -> serde_json::Value {
         "sprites": sprites,
         "weapons": weapons,
         "weapon_hits": weapon_hits,
+        "korea": jobs::korea(read.grf),
         "tree": skill_tree(read),
         "inherits": job_inherits(read),
         "pets": pets,
@@ -423,7 +429,7 @@ pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std:
     let mut tables = for_client(read);
     if let Some(tables) = tables.as_object_mut() {
         tables.insert("chat_tabs".to_owned(), chat_tabs(grf));
-        tables.insert("maps".to_owned(), maps::maps(client_dir));
+        tables.insert("maps".to_owned(), maps::maps(client_dir, grf));
         tables.insert("towns".to_owned(), maps::towns(client_dir));
         tables.insert("guide".to_owned(), guide::guide(read, database));
         tables.insert("statuses".to_owned(), statuses::statuses(grf));
@@ -435,6 +441,9 @@ pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std:
         tables.insert("worldmap".to_owned(), worldmap::worldmap(grf));
         tables.insert("tips".to_owned(), tips::tips(&read.tips));
         tables.insert("aura".to_owned(), aura::aura(grf));
+        tables.insert("manner".to_owned(), manner::manner(grf));
+        tables.insert("monster_skills".to_owned(), monster_skills::monster_skills(grf));
+        tables.insert("castles".to_owned(), castles::castles(grf));
         // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
         // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ
         // in what a player may do.

@@ -41,6 +41,22 @@ pub fn failure(skill: u16, value: i32, cause: u8) -> Option<usize> {
     }
 }
 
+/// The two skills placed on the ground that ask for words first (`CPlayer::SendMsg`, `AM_REQ_GROUND_SKILL`:
+/// `HT_TALKIEBOX`, 0x7D, and `RG_GRAFFITI`, 0xDC).
+pub const TALKIE_BOX: u16 = 125;
+pub const GRAFFITI: u16 = 220;
+
+/// How many letters the box takes that asks a skill's words, for a skill that asks any (the `maximum` of the
+/// line in `UITalkboxTrapInputWnd::OnCreate`, 78, and in `UIGraffiStrboxWnd::OnCreate`, 20). Whatever is
+/// typed, 20 bytes of it are sent (`crate::net::skills::use_on_ground_with_words`).
+pub fn words_asked(skill: u16) -> Option<usize> {
+    match skill {
+        TALKIE_BOX => Some(78),
+        GRAFFITI => Some(20),
+        _ => None,
+    }
+}
+
 /// The effect ZC_NOTIFY_EFFECT (0x019b) shows for its kinds beyond the two levels gained, by the client's
 /// numbers (`ReceivePartyMemberEffect`, `EffectTypes.h`): a refining that failed (2: `EF_REFINEFAIL`, 155) or
 /// went well (3: `EF_REFINEOK`, 154), a potion brewed (5: `EF_PHARMACY_OK`, 305) or spoilt (6:
@@ -95,6 +111,13 @@ pub fn pages(job: u16, tree: &std::collections::HashMap<u16, (Option<u16>, Vec<(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn two_skills_ask_for_words_before_they_are_placed() {
+        assert_eq!((words_asked(125), words_asked(220)), (Some(78), Some(20)));
+        // Any other skill of the ground is placed at once: Fire Wall, Warp Portal.
+        assert_eq!((words_asked(18), words_asked(27)), (None, None));
+    }
 
     #[test]
     fn a_job_has_a_page_for_each_job_it_grew_through() {

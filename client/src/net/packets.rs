@@ -31,6 +31,13 @@ pub const HC_DELETE_CHAR3: u16 = 0x082a;
 pub const HC_DELETE_CHAR3_CANCEL: u16 = 0x082c;
 // Map server.
 pub const ZC_ACCEPT_ENTER: u16 = 0x02eb;
+/// ZC_AID (0x0283, 6 bytes): `u32 account`: the first thing the map server says to a connection. The client's
+/// handlers take it and do nothing (`CGameMode`'s and `CLoginMode`'s packet handlers).
+pub const ZC_AID: u16 = 0x0283;
+/// ZC_NOTIFY_ACTORINIT (0x0b1b, 2 bytes; rAthena's `clif_loadConfirm`): the server has heard that the map is
+/// loaded. The client then lets its hotkeys work again and empties its queue of packets held back
+/// (`CGameMode::ReceiveDeferredReset`): nothing of it is seen.
+pub const ZC_NOTIFY_ACTORINIT: u16 = 0x0b1b;
 pub const ZC_REFUSE_ENTER: u16 = 0x0074;
 pub const ZC_NOTIFY_PLAYERMOVE: u16 = 0x0087;
 pub const ZC_STOPMOVE: u16 = 0x0088;

@@ -15,7 +15,7 @@ const REFINE_REFUSED: &str = "#ffc8c8";
 impl App {
     /// Asks the server for the names of the makers of things that a window looked up in vain
     /// (`data::makers_wanted`): done as any packet arrives, whosever it is.
-    fn ask_names_wanted(&mut self) {
+    pub(in crate::web::app) fn ask_names_wanted(&mut self) {
         for maker in data::makers_wanted() {
             self.send_on_map(&crate::net::actors::ask_name(maker));
         }

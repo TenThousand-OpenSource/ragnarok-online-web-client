@@ -45,6 +45,10 @@ pub const ZC_ACK_REQNAMEALL_NPC: u16 = 0x0adf;
 /// ZC_ACK_REQNAME_BYGID (0x0af7, 32 bytes): `u16 flag, u32 character, char name[24]`: what a character is
 /// called, by its own number.
 pub const ZC_ACK_REQNAME_BYGID: u16 = 0x0af7;
+/// ZC_NOTIFY_FONT (0x02ef, 8 bytes): `u32 who, u16 font`: the font someone's words over the head are written
+/// in (`@font`, `clif_font`). The client keeps it for its balloons (`UITransBalloonText::m_fontMode`), which
+/// this client draws in one font: nothing reads it.
+pub const ZC_NOTIFY_FONT: u16 = 0x02ef;
 /// ZC_NOTIFY_ACT (0x08c8): `u32 source, u32 target, u32 tick, i32 source_speed, i32 damage_speed, i32 damage,
 /// u8 sp, u16 hits, u8 kind, i32 damage2`: someone does something to someone.
 pub const ZC_NOTIFY_ACT: u16 = 0x08c8;

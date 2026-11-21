@@ -56,6 +56,7 @@ impl App {
             things::Menu::Member(row) => self.party_menu_opens(row, at),
             things::Menu::GuildMember(row) => self.guild_menu_opens(GuildMenu::Member(row), at),
             things::Menu::GuildRelated(row) => self.guild_menu_opens(GuildMenu::Related(row), at),
+            things::Menu::GuildCastle(line) => self.guild_castle_menu_opens(line),
             things::Menu::Friend(row) => self.friend_menu_opens(row, at),
             things::Menu::Whisper(place) => self.whisper_menu_opens(place, at),
             things::Menu::Room => self.room_menu_opens(None, at),

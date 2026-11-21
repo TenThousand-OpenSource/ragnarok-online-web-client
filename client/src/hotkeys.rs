@@ -5,6 +5,8 @@
 //! hotkey bar. An entry is known by its table and its place in it, and holds a key and the key held with it,
 //! both as Windows' key numbers (74 is J, 18 is Alt).
 
+pub mod guide;
+
 /// A key, and the key held with it (0 for none): Windows' numbers.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Chord {

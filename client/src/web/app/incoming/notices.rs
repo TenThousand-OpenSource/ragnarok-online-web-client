@@ -71,6 +71,23 @@ impl App {
             }
             // The client's `CGameMode` has no reader for it.
             notices::ZC_ACK_PVPPOINT => {}
+            // A manner point given, or the chat taken away: the line as the table has it (the client writes
+            // it without filling the `%d` two of them have).
+            notices::ZC_ACK_GIVE_MANNER_POINT => {
+                let said = notices::manner_answer(packet).and_then(crate::notices::manner_answer).map(|(line, colour)| (Self::words(line, ""), colour));
+                if let Some((words, colour)) = said.filter(|(words, _)| !words.is_empty()) {
+                    self.chat_line(words, colour);
+                }
+            }
+            notices::ZC_NOTIFY_MANNER_POINT_GIVEN => {
+                let given = notices::manner_given(packet).and_then(|(kind, name)| Some((crate::notices::manner_given(kind)?, name)));
+                if let Some(((line, colour), name)) = given {
+                    self.say_filled(said::GENERAL, line, &[&name], colour);
+                }
+            }
+            // The achievements, as the game is entered: kept by the client for a window that is not of the
+            // classic game (`BACKLOG.md`); nothing is shown of them.
+            notices::ZC_ALL_ACH_LIST => {}
             _ => return false,
         }
         true

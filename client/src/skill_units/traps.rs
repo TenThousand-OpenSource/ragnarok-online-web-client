@@ -60,6 +60,17 @@ pub fn sprung_with(unit: u32) -> Option<u32> {
     })
 }
 
+/// The effect a unit launches on itself as a skill is used on it (`CGameMode::ReceiveSkillUse`, which looks for
+/// a unit of the target's ID, `GetSkillByAID`): `EF_REMOVETRAP` for Remove Trap (`HT_REMOVETRAP`) and
+/// `EF_SPRINGTRAP` for Spring Trap (`HT_SPRINGTRAP`); none for any other skill.
+pub fn used_with(skill: u16) -> Option<u32> {
+    match skill {
+        124 => Some(100),
+        131 => Some(111),
+        _ => None,
+    }
+}
+
 /// The light a trap's model is lit by, whatever the map's (`ShowModel`'s three vectors, handed to
 /// `C3dActorV1::Prepare` as the way to the light, its colour and the light all around): the way is the
 /// client's (0.5, 0.7, 0.5) of the files' space, whose y points down, and is not made one long.
@@ -99,6 +110,13 @@ mod tests {
         );
         // An Ankle Snare, a Land Mine, a Skid Trap, a Shockwave Trap and a Talkie Box launch none.
         assert!([144, 145, 147, 148, 153].into_iter().all(|unit| sprung_with(unit).is_none()));
+    }
+
+    #[test]
+    fn a_trap_taken_away_or_sprung_from_afar_launches_the_skills_effect() {
+        assert_eq!((used_with(124), used_with(131)), (Some(100), Some(111)));
+        // Not Flasher, Detect or any skill that is not used on a trap.
+        assert!([120, 8, 28, 0].into_iter().all(|skill| used_with(skill).is_none()));
     }
 
     #[test]

@@ -14,6 +14,16 @@ pub(super) const WALK_FRAMES: usize = 8;
 pub(super) enum Look {
     Character(Figure),
     Creature(String),
+    /// A Granny model, by its name in the client's table of jobs (`granny.rs`): in everything but its
+    /// picture it is a monster or an NPC as the others are.
+    Model(String),
+}
+
+impl Look {
+    /// A monster or an NPC, sprite or model: not a character.
+    pub(super) fn creature(&self) -> bool {
+        !matches!(self, Look::Character(_))
+    }
 }
 
 /// A thing lying on the ground: its cell and where in the cell it lies (in cells), which item it is, whether it
@@ -38,7 +48,8 @@ pub(super) struct Mover {
     pub(super) lively: bool,
     /// A pet (or a homunculus, a mercenary): someone's companion, neither fought nor talked to.
     pub(super) companion: bool,
-    /// A player's guild (0 for none) and the version of its emblem, as the server showed them.
+    /// A player's guild (0 for none) and the version of its emblem, as the server showed them; a guild
+    /// flag's too, whose emblem is drawn on it.
     pub(super) guild: (u32, u32),
     pub(super) cell: (i32, i32),
     /// Where it is drawn, in cells: a walker along its way, one who stands where it stopped (the middle of
@@ -143,6 +154,9 @@ pub(super) struct Pose {
     pub(super) combo: f64,
     /// Its blade is caught: its motion is held where it was (`isMotionFreezed`, `combat::blade_caught`).
     pub(super) frozen: bool,
+    /// The action a monster goes round and round in for a skill it used, until it does something else
+    /// (`crate::monster_skills`, the client's `MT_LOOP`).
+    loops: Option<usize>,
 }
 
 impl Pose {
@@ -262,6 +276,20 @@ impl Mover {
         match &self.look {
             Look::Character(figure) => figure::body_timing(figure.job, figure.sex, action),
             Look::Creature(path) => figure::timing(path, action),
+            Look::Model(_) => None,
+        }
+    }
+
+    /// A monster is shown in an action of its own for a skill it used, in the place of its swing
+    /// (`crate::monster_skills::shown`, the client's `SetAction` after `AM_SKILL`): once through, each picture
+    /// for as long as the sprite says, or round and round until it walks or begins another motion. Only one
+    /// drawn from a sprite, once that was read (the client asks the sprite for the action's speed).
+    pub(super) fn shows(&mut self, shown: crate::monster_skills::Shown, time: f64) {
+        let Look::Creature(path) = &self.look else { return };
+        let Some((pictures, each)) = figure::timing(path, shown.action) else { return };
+        match shown.run {
+            crate::pose::Run::Once => (self.motion, self.pose.loops) = (Some((shown.action, time, (pictures as f64 * each).max(1.0))), None),
+            _ => (self.motion, self.pose.loops) = (None, Some(shown.action)),
         }
     }
 
@@ -283,8 +311,9 @@ impl Mover {
             let (pictures, each) = self.pace(WALKS).unwrap_or((WALK_FRAMES, WALK_FRAME_MS));
             return (WALKS, (f64::from(self.pose.walked) * 0.37 * 4.0 / (each / 25.0).max(1.0)) as usize % pictures.max(1));
         }
-        if matches!(self.look, Look::Creature(_)) {
-            return (STANDS, self.looped(STANDS, now));
+        if self.look.creature() {
+            let action = self.pose.loops.unwrap_or(STANDS);
+            return (action, self.looped(action, now));
         }
         // (One whose fall is yet to begin, the blow still on its way, stands until then.)
         if self.dead && self.motion.is_none() {
@@ -321,6 +350,9 @@ impl Mover {
         if walking {
             self.sitting = false;
         }
+        if walking || motion.is_some() {
+            self.pose.loops = None;
+        }
         if matches!(self.look, Look::Character(_)) {
             self.pose.settle(motion.map(|(action, ..)| action), walking, self.ail.unwell());
         }
@@ -342,6 +374,8 @@ impl Mover {
                 SpriteKey::Player(Figure { action, frame, ..figure.clone() })
             }
             Look::Creature(path) => SpriteKey::Creature(path.clone(), action, frame),
+            // (A model has no picture: nothing asks for this one.)
+            Look::Model(_) => SpriteKey::Creature(String::new(), action, frame),
         };
         (position, key)
     }

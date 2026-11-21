@@ -100,7 +100,7 @@ impl Burst {
                     [pair[index][2], pair[index][3]]
                 );
                 let colours = std::array::from_fn(|index| if prim.glares(index) { [1.0; 4] } else { colour(prim.alpha) });
-                draw(Piece::Picture(prim.picture, std::array::from_fn(corner), colours, prim.adds));
+                draw(Piece::Picture(prim.shown(), std::array::from_fn(corner), colours, prim.adds));
             }
         }
     }

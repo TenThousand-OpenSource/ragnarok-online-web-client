@@ -30,6 +30,7 @@ macro_rules! files {
     };
 }
 files!(
+    arrivals,
     auras,
     blasts,
     blows,
@@ -37,11 +38,13 @@ files!(
     bolts,
     bursts,
     falls,
+    fields,
     grounds,
     gusts,
     heals,
     held,
     hits,
+    lights,
     links,
     marks,
     max_level,
@@ -53,6 +56,7 @@ files!(
     prints,
     puffs,
     rays,
+    scenes,
     shields,
     songs,
     souls,
@@ -63,6 +67,7 @@ files!(
     struck,
     trails,
     walls,
+    waterfalls,
     waves,
     weather,
     winds

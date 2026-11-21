@@ -32,6 +32,8 @@ pub const ZC_NOTIFY_MEMBERINFO_TO_GROUPM: u16 = 0x0abd;
 pub const ZC_CHANGE_GROUP_MASTER: u16 = 0x07fc;
 /// ZC_PARTY_CONFIG (0x02c9, 3 bytes): `u8 refused`: whether the player turns party invitations down.
 pub const ZC_PARTY_CONFIG: u16 = 0x02c9;
+/// ZC_ITEM_PICKUP_PARTY (0x0b67): a member of the party obtained a thing (`clif_party_show_picker`).
+pub const ZC_ITEM_PICKUP_PARTY: u16 = 0x0b67;
 
 /// What ZC_ACK_MAKE_GROUP answers (the client's `GROUP_MAKE_*`).
 pub mod made {
@@ -215,6 +217,34 @@ pub fn leader(packet: &[u8]) -> Option<(u32, u32)> {
 
 mod requests;
 pub use requests::*;
+
+/// A thing a member of the party obtained, as ZC_ITEM_PICKUP_PARTY tells it: what the thing's name is
+/// written from.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Picked {
+    /// The member's account.
+    pub account: u32,
+    pub id: u32,
+    /// The item's type, as the server tells it.
+    pub kind: u8,
+    pub identified: bool,
+    pub refine: u8,
+    pub cards: [u32; 4],
+}
+
+/// ZC_ITEM_PICKUP_PARTY (0x0b67, 33 bytes): `u32 account, u32 item, u8 identified, u8 damaged, u32 card[4],
+/// u16 location, u8 type, u8 refine, u8 grade` (the client's `PartyItemPickupPacket`).
+pub fn picked(packet: &[u8]) -> Option<Picked> {
+    let packet = packet.get(..33)?;
+    Some(Picked {
+        account: u32_at(packet, 2),
+        id: u32_at(packet, 6),
+        kind: packet[30],
+        identified: packet[10] != 0,
+        refine: packet[31],
+        cards: std::array::from_fn(|card| u32_at(packet, 12 + card * 4)),
+    })
+}
 
 #[cfg(test)]
 mod tests;

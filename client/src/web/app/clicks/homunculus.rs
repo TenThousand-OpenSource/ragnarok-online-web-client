@@ -72,6 +72,12 @@ impl App {
             Some(HomunculusAsk::Feed) if self.exchange.open =>
                 self.chat_line(Self::words(3551, "Failed to feed the homunculus. Homunculus in a state that can't be fed."), RED),
             Some(HomunculusAsk::Feed) => self.send_on_map(&homunculus::command(homunculus::order::FEED)),
+            // A name with a word that is not let be written is not sent: the client's message box says its
+            // line 2948 and the name stays (`UIHomunInfoWnd::SendMsg`, `crate::manner`).
+            Some(HomunculusAsk::Rename(name)) if data::foul(&name) => {
+                self.message = Some(Self::words(2948, "Name isn't available"));
+                return self.render();
+            }
             Some(HomunculusAsk::Rename(name)) => {
                 self.send_on_map(&homunculus::rename(&name));
                 if let Some(info) = &mut self.homunculus.info {

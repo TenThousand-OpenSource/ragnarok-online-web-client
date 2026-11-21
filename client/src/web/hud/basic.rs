@@ -78,20 +78,20 @@ impl App {
             ("achievement", None, 2646, "Achievements", None),
             ("tip", Some(crate::press::tips::Press::Window.into()), 3239, "Tipbox", Some(key::TIPS)),
             ("shop", None, 3137, "Cash Shop", None),
-            // The client's icon opens its guide to the keys (`WID_HOTKEYGUIDEWND`), a picture of a keyboard;
-            // here it opens the Shortcut Settings, which the client has in the game's menu.
-            ("keyboard", Some(crate::press::hotkeys::Press::Open.into()), 3128, "Hotkey Guide", None),
+            // The guide to the keys, a picture of a keyboard (`ID_OPEN_HOTKEY`: `WID_HOTKEYGUIDEWND`). The
+            // Shortcut Settings are opened from the guide and from the game's options.
+            ("keyboard", Some(crate::press::hotkeys::Press::Guide.into()), 3128, "Hotkey Guide", None),
             ("attendance", None, 3473, "Attendance check", None),
             ("adventurerAgency", None, 3514, "Adventurer's Agency", None),
             ("repute", None, 3827, "Reputation Status", None),
             ("adventureguide", Some(guide::Press::Open.into()), 4053, "Adventure guide", None),
             ("probability", None, 4119, "Probabilities", None),
         ];
-        let bar = |name: &str| {
+        let bar = |name: &str, y: i32, height: i32| {
             pictured(
                 0,
-                4,
-                (219, 9),
+                y,
+                (219, height),
                 [
                     &format!("menu_icon/bt_menu_{name}normal.bmp"),
                     &format!("menu_icon/bt_menu_{name}over.bmp"),
@@ -102,15 +102,27 @@ impl App {
             )
         };
         if self.menu_closed {
-            return bar("");
+            // Folded away while an icon wears a mark (mail not read, a level gained), the bar is the one that
+            // tells of it, at the window's top and 13 high (`UIMenuIconWnd::Paint`, `notificationOpenButton`).
+            let told = self.mail.marked || self.hero.level_told || self.skills.level_told;
+            return if told { bar("new_", 0, 13) } else { bar("", 4, 9) };
         }
-        let mut strip = bar("close_");
+        let mut strip = bar("close_", 4, 9);
         for (position, (name, press, line, otherwise, key)) in icons.into_iter().enumerate() {
             let name = if name == "status" && self.game.as_ref().is_some_and(|game| crate::jobs::doram(game.job)) { "status_doram" } else { name };
             let (x, y) = ((position % 5 * 42 + 9) as i32, (position / 5 * 43 + 23) as i32);
             // With mail not read the mail's icon is the one that wears a mark, six higher and 35 by 40
             // (`UIMenuIconWnd::OnCreate`, `notificationButtons`).
-            let (name, y, size) = if name == "mail" && self.mail.marked { ("mail_new", y - 6, (35, 40)) } else { (name, y, (32, 34)) };
+            // So do the icons of the Status window and of the skills after a level gained, until the window is
+            // opened (`ID_NOTICE` of `CGameMode::ReceiveParChange`; a Doram's status has a mark of its own).
+            let marked = match name {
+                "mail" => self.mail.marked,
+                "status" | "status_doram" => self.hero.level_told,
+                "skill" => self.skills.level_told,
+                _ => false,
+            };
+            let (name, y, size) = if marked { (format!("{name}_new"), y - 6, (35, 40)) } else { (name.to_owned(), y, (32, 34)) };
+            let name = name.as_str();
             let (normal, down) = (picture(&format!("menu_icon/bt_{name}.bmp")), picture(&format!("menu_icon/bt_{name}_press.bmp")));
             let keys = match (name, key) {
                 ("option", _) => "Esc".to_owned(),

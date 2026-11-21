@@ -80,7 +80,7 @@ fn shadowed(gpu: &mut Gpu, feet: Vector, scale: f32, sprites: &mut Vec<Stood>) {
 /// How much of one is left to see: one struck down fades as it lies (`CCorpse::OnProcess`), one out of sight
 /// fades over half a second (its alpha is half the milliseconds left: `CGameActor::ProcessState`), and
 /// another player is see-through, 70 of 255, when the player has the others hidden (`translucentOther`).
-fn left_of(mover: &Mover, faint: bool, time: f64) -> f32 {
+pub(in crate::web::world) fn left_of(mover: &Mover, faint: bool, time: f64) -> f32 {
     let corpse = mover.dying.map_or(1.0, |fallen| 1.0 - ((time - fallen) / CORPSE_MS).clamp(0.0, 1.0) as f32);
     let going = mover.pose.vanishes.map_or(1.0, |gone| ((gone - time) / 2.0 / 255.0).clamp(0.0, 1.0) as f32);
     corpse * going * if faint { 70.0 / 255.0 } else { 1.0 }
@@ -123,7 +123,9 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
     let feet_cell = position;
     let hide_players = state.options.hide_players;
     let mut own = true;
-    for (mover, position, wanted) in std::iter::once((&mut scene.player, position, key)).chain(scene.units.values_mut().map(|unit| {
+    // (One drawn as a model has no sprite and no shadow: `granny.rs`.)
+    let sprited = scene.units.values_mut().filter(|unit| !matches!(unit.look, Look::Model(_)));
+    for (mover, position, wanted) in std::iter::once((&mut scene.player, position, key)).chain(sprited.map(|unit| {
         let (position, key) = unit.now(time, yaw);
         (unit, position, key)
     })) {

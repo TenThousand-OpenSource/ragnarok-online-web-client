@@ -20,14 +20,18 @@ pub(super) fn ground(state: &State, view: &View, time: f64) -> (Vec<f32>, Vec<f3
         .and_then(|pointer| view.pick(&scene.gat, (pointer.0 / page_width.max(1.0), pointer.1 / page_height.max(1.0))))
         .filter(|cell| scene.gat.walkable(cell.0, cell.1))
     {
-        let corner = |x: i32, y: i32| [x as f32 * CELL, scene.gat.height_at(x as f32, y as f32) + 0.4, y as f32 * CELL];
+        // The mark lies on the cell's own four corners (`GroundGeometry::DrawGrid` → `CellRectangle`: the heights
+        // of that cell of the `.gat`, not those of the cells beside it, which under a bridge are the river's bed),
+        // the picture's top along the cell's south side (`g_groundGridUV`). The client draws it nearer by a hair
+        // of the depth instead of lifting it; here it is lifted 0.4.
         let (x, y) = cell;
-        for (corner_x, corner_y, u, v) in [
-            (x, y + 1, 0.0, 0.0), (x + 1, y + 1, 1.0, 0.0), (x, y, 0.0, 1.0), (x, y, 0.0, 1.0),
-            (x + 1, y + 1, 1.0, 0.0), (x + 1, y, 1.0, 1.0)
-        ] {
-            marks.extend(corner(corner_x, corner_y));
-            marks.extend([u, v]);
+        let heights = scene.gat.corners(x, y).unwrap_or_default();
+        let corner = |index: usize| {
+            let (east, north) = ((index & 1) as f32, (index >> 1) as f32);
+            [(x as f32 + east) * CELL, heights[index] + 0.4, (y as f32 + north) * CELL, east, north]
+        };
+        for index in [0, 1, 2, 2, 1, 3] {
+            marks.extend(corner(index));
         }
     }
     (ring_corners, marks)

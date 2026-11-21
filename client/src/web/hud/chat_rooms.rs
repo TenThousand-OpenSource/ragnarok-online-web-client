@@ -17,7 +17,9 @@ const PICKED: &str = "#32c8c8";
 impl App {
     /// The sign of a room, 140 by 34 (`UIChatRoomTitle::OnCreate`, `Paint`): the frame of the system boxes 28
     /// high with its arrow under the middle, at 3,3 the picture of a room with a password or of one without,
-    /// and at 31,8 in 106 by 15 what the room is called and how many are in it, cut where it does not fit.
+    /// and at 31,8 in 106 by 15 what the room is called and how many are in it, cut where it does not fit,
+    /// with stars for a word that is not let be written (`UIChatRoomTitle::SendMsg`; so in the window's title
+    /// and in what is said in a room: `UIChatRoomWnd::SendMsg`).
     /// A double click on it enters (`OnLBtnDblClk`); the hand shows over it.
     pub(in crate::web) fn room_sign(room: &Room) -> String {
         [
@@ -33,7 +35,7 @@ impl App {
                 r#"<img class="a" src="{}" alt="" draggable="false" style="left:3px;top:3px" onerror="this.remove()">"#,
                 picture(if room.kind == kind::PRIVATE { "chat_close.bmp" } else { "chat_open.bmp" })
             ),
-            format!(r#"<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div></div>"#, at(31, 8, 106, 15), escape(&room.sign()))
+            format!(r#"<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div></div>"#, at(31, 8, 106, 15), escape(&data::starred(&room.sign())))
         ].concat()
     }
 
@@ -141,7 +143,7 @@ impl App {
                 art("basic_interface/titlebar_right.bmp", width - 12, 0, 12, 17),
                 panel(width, height),
                 at(9, 2, width - 30, 15),
-                escape(&heading),
+                escape(&data::starred(&heading)),
                 pictured(
                     width - 14,
                     3,

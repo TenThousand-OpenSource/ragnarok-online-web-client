@@ -14,7 +14,11 @@ impl App {
             _ => return false,
         };
         // One sent by a character whose whispers the player has turned away is dropped.
-        if let Some(announced) = announced.filter(|announced| !announced.from.as_ref().is_some_and(|from| self.commands.blocked.contains(from))) {
+        if let Some(mut announced) = announced.filter(|announced| !announced.from.as_ref().is_some_and(|from| self.commands.blocked.contains(from))) {
+            // (With stars for a word that is not let be written: `ReceiveTaggedBroadcast`,
+            // `ReceiveColorBroadcast`; `crate::manner`.)
+            announced.words = data::starred(&announced.words);
+            announced.lines.iter_mut().for_each(|line| *line = data::starred(line));
             self.announce(announced);
         }
         true

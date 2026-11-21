@@ -1,6 +1,7 @@
 //! What the client's item naming reads beside the item table (the gateway's `tables/cards.rs`): the cards
 //! with the word each adds to a name and its illustration, what may not be dropped, traded or stored, what
-//! each thing a smith makes is made of; the names of characters by their numbers, as the server told them
+//! each thing a smith makes is made of, where a thing is worn with the two figures the panel beside an NPC's
+//! shop compares; the names of characters by their numbers, as the server told them
 //! (the client's `CPlayerNameDictionary`: who made a thing); and `item_title`, the one way an item's name is
 //! written (`crate::item_names`).
 
@@ -14,6 +15,9 @@ thread_local! {
     static MOVES: RefCell<HashMap<u32, u8>> = RefCell::new(HashMap::new());
     /// By thing a smith makes: the lines that say what it is made of (`metalprocessitemlist.txt`).
     static MATERIALS: RefCell<HashMap<u32, Vec<String>>> = RefCell::new(HashMap::new());
+    /// By item the client's `itemslottable.txt` or `itemparamtable.txt` names: where the table says it is
+    /// worn, and its two figures if it has them.
+    static WORN: RefCell<HashMap<u32, (u32, Option<(i32, i32)>)>> = RefCell::new(HashMap::new());
     /// Characters' names by their numbers, as the server told them.
     static MAKERS: RefCell<HashMap<u32, String>> = RefCell::new(HashMap::new());
     /// The numbers a name was looked up for and not found, not asked of the server yet; and those asked.
@@ -32,6 +36,13 @@ pub fn materials(id: u32) -> Vec<String> {
     MATERIALS.with_borrow(|materials| materials.get(&id).cloned().unwrap_or_default())
 }
 
+/// Where the client's table says an item is worn (the server's bits) and the two figures the panel beside an
+/// NPC's shop compares, if the table has them (`FindItemDescription`'s `descriptionFlags` and
+/// `descriptionValues`; `crate::shops::compared`). Nought and none for an item the tables do not name.
+pub fn item_worn(id: u32) -> (u32, Option<(i32, i32)>) {
+    WORN.with_borrow(|worn| worn.get(&id).copied().unwrap_or_default())
+}
+
 /// The name of a card's illustration (a file of `cardbmp`), for what is a card with one
 /// (`num2cardillustnametable.txt`).
 pub fn card_picture(id: u32) -> Option<String> {
@@ -47,6 +58,16 @@ pub fn maker_named(character: u32, name: String) {
 /// asked of the server (the client's dictionary queues its requests the same way).
 pub fn makers_wanted() -> Vec<u32> {
     WANTED.with_borrow_mut(std::mem::take)
+}
+
+/// What a character is called, by its number (`CPlayerNameDictionary::Lookup`): one not known yet is asked
+/// of the server, once (`makers_wanted`).
+pub fn character_name(character: u32) -> Option<String> {
+    let known = MAKERS.with_borrow(|makers| makers.get(&character).cloned());
+    if known.is_none() && ASKED.with_borrow_mut(|asked| asked.insert(character)) {
+        WANTED.with_borrow_mut(|wanted| wanted.push(character));
+    }
+    known
 }
 
 /// The tables as `crate::item_names` asks them.
@@ -74,11 +95,7 @@ impl Tables for Client {
     }
 
     fn player(&self, character: u32) -> Option<String> {
-        let known = MAKERS.with_borrow(|makers| makers.get(&character).cloned());
-        if known.is_none() && ASKED.with_borrow_mut(|asked| asked.insert(character)) {
-            WANTED.with_borrow_mut(|wanted| wanted.push(character));
-        }
-        known
+        character_name(character)
     }
 }
 
@@ -104,4 +121,14 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
     );
     MOVES.set(entries::<u32>(&field(&cards, "moves")).into_iter().filter_map(|(id, bits)| Some((id, bits.as_f64()? as u8))).collect());
     MATERIALS.set(entries::<u32>(&field(&cards, "materials")).into_iter().map(|(id, lines)| (id, texts(&lines))).collect());
+    WORN.set(
+        entries::<u32>(&field(&cards, "worn"))
+            .into_iter()
+            .map(|(id, about)| {
+                let about = row(&about);
+                let figure = |at: u32| about.get(at).as_f64().map(|figure| figure as i32);
+                (id, (figure(0).unwrap_or(0) as u32, figure(1).zip(figure(2))))
+            })
+            .collect(),
+    );
 }

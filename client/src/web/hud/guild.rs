@@ -1,7 +1,7 @@
 //! The guild's windows: the guild window with its six tabs (the client's `UIGuildWnd` and what is made of it:
 //! `UIGuildInfoManageWnd` here, and a file to each of the others in `guild/`: `UIGuildMemberManageWnd`,
 //! `UIGuildPositionManageWnd`, `UIGuildSkillWnd`, `UIGuildBanishedMemberWnd`, `UIGuildNoticeWnd`), the table
-//! two of them are laid out in, the menus the right button opens in it,
+//! two of them are laid out in, the menus the right button opens in it, the castles held (`guild/castles.rs`),
 //! and what the guild asks (`UIJoinGuildAcceptWnd`, `UIAllyGuildAcceptWnd`, `UIGuildLeaveReasonDescWnd`,
 //! `UIGuildBanReasonDescWnd`).
 //!
@@ -18,11 +18,14 @@ use crate::press::things::Menu;
 use crate::web::app::{GuildAsk, GuildMenu};
 use crate::web::parts::menued;
 
+mod castles;
 mod expelled;
 mod members;
 mod notice;
 mod positions;
 mod skills;
+
+pub(in crate::web) use castles::{CASTLE_ASK, CASTLE_TOLD};
 
 pub(in crate::web) const WIDTH: i32 = 400;
 pub(in crate::web) const HEIGHT: i32 = 317;
@@ -123,8 +126,7 @@ impl App {
     /// How many are in the game is written as the client writes it for a service that is not Korea's: the
     /// sign `grp_online.bmp` 8 after the words of the members and 2 over their line, and the number after it.
     ///
-    /// Not here: the list of castles with its menu (`UIListBoxAgit`): the castles are written as the server
-    /// words them.
+    /// The castles are the list of `guild/castles.rs`, which lies over what the server words of them.
     fn guild_info(&self) -> String {
         let guild = &self.guild;
         let info = guild.info.clone().unwrap_or_default();
@@ -149,7 +151,7 @@ impl App {
                 format!(r#"<span style="white-space:pre"> {}</span></div>"#, online)
             ].concat(),
             text(8, 113, BLACK, &line((332, "Avg.lvl of Members"), info.average_level.to_string())),
-            text(8, 129, BLACK, &line((333, "Castles Owned"), info.land.clone())),
+            self.guild_castles(),
             // The experience is written in red from level 50 (the client's 0xFF there).
             text(200, 49, if info.level >= 50 { "#ff0000" } else { BLACK }, &line((335, "EXP"), info.exp.to_string())),
             text(200, 73, BLACK, &Self::words(336, "Emblem")),
@@ -229,9 +231,14 @@ impl App {
 
     /// How large the box of what the guild asks is: the client's message box, 280 by 120, for a question
     /// answered with OK or Cancel; 280 by 80 for the reason of leaving or expelling
-    /// (`UIWindowMgr::EnsureWindow`).
+    /// (`UIWindowMgr::EnsureWindow`); the two boxes of the castles have their own sizes (`guild/castles.rs`).
     pub(in crate::web) fn guild_ask_size(&self) -> (i32, i32) {
-        if matches!(self.guild.asks, Some(GuildAsk::Leave | GuildAsk::Expel(..))) { (280, 80) } else { (280, 120) }
+        match self.guild.asks {
+            Some(GuildAsk::Leave | GuildAsk::Expel(..)) => (280, 80),
+            Some(GuildAsk::Castle(_)) => CASTLE_ASK,
+            Some(GuildAsk::Invested(_)) => CASTLE_TOLD,
+            _ => (280, 120),
+        }
     }
 
     /// What the guild asks. In the client's message box, as the party's invitation is: a guild's invitation
@@ -242,11 +249,15 @@ impl App {
     /// letters at most, OK and Cancel 101 and 55 from the right, 32 from the bottom. Its ground is the
     /// client's `DrawBorder`, taken here to be white with a grey rim.
     pub(in crate::web) fn guild_question(&self) -> String {
+        if let Some(castles) = self.guild_castle_box() {
+            return castles;
+        }
         let (width, height) = self.guild_ask_size();
         let boxed = |words: String| message_box(Asked::Offer, &escape(&words), Press::Yes, Press::No);
         let words = match &self.guild.asks {
+            // (The guild's name with stars for a word that is not let be written: `UIJoinGuildAcceptWnd`.)
             Some(GuildAsk::Invited(_, name)) => return boxed(
-                format!("({name}){}", Self::words(377, " Guild has sent you an invitation. Would you like to join this Guild?"))
+                format!("({}){}", data::starred(name), Self::words(377, " Guild has sent you an invitation. Would you like to join this Guild?"))
             ),
             Some(GuildAsk::Ally(_, name)) =>
                 return boxed(format!("({name}){}", Self::words(393, " Guild is asking for an Alliance with them. Do you accept?"))),
@@ -256,7 +267,7 @@ impl App {
             ),
             Some(GuildAsk::Leave) => Self::words(523, "Please enter the reason of Withdrawal."),
             Some(GuildAsk::Expel(..)) => Self::words(524, "Please enter the reason of Expulsion."),
-            None => return String::new(),
+            Some(GuildAsk::Castle(_) | GuildAsk::Invested(_)) | None => return String::new(),
         };
         [
             format!(

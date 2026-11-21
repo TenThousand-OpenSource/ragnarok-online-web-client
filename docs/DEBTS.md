@@ -163,6 +163,10 @@ classic game not made yet.
   settled), and the row of the menu under the pointer the colour of every menu's row here (the client's is
   cell 6, 2); past twelve castles the list scrolls with no bar drawn; the two boxes are not dragged and
   Enter and Escape do not answer them.
+- The guilds allied and opposed (`web/app/clicks/guild.rs guild_related_pressed`): the right button on a row
+  no guild is in puts away a menu left open by an earlier pick; the client leaves that menu open, and its
+  row then does nothing. The client's row is hard to hit by design (87 of the list's 168 pixels across take
+  the button, 80 are marked, nothing shows under the pointer): kept as it is.
 - After a change of map the castles are forgotten, as in the client (`CGameMode::InitializeState`), and are
   told again only when the guild window's first tab is opened anew: whether the client's window, left open
   across maps, asks again by itself was not found (`web/app/clicks/guild/castles.rs guild_castles_moved`).
@@ -252,6 +256,8 @@ classic game not made yet.
 - The texture packing is not proven the same to the last bit as the DLL's (nothing to run the DLL with): see
   the head of `model/granny/bink/wavelet.rs`. S3TC textures and raw ones without alpha are not read: no file
   of the client has them.
+- An emblem on a flag is drawn smoothed (the usual sampler); which filter the client draws it with was not
+  found, nor what its texture of 32 by 32 holds beside the 24 pixels of the emblem (taken as nothing).
 - `dragon_5.gr2` (job 1181) and `Hugeling90_6.gr2` (1284) are named in the table of jobs and are not among
   the client's files: those two are not drawn at all (the Windows client would stop with an error).
 
@@ -362,7 +368,7 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   (`scenery/makers.rs`, `web/world/scenery/placed.rs`).
 
 ### Granny models
-- A guild's emblem on its flags, the guardians' other actions, a model's life bar and its fading when
+- The guardians' other actions, a model's life bar and its fading when
   struck down (`web/world/granny.rs`, `web/world/gpu/granny.rs`).
 
 ### Options, hotkeys, sound, gateway
@@ -420,6 +426,12 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 ### Party, guild
 - What the chat says when a party gets another leader (nothing is said): `web/app/incoming/party.rs`.
 - How the client counts a guild member's `expRatio`: `web/hud/guild/members.rs guild_member_row`.
+- An alliance refused: rAthena answers the one who asked with 3 of ZC_ACK_REQ_ALLY_GUILD
+  (`guild_reply_reqalliance`), which is the client's "The other guild has too many Alliances." (line of
+  `REQALLYGUILD_OVERSIZE`), not its line for a refusal (1): the chat says what the client would say to that
+  answer. Seen in the game.
+- Whether the client's menu on another player has the master's two rows (alliance, opposition) for a player
+  of no guild was not looked up: here it has them (`web/hud/player_menu.rs`).
 - ZC_CHANGE_AGIT_OWNER (0x0b2b, `CGameMode::ReceiveGuildAgitOwnershipChange`: a castle is added to the
   guild's list or taken out of it) is not read: rAthena has no such packet and its length is not in our
   tables.
@@ -565,7 +577,7 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 ### Windows (`client/src/web/hud/**`, `web/view/**`)
 - Pure rules still under `web/hud`: the experience bar's hundredths under the pointer (`basic.rs
   experience`); the vendor's basket total (`vending/buying.rs`); the date of a guild's member
-  (`guild/members.rs`, `%y.%m.%d`: not moved into the native `guild.rs`, which has the castles only). `quests.rs quest_lines` still
+  (`guild/members.rs`, `%y.%m.%d`: not moved into the native `guild.rs`). `quests.rs quest_lines` still
   gathers its rows in the window (each needs the tables and `App`); its rules are `quests::boxes` and
   `put_away_last`.
 - Alike and kept apart: `status::attack_speed` (i64) and `homunculus::attack_speed` (i32) are one formula of

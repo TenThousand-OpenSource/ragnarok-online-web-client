@@ -1,7 +1,8 @@
 //! The guild as rules: what the client decides of the castles a guild holds with no page and no packet (the
 //! list of them in the guild window's first tab, `UIGuildInfoManageWnd::OnCreate`; the menu on one,
 //! `UIListBoxAgit::OnRBtnDown`; the words of its two boxes, `UIListBoxAgitMenu::SendMsg` and
-//! `CGameMode::ReceiveAgitNotice`). The packets are read in `net/guild/castles.rs`.
+//! `CGameMode::ReceiveAgitNotice`), and of the guilds allied and opposed in that tab (which row of the two lists
+//! the right button picks, `UIGuildInfoManageWnd::OnRBtnUp`). The packets are read in `net/guild/castles.rs`.
 
 /// The list of castles (`m_agitList`): 95 by 158, a line 13 high, twelve lines in sight.
 pub const CASTLE_LIST: (i32, i32) = (95, 158);
@@ -17,6 +18,37 @@ pub const INVESTED_MOST: i32 = 100;
 /// line in sight.
 pub fn castle_menu_place(line: usize) -> (i32, i32) {
     (CASTLE_LIST.0 - 3, line as i32 * CASTLE_LINE + 2)
+}
+
+/// The guilds allied and the guilds opposed are two lists of three rows each, 16 to a row
+/// (`UIGuildInfoManageWnd::Paint`: the rows from 157 and from 231 down, none drawn from 205 and 279 on).
+pub const RELATED_ROWS: usize = 3;
+pub const RELATED_ROW: i32 = 16;
+/// Where the right button picks a row of either list, across the window: from 201 to 287, both taken
+/// (`OnRBtnUp`: `x < 201 || x > 287` is no pick), which is 3 before and 4 after the 80 the pick is marked on
+/// (`Paint`: `FillRegion(204, y, 80, 16)`). The rest of the grey the lists lie on, 168 wide, picks nothing.
+pub const RELATED_PICK: (i32, i32) = (201, 87);
+pub const RELATED_MARK: (i32, i32) = (204, 80);
+
+/// A row of the two lists as one number, for what is written on the page: the three of the allied, then the
+/// three of the opposed (the client keeps a row for each list, `m_allyRow` and `m_hostileRow`, and never both).
+pub fn related_slot(opposed: bool, row: usize) -> usize {
+    if opposed { RELATED_ROWS + row } else { row }
+}
+
+/// The list and the row a number of `related_slot` is; none for a number that is no row.
+pub fn related_row(slot: usize) -> Option<(bool, usize)> {
+    (slot < 2 * RELATED_ROWS).then_some((slot >= RELATED_ROWS, slot % RELATED_ROWS))
+}
+
+/// The place, among the related guilds as the server told them (each given as whether it is opposed), of the
+/// guild a row of a list shows: the lists are filled in the server's order, each with its own kind
+/// (`UIGuildInfoManageWnd::Paint`, and `SendMsg`'s `UM_MENU_SELECTED`, which counts the same way). None for
+/// a row no guild is in: the right button on it marks nothing and opens no menu (`OnRBtnUp`: the menu is made
+/// only when the list holds more guilds than the row's number).
+pub fn related_place(related: impl IntoIterator<Item = bool>, opposed: bool, row: usize) -> Option<usize> {
+    let mut places = related.into_iter().enumerate().filter(|(_, against)| *against == opposed).map(|(place, _)| place);
+    if row < RELATED_ROWS { places.nth(row) } else { None }
 }
 
 /// A line of the message table as it is written into a box: what the table writes as `\n` ends a line.
@@ -47,6 +79,32 @@ mod tests {
         assert_eq!((castle_menu_place(0), castle_menu_place(3)), ((92, 2), (92, 41)));
         // Twelve lines are in sight.
         assert_eq!(CASTLE_LIST.1 / CASTLE_LINE, 12);
+    }
+
+    #[test]
+    fn a_row_of_the_related_lists_is_found_by_its_list_and_its_number() {
+        // Allied, opposed, allied, allied, allied (a fourth, which no row shows), opposed.
+        let related = [false, true, false, false, false, true];
+        assert_eq!(related_place(related, false, 0), Some(0));
+        assert_eq!(related_place(related, false, 1), Some(2));
+        assert_eq!(related_place(related, false, 2), Some(3));
+        assert_eq!(related_place(related, false, 3), None);
+        assert_eq!(related_place(related, true, 0), Some(1));
+        assert_eq!(related_place(related, true, 1), Some(5));
+        // A row no guild is in picks nothing.
+        assert_eq!(related_place(related, true, 2), None);
+        assert_eq!(related_place([], false, 0), None);
+    }
+
+    #[test]
+    fn the_rows_of_both_lists_are_numbered_through() {
+        for (opposed, row) in [(false, 0), (false, 2), (true, 0), (true, 2)] {
+            assert_eq!(related_row(related_slot(opposed, row)), Some((opposed, row)));
+        }
+        assert_eq!((related_slot(false, 2), related_slot(true, 0)), (2, 3));
+        assert_eq!(related_row(6), None);
+        // The pick is taken a little wider than it is marked, and far narrower than the grey of the list.
+        assert_eq!((RELATED_PICK.0 + RELATED_PICK.1 - 1, RELATED_MARK.0 + RELATED_MARK.1), (287, 284));
     }
 
     #[test]

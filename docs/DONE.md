@@ -574,8 +574,9 @@ every window is by reading only. Nothing of this system is on the seen list.
 ## 11. Guild
 
 **Files**
-- Rules: `guild.rs` (the castles only: the sizes of their list and menu, where the menu opens, the words of
-  their two boxes)
+- Rules: `guild.rs` (the castles: the sizes of their list and menu, where the menu opens, the words of
+  their two boxes; the guilds allied and opposed: the rows of their two lists, how wide a row is picked and
+  marked, which guild a row shows)
 - Packets: `net/guild.rs`, `net/guild/members.rs`, `net/guild/manage.rs`, `net/guild/requests.rs` (tests
   `net/guild/tests.rs`), `net/guild/castles.rs` (with its tests)
 - Tables: `gateway/src/tables/castles.rs` ↔ `web/data/castles.rs` (the client's `AgitConfig.lub` and
@@ -607,8 +608,27 @@ every window is by reading only. Nothing of this system is on the seen list.
 
 **State**
 - Making a guild, inviting, leaving, expelling, the emblem, the notice: seen in the game.
-- Positions, alliances and oppositions, the guild's skills, the list of the expelled, the guild's chat: tests
-  only for their packets; their windows are by reading only.
+- Alliances and oppositions, seen in the game (two test guilds, 2026-11-21): a second `/guild` refused ("You
+  are already in a Guild."); an alliance asked from the menu on the other master, the question window,
+  refused and accepted, both guilds' lists filled; an opposition set and shown; either ended with the right
+  button on its row and "Delete", from either side of an alliance, both lists emptied; a member leaving with
+  a reason and a master expelling with one, the lines in the chat of both, the Expel List tab showing the
+  name and the reason; `/breakguild` with a wrong name (the box of line 366) and with the guild's own (the
+  guild gone, its window shut). The right button on a row of the two lists is as `UIGuildInfoManageWnd::
+  OnRBtnUp` and `Paint` have it (`guild.rs`, with tests): taken from 201 to 287 across, on any of the three
+  rows of a list, the row marked 80 wide from 204 and staying marked while the tab is open; the left button
+  and the pointer over a row do nothing there, in the client as here; the menu has its one row for the
+  master only. Not seen: the limit of alliances (it takes four guilds) and a non-master's right button on a
+  row. What an allied or an opposed guild's members look like: nothing of their own in the client (no colour
+  of the name, no mark; `GuildInfo::HasRelatedGuild` is asked only for whom a press fights during a siege,
+  which is `web/world/pvp.rs`), and nothing here.
+- While a siege runs the server lets no alliance be made or ended and no opposition ended: rAthena's
+  `guild_reqalliance` and `guild_delalliance` answer with their own lines in the chat ("Alliances cannot be
+  made / broken during Guild Wars!") whenever `agit_flag` is set, which is the server's rule and no fault of
+  the menu. The local server's siege runs by `npc/guild/agit_controller.txt`'s days and hours, and is on
+  again after a restart of the map server inside them; a game master ends it with `@agitend`.
+- Positions, the guild's skills, the guild's chat: tests only for their packets; their windows are by
+  reading only.
 - The castles (ZC_GUILD_AGIT_INFO 0x0b27, ZC_REQ_ACK_AGIT_INVESTMENT 0x0b2d, ZC_REQ_ACK_MOVE_GUILD_AGIT 0x0b2e,
   CZ_REQ_MOVE_GUILD_AGIT 0x0b28, CZ_REQ_AGIT_INVESTMENT 0x0b2c): tests only for the packets, the table and
   the rules; the list, its menu and the two boxes are by reading only, nothing was seen in the game. The
@@ -900,7 +920,9 @@ the castles' treasure boxes (1324–1363 and the later ones, all `TREASUREBOX_2.
   `/fog`): the two flags at the gate of a castle on `gef_fild13` with their cloth waving, a guardian (1285)
   and a treasure box (1324) called with `@monster`, the Emperium in its room of `gefg_cas01`; the Emperium's
   name under the pointer; a press on it walks the character to it.
-- By reading only: a guild's emblem on a flag (no castle had an owner), the other actions of a guardian
+- Seen in the game (2026-11-21, later): a guild's emblem on its castle's flags, in the middle of the cloth
+  under its top (the 24 pixels in a texture of 32, `shown::emblem`).
+- By reading only: the other actions of a guardian
   (walking, a blow, a flinch, the fall), a model's life bar, the fading of one struck down.
 
 ## 19. Sound

@@ -132,7 +132,11 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         // The first is the player's own character.
         let is_own = std::mem::replace(&mut own, false);
         let feet = on_ground(gat, position);
-        if mover.shadowed(is_own) && mover.job != 565 {
+        // What is left of one struck down has no shadow: the client's corpse (`CCorpse`, made when the death's
+        // motion is over) is a render object whose `shadowVisible` nobody sets, so `DrawShadow` draws none
+        // while it fades.
+        let corpse = mover.dying.is_some_and(|fallen| time >= fallen);
+        if mover.shadowed(is_own) && mover.job != 565 && !corpse {
             shadowed(gpu, feet, data::shadow(mover.job) * mover.ail.body.scale(), &mut sprites);
         }
         // A frame of a monster's sprite may start a sound: the nearer the monster, the louder.

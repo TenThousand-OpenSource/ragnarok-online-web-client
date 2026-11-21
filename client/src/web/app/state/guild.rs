@@ -62,6 +62,9 @@ pub(in crate::web) struct Guild {
     pub info: Option<Info>,
     /// The guilds allied and opposed: each guild, its name, and whether it is opposed.
     pub related: Vec<(u32, String, bool)>,
+    /// The row of those lists the right button was last pressed on: whether of the opposed, and which (the
+    /// client's `m_hostileRow` and `m_allyRow`). It stays marked while the tab is open.
+    pub related_row: Option<(bool, usize)>,
     pub members: Vec<Member>,
     pub positions: Vec<Position>,
     /// The positions whose rights the server has told (ZC_POSITION_INFO, ZC_ACK_CHANGE_GUILD_POSITIONINFO).

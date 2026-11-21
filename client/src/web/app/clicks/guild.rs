@@ -99,6 +99,7 @@ impl App {
     fn guild_tab_left(&mut self) {
         let guild = &mut self.guild;
         (guild.picked, guild.menu, guild.combo, guild.skill) = (None, None, None, None);
+        guild.related_row = None;
         (guild.castle, guild.castle_menu) = (None, None);
         guild.position_edits.clear();
         guild.member_moves.clear();
@@ -143,6 +144,23 @@ impl App {
             members.sort_by_key(|member| !member.online);
         }
         members
+    }
+
+    /// The right button on a row of the guilds allied or opposed (`UIGuildInfoManageWnd::OnRBtnUp`): the row is
+    /// the one picked, in place of any picked before in either list, and stays marked; when a guild is in it,
+    /// the menu opens (for the master: nobody else's menu has a row, `UM_MAKEMENU`).
+    pub(in crate::web::app) fn guild_related_pressed(&mut self, slot: usize, at: (f32, f32)) {
+        let Some((opposed, row)) = crate::guild::related_row(slot) else { return };
+        self.guild.related_row = Some((opposed, row));
+        match crate::guild::related_place(self.guild.related.iter().map(|(.., against)| *against), opposed, row) {
+            Some(place) if self.guild.master => self.guild_menu_opens(GuildMenu::Related(place), at),
+            // No menu is made. (In the client one left open by an earlier pick stays, and its row then does
+            // nothing, there being no guild in the row now picked; here it is put away.)
+            _ => {
+                self.guild.menu = None;
+                self.render();
+            }
+        }
     }
 
     /// The right button in the guild window, on a member or on a guild allied or opposed: it is marked and its

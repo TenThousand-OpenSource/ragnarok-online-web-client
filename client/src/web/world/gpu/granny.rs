@@ -60,12 +60,15 @@ impl Gpu {
             }
             let pixels = match picture {
                 Picture::Own(name, index) => read.model(name).and_then(|model| model.granny.textures.get(*index)).map(
-                    |texture| (texture.width as u32, texture.height as u32, &texture.pixels[..])
+                    |texture| (texture.width, texture.height, texture.pixels.clone())
                 ),
-                Picture::Emblem(guild, version) => guilds.emblem((*guild, *version)).map(|image| (image.width, image.height, &image.rgba[..])),
+                // (An emblem lies in the corner of a texture of powers of two: `shown::emblem`.)
+                Picture::Emblem(guild, version) => guilds.emblem((*guild, *version)).and_then(
+                    |image| crate::model::granny::shown::emblem(image.width as usize, image.height as usize, &image.rgba)
+                ),
             };
-            if let Some((width, height, rgba)) = pixels.filter(|(width, height, rgba)| *width > 0 && rgba.len() == (*width * *height * 4) as usize) {
-                let bind = self.textured(&layout, &self.texture(width, height, rgba), &self.sampler);
+            if let Some((width, height, rgba)) = pixels.filter(|(width, height, rgba)| *width > 0 && rgba.len() == width * height * 4) {
+                let bind = self.textured(&layout, &self.texture(width as u32, height as u32, &rgba), &self.sampler);
                 kept.pictures.insert(picture.clone(), bind);
             }
         }

@@ -271,3 +271,35 @@ fn no_action_flings_a_corner_away() {
         }
     }
 }
+
+/// The flag's second mesh, which carries the guild's emblem, against its cloth: a board a little before
+/// the cloth that reaches from left of its middle to its right edge. The emblem itself lies in the board's
+/// upper left three quarters (`shown::emblem`: 24 pixels in a texture of 32), and that part is in the
+/// middle of the cloth, under its top.
+#[test]
+fn the_flags_emblem_lies_in_the_middle_of_its_cloth() {
+    let Some(bytes) = clients_file("guildflag90_1.gr2") else { return };
+    let model = Granny::read(&bytes).unwrap();
+    let span = |points: &mut dyn Iterator<Item = [f32; 3]>, axis: usize| {
+        points.fold((f32::MAX, f32::MIN), |(low, high), point| (low.min(point[axis]), high.max(point[axis])))
+    };
+    let (cloth, board) = (&model.meshes[0], &model.meshes[1]);
+    // The cloth is what hangs on the bones of the "tail".
+    let hangs = |vertex: &&Vertex| model.bones[cloth.bones[vertex.bones[0] as usize]].name.contains("Tail");
+    let hanging = || cloth.vertices.iter().filter(hangs).map(|vertex| vertex.position);
+    let boarded = || board.vertices.iter().map(|vertex| vertex.position);
+    let (cloth_x, cloth_y, cloth_z) = (span(&mut hanging(), 0), span(&mut hanging(), 1), span(&mut hanging(), 2));
+    let (board_x, board_y, board_z) = (span(&mut boarded(), 0), span(&mut boarded(), 1), span(&mut boarded(), 2));
+    // Before the cloth (the model's front is its -y), by less than one unit, and flat.
+    assert!(board_y.1 < cloth_y.0 && cloth_y.0 - board_y.0 < 1.0 && board_y.1 - board_y.0 < 0.2, "{board_y:?} {cloth_y:?}");
+    // The whole board is not in the middle: it ends at the cloth's right edge.
+    assert!((board_x.1 - cloth_x.1).abs() < 0.1 && board_x.0 > cloth_x.0 + 2.5, "{board_x:?} {cloth_x:?}");
+    // Its picture runs from 0 to 1 across and down, the top of the picture at the top.
+    let top_left = board.vertices.iter().find(|vertex| vertex.uv[0] < 0.01 && vertex.uv[1] < 0.01).unwrap();
+    assert!((top_left.position[0] - board_x.0).abs() < 0.01 && (top_left.position[2] - board_z.1).abs() < 0.1);
+    // The emblem's three quarters: in the cloth's middle, to a third of a unit, and within the cloth.
+    let share = 24.0 / 32.0;
+    let (emblem_right, emblem_low) = (board_x.0 + (board_x.1 - board_x.0) * share, board_z.1 - (board_z.1 - board_z.0) * share);
+    assert!(((board_x.0 + emblem_right) / 2.0 - (cloth_x.0 + cloth_x.1) / 2.0).abs() < 0.35, "{board_x:?} {emblem_right} {cloth_x:?}");
+    assert!(board_x.0 > cloth_x.0 && emblem_right < cloth_x.1 && emblem_low > cloth_z.0 && board_z.1 < cloth_z.1 + 0.1);
+}

@@ -170,21 +170,27 @@ impl App {
         tab
     }
 
-    /// The guilds allied and the guilds opposed, each list on its grey, three in sight and 16 to a row; the one
-    /// the right button was pressed on is marked (80 wide, as the client marks it). The right button opens the
-    /// menu on one (`UIGuildInfoManageWnd::OnRBtnUp`).
+    /// The guilds allied and the guilds opposed, each list on its grey, three rows of 16 (`UIGuildInfoManageWnd::
+    /// Paint`). The right button picks a row over the width the client takes it on, 201 to 287, whether a
+    /// guild is in the row or not (`OnRBtnUp`), and the row picked that has a guild stays marked, 80 wide from
+    /// 204, until another is picked or the tab is left. The left button and the pointer over a row do nothing
+    /// there, as in the client; the rules are `crate::guild`'s.
     fn guild_related(&self) -> String {
+        use crate::guild::{RELATED_MARK, RELATED_PICK, RELATED_ROW, RELATED_ROWS, related_place, related_slot};
         let mut lists = String::new();
         for (opposed, top) in [(false, 155), (true, 229)] {
             lists.push_str(&fill(200, top, 168, 48, LINE));
-            for (row, (place, (_, name, _))) in self.guild.related.iter().enumerate().filter(|(_, (.., against))| *against == opposed).take(3).enumerate() {
-                let marked = matches!(self.guild.menu, Some((_, GuildMenu::Related(on))) if on == place);
+            for row in 0..RELATED_ROWS {
+                let place = related_place(self.guild.related.iter().map(|(.., against)| *against), opposed, row);
+                let name = place.and_then(|place| self.guild.related.get(place)).map(|(_, name, _)| name.as_str());
+                let marked = name.is_some() && self.guild.related_row == Some((opposed, row));
                 lists.push_str(&format!(
-                    r#"<div class="a t" style="{};overflow:visible;color:{BLACK};background:{}" {}>{}</div>"#,
-                    at(204, top + 2 + row as i32 * 16, 80, 16),
+                    r#"<div class="a" style="{}" {}><div class="a t" style="{};overflow:visible;color:{BLACK};background:{}">{}</div></div>"#,
+                    at(RELATED_PICK.0, top + 2 + row as i32 * RELATED_ROW, RELATED_PICK.1, RELATED_ROW),
+                    menued(Menu::GuildRelated(related_slot(opposed, row))),
+                    at(RELATED_MARK.0 - RELATED_PICK.0, 0, RELATED_MARK.1, RELATED_ROW),
                     if marked { MARK } else { "transparent" },
-                    menued(Menu::GuildRelated(place)),
-                    escape(name)
+                    escape(name.unwrap_or_default())
                 ));
             }
         }

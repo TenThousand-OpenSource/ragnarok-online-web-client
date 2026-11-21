@@ -116,6 +116,24 @@ pub fn grey(job: u16, light: Vector, normal: Vector) -> u8 {
     if job == FLAG { (facing * 100.0 + 155.0) as u8 } else { (facing * 128.0 + 127.0) as u8 }
 }
 
+/// A guild's emblem as the flag's second mesh shows it: the client puts its 24 by 24 pixels into a texture,
+/// and a texture's sides are rounded up to powers of two (`TextureCache::Upload` with
+/// `DeviceOwnerDX9::AdjustTextureDimensions`: 32 by 32), the picture in its top left corner; the mesh shows
+/// the whole texture, so the emblem takes three quarters of it each way and the rest shows nothing. Gives
+/// the texture's sides and its pixels (four bytes each). (What the client's texture holds beside the picture
+/// is whatever a new one holds: taken here as nothing, see-through.)
+pub fn emblem(width: usize, height: usize, pixels: &[u8]) -> Option<(usize, usize, Vec<u8>)> {
+    if width == 0 || height == 0 || pixels.len() != width * height * 4 {
+        return None;
+    }
+    let (wide, high) = (width.next_power_of_two(), height.next_power_of_two());
+    let mut texture = vec![0; wide * high * 4];
+    for row in 0..height {
+        texture[row * wide * 4..(row * wide + width) * 4].copy_from_slice(&pixels[row * width * 4..(row + 1) * width * 4]);
+    }
+    Some((wide, high, texture))
+}
+
 /// How far to either side and up and down of its feet a model is pointed at, in the world's units: the
 /// client's rectangle for it is as wide and high as the model's `baseHeight` and `topHeight` of 10 make
 /// it, each the root of half its square (`C3dGrannyModelRes::ProjectBounds`). (The two models the client
@@ -135,6 +153,19 @@ mod tests {
         assert_eq!(action_file("Kguardian90_7.gr2", Action::Stand), None);
         // The flag's other actions are never read.
         assert_eq!(action_file("Guildflag90_1.gr2", Action::Attack), None);
+    }
+
+    #[test]
+    fn an_emblem_takes_the_top_left_of_a_texture_of_powers_of_two() {
+        let pixels: Vec<u8> = (0..24 * 24 * 4).map(|at| (at % 251) as u8 + 1).collect();
+        let (wide, high, texture) = emblem(24, 24, &pixels).unwrap();
+        assert_eq!((wide, high, texture.len()), (32, 32, 32 * 32 * 4));
+        // The second row of the picture begins the second row of the texture; beside and under it is nothing.
+        assert_eq!(texture[32 * 4..32 * 4 + 24 * 4], pixels[24 * 4..48 * 4]);
+        assert!(texture[24 * 4..32 * 4].iter().all(|byte| *byte == 0) && texture[24 * 32 * 4..].iter().all(|byte| *byte == 0));
+        // One already so large is as it is; one that is none is none.
+        assert_eq!(emblem(16, 16, &pixels[..1024]).map(|(wide, high, texture)| (wide, high, texture == pixels[..1024])), Some((16, 16, true)));
+        assert_eq!(emblem(24, 24, &pixels[..100]), None);
     }
 
     #[test]

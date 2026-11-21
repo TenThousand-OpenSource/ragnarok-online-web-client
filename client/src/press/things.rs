@@ -101,7 +101,8 @@ presses! {
         Member(usize) = "member",
         /// A member of the guild, by its place in the guild window's list.
         GuildMember(usize) = "guild-member",
-        /// A guild allied to the player's or opposed, by its place among those the server told.
+        /// A row of the lists of the guilds allied to the player's and opposed, as `crate::guild::related_slot`
+        /// numbers them.
         GuildRelated(usize) = "guild-related",
         /// A castle the guild holds, by its line in the guild window's list.
         GuildCastle(usize) = "guild-castle",

@@ -3,6 +3,21 @@
 
 use super::*;
 
+/// What decides whom the pointer picks and whether a skill aimed goes on the one pressed, besides who is
+/// under the pointer (`crate::skills::aim`).
+#[derive(Default)]
+pub(super) struct Picking {
+    /// The skill being aimed is one of help: it goes on a monster only with Shift held, and while Shift is up
+    /// the pointer picks a player before a monster.
+    pub(super) support: bool,
+    /// The skill being aimed is one for a trap (Remove Trap, Spring Trap): it is pointed at a trap standing
+    /// on the ground, and at nobody.
+    pub(super) traps: bool,
+    /// Whether Shift is held, as the last event of the mouse or of the keys told (the client asks the
+    /// keyboard every frame: `g_pickModifierKey`).
+    pub(super) shift: bool,
+}
+
 #[derive(Default)]
 pub(super) struct State {
     pub(super) gpu: Option<Gpu>,
@@ -36,15 +51,8 @@ pub(super) struct State {
     pub(super) options: Options,
     /// What of the surroundings is kept from map to map: the switch of the fog, the night (`scenery.rs`).
     pub(super) scenery: scenery::Kept,
-    /// The skill being aimed is one of help (`crate::skills::aim`): it goes on a monster only with Shift held,
-    /// and while Shift is up the pointer picks a player before a monster.
-    pub(super) aim_support: bool,
-    /// Whether Shift is held, as the last event of the mouse or of the keys told (the client asks the
-    /// keyboard every frame: `g_pickModifierKey`).
-    pub(super) shift: bool,
-    /// Whether the skill being aimed is one for a trap (Remove Trap, Spring Trap): it is pointed at a trap
-    /// standing on the ground, and at nobody.
-    pub(super) aim_traps: bool,
+    /// What the pointer's pick goes by besides who is under it: the kind of the skill aimed, and Shift.
+    pub(super) picking: Picking,
     /// How the monster being fought is fought: 0 until it is down, 1 while the left button is held, 2 with one
     /// blow as soon as it is near enough (the button was let go before any blow was asked for).
     pub(super) fight: u8,
@@ -178,13 +186,13 @@ pub(super) struct State {
 impl State {
     /// Whether the pointer picks a player before a monster now (`crate::skills::aim::players_first`).
     pub(super) fn players_first(&self) -> bool {
-        crate::skills::aim::players_first(self.aiming == Some(false) && self.aim_support, self.shift)
+        crate::skills::aim::players_first(self.aiming == Some(false) && self.picking.support, self.picking.shift)
     }
 
     /// Whether the skill being aimed at someone would go on that one, pressed now: on a monster or on a player
     /// by the client's rule of Shift (`crate::skills::aim`), on nobody else.
     pub(super) fn aim_goes_on(&self, id: u32, unit: &Mover) -> bool {
-        let (support, shift, no_shift) = (self.aim_support, self.shift, self.options.no_shift);
+        let (support, shift, no_shift) = (self.picking.support, self.picking.shift, self.options.no_shift);
         if unit.companion {
             false
         } else if unit.lively {

@@ -288,13 +288,13 @@ pub fn aim(at: Option<bool>, range: u16) {
 
 /// Whether the skill being aimed is one of help (`crate::skills::aim::support`).
 pub fn aim_support(support: bool) {
-    STATE.with_borrow_mut(|state| state.aim_support = support);
+    STATE.with_borrow_mut(|state| state.picking.support = support);
 }
 
 /// Whether the skill being aimed is used on a trap (the server's kind 32 of using a skill, the client's
 /// `skillUseType` 5: Remove Trap, Spring Trap): the press that follows picks a trap, not someone.
 pub fn aim_traps(traps: bool) {
-    STATE.with_borrow_mut(|state| state.aim_traps = traps);
+    STATE.with_borrow_mut(|state| state.picking.traps = traps);
 }
 
 /// What is written by the pointer while a skill is aimed: its name and the level it will be used at.

@@ -73,7 +73,7 @@ fn aimed(event: &MouseEvent) {
     // pressed, the aiming is over with it, as in the client (a skill for someone pressed on the
     // bare ground is not used).
     let aimed = STATE.with_borrow_mut(|state| {
-        state.shift = event.shift_key();
+        state.picking.shift = event.shift_key();
         let players_first = state.players_first();
         let ground = state.aiming.take() == Some(true);
         let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
@@ -83,7 +83,7 @@ fn aimed(event: &MouseEvent) {
             let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
             let cell = view.pick(&scene.gat, (pointer.0 / width.max(1.0), pointer.1 / height.max(1.0)))?;
             (None, (cell.0.max(0) as u16, cell.1.max(0) as u16))
-        } else if state.aim_traps {
+        } else if state.picking.traps {
             // A skill for a trap goes to the trap pointed at, by the trap's own ID (the client's
             // `CGameMode::HandleActorPick`, a pick of the kind 2 with `skillUseType` 5:
             // `AM_PROCEEDTOUCHSKILL` with the unit's ID); pressed on anything else it is not used.

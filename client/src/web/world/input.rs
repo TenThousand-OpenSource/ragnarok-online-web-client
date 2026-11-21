@@ -33,7 +33,7 @@ pub(super) fn listen() {
     let wheel = Closure::<dyn FnMut(WheelEvent)>::new(|event: WheelEvent| wheel::turned(&event));
     // Shift going down or up changes whom the pointer picks and which pointer shows, with the mouse still.
     let shifted = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(|event: web_sys::KeyboardEvent| {
-        STATE.with_borrow_mut(|state| state.shift = event.shift_key());
+        STATE.with_borrow_mut(|state| state.picking.shift = event.shift_key());
     });
     // The right button is the camera's: the browser's menu stays away.
     let menu = Closure::<dyn FnMut(MouseEvent)>::new(|event: MouseEvent| event.prevent_default());

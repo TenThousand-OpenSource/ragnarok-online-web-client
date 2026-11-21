@@ -34,6 +34,7 @@ mod monster_skills;
 mod pets;
 mod quests;
 mod scenery;
+mod skill_needs;
 mod skills;
 mod song_talk;
 mod statuses;
@@ -58,6 +59,7 @@ pub use monster_skills::monster_skill;
 pub use pets::*;
 pub use quests::*;
 pub use scenery::{Sky, sky};
+pub use skill_needs::{skill_asks, skill_sp};
 pub use skills::*;
 pub use song_talk::song_line;
 pub use statuses::*;
@@ -155,7 +157,7 @@ pub fn map_name(map: &str) -> String {
 /// built-in names and nobody wears headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=30").await?;
+    let tables = fetch_json("/tables.json?v=31").await?;
     jobs::read(&tables);
     skills::read(&tables);
     pets::read(&tables);
@@ -174,6 +176,7 @@ pub async fn load() -> Result<(), String> {
     manner::read(&tables);
     monster_skills::read(&tables);
     castles::read(&tables);
+    skill_needs::read(&tables);
     // (Not of the gateway's tables: two files of the client's data, read as they are.)
     song_talk::fetch();
     books::fetch();

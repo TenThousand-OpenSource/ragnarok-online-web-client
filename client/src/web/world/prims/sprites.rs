@@ -4,6 +4,7 @@
 //! - `EF_BLESSING` (42): Blessing, its angel and its sparks, and the light on the ground under them, which is
 //!   no sprite (`Blessing`);
 //! - `EF_STEAL` (18): Steal (`Steal`);
+//! - `EF_COIN` (10): the coins of Mammonite, which fly from the one struck while its file plays (`Coin`);
 //! - `EF_DETOXICATION` (21): Detoxify (`Detoxication`);
 //! - `EF_SIGHT` (22): the fire going round the one who sees (`Sight`);
 //! - `EF_RUWACH` (33): the light going round the one who sees by Ruwach (in the client's
@@ -26,12 +27,15 @@ use super::*;
 
 /// The sprites the effects here show, among the client's sprites (the client names them `이팩트\name.spr`, the
 /// shadow `Shadow.spr`).
-const SPRITES: [&str; 13] = [SAKURA, PARTICLE1, PARTICLE2, PARTICLE3, PARTICLE4, PARTICLE6, PARTICLE7, ANGEL, SIGHT, SHADOW, FIREBALL, AQUA, SPEAR];
+const SPRITES: [&str; 14] = [
+    SAKURA, PARTICLE1, PARTICLE2, PARTICLE3, PARTICLE4, PARTICLE6, PARTICLE7, ANGEL, SIGHT, SHADOW, FIREBALL, AQUA, SPEAR, COIN,
+];
 
 const PARTICLE6: &str = "이팩트/particle6";
 const PARTICLE7: &str = "이팩트/particle7";
 const ANGEL: &str = "이팩트/축복";
 const AQUA: &str = "이팩트/성수뜨기";
+const COIN: &str = "이팩트/동전";
 
 pub(super) const FILE: File = File { known, thrown: none, stays: none, run, pictures: &[&PICTURES], sprites: &[&SPRITES] };
 
@@ -42,6 +46,8 @@ const PICTURES: [&str; 2] = ["alpha_down.tga", "alpha_center.tga"];
 /// (none: empty); nothing for any other effect.
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
+        // (`Coin` ends itself at its hundredth tick; the sound is its file's, if the table has one.)
+        10 => (100, ""),
         18 => (50, "effect/ef_steal.wav"),
         21 => (100, "effect/ef_detoxication.wav"),
         22 => (270, ""),
@@ -63,6 +69,7 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
 fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     let (tick, lasts) = (course.tick, course.lasts);
     match effect {
+        10 if tick == 20 => prims.extend(coins()),
         18 if tick == 0 => prims.extend(steal(lasts)),
         21 => rising_sparks(false, tick, prims),
         22 => sight(tick, prims),
@@ -119,6 +126,30 @@ fn kouenka(course: &mut Course, prims: &mut Vec<Prim>) {
     petal.parts.push(wander);
     petal.action = lot(3) as usize;
     prims.push(petal);
+}
+
+/// `CRagEffect::Coin`, what of it is no file: at its twentieth tick five coins (`동전.spr`, a new picture every
+/// tick) thrown level every way, by twelfths of a turn, from 10 above the one struck and 2 or 3 away: each
+/// lives 40 to 69 ticks, slows, is thrown up hard and falls back, and fades over its last third. (The client
+/// also has each coin sound as it goes, `playWaveType` 1: what that plays was not found, and it is silent
+/// here.)
+fn coins() -> Vec<Prim> {
+    (0..5)
+        .map(|_| {
+            let lives = lot(30) as i32 + 40;
+            let round = lot(12) * 30.0;
+            let mut coin = thrown(Shape::ParticleGravity3d, COIN, round, 0.0, lot(2) + 2.0);
+            coin.duration = lives;
+            coin.speed = (lot(50) + 50.0) / 100.0;
+            coin.accel = -(coin.speed / coin.duration as f32) / 3.5;
+            coin.grav_speed = -(lot(100) + 50.0) / 25.0;
+            coin.grav_accel = -(coin.grav_speed / coin.duration as f32 * 4.0);
+            coin.size = 2.0;
+            coin.fade_out = coin.duration - coin.duration / 3;
+            (coin.anim_speed, coin.segments) = (1, 2);
+            coin
+        })
+        .collect()
 }
 
 /// `CRagEffect::Steal`: ten sparks thrown every way from 10 above the one robbed, that go level as they slow

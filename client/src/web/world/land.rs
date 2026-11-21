@@ -98,7 +98,6 @@ impl Models {
             speed: 1.0
         };
         let placed = model::place(&of.model.at(frame), of.model.shade, &placement, self.map_size, &light);
-        let layout = gpu.model_pipelines[0].get_bind_group_layout(1);
         let batches =
             of.pictures.iter().enumerate().map(|(texture, (view, blends))| (texture, corners(&placed, texture), view, *blends)).filter(
                 |(_, floats, _, _)| !floats.is_empty()
@@ -106,7 +105,7 @@ impl Models {
         let batches = batches
             .map(|(texture, floats, view, blends)| (
                 texture,
-                batch(gpu, &layout, view, blends, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST)
+                batch(gpu, view, blends, &floats, wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST)
             ))
             .collect();
         self.raised.insert(id, Raised { of: of.clone(), placement, light, shown: frame, batches });
@@ -189,8 +188,12 @@ fn blends(name: &str) -> bool {
     !name.to_ascii_lowercase().ends_with(".bmp")
 }
 
-/// The triangles drawn with one picture, on the GPU.
-fn batch(gpu: &Gpu, layout: &wgpu::BindGroupLayout, view: &wgpu::TextureView, blends: bool, floats: &[f32], usage: wgpu::BufferUsages) -> Batch {
+/// The triangles drawn with one picture, on the GPU. Its picture is bound through the layout of the pipeline
+/// that draws it (`Gpu::draw_map`: the one that mixes for a picture that `blends`): a layout a pipeline made
+/// for itself goes with no other pipeline, and one batch bound through another's makes the whole frame
+/// refused (a map with a TGA on a model, Izlude, was black).
+fn batch(gpu: &Gpu, view: &wgpu::TextureView, blends: bool, floats: &[f32], usage: wgpu::BufferUsages) -> Batch {
+    let layout = &gpu.model_pipelines[usize::from(blends)].get_bind_group_layout(1);
     Batch {
         vertices: gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: None, contents: bytemuck::cast_slice(floats), usage }),
         count: (floats.len() / CORNER) as u32,
@@ -278,8 +281,7 @@ pub(super) async fn models(gpu: &Gpu, rsw: &Rsw, map_size: (f32, f32), decode: i
             (name, view)
         })
         .collect();
-    let layout = gpu.model_pipelines[0].get_bind_group_layout(1);
-    let batch = |name: &str, floats: &[f32], usage: wgpu::BufferUsages| batch(gpu, &layout, &pictures[name], blends(name), floats, usage);
+    let batch = |name: &str, floats: &[f32], usage: wgpu::BufferUsages| batch(gpu, &pictures[name], blends(name), floats, usage);
     let still = by_texture.iter().filter(|(_, floats)| !floats.is_empty()).map(|(name, floats)| batch(name, floats, wgpu::BufferUsages::VERTEX)).collect();
     let in_world = |placement: &Placement| [placement.position[0] + map_size.0 / 2.0, -placement.position[1], placement.position[2] + map_size.1 / 2.0];
     let moving = turning

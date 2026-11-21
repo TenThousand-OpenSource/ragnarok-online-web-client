@@ -65,6 +65,7 @@ files!(
     sprays,
     sprites,
     struck,
+    thrown,
     trails,
     walls,
     waterfalls,

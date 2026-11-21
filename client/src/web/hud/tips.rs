@@ -4,15 +4,37 @@ use super::*;
 use crate::press::Step;
 use crate::press::tips::Press;
 
+/// The words of a page between its links as HTML: their colours (`^rrggbb`) kept, and where `^i[number]` stands
+/// the item's small picture (`crate::markup::pictured`; the client's `CCreateLineInfo::LayoutItemImage` puts a
+/// `UIItemImage` 25 by 25 into the line, standing on the line's bottom as `ArrangeLines` lays it). Pointed at
+/// it names the item (`UIItemImage::OnMouseHover`) and the right button opens the item's description
+/// (`OnRBtnDown`).
+fn lettered(words: &str) -> String {
+    use crate::markup::Shown;
+    crate::markup::pictured(words)
+        .into_iter()
+        .map(|shown| match shown {
+            Shown::Words(words) => coloured(words),
+            Shown::Item(id) => format!(
+                r#"<span style="display:inline-block;width:25px;height:25px;vertical-align:bottom" {} title="{}">{}</span>"#,
+                item_marks(id, true),
+                escape(&called(id)),
+                App::item_icon(id, true)
+            ),
+        })
+        .collect()
+}
+
 /// A page of a tip as HTML: its colours (`^rrggbb`) kept, a link to another tip (`<TIPBOX>name<INFO>number
 /// </INFO></TIPBOX>`) made a press on its name, the other links of the client (`<NAVI>`, `<ITEM>`, `<URL>`)
-/// left as their names, and the sign the lines begin with, which is one of the client's own font, a dot.
+/// left as their names, an item's picture drawn where its mark stands (`lettered`), and the sign the lines
+/// begin with, which is one of the client's own font, a dot.
 fn page_html(page: &str) -> String {
     let dotted: String = page.chars().map(|letter| if letter.is_ascii() || letter.is_alphanumeric() { letter } else { '·' }).collect();
     let mut html = String::new();
     let mut rest = dotted.as_str();
     while let Some(start) = rest.find('<') {
-        html.push_str(&coloured(&rest[..start]));
+        html.push_str(&lettered(&rest[..start]));
         let Some(end) = rest[start..].find('>').map(|end| start + end) else {
             rest = &rest[start + 1..];
             continue;
@@ -35,7 +57,7 @@ fn page_html(page: &str) -> String {
         }
         rest = &rest[close + closing.len()..];
     }
-    html.push_str(&coloured(rest));
+    html.push_str(&lettered(rest));
     html.replace('\n', "<br>")
 }
 
@@ -43,11 +65,12 @@ impl App {
     /// The Tipbox (the client's `UITipboxWnd`, 480 by 365): the title (line 3238 of the message table); the
     /// picture `tipbox\TipboxBG.bmp` at the left under it and `bg_tipbox.bmp` at 241; at (253, 22) the line to
     /// search with, 193 wide; the tip's title at (254, 50) in bold blue (44, 77, 160), what stands after a `#`
-    /// in it left out; its text in a box 226 by 245 at (250, 70); the page and how many there are at (426,
-    /// 320) between the arrows at 415 and 462; the bar `btnbar_bottom.bmp` at 337 with the box "Open on
-    /// Startup" at (9, 347) and Close at (415, 341). What a search found is listed in a box 216 by 266 at
-    /// (250, 50), each a press. (The client's left half shows a picture that goes with the tip, and its
-    /// button that writes a link to the tip into the chat is not here.)
+    /// in it left out; its text in a box 226 by 245 at (250, 70), or 20 lower and shorter under a title of two
+    /// lines; the page and how many there are at (426, 320) between the arrows at 415 and 462; the bar
+    /// `btnbar_bottom.bmp` at 337 with the box "Open on Startup" at (9, 347) and Close at (415, 341). What a
+    /// search found is listed in a box 216 by 266 at (250, 50), each a press. (The client's left half shows a
+    /// picture that goes with the tip, and its button that writes a link to the tip into the chat is not
+    /// here.)
     pub(in crate::web) fn tip_window(&self) -> String {
         let tips = data::tips();
         let mut window = title_bar(480, &Self::words(3238, "TIPBOX"));
@@ -86,15 +109,19 @@ impl App {
         } else if let Some(tip) = tips.iter().find(|tip| tip.id == self.tips.tip) {
             let pages = tip.pages.len().max(1);
             let page = self.tips.page.min(pages - 1);
+            // The title is cut into lines of 30 letters and its first two are shown; under one line the text
+            // begins 20 higher and is so much taller (`UITipboxWnd::RefreshTip`).
+            let title = crate::broadcast::wrapped(tip.title.split('#').next().unwrap_or_default(), 30);
+            let (top, height) = if title.len() < 2 { (70, 245) } else { (90, 225) };
             window.push_str(&format!(
-                r#"<div class="a t" style="{};color:{blue};{};white-space:normal;line-height:18px">{}</div>"#,
+                r#"<div class="a t" style="{};color:{blue};{};white-space:nowrap;overflow:hidden;line-height:18px">{}</div>"#,
                 at(254, 50, 220, 36),
                 Font(0, 13, true).style(),
-                escape(tip.title.split('#').next().unwrap_or_default())
+                title.iter().take(2).map(|line| escape(line)).collect::<Vec<_>>().join("<br>")
             ));
             window.push_str(&format!(
                 r#"<div class="a t scroll" style="{};overflow-y:auto;white-space:normal;line-height:15px;color:{BLACK}">{}</div>"#,
-                at(250, 90, 226, 225),
+                at(250, top, 226, height),
                 tip.pages.get(page).map(|page| page_html(page)).unwrap_or_default()
             ));
             window.push_str(&pictured(

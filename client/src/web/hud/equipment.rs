@@ -51,19 +51,21 @@ impl App {
 
     /// What the character wears, laid out as the original's window (its sizes as rustnarok-client lists them):
     /// two columns of five places, the character between them. A double click on a place takes the thing off.
+    /// A thing of the inventory let go anywhere on the window is put on (`UIEquipWnd::DragAndDrop`,
+    /// `clicks/inventory.rs worn_let_go`).
     pub(in crate::web) fn equipment_window(&self) -> String {
         let mut window = self.equipment_frame();
         if self.bag.costumes {
             // On the page of costumes the client switches the "off" button off; here it is not drawn there.
             window.push_str(&Self::worn_in(&self.bag.items, true, &COSTUMES));
-            return window;
+        } else {
+            window.push_str(&self.equipment_off_button());
+            // One who pushes a cart has the button of the cart's window here too (`hud/cart.rs`).
+            window.push_str(&self.cart_equipment_button());
+            window.push_str(&Self::worn_places(&self.bag.items, true));
+            window.push_str(&self.equipment_ammunition());
         }
-        window.push_str(&self.equipment_off_button());
-        // One who pushes a cart has the button of the cart's window here too (`hud/cart.rs`).
-        window.push_str(&self.cart_equipment_button());
-        window.push_str(&Self::worn_places(&self.bag.items, true));
-        window.push_str(&self.equipment_ammunition());
-        window
+        format!("<div {}>{window}</div>", dropped(crate::press::things::Drop::Equipment))
     }
 
     /// What both pages of the window have: the title, the row of the pages' tabs, the picture with the
@@ -125,9 +127,12 @@ impl App {
 
     /// The arrows readied (`UIEquipWnd::Paint`, after the character is drawn, so over it): their picture
     /// with no number on it, 25 left of the window's middle and 44 under where its page begins (115, 64),
-    /// and their name from the same 115 at 88, in lines no wider than 40 (`DrawItemIcon`, `DrawItemName`).
-    /// The client does put both there, beside and over the character's head. A double click takes them off,
-    /// as with anything worn.
+    /// and their name from the same 115, in lines no wider than 40 (`DrawItemIcon`, `DrawItemName`). The
+    /// client hands the name's place as 88, and `UIFrameWnd::DrawTextLines` begins the first of its two lines
+    /// half a line (6) above the place handed, as it does for every name of this window: so the name begins 5
+    /// above 88 here, as a place's name begins 5 above the client's 45 and 71, and lies over the bottom of
+    /// the picture. The client does put both there, beside and over the character's head. A double click
+    /// takes them off, as with anything worn.
     fn equipment_ammunition(&self) -> String {
         let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::inventory::WORN_AS_AMMO) else { return String::new() };
         [
@@ -144,7 +149,7 @@ impl App {
                    "#,
                 Self::item_icon(item.id, true)
             ),
-            format!(r#"<div class="a t" style="left:115px;top:88px;width:40px;line-height:12px;white-space:normal;"#),
+            format!(r#"<div class="a t" style="left:115px;top:83px;width:40px;line-height:12px;white-space:normal;"#),
             format!(r#"overflow:hidden;max-height:24px;pointer-events:none">{}</div>"#, escape(&Self::item_name(item)))
         ].concat()
     }

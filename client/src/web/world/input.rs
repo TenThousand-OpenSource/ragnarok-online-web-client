@@ -31,6 +31,10 @@ pub(super) fn listen() {
         }
     });
     let wheel = Closure::<dyn FnMut(WheelEvent)>::new(|event: WheelEvent| wheel::turned(&event));
+    // Shift going down or up changes whom the pointer picks and which pointer shows, with the mouse still.
+    let shifted = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(|event: web_sys::KeyboardEvent| {
+        STATE.with_borrow_mut(|state| state.shift = event.shift_key());
+    });
     // The right button is the camera's: the browser's menu stays away.
     let menu = Closure::<dyn FnMut(MouseEvent)>::new(|event: MouseEvent| event.prevent_default());
 
@@ -43,6 +47,8 @@ pub(super) fn listen() {
     if let Some(window) = &window {
         let _ = window.add_event_listener_with_callback("mousemove", moved.as_ref().unchecked_ref());
         let _ = window.add_event_listener_with_callback("mouseup", released.as_ref().unchecked_ref());
+        let _ = window.add_event_listener_with_callback("keydown", shifted.as_ref().unchecked_ref());
+        let _ = window.add_event_listener_with_callback("keyup", shifted.as_ref().unchecked_ref());
         let _ = window.add_event_listener_with_callback("mousedown", side.as_ref().unchecked_ref());
         let _ = window.add_event_listener_with_callback("auxclick", side.as_ref().unchecked_ref());
         let _ = window.add_event_listener_with_callback_and_add_event_listener_options("wheel", page_zoom.as_ref().unchecked_ref(), &options);
@@ -54,6 +60,7 @@ pub(super) fn listen() {
     moved.forget();
     released.forget();
     wheel.forget();
+    shifted.forget();
     menu.forget();
 }
 

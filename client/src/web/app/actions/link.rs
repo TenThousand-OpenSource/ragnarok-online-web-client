@@ -36,12 +36,11 @@ impl App {
                 // CZ_REQUEST_TIME, as the client's `CGameMode::SendSyncRequest`: the answer corrects the clock
                 // the world shows walks by (`world::clock_told`).
                 socket.send(&packets::tick(now()));
-                // Every third time, and at once on coming in: how many play (CZ_REQ_USER_COUNT, 0x00c1,
-                // what the client's `/who` sends).
-                if self.ticks % 3 == 0 {
-                    socket.send(&crate::net::commands::user_count());
-                }
-                self.ticks = self.ticks.wrapping_add(1);
+                // And how many play (CZ_REQ_USER_COUNT, 0x00c1, what the client's `/who` sends), for the count by
+                // the chat, which is this project's own (`docs/DEBTS.md`): at every beat of this timer, twelve
+                // seconds apart, and once as each map begins (`actions/travel.rs`), so that two players see
+                // the same count within that time.
+                socket.send(&crate::net::commands::user_count());
             }
             _ => {}
         }

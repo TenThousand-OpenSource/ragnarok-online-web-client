@@ -267,6 +267,9 @@ impl App {
             _ => return,
         };
         if result == guild::broken::DONE {
+            // The server tells nothing of the flags of a castle the guild held (rAthena's `OnRecvCastle`
+            // refreshes them only for a castle that has an owner), so they are bared here (`guild_gone`).
+            world::guild_gone(self.guild.id);
             self.guild.left();
             self.guild_own_shown();
         }

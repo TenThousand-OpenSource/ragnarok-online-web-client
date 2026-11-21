@@ -1,6 +1,6 @@
 //! When a blow lands: the moment into the striker's swing at which the one struck flinches, stops and the
 //! number rises; and how the digits of that number stand. The hits a blow is made of are in `landing.rs`, what
-//! each shows and sounds like in `signs.rs`, how the numbers fly in `flight.rs`.
+//! each shows and sounds like in `signs.rs`, how the numbers fly in `flight.rs`, what a monster shoots in `shots.rs`.
 //!
 //! From the client's `CGameActor::ProcessHitMessage` and `CGameActor::GetAttackMotion`: the blow lands as the
 //! swing reaches the frame that carries the sound event named `atk` (without one, the frame before the last),
@@ -10,6 +10,7 @@
 pub mod combos;
 pub mod flight;
 pub mod landing;
+pub mod shots;
 pub mod signs;
 
 /// The speed of a swing shown as the sprite has it (the client's `g_maxMoveSpeed`).
@@ -29,7 +30,13 @@ pub fn frame<'a>(sounds: impl ExactSizeIterator<Item = Option<&'a str>>) -> usiz
 /// How long after a blow is told of it lands (milliseconds): `frame` is where it lands in the swing, `speed`
 /// what the server sent with it, `job` who strikes — the client gives a few archers and guardians longer.
 pub fn lands_after(frame: usize, speed: f64, job: u16) -> f64 {
-    let extra = match job {
+    (frame as f64 * (speed.clamp(0.0, FULL_SPEED) / FULL_SPEED) * FRAME_MS).trunc() + lands_later(job)
+}
+
+/// How much later than its frame of the swing the blow of a job lands (milliseconds): the client gives a few
+/// archers and guardians longer.
+pub fn lands_later(job: u16) -> f64 {
+    match job {
         // JT_ARCHER_SKELETON, JT_G_ARCHER_SKELETON.
         1016 | 1420 => 192.0,
         // JT_ARCHER_GUARDIAN, JT_BOW_GUARDIAN.
@@ -37,8 +44,7 @@ pub fn lands_after(frame: usize, speed: f64, job: u16) -> f64 {
         // JT_KNIGHT_GUARDIAN, JT_SWORD_GUARDIAN, JT_SOLDIER_GUARDIAN.
         1286 | 1829 | 1287 => 408.0,
         _ => 0.0,
-    };
-    (frame as f64 * (speed.clamp(0.0, FULL_SPEED) / FULL_SPEED) * FRAME_MS).trunc() + extra
+    }
 }
 
 /// How far across from a number's place one of its digits stands, in pixels of the digits' sprite: `from_last`

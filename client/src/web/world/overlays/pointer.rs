@@ -32,7 +32,8 @@ pub(super) fn shown(state: &mut State, view: &View, time: f64, over: Option<u32>
         _ if state.turning.is_some() => 5,
         // A skill being aimed: the pointer of a skill, and its other picture over a monster it can go to
         // (the client's cursor actions 10 and 11).
-        Some(unit) if state.aiming == Some(false) && (unit.lively || foe) => 7,
+        // (`CGameMode::HandleActorPick`: 11 over a monster or a player the skill would go on as Shift stands.)
+        Some(unit) if state.aiming == Some(false) && over.is_some_and(|id| state.aim_goes_on(id, unit)) => 7,
         _ if state.aiming.is_some() => 6,
         // Over a pet the pointer stays plain, as in the client.
         Some(unit) if unit.companion => 0,

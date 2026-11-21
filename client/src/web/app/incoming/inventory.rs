@@ -123,7 +123,7 @@ impl App {
                 self.bag.favourites.push(gained.index);
             }
             // What was picked up is told in the chat and shown for a moment, as the original does.
-            self.bag.obtained = Some((gained.id, gained.amount, gained.identified));
+            self.bag.obtained = Some((crate::item_names::Named::from(&gained), gained.amount));
             self.bag.obtained_at = js_sys::Date::now();
             match self.bag.at_mut(gained.index) {
                 Some(item) if item.id == gained.id => item.amount += gained.amount,
@@ -242,9 +242,15 @@ impl App {
     }
 
     /// Tells of the thing just picked up, once its name is known: a line in the chat, and a note on the screen.
+    /// The name is the whole one, "+1 Knife [3]" (`AddPickedUpItemEx` and `UpdateReceivedItemEx`,
+    /// `GameModePackets.cpp`: `MSI_GET_ITEM` filled with `item.DisplayName(0)`): a smith's refining gives the
+    /// thing anew, and the line says how far it is refined now.
     pub(in crate::web::app) fn tell_obtained(&mut self) {
-        let Some((id, amount, identified)) = self.bag.obtained.filter(|_| !self.bag.told_obtained) else { return };
-        let Some((name, _)) = data::item_as(id, identified) else { return };
+        let Some((named, amount)) = self.bag.obtained.clone().filter(|_| !self.bag.told_obtained) else { return };
+        if data::item_as(named.id, named.identified).is_none() {
+            return;
+        }
+        let name = data::item_title(&named, false);
         self.bag.told_obtained = true;
         self.chat_line_of(said::ITEM, format!("{name} - {amount} {}", crate::i18n::tr("obtained.")), YELLOW);
         if let Some(note) = element("obtained") {
@@ -263,7 +269,7 @@ impl App {
         self.refresh_items();
         // The shop's list and basket name what they hold, as the question's window does.
         self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET]);
-        self.redraw(&[&wnd::GUIDE]);
+        self.redraw(&[&wnd::GUIDE, &wnd::TIPS]);
         self.redraw(&[&wnd::QUEST_PANE]);
         self.redraw(&[&wnd::MAIL_READ, &wnd::MAIL_WRITE]);
         self.vending_redrawn();

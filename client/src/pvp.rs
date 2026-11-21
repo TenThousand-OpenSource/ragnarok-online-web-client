@@ -29,7 +29,24 @@ pub struct Zone {
     pub pk: bool,
 }
 
+/// The things that raise the one who carries them where they lie dead (`CGameMode::HasResurrectionItem`: the
+/// Token of Siegfried, 7621, and four of later years the client looks for the same way).
+pub const RAISING: [u32; 5] = [7621, 6833, 6316, 6293, 25310];
+
 impl Zone {
+    /// Whether the dead may rise here by a thing they carry (`CGameMode::HasResurrectionItem`: not where
+    /// `isPKZone`, `isSiegeMode` or `isEventPVPMode` is set; the last, a map of the older packets' kind 2,
+    /// this client does not keep).
+    pub fn raises(&self) -> bool {
+        !(self.pk || self.siege)
+    }
+
+    /// Whether one who lies dead here rises by what is `carried` (each thing's number and how many of it): one
+    /// of the things that raise, on a map that lets them.
+    pub fn raises_with(&self, carried: impl IntoIterator<Item = (u32, u16)>) -> bool {
+        self.raises() && carried.into_iter().any(|(id, amount)| amount > 0 && RAISING.contains(&id))
+    }
+
     /// Whether another player is fought here as a monster is: the pointer over them is the sword, and a press
     /// attacks. `party`, `guild` and `ally` tell whether they are of the player's party, of the player's guild,
     /// of a guild allied to it. The client's rule for a player under the pointer with no skill aimed and Shift
@@ -99,6 +116,19 @@ pub fn rank_message(before: i32, now: i32) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_dead_rise_by_a_thing_only_where_players_are_not_fought() {
+        assert!(Zone::default().raises());
+        assert!(Zone { counted: true, ..Zone::default() }.raises());
+        assert!(!Zone { pk: true, ..Zone::default() }.raises());
+        assert!(!Zone { siege: true, ..Zone::default() }.raises());
+        assert_eq!(RAISING[0], 7621);
+        // With a Token of Siegfried among what is carried, and not with none left of it or on a map of sieges.
+        assert!(Zone::default().raises_with([(501, 3), (7621, 1)]));
+        assert!(!Zone::default().raises_with([(501, 3), (7621, 0)]) && !Zone::default().raises_with([]));
+        assert!(!Zone { siege: true, ..Zone::default() }.raises_with([(7621, 1)]));
+    }
 
     #[test]
     fn the_line_is_laid_out_as_the_client_does() {

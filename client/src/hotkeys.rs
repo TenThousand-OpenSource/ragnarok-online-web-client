@@ -198,9 +198,24 @@ pub fn bar_stepped(rows: u8, hidden: bool) -> (u8, bool) {
     }
 }
 
+/// Whether a skill kept on a slot of the bar is drawn there and answers its key (`UIShortCutWnd::MatchesShortcut`
+/// after `CSession::LookupSkill`, in the bar's `Paint`, its press and its tooltip): only one the character has,
+/// at no less than the level the slot keeps. The slot itself stays as the server keeps it, so a skill lost with
+/// a job is back on its slot once it is had again. `known` is the level the skill is had at, 0 for one not had.
+pub fn skill_shown(known: u16, kept: u16) -> bool {
+    kept != 0 && known >= kept
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_skill_the_character_has_not_is_not_on_the_bar() {
+        // A Thief's Steal 10 on a slot of one who is now a Priest; then one had at a lower level than kept.
+        assert!(!skill_shown(0, 10) && !skill_shown(3, 5) && !skill_shown(5, 0));
+        assert!(skill_shown(10, 10) && skill_shown(10, 4));
+    }
 
     #[test]
     fn knows_the_keys() {

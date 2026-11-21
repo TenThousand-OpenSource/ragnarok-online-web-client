@@ -14,4 +14,6 @@ pub(in crate::web) struct Dialog {
     pub picked: usize,
     /// Something is asked for: words (true) or a number (false).
     pub asks: Option<bool>,
+    /// When "next" or the menu's OK was last taken, by the client's clock (`crate::talk::too_soon`).
+    pub answered: u32,
 }

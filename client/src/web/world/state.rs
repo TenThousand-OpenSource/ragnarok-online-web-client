@@ -36,9 +36,15 @@ pub(super) struct State {
     pub(super) options: Options,
     /// What of the surroundings is kept from map to map: the switch of the fog, the night (`scenery.rs`).
     pub(super) scenery: scenery::Kept,
-    /// The skill being aimed is one of help, which goes on a monster only with Shift held (unless the client's
-    /// No Shift option is on).
-    pub(super) aim_guarded: bool,
+    /// The skill being aimed is one of help (`crate::skills::aim`): it goes on a monster only with Shift held,
+    /// and while Shift is up the pointer picks a player before a monster.
+    pub(super) aim_support: bool,
+    /// Whether Shift is held, as the last event of the mouse or of the keys told (the client asks the
+    /// keyboard every frame: `g_pickModifierKey`).
+    pub(super) shift: bool,
+    /// Whether the skill being aimed is one for a trap (Remove Trap, Spring Trap): it is pointed at a trap
+    /// standing on the ground, and at nobody.
+    pub(super) aim_traps: bool,
     /// How the monster being fought is fought: 0 until it is down, 1 while the left button is held, 2 with one
     /// blow as soon as it is near enough (the button was let go before any blow was asked for).
     pub(super) fight: u8,
@@ -127,8 +133,8 @@ pub(super) struct State {
     pub(super) own_level: u16,
     /// The words of units on the ground (`written.rs`).
     pub(super) written: written::Words,
-    /// Arrows in flight: when each leaves, from where, and at whom.
-    pub(super) arrows: Vec<(f64, Vector, u32)>,
+    /// Arrows in flight, and what monsters shoot: when each leaves, from where, at whom, and its sprite.
+    pub(super) arrows: Vec<(f64, Vector, u32, &'static str)>,
     /// The effects playing, and the effect files read so far, by name.
     pub(super) effects: Vec<Playing>,
     pub(super) effect_files: HashMap<String, Rc<Shown>>,
@@ -170,6 +176,24 @@ pub(super) struct State {
 }
 
 impl State {
+    /// Whether the pointer picks a player before a monster now (`crate::skills::aim::players_first`).
+    pub(super) fn players_first(&self) -> bool {
+        crate::skills::aim::players_first(self.aiming == Some(false) && self.aim_support, self.shift)
+    }
+
+    /// Whether the skill being aimed at someone would go on that one, pressed now: on a monster or on a player
+    /// by the client's rule of Shift (`crate::skills::aim`), on nobody else.
+    pub(super) fn aim_goes_on(&self, id: u32, unit: &Mover) -> bool {
+        let (support, shift, no_shift) = (self.aim_support, self.shift, self.options.no_shift);
+        if unit.companion {
+            false
+        } else if unit.lively {
+            crate::skills::aim::goes_on_monster(support, shift, no_shift)
+        } else {
+            matches!(unit.look, Look::Character(_)) && crate::skills::aim::goes_on_player(support, shift, no_shift, self.pvp.foe(id, unit))
+        }
+    }
+
     /// Forgets what was under way in the fights and effects of the place left: the numbers flying, the arrows,
     /// the effects and sounds due and playing, the blows on their way, the circles of skills aimed, the copies
     /// left standing (`session.rs`: leaving the world, and a jump to another place).

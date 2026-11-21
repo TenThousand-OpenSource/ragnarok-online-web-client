@@ -26,8 +26,10 @@ pub(in crate::web) struct Bag {
     pub identify_picked: Option<usize>,
     /// The thing being dropped while its count is asked for: where it is carried, and how many there are.
     pub throwing: Option<(u16, u16)>,
-    /// What was picked up last, and whether the chat has told of it (its name may arrive a moment later).
-    pub obtained: Option<(u32, u16, bool)>,
+    /// What was picked up last, as its name is made (refined so far, with these cards: the client writes
+    /// `ITEM_INFO::DisplayName(0)` of it), how many, and whether the chat has told of it (its name may arrive a
+    /// moment later).
+    pub obtained: Option<(crate::item_names::Named, u16)>,
     /// When it was picked up (milliseconds since 1970): the note of it shows for five seconds from then.
     pub obtained_at: f64,
     pub told_obtained: bool,

@@ -5,3 +5,8 @@ motd_txt: conf/import/motd.txt
 // The classic scripts place everyone by the old maps of Izlude, Alberta and Morroc; the client has the new ones.
 // This script moves them to their places on the new maps (see tools/client-tables/classic_overlay.py).
 npc: npc/custom/roweb_classic.txt
+// Sieges (War of Emperium) are not started by the clock on this test server: the two scripts that start and
+// end them by schedule are left out. A GM starts and ends one by hand: @agitstart / @agitend (first edition),
+// @agitstart2 / @agitend2 (second). To have the schedule back, remove these two lines.
+delnpc: npc/guild/agit_controller.txt
+delnpc: npc/guild2/agit_start_se.txt

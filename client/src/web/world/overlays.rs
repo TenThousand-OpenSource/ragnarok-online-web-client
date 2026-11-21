@@ -31,7 +31,7 @@ pub(super) fn overlays(state: &mut State, view: &View, time: f64, feet: Vector, 
 /// its mark while the pointer is on another, which gets a second for as long as the pointer is there.
 fn pointed(state: &mut State, view: &View) -> Option<Option<(u32, (f32, f32))>> {
     let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
-    let over = state.pointer.and_then(|pointer| pointed_at(gpu, scene, view, pointer)).filter(|(id, _)| scene.units.contains_key(id));
+    let over = state.pointer.and_then(|pointer| pointed_at(gpu, scene, view, pointer, state.players_first())).filter(|(id, _)| scene.units.contains_key(id));
     let unit = over.and_then(|(id, _)| Some((id, scene.units.get(&id)?)));
     let fought = state.chase.map(|(id, ..)| id);
     // A player who is fought on this map is marked and pressed as a monster is (`pvp.rs`).

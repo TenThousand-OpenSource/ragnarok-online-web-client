@@ -1,4 +1,4 @@
-//! What the pointer is on: someone in the world, or a thing lying on the ground.
+//! What the pointer is on: someone in the world, a thing lying on the ground, or a trap standing on it.
 
 use super::*;
 
@@ -6,8 +6,11 @@ use super::*;
 /// SetRenderInfo`, `CActorPickNode::Pick`): each one drawn has the rectangle of its picture on the screen, made
 /// at least 40 pixels each way (of a screen 480 high, as the rest of the client's measures here), so that a
 /// small monster is not a small thing to hit; and of those the point is in, a monster comes before an NPC or a
-/// companion, those before a player, and a pet last. Among the same kind it is the nearest.
-pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32)) -> Option<(u32, (f32, f32))> {
+/// companion, those before a player, and a pet last; with `players_first` (a skill of help aimed and Shift
+/// up, or Shift held and none aimed: `State::players_first`) a player comes before a monster and an NPC last
+/// (`crate::skills::aim::rank`). Among the same kind it is the nearest.
+pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32), players_first: bool) -> Option<(u32, (f32, f32))> {
+    use crate::skills::aim::{Under, rank};
     scene
         .units
         .iter()
@@ -16,14 +19,14 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
             if unit.dying.is_some() || unit.hidden() || unit.pose.vanishes.is_some() {
                 return None;
             }
-            let under = touched(gpu, scene, view, unit, pointer)?;
-            let rank = match (&unit.look, unit.lively, unit.companion) {
-                (_, _, true) => 50,
-                (_, true, _) => 400,
-                (Look::Creature(_) | Look::Model(_), ..) => 200,
-                (Look::Character(_), ..) => 100,
+            let feet = touched(gpu, scene, view, unit, pointer)?;
+            let under = match (&unit.look, unit.lively, unit.companion) {
+                (_, _, true) => Under::Pet,
+                (_, true, _) => Under::Monster,
+                (Look::Creature(_) | Look::Model(_) | Look::Unseen, ..) => Under::Npc,
+                (Look::Character(_), ..) => Under::Player,
             };
-            Some((rank, dot(subtract(on_ground(&scene.gat, unit.at), view.eye), view.forward), *id, under))
+            Some((rank(under, players_first), dot(subtract(on_ground(&scene.gat, unit.at), view.eye), view.forward), *id, feet))
         })
         .max_by(|a, b| a.0.cmp(&b.0).then(b.1.total_cmp(&a.1)))
         .map(|(_, _, id, feet)| (id, feet))
@@ -37,10 +40,15 @@ pub(super) fn touched(gpu: &Gpu, scene: &Scene, view: &View, unit: &Mover, point
     if matches!(unit.look, Look::Model(_)) {
         return granny::touched(scene, view, unit, (width, height), pointer);
     }
-    let texture = gpu.sprite_textures.get(unit.shown.as_ref()?)?;
     let feet = on_ground(&scene.gat, unit.at);
-    let inside = within(corners(view, feet, texture)?, least, (width, height), pointer);
     let under = view.project(feet)?;
+    // A hidden NPC has no picture: its rectangle is the place of its feet, as wide and half as high as the
+    // size the server gives it, which is none (`crate::creatures::Shape::Hidden`), and is grown as any other.
+    let rectangle = match unit.look {
+        Look::Unseen => (under, under),
+        _ => corners(view, feet, gpu.sprite_textures.get(unit.shown.as_ref()?)?)?,
+    };
+    let inside = within(rectangle, least, (width, height), pointer);
     inside.then_some((under.0 * width, under.1 * height))
 }
 
@@ -88,4 +96,24 @@ pub(super) fn lying_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32
         })
         .min_by(|a, b| a.0.total_cmp(&b.0))
         .map(|(_, id)| id)
+}
+
+/// The trap a point of the page is on, and the trap's cell. The client's way (`CSkill::Render`,
+/// `CSkill::SetRenderInfo`, for the units it follows on the screen, `render.trackBounds`: every trap of the
+/// Hunter's): a rectangle about the place of the unit on the screen, made at least 34 pixels each way (of a
+/// screen 480 high); of those the point is in, the nearest (`CActorPickNode::Pick`). The client's rectangle is
+/// 4 of its units wide and 2 high over the place before it is grown, so its middle lies a unit above the
+/// place: here it is grown about the place itself.
+pub(super) fn trap_at(gpu: &Gpu, scene: &Scene, grounds: &skill_units::Grounds, view: &View, pointer: (f32, f32)) -> Option<(u32, (f32, f32))> {
+    let (width, height) = (gpu.canvas.client_width() as f32, gpu.canvas.client_height() as f32);
+    let least = 34.0 * height / 480.0;
+    grounds
+        .traps()
+        .filter_map(|(id, cell)| {
+            let place = on_ground(&scene.gat, cell);
+            let under = view.project(place)?;
+            within((under, under), least, (width, height), pointer).then(|| (dot(subtract(place, view.eye), view.forward), id, cell))
+        })
+        .min_by(|a, b| a.0.total_cmp(&b.0))
+        .map(|(_, id, cell)| (id, cell))
 }

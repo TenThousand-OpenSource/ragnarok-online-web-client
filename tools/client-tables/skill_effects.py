@@ -37,6 +37,8 @@ Written, one entry a line, tab between the fields:
   effect_sounds.txt    <effect>  <sound.wav>  [<tick>]   (the first sound of the effect; for an effect of the
                                                   second switch of `OnProcess` every sound, a line each, with
                                                   the tick of the effect it starts at where that is not its first)
+                                                  (an arm that hands the effect to a function of its own is
+                                                  read one step into that function)
   skill_effects.txt    <skill>   <s|t>  <effect>  (s: on the one who used the skill, t: on its target)
   skill_hits.txt       <skill>   <s|t>  <effect>  (the same, for a skill that strikes: s at the striker's place,
                                                   t at the place of the one struck)
@@ -145,22 +147,42 @@ for labels, body in switch(read('Source/Contents/Effects/Core/RagEffect.cpp'), '
 # effect it names (`if (this->state.stateCnt == 20)`): each is kept with its tick, so that one started late is
 # not heard early. A sound started under any other condition (by lot: Quagmire's one time in twelve; again and
 # again) is left to the code that launches the effect.
+#
+# An arm that hands the effect to a function of its own (`if (!this->Aspersio())`, `this->TwoHandQuicken();`) has its sounds there, started
+# the same way: that function is read as the arm is (one step in, no deeper). There a sound may start at one of
+# several ticks (`stateCnt == 7 || stateCnt == 20`): a line for each.
 more, skipped = {}, []
-process = function(read('Source/Contents/Effects/Core/RagEffect.cpp'), 'bool CRagEffect::OnProcess() {')
-for labels, body in switch(process[process.index('    switch (this->state.type) {'):], '    '):
-    under, found = None, []
-    for line in body:
-        if re.match(r'^    \}', line):
-            break  # (the switch is over: what follows is not this arm's)
+effect_code = read('Source/Contents/Effects/Core/RagEffect.cpp')
+process = function(effect_code, 'bool CRagEffect::OnProcess() {')
+TICKS = r'if \((this->state\.stateCnt == \d+(?: \|\| this->state\.stateCnt == \d+)*)\) \{'
+
+
+def timed_sounds(lines, label, found):
+    """The sounds these lines start at ticks of the effect, added to `found`; the others are noted as skipped."""
+    under = None
+    for line in lines:
         if re.match(r'\s*(if|\} else|for|while)\b', line):
             under = line.strip()
         wave = re.search(r'Play(?:Effect)?Wave(?:At)?\([^"]*"([^"]+\.wav)"', line)
         if wave:
-            counted = re.fullmatch(r'if \(this->state\.stateCnt == (\d+)\) \{', under or '')
+            counted = re.fullmatch(TICKS, under or '')
             if counted:
-                found.append((wave.group(1).replace('\\\\', '/'), int(counted.group(1))))
+                found.extend((wave.group(1).replace('\\\\', '/'), int(tick)) for tick in re.findall(r'\d+', counted.group(1)))
             else:
-                skipped.append((labels[-1], under))
+                skipped.append((label, under))
+
+
+for labels, body in switch(process[process.index('    switch (this->state.type) {'):], '    '):
+    found, own = [], []
+    for line in body:
+        if re.match(r'^    \}', line):
+            break  # (the switch is over: what follows is not this arm's)
+        own.append(line)
+        called = re.search(r'^\s*(?:if \(!)?this->(\w+)\(\)(?:\) \{|;)$', line)
+        for start in [f'{kind} CRagEffect::{called.group(1)}() {{' for kind in ('bool', 'void')] if called else []:
+            if start in effect_code:
+                timed_sounds(function(effect_code, start).split('\n'), labels[-1], found)
+    timed_sounds(own, labels[-1], found)
     for label in labels:
         if found and label in effects and label.startswith('EF_') and effects[label] not in sounds:
             more[effects[label]] = found
@@ -208,7 +230,13 @@ for labels, body in switch(struck, '  '):
         own = re.search(r'\bplayer->LaunchEffect\((EF_[A-Z0-9_]+)', line)
         spawned = re.search(r'g_effectMgr->Spawn\([^,]*,\s*(EF_[A-Z0-9_]+),\s*(source|target)->', line)
         placed = re.search(r'position = (source|target)->render\.position', line)
-        if launched:
+        # A thing thrown: launched by the source and told the target's place (`CGameMode::LaunchTargetEffect`,
+        # which names the effect by its number).
+        thrown = re.search(r'LaunchTargetEffect\((0x[0-9A-Fa-f]+|\d+), source, target', line)
+        if thrown:
+            name = next((name for name, number in effects.items() if number == int(thrown.group(1), 0)), None)
+            found.append(['target', name, True])
+        elif launched:
             found.append([launched.group(1), launched.group(2), False])
         elif own:
             found.append([None, own.group(1), False])

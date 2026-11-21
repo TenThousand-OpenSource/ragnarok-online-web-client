@@ -6,8 +6,8 @@ use super::*;
 use crate::blow::landing::{Hit, How};
 use crate::blow::signs::{self, Between, Sign};
 
-/// The arrow's sprite, and how long it flies: 8 of the client's frames of 24 milliseconds (`CArrowEffect`).
-pub(in crate::web::world) const ARROW: &str = "몬스터/skel_archer_arrow";
+/// How long an arrow flies: 8 of the client's frames of 24 milliseconds (`CArrowEffect`). (Its sprite, and
+/// those of what monsters shoot: `crate::blow::shots`.)
 pub(in crate::web::world) const ARROW_MS: f64 = 192.0;
 
 /// A number or a word of a fight flying over someone, as the original's `CMsgEffect` flies it.
@@ -92,7 +92,7 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
                 .and_then(|(_, kind)| crate::jobs::weapon_kind(&kind))
                 .unwrap_or(0)
         ),
-        Look::Creature(_) | Look::Model(_) => None,
+        Look::Creature(_) | Look::Model(_) | Look::Unseen => None,
     });
     let hurt = scene.one(target, own)?;
     let between = Between { struck_is_character: matches!(hurt.look, Look::Character(_)), striker_is_character, guarded: landing.guarded && target == own };

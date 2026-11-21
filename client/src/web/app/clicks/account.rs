@@ -43,7 +43,7 @@ impl App {
             // says when the character is out of the game; from the characters, leaving goes out altogether.
             Press::Logout if matches!(self.screen, Screen::Game) => {
                 self.esc = 0;
-                self.redraw(&[&wnd::DIALOG]);
+                self.esc_redrawn();
                 self.send(&crate::net::packets::restart(true));
             }
             Press::Logout => self.leave(None),

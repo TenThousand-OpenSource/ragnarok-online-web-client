@@ -30,6 +30,7 @@ fn answer(line: &str) -> Option<String> {
             Some(Shape::Sprite(path)) => format!("sprite\tdata/sprite/{path}"),
             Some(Shape::Model(file)) => format!("model\t{file}"),
             Some(Shape::Character) => "character".to_owned(),
+            Some(Shape::Hidden) => "hidden".to_owned(),
             None => "-".to_owned(),
         },
         _ => return None,

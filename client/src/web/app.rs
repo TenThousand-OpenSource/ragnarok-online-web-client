@@ -175,10 +175,9 @@ pub(super) struct App {
     pub esc: u8,
     /// How many loading screens were shown: each takes the next of the client's pictures.
     loadings: usize,
-    /// How many play on the server, as it last said (ZC_USER_COUNT); and the keep-alive ticks counted, every
-    /// third of which asks again.
+    /// How many play on the server, as it last said (ZC_USER_COUNT): asked as each map begins and at every
+    /// keep-alive (`actions/link.rs`).
     pub online: Option<u32>,
-    ticks: u32,
     /// How near the minimap shows the map: 1 (all of it; also what 0 means) to 4.
     pub minimap_zoom: f32,
     /// The minimap's marks of who stands where in a town are hidden (its first button; the client shows them

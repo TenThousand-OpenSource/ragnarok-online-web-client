@@ -2,14 +2,34 @@
 //! on its cell, read the first time its kind is seen, standing still until the trap springs and playing its
 //! animation once from then on. The models themselves are the map's (`land.rs`, `Models::raise`).
 //!
-//! Not done: a trap cannot be pointed at or pressed (the client lets it be, for Remove Trap and Spring Trap,
-//! which are aimed at its cell here as any skill is); and the client shows a trap that is not to be seen to
-//! the one who laid it and to those of their party, here to the one who laid it alone.
+//! A skill for a trap (Remove Trap, Spring Trap) is pointed at a trap (`pick.rs trap_at`, `input/press.rs`).
+//!
+//! Not done: with no skill aimed a trap is not pointed at (the client's pointer becomes the sword over a Blast
+//! Mine and a Claymore Trap, which it lets be struck, and over every trap in a siege); and the client shows a
+//! trap that is not to be seen to the one who laid it and to those of their party, here to the one who laid
+//! it alone.
 
 use super::*;
 use crate::skill_units::traps;
 
+impl Grounds {
+    /// The traps to be seen, each by its ID with its cell: what a skill for a trap can be pointed at.
+    pub(in crate::web::world) fn traps(&self) -> impl Iterator<Item = (u32, (f32, f32))> + '_ {
+        self.units.iter().filter(|(_, standing)| standing.trap_seen()).map(|(id, standing)| (*id, standing.cell))
+    }
+
+    /// Where the trap of an ID stands, while it is to be seen.
+    pub(in crate::web::world) fn trap(&self, id: u32) -> Option<(f32, f32)> {
+        self.units.get(&id).filter(|standing| standing.trap_seen()).map(|standing| standing.cell)
+    }
+}
+
 impl Standing {
+    /// Whether it is a trap that is to be seen: a unit shown, with a trap's model.
+    fn trap_seen(&self) -> bool {
+        self.seen && self.model.is_some()
+    }
+
     /// The unit is of this kind from now on, seen or not: the model it shows follows, if the kind has one
     /// (`ShowModel` leaves the model there is for a kind that has none). Gives back whether it is another
     /// model than before, to be put on the map anew.

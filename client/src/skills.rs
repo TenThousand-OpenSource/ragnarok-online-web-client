@@ -1,6 +1,8 @@
 //! Skills as rules, and no packets: which line of the client's message table says why a skill could not be
-//! used, which effect a notice of the server shows, and the pages of a job's skill window. (The packets that
-//! bring them are `net/skills.rs`.)
+//! used, which effect a notice of the server shows, the SP and the skills a skill asks for, and the pages of a
+//! job's skill window. (The packets that bring them are `net/skills.rs`.)
+
+pub mod aim;
 
 /// The causes the client answers with one line of its message table each (its `ReceiveSkillFailure`): the cause,
 /// and the line's number.
@@ -82,6 +84,77 @@ pub fn use_level_stepped(used: u16, known: u16, more: bool) -> Option<u16> {
     (wanted != known).then_some(wanted)
 }
 
+/// The SP a skill takes at a level, of the SP of its levels as the table has them (`data::skill_sp`, the
+/// client's `GetLevelUseSpAmount` of `skillinfo_f.lub`, here with the figures of the rules the server plays):
+/// a table of one figure is for every level, and a level past the table's last takes the last. None for a
+/// skill the table does not have, or for no level.
+pub fn sp_at(levels: &[u16], level: u16) -> Option<u16> {
+    levels.get(usize::from(level).checked_sub(1)?).or(levels.last()).copied()
+}
+
+/// The SP written by a skill used at a level (`UINewSkillListWnd::DrawSkillList`, `UISkillListWnd`: "Sp : n"):
+/// the table's figure for that level, and where it has none, or says 0, what the server `told` of the level
+/// the skill is known at.
+pub fn sp_shown(table: Option<u16>, told: u16) -> u16 {
+    table.filter(|amount| *amount != 0).unwrap_or(told)
+}
+
+/// What a skill on the hotkey bar says when pointed at (`SkillTooltipFlat`, `Contents/Hotkeys/HotkeyInfo.cpp`:
+/// `"%s %s Use Lv %d (Sp : %d)"` after the key's name; `SkillUseTextFlat` is the same without a key).
+pub fn use_tip(name: &str, level: u16, sp: u16) -> String {
+    format!("{name} Use Lv {level} (Sp : {sp})")
+}
+
+/// Of the skills a skill asks for (each with its level), those not yet known that far.
+pub fn missing(needs: &[(u16, u16)], level_of: impl Fn(u16) -> u16) -> Vec<(u16, u16)> {
+    needs.iter().copied().filter(|(skill, level)| level_of(*skill) < *level).collect()
+}
+
+/// The points there are to spend on skills, of the figure the server tells (the character's value of them):
+/// none for a figure under nothing, and no more than a count of levels holds.
+pub fn points(told: i64) -> u16 {
+    told.clamp(0, i64::from(u16::MAX)) as u16
+}
+
+/// Whether the plus is offered by a skill of the tree that the server does not list as one to raise
+/// (`raisable`: then the plus is there anyway). The client takes a press on a skill it lacks the needs of as
+/// on any other, and plans what it asks for with it (`UINewSkillListWnd::IncreaseSkillLevel`); the server
+/// lists no such skill, so the plus is offered from the table of what skills ask for: with `points` to
+/// spend, by a skill not known yet (`level` 0), to one of the `job_level` the skill `asks` for, who lacks
+/// some of the skills it `asks` for (`missing`).
+pub fn plus_by_table(raisable: bool, points: i64, level: u16, job_level: i64, asks: (u16, &[(u16, u16)]), level_of: impl Fn(u16) -> u16) -> bool {
+    !raisable && points > 0 && level == 0 && job_level >= i64::from(asks.0) && !missing(asks.1, level_of).is_empty()
+}
+
+/// The skills to raise, one level each and in this order, when a skill is raised by one with `points` to
+/// spend: first what it asks for and lacks, up to the level asked, then the skill itself, as far as the
+/// points go. The client's `UINewSkillListWnd::IncreaseSkillLevel` plans the skill and what it asks for (its
+/// `m_values`) so; here what those ask for in turn is raised too and everything asked for goes first, since
+/// the server takes a level only of a skill whose own needs are met (this project's own, `docs/DEBTS.md`).
+/// `level_of` is the level a skill is known at, `needs_of` what it asks for.
+pub fn raises(skill: u16, points: u16, level_of: impl Fn(u16) -> u16, needs_of: impl Fn(u16) -> Vec<(u16, u16)>) -> Vec<u16> {
+    fn plan(
+        (skill, target, depth): (u16, u16, u8),
+        (level_of, needs_of): (&dyn Fn(u16) -> u16, &dyn Fn(u16) -> Vec<(u16, u16)>),
+        planned: &mut std::collections::HashMap<u16, u16>,
+        order: &mut Vec<u16>,
+    ) {
+        let level = planned.get(&skill).copied().unwrap_or_else(|| level_of(skill));
+        if level >= target || depth > 8 {
+            return;
+        }
+        for (need, asked) in needs_of(skill) {
+            plan((need, asked, depth + 1), (level_of, needs_of), planned, order);
+        }
+        order.extend(std::iter::repeat_n(skill, usize::from(target - level)));
+        planned.insert(skill, target);
+    }
+    let mut order = Vec::new();
+    plan((skill, level_of(skill).saturating_add(1), 0), (&level_of, &needs_of), &mut std::collections::HashMap::new(), &mut order);
+    order.truncate(usize::from(points));
+    order
+}
+
 /// The pages of a job's skill window, as the client lays them out (`skilltreeview.lub`): one for each job it
 /// grew through, the first with the Novice's skills among its own. `tree` has, by job, the job it grew out of
 /// and where its skills stand. Each page: the place of each skill (counting the cells row by row, seven to a
@@ -117,6 +190,54 @@ mod tests {
         assert_eq!((words_asked(125), words_asked(220)), (Some(78), Some(20)));
         // Any other skill of the ground is placed at once: Fire Wall, Warp Portal.
         assert_eq!((words_asked(18), words_asked(27)), (None, None));
+    }
+
+    #[test]
+    fn a_skill_takes_the_sp_of_its_level() {
+        // Bash: 8 to level 5, 15 from 6; Brandish Spear: 12 at every level.
+        let bash = [8, 8, 8, 8, 8, 15, 15, 15, 15, 15];
+        assert_eq!((sp_at(&bash, 1), sp_at(&bash, 6), sp_at(&bash, 10), sp_at(&bash, 11)), (Some(8), Some(15), Some(15), Some(15)));
+        assert_eq!((sp_at(&[12], 1), sp_at(&[12], 10), sp_at(&[12], 0), sp_at(&[], 3)), (Some(12), Some(12), None, None));
+        // Where the table has nothing, or 0, the server's figure stands.
+        assert_eq!((sp_shown(Some(12), 24), sp_shown(None, 24), sp_shown(Some(0), 24)), (12, 24, 24));
+        assert_eq!(use_tip("Bash", 6, 15), "Bash Use Lv 6 (Sp : 15)");
+    }
+
+    #[test]
+    fn a_skill_raised_takes_what_it_asks_for_first() {
+        // Brandish Spear (57) asks Riding 1 (63) and Spear Stab 3 (58); Spear Stab asks Pierce 5 (56); Riding
+        // asks Endure 1 (8), which asks Provoke 5 (6).
+        let needs = |skill: u16| match skill {
+            57 => vec![(63, 1), (58, 3)],
+            58 => vec![(56, 5)],
+            63 => vec![(8, 1)],
+            8 => vec![(6, 5)],
+            _ => Vec::new(),
+        };
+        let known = |skill: u16| match skill {
+            6 => 5,
+            56 => 4,
+            58 => 1,
+            _ => 0,
+        };
+        assert_eq!(missing(&needs(57), known), [(63, 1), (58, 3)]);
+        assert_eq!(missing(&needs(8), known), []);
+        assert_eq!(raises(57, 20, known, needs), [8, 63, 56, 58, 58, 57]);
+        // The plus by Brandish Spear, not known and lacking Riding: with a point, at the job level asked.
+        assert!(plus_by_table(false, 1, 0, 30, (30, &needs(57)), known));
+        assert!(!plus_by_table(false, 0, 0, 30, (30, &needs(57)), known) && !plus_by_table(false, 1, 0, 29, (30, &needs(57)), known));
+        // Not by one known already, by one that lacks nothing, or twice by one the server lists.
+        assert!(!plus_by_table(false, 1, 1, 30, (30, &needs(57)), known) && !plus_by_table(false, 1, 0, 30, (0, &needs(8)), known));
+        assert!(!plus_by_table(true, 1, 0, 30, (30, &needs(57)), known));
+        assert_eq!((points(-3), points(0), points(12), points(1 << 40)), (0, 0, 12, u16::MAX));
+        // As far as the points go; with none, nothing.
+        assert_eq!(raises(57, 3, known, needs), [8, 63, 56]);
+        assert_eq!(raises(57, 0, known, needs), [] as [u16; 0]);
+        // One that asks for nothing, or has all it asks for, goes up by one.
+        assert_eq!((raises(6, 4, known, needs), raises(8, 4, known, needs)), (vec![6], vec![8]));
+        // Skills that ask for each other end.
+        let round = |skill: u16| vec![(if skill == 1 { 2 } else { 1 }, 1)];
+        assert!(raises(1, 50, |_| 0, round).len() <= 50);
     }
 
     #[test]

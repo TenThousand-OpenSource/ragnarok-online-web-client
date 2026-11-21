@@ -186,6 +186,12 @@ pub fn restart(to_characters: bool) -> Vec<u8> {
     Writer::new(0x00b2).u8(u8::from(to_characters)).done()
 }
 
+/// CZ_STANDING_RESURRECTION (0x0292, nothing more): the dead character rises where it lies, by the Token of
+/// Siegfried it carries (the client's `MM_REBIRTH`).
+pub fn rise() -> Vec<u8> {
+    Writer::new(0x0292).done()
+}
+
 /// ZC_RESTART_ACK: whether the server lets the character out of the game, back to the characters (type 1).
 pub fn restart_allowed(packet: &[u8]) -> bool {
     packet.get(2) == Some(&1)

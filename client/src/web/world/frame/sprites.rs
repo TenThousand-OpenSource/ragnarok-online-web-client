@@ -110,20 +110,41 @@ fn lying(gpu: &mut Gpu, scene: &Scene, time: f64, sprites: &mut Vec<Stood>) {
     }
 }
 
+/// The emotion someone shows, over where they stand (`feet`): the pictures of that action, each for as long as
+/// the sprite says, once through. One nothing is drawn of shows it too (the client's `CMsgEffect` is a thing
+/// of its own beside the actor).
+fn emoting(gpu: &mut Gpu, mover: &mut Mover, feet: Vector, time: f64, sprites: &mut Vec<Stood>) {
+    let Some((sprite, action, began)) = &mover.emotion else { return };
+    let passed = time - began;
+    // Until the sprite is read its length is not known: it is given four seconds to come.
+    let picture = match figure::timing(sprite, *action) {
+        Some((pictures, each)) => Some(((passed / each.max(1.0)) as usize, pictures)).filter(|(at, pictures)| at < pictures).map(|(at, _)| at),
+        None => Some(0).filter(|_| passed < 4000.0),
+    };
+    match picture {
+        Some(picture) => {
+            let key = SpriteKey::Creature(sprite.clone(), *action, picture);
+            // It follows the one who shows it, 20 above their feet (the client's `CMsgEffect`, for
+            // `MET_EMOTION`); the rest of the way up is in the sprite's own pictures.
+            if gpu.has_sprite(&key) {
+                sprites.push((key, along(feet, [0.0, 1.0, 0.0], 20.0), 1.0, crate::body::Quad::PLAIN));
+            }
+        }
+        None => mover.emotion = None,
+    }
+}
+
 /// Everyone to draw, each with the picture wanted now if it is ready, else the one drawn last; with them what
 /// lies on the ground and the pointer's mark in the world. `own` is where the player's own character is now and
-/// the picture wanted of it.
+/// the picture wanted of it. (One drawn as a model has no sprite and no shadow: `granny.rs`.)
 pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f64, yaw: f32) -> Vec<Stood> {
     let (Some(gpu), Some(scene)) = (&mut state.gpu, &mut state.scene) else { return Vec::new() };
     let (position, key) = own;
     // Monsters struck down are gone once what is left of them has faded; so are those out of sight.
     scene.units.retain(|_, unit| unit.dying.is_none_or(|fallen| time - fallen < CORPSE_MS) && unit.pose.vanishes.is_none_or(|gone| time < gone));
     let mut sprites = Vec::with_capacity(scene.units.len() + 1);
-    let gat = &scene.gat;
-    let feet_cell = position;
-    let hide_players = state.options.hide_players;
+    let (gat, feet_cell, hide_players) = (&scene.gat, position, state.options.hide_players);
     let mut own = true;
-    // (One drawn as a model has no sprite and no shadow: `granny.rs`.)
     let sprited = scene.units.values_mut().filter(|unit| !matches!(unit.look, Look::Model(_)));
     for (mover, position, wanted) in std::iter::once((&mut scene.player, position, key)).chain(sprited.map(|unit| {
         let (position, key) = unit.now(time, yaw);
@@ -132,6 +153,11 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         // The first is the player's own character.
         let is_own = std::mem::replace(&mut own, false);
         let feet = on_ground(gat, position);
+        // Of a hidden NPC nothing is drawn, no shadow either (`CNpc::Render`, its `JT_HIDDEN_NPC`).
+        if matches!(mover.look, Look::Unseen) {
+            emoting(gpu, mover, feet, time, &mut sprites);
+            continue;
+        }
         // What is left of one struck down has no shadow: the client's corpse (`CCorpse`, made when the death's
         // motion is over) is a render object whose `shadowVisible` nobody sets, so `DrawShadow` draws none
         // while it fades.
@@ -182,26 +208,7 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
                 mover.pose.smoke = None;
             }
         }
-        // The emotion it shows: the pictures of that action, each for as long as the sprite says, once through.
-        // Until the sprite is read its length is not known: it is given four seconds to come.
-        if let Some((sprite, action, began)) = &mover.emotion {
-            let passed = time - began;
-            let picture = match figure::timing(sprite, *action) {
-                Some((pictures, each)) => Some(((passed / each.max(1.0)) as usize, pictures)).filter(|(at, pictures)| at < pictures).map(|(at, _)| at),
-                None => Some(0).filter(|_| passed < 4000.0),
-            };
-            match picture {
-                Some(picture) => {
-                    let key = SpriteKey::Creature(sprite.clone(), *action, picture);
-                    // It follows the one who shows it, 20 above their feet (the client's `CMsgEffect`, for
-                    // `MET_EMOTION`); the rest of the way up is in the sprite's own pictures.
-                    if gpu.has_sprite(&key) {
-                        sprites.push((key, along(on_ground(gat, position), [0.0, 1.0, 0.0], 20.0), 1.0, crate::body::Quad::PLAIN));
-                    }
-                }
-                None => mover.emotion = None,
-            }
-        }
+        emoting(gpu, mover, feet, time, &mut sprites);
     }
     // The copies of someone that effects left standing.
     ailments::copies(&mut state.copies, gpu, time, &mut sprites);

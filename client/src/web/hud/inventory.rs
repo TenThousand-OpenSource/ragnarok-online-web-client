@@ -13,8 +13,10 @@ impl App {
 
     /// The note of a thing just picked up: its picture and "name - N obtained", fading after a moment.
     pub(in crate::web) fn obtained_note(&self) -> String {
-        let Some((id, amount, identified)) = self.bag.obtained else { return String::new() };
-        let Some((name, resource)) = data::item_as(id, identified) else { return String::new() };
+        let Some((named, amount)) = &self.bag.obtained else { return String::new() };
+        let Some((_, resource)) = data::item_as(named.id, named.identified) else { return String::new() };
+        // The whole name, as in the chat (`UINotifyItemObtainWnd::SendMsg`, `UM_SETTITLE`: `DisplayName(0)`).
+        let name = data::item_title(named, false);
         // It shows for five seconds from the moment the thing was picked up, however often the page is drawn
         // meanwhile: drawn anew, it goes on from where it was.
         let shown = (js_sys::Date::now() - self.bag.obtained_at) / 1000.0;

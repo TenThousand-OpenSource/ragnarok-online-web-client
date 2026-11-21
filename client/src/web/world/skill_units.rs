@@ -5,7 +5,8 @@
 //!
 //! A unit's count goes up once a tick, and a tick is taken to be that of the client's coded effects
 //! (`CAST_FRAME_MS`): `CSkill::OnProcess` runs once a pass of the client's loop, and how long that is was not
-//! found. Nothing of a unit can be pressed or pointed at (the client lets an Ice Wall and the traps be).
+//! found. Of the units only a trap is pointed at, and only by a skill for traps (`traps.rs`; the client lets an Ice
+//! Wall, a Blast Mine and a Claymore Trap be struck too).
 //!
 //! A trap is no effect but a model on its cell: `skill_units/traps.rs`.
 

@@ -86,7 +86,7 @@ pub(super) fn commanded(event: &MouseEvent, at: (f32, f32), which: usize) -> boo
         scene.units.get(&state.ai.units[which]).filter(|_| state.ai.units[which] != 0)?;
         let view = scene.view(gpu);
         let fought = |id: &u32| scene.units.get(id).is_some_and(|unit| unit.dying.is_none() && ((unit.lively && !unit.companion) || state.pvp.foe(*id, unit)));
-        let whom = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32)).map(|(id, _)| id).filter(fought);
+        let whom = pointed_at(gpu, scene, &view, (event.client_x() as f32, event.client_y() as f32), false).map(|(id, _)| id).filter(fought);
         let cell = match whom.and_then(|id| scene.units.get(&id)) {
             Some(unit) => unit.cell,
             None => view.pick(&scene.gat, at)?,

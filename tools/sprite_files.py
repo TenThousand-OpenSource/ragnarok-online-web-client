@@ -165,6 +165,9 @@ def walk(tables, rathena):
             walked.append((group + ' (models)', f'job {job}{count}', ['data/model/3dmob/' + answer[1]]))
         elif answer[0] == 'character':
             walked.append((group + ' (characters)', f'job {job}{count}', []))
+        elif answer[0] == 'hidden':
+            # The hidden NPC: nothing of it is drawn, so it has no file to find.
+            walked.append((group + ' (hidden)', f'job {job}{count}', []))
         else:
             walked.append((group, f'job {job}{count}: no name in the client\'s table', ['?']))
     return walked

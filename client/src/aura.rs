@@ -18,6 +18,12 @@
 //!   `CGameMode::RefreshActorJobEffects` (a level gained, an option switched) do the same. So at any moment
 //!   the aura shows on exactly those this rule names, which is how the world keeps it.
 //!
+//! - `CGameSettingsMgr` (`Contents/Configuration/ServiceOptions.cpp`): `/aura2` switched takes every aura
+//!   away and makes it anew (`ApplyServiceOptionActorRefresh`), and so does `/aura` while auras show; while
+//!   they do not, `/aura` says so and does nothing more (`ApplyServiceOptionWithNotice`: `said_while_hidden`).
+//!   Neither asks whether effects are on (`/effect`): with them off an aura lives on undrawn
+//!   (`CEffect::UpdateVisibility`).
+//!
 //! What the client does for the later jobs and is not built here (they show no aura): the third jobs and
 //! their mounts at `BaseLevel3rd` (the message 150: effects 1226 and 1227, or the table's `Default185LvAura`),
 //! the fourth jobs at `BaseLevel4th` (`AM_MAKE_LEVEL4TH_EFFECT`: the table's `MaxLevelEffect4th` and its
@@ -66,6 +72,20 @@ impl Table {
 pub struct Options {
     pub shown: bool,
     pub full: bool,
+}
+
+/// The client's names of the two options (`GameSettings.lub`): the row "Aura Display" (`/aura2`), ticked
+/// while auras show, and the row "Aura Intensity" (`/aura`), ticked while the aura is the simple one.
+pub const SHOWN_OPTION: &str = "TT_HIDE_AURA_ON_OFF";
+pub const SIMPLE_OPTION: &str = "TT_FULL_AURA_ON_OFF";
+
+/// The message the client says, and says alone, when the option of the full aura is switched while auras do
+/// not show (`shown`: the row "Aura Display" as it is ticked), by a command or by its row: the option is
+/// switched, nothing is made anew and the option's own message is not said (`ApplyServiceOptionWithNotice`,
+/// `Contents/Configuration/ServiceOptions.cpp`: the line 2996 of the message table, in `0x64FFFF`). Nothing
+/// for any other switch.
+pub fn said_while_hidden(option: &str, shown: bool) -> Option<&'static str> {
+    (option == SIMPLE_OPTION && !shown).then_some("MSI_ALREADY_AURA_EFFECT_OFF")
 }
 
 /// `CSession::IsMonsterClass`.
@@ -181,6 +201,15 @@ mod tests {
         // Not one of the later homunculi, nor one at a homunculus's own highest level.
         assert_eq!(shown(6048, 99, 0, &TABLE, SIMPLE), [None, None]);
         assert_eq!(shown(6001, 99, 0, &Table { homunculus: 99, ..TABLE }, SIMPLE), [None, None]);
+    }
+
+    #[test]
+    fn the_full_aura_switched_while_auras_are_hidden_says_so_and_nothing_else_does() {
+        assert_eq!(said_while_hidden(SIMPLE_OPTION, false), Some("MSI_ALREADY_AURA_EFFECT_OFF"));
+        // The line the client's code names by its number, 2996 (`commands.txt` has the client's names).
+        assert_eq!(crate::commands::message("MSI_ALREADY_AURA_EFFECT_OFF"), Some(2996));
+        assert_eq!(said_while_hidden(SIMPLE_OPTION, true), None);
+        assert_eq!((said_while_hidden(SHOWN_OPTION, false), said_while_hidden("TT_EFFECT_ON_OFF", false)), (None, None));
     }
 
     #[test]

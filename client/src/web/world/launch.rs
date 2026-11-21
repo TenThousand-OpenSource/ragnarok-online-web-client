@@ -72,21 +72,21 @@ pub struct Blow {
 /// One of the client's effects begins on someone (none named: the player's own character) after `delay`
 /// milliseconds, with the sounds it starts. One launched for a blow is told of the blow: an effect the client
 /// has the striker launch towards a place is then on the striker, whoever `on` is. An effect that is played
-/// from files is played so, and nothing of it is drawn by code besides (`skill_units::launch` shows both for
-/// what stands on the ground). Gives back whether it is one shown here yet. An effect the client launches
-/// only while another runs on that one, or does not, is left out when that is not so
-/// (`crate::state_effects::begins`).
+/// from files is played so, and what of it the client draws by code besides is begun with it (as
+/// `skill_units::launch` does for what stands on the ground). Gives back whether it is one shown here yet.
+/// An effect the client launches only while another runs on that one, or does not, is left out when that is
+/// not so (`crate::state_effects::begins`).
 pub fn burst(effect: u32, on: Option<u32>, blow: Option<Blow>, delay: f64) -> bool {
     STATE.with_borrow_mut(|state| {
         if !crate::state_effects::begins(effect, |other| running(state, other, on)) {
             return true;
         }
         let begins = now() + delay.max(0.0);
-        if files(state, effect, on, blow, begins) {
-            return true;
-        }
+        let played = files(state, effect, on, blow, begins);
         let before = state.sounds_due.len();
-        let Some(burst) = prims::begin(effect, on, blow, begins, &mut state.bursts, &mut state.sounds_due) else { return false };
+        // (What the client's function of an effect that is a file draws by code besides is begun with the
+        // file: the coins of Mammonite, `CRagEffect::Coin`.)
+        let Some(burst) = prims::begin(effect, on, blow, begins, &mut state.bursts, &mut state.sounds_due) else { return played };
         // The sound it starts with is heard from where the one it is on stands (`earshot.rs`).
         let whose = burst.on;
         state.heard.extend(state.sounds_due.drain(before..).map(|(at, sound)| (at, sound, whose)));

@@ -19,6 +19,14 @@
 //! in its colour at its alpha. So what a particle's `transform` leaves along its x lies along the screen's
 //! right on the ground, and along its z away from the eye on the ground (`yawed`).
 //!
+//! When a particle is drawn (`RenderQueues::Submit` by the particle's `flags`, the second figure of
+//! `CreateParticle`; `CRendererDX9::DrawQueues`): with 13, as those of `CLevel99Effect` and
+//! `CLevel99Orb2Effect` have it, right after the ground and the models and ahead of every shadow and body
+//! (`queue_0210`), so that whoever stands there covers it; with 5, as those of `CLevel99Orb1Effect` have it,
+//! after them (`queue_01EC`), over everyone. Both are held against the depth of the ground and the models
+//! where they are, no nearer (`depth` on, `depthOffset` of nothing), and write none. A part keeps its
+//! particle's `flags` in `flags[1]`, and `Prim::under_bodies` says which of the two it is.
+//!
 //! What is not as in the client: the lots of a light that begins anew are drawn from the part's own number
 //! (`Part::lot`), where the client draws from its one `rand`; and the sines of a wandering light's two turns
 //! are those of the turn itself where it has gone under nothing or past 359 (the client reads its table of
@@ -42,7 +50,18 @@ fn square(corner: impl Fn(f32, f32) -> [f32; 3]) -> [[f32; 3]; 4] {
     [corner(-1.0, -1.0), corner(1.0, -1.0), corner(1.0, 1.0), corner(-1.0, 1.0)]
 }
 
+/// The bit of a particle's `flags` by which the renderer draws it ahead of the shadows and the bodies
+/// (`RenderQueues::Submit`: `flags & 8`; `Part::UNDER_BODIES` has it, `Part::OVER_BODIES` has not).
+const AHEAD: i8 = 8;
+
 impl Prim {
+    /// Whether it is one of this file's kinds whose particles the client draws ahead of every shadow and
+    /// body, at the depth they are at (the module's comment says from where): whoever stands there covers it.
+    pub fn under_bodies(&self) -> bool {
+        matches!(self.kind, Shape::Tei(Tei::Level99Glow | Tei::Level99Swirl | Tei::Level99Orb))
+            && self.parts.first().is_some_and(|part| part.flags[1] & AHEAD != 0)
+    }
+
     /// Its colour as a rectangle's.
     fn tint(&self) -> [u8; 3] {
         self.colour.map(|part| part as u8)
@@ -63,6 +82,38 @@ impl Prim {
 }
 
 impl Part {
+    /// The `flags` a particle is made with (the second figure of `CreateParticle`), kept in a part's
+    /// `flags[1]`: 13 for those drawn ahead of the shadows and the bodies (`CLevel99Effect::Open`, `AddRings`,
+    /// `CLevel99Orb2Effect::Open`), 5 for those drawn over everyone (`CLevel99Orb1Effect::Open`).
+    pub const UNDER_BODIES: i8 = 13;
+    pub const OVER_BODIES: i8 = 5;
+
+    /// One of the two squares of light as `CLevel99Effect::Open` makes them: 9 from the middle to a side, at
+    /// an alpha of 200; the second (`index` 1) turned 22 degrees from the first and half a breath apart from
+    /// it.
+    pub fn level99_glow(index: i32) -> Part {
+        let mut glow = Part { turned: index * 22, rise: index * 180, out: 9.0, alpha: 200, ..Part::default() };
+        glow.flags[1] = Self::UNDER_BODIES;
+        glow
+    }
+
+    /// One of the three bands as `CLevel99Effect::AddRings` makes them: at an alpha of 120, 315 degrees round.
+    /// The first is 3.9 from the middle, up to 15 tall along a slope of 55 degrees; each next (`band` 1 and
+    /// 2) begins a quarter further round, is 0.2 wider, 2 less tall and 5 degrees flatter.
+    pub fn level99_swirl(band: i32) -> Part {
+        let mut swirl = Part {
+            turned: band * 90,
+            round: 315,
+            rise: 55 - band * 5,
+            tall: 15.0 - band as f32 * 2.0,
+            out: band as f32 * 0.2 + 3.9,
+            alpha: 120,
+            ..Part::default()
+        };
+        (swirl.flags[0], swirl.flags[1], swirl.heights[0]) = (band as i8, Self::UNDER_BODIES, (band * 90) as f32);
+        swirl
+    }
+
     /// `CLevel99Effect::OnProcess`, for one of its `sparkles`: its breath (`rise`, the particle's
     /// `phaseParameter`) goes on 3 degrees a tick.
     pub(super) fn breathe_as_glow(&mut self) {
@@ -193,6 +244,8 @@ mod tests {
     use super::*;
 
     const EAST: [f32; 3] = [1.0, 0.0, 0.0];
+    const UNDER: i8 = Part::UNDER_BODIES;
+    const OVER: i8 = Part::OVER_BODIES;
     use crate::prim::testing::UP;
 
     fn near(one: [f32; 3], other: [f32; 3]) -> bool {
@@ -204,7 +257,7 @@ mod tests {
     fn glows() -> Prim {
         let mut prim = Prim::new(Shape::Tei(Tei::Level99Glow), "pikapika2.bmp");
         prim.duration = 99_999_999;
-        prim.parts.extend((0..2).map(|index| Part { turned: index * 22, rise: index * 180, out: 9.0, alpha: 200, ..Part::default() }));
+        prim.parts.extend((0..2).map(Part::level99_glow));
         prim
     }
 
@@ -212,19 +265,7 @@ mod tests {
     fn swirls() -> Prim {
         let mut prim = Prim::new(Shape::Tei(Tei::Level99Swirl), "ring_blue.tga");
         (prim.duration, prim.colour) = (99_999_999, [100.0, 100.0, 255.0]);
-        prim.parts.extend((0..3).map(|band| {
-            let mut part = Part {
-                turned: band * 90,
-                round: 315,
-                rise: 55 - band * 5,
-                tall: 15.0 - band as f32 * 2.0,
-                out: band as f32 * 0.2 + 3.9,
-                alpha: 120,
-                ..Part::default()
-            };
-            (part.flags[0], part.heights[0]) = (band as i8, (band * 90) as f32);
-            part
-        }));
+        prim.parts.extend((0..3).map(Part::level99_swirl));
         prim
     }
 
@@ -233,9 +274,23 @@ mod tests {
         let mut prim = Prim::new(Shape::Tei(Tei::Level99Orb), "whitelight.tga");
         (prim.duration, prim.colour) = (99_999_999, [80.0, 80.0, 255.0]);
         let mut part = Part { tall: 0.15, out: 1.8, seed: 7, ..Part::default() };
-        part.at[0][1] = under;
+        (part.at[0][1], part.flags[1]) = (under, OVER);
         prim.parts.push(part);
         prim
+    }
+
+    #[test]
+    fn the_squares_the_bands_and_the_other_lights_are_under_the_bodies_and_the_blue_lights_over_them() {
+        // `CreateParticle(…, 13)` in `CLevel99Effect::Open`, `AddRings` and `CLevel99Orb2Effect::Open`; 5 in
+        // `CLevel99Orb1Effect::Open`.
+        assert!(glows().under_bodies() && swirls().under_bodies() && !orb(0.0).under_bodies());
+        let mut other = orb(0.0);
+        (other.parts[0].flags[0], other.parts[0].flags[1]) = (1, UNDER);
+        assert!(other.under_bodies());
+        // No other kind is asked: a part of another kind has other things in its flags.
+        let mut another = Prim::new(Shape::Tei(Tei::Halo), "ring_blue.tga");
+        another.parts.push(Part { flags: [UNDER; 21], ..Part::default() });
+        assert!(!another.under_bodies() && !Prim::new(Shape::Tei(Tei::Level99Glow), "pikapika2.bmp").under_bodies());
     }
 
     #[test]

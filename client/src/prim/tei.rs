@@ -58,6 +58,7 @@
 //! - `PP_BOTTOM` (47): a picture that hovers over a place with fainter ones behind it (`tei/bottom.rs`);
 //!   `PP_RECT_UP2` (90): walls round a square and lights that run along them (`tei/fences.rs`); `PP_HERMODE`
 //!   (114): a small box of light that turns (`tei/cubes.rs`).
+//! - `PP_THROWITEM` (53): the picture of an item thrown in a bow, fainter ones behind it (`tei/thrown.rs`).
 //!
 //! The places of a part are in the client's directions, from the effect's place as the primitive was launched:
 //! x east, y DOWN, z north. `Rect` gives them in this client's (east, up, north).
@@ -134,6 +135,7 @@ mod spikes;
 mod spray;
 mod squares;
 mod stretch;
+mod thrown;
 mod twinkles;
 mod winds;
 #[cfg(test)]
@@ -274,6 +276,8 @@ pub enum Tei {
     Bottom,
     RectUp2,
     Hermode,
+    /// `PP_THROWITEM` (53) (`tei/thrown.rs`).
+    ThrowItem,
 }
 
 impl Prim {
@@ -303,6 +307,7 @@ impl Prim {
             Tei::DriftingSparks => self.drift_as_lights(),
             Tei::DriftingOrbs => self.drift_as_sphere(),
             Tei::Bottom => self.hover_with_a_tail(),
+            Tei::ThrowItem => self.fly_as_thrown_item(),
             _ => return false,
         }
         true
@@ -384,7 +389,7 @@ impl Part {
             Tei::Hermode => {}
             // Ticked whole (`Prim::tick_whole`).
             Tei::ShieldBoomerang3 | Tei::Ripple | Tei::ShieldBoomerang | Tei::Drop | Tei::Gust | Tei::GustRing
-            | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs | Tei::Bottom => {}
+            | Tei::GustChase | Tei::GustSwerve | Tei::DriftingSparks | Tei::DriftingOrbs | Tei::Bottom | Tei::ThrowItem => {}
         }
     }
 }

@@ -68,6 +68,8 @@ pub(in crate::web) enum Action {
     WorldReady(Result<(), String>),
     /// The skill being aimed was pointed at someone (their ID) or at a cell.
     Aimed(Option<u32>, (u16, u16)),
+    /// The skill being aimed was pointed at the player's own character.
+    AimedOwn,
     /// The wheel was turned while a skill is aimed: a level up (1) or down (-1).
     AimLevel(i32),
     /// One blow at that monster.

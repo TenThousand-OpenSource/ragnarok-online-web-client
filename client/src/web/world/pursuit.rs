@@ -190,8 +190,16 @@ fn chase(state: &mut State, time: f64, pursuit: &mut Pursuit) {
 fn reach(state: &mut State, time: f64, pursuit: &mut Pursuit) {
     let Some(scene) = &mut state.scene else { return };
     let Some((whom, cell, range, looked)) = state.reach else { return };
+    // In the motion of a blow of its own the character uses no skill yet: it waits here, as in the client
+    // (`crate::skills::aim::asked_now`).
+    if !crate::skills::aim::asked_now(time, state.own_striking_until) {
+        return;
+    }
     let aimed = match whom {
-        Some(id) => scene.units.get(&id).filter(|unit| unit.dying.is_none()).map(|unit| (unit.cell, unit.at)),
+        // Someone, or a trap standing on the ground (a skill for a trap is aimed at the trap's own ID).
+        Some(id) => scene.units.get(&id).filter(|unit| unit.dying.is_none()).map(|unit| (unit.cell, unit.at)).or_else(
+            || state.grounds.trap(id).map(|at| ((at.0 as i32, at.1 as i32), at))
+        ),
         None => Some((cell, (cell.0 as f32, cell.1 as f32))),
     };
     match aimed {

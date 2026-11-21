@@ -27,7 +27,7 @@ pub async fn load_music() {
     MUSIC.set(music);
 }
 
-/// What the client calls a map (its `mapInfo_true.lub`, and over it the names of `mapNameTable.txt`).
+/// What the client calls a map (the names of its `mapNameTable.txt`, and over them its `mapInfo_true.lub`).
 #[derive(Clone, Default)]
 pub struct MapSign {
     /// The full name, as `/where` gives it.

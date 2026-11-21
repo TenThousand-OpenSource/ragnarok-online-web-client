@@ -40,6 +40,20 @@ pub fn guild_changed(id: u32, guild: u32, emblem: u32) {
     });
 }
 
+/// A guild is no more (the player's own, broken up): none of those in sight is of it from now, and the
+/// flags of a castle it held are bare at once. This project's own: the Windows client keeps a flag's emblem
+/// (`CGameActor::SetGuildInfo` takes no guild of 0, and `C3dGrannyGameActor` keeps the texture it made) until
+/// the flag comes into sight anew, and the server sends nothing for the flags of a castle left without an
+/// owner.
+pub fn guild_gone(guild: u32) {
+    STATE.with_borrow_mut(|state| {
+        let Some(scene) = state.scene.as_mut().filter(|_| guild != 0) else { return };
+        for unit in scene.units.values_mut().filter(|unit| unit.guild.0 == guild) {
+            unit.guild = (0, 0);
+        }
+    });
+}
+
 /// The player's own character: its ID, what it is called, and the guild it is of with the version of its emblem
 /// (0 and 0 for none). Kept across maps.
 pub fn own_guild(id: u32, name: &str, guild: u32, emblem: u32) {

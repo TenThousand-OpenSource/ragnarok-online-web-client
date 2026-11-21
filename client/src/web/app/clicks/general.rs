@@ -3,6 +3,13 @@
 use super::*;
 
 impl App {
+    /// The game's menu is drawn as `esc` says now: its own window, and what it asks of the dead, which stands
+    /// in the window of what an NPC says (`hud/esc.rs`, `hud/windows/talk.rs`). Called after anything that
+    /// opens or closes either.
+    pub(in crate::web::app) fn esc_redrawn(&self) {
+        self.redraw(&[&wnd::DIALOG, &wnd::ESC]);
+    }
+
     /// A press that belongs to no one window (`crate::press::general`).
     pub(super) fn general_pressed(&mut self, press: crate::press::general::Press) {
         use crate::press::Step;
@@ -50,7 +57,7 @@ impl App {
             // (`ToggleWindow(WID_ESCOPTIONWND)`), as Escape with no window open does.
             Press::Options => {
                 self.esc = u8::from(self.esc == 0);
-                self.redraw(&[&wnd::DIALOG]);
+                self.esc_redrawn();
             }
             Press::EscClose | Press::EscSave | Press::EscNo | Press::EscYes => {
                 self.esc = match press {
@@ -61,7 +68,13 @@ impl App {
                 if press == Press::EscYes {
                     self.send(&crate::net::packets::restart(false));
                 }
-                self.redraw(&[&wnd::DIALOG]);
+                self.esc_redrawn();
+            }
+            // `UIEscOptionWnd`, `ID_REBIRTH`: the client asks to rise (`MM_REBIRTH`) and closes the menu.
+            Press::EscRise => {
+                self.esc = 0;
+                self.send(&crate::net::packets::rise());
+                self.esc_redrawn();
             }
             Press::Sound => {
                 self.sound = !self.sound;

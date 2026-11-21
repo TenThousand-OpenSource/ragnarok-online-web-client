@@ -28,6 +28,12 @@ impl App {
                 return self.pressed(crate::press::inventory::Press::IdentifyOk);
             }
             Use::Choice(row) => return self.choice_used(row),
+            // A double click on a line of an NPC's menu is its OK (`UIListBox::OnLBtnDblClk` sends the
+            // window the list's own number, which `UIChooseWnd` gave it as that of OK).
+            Use::Answer(row) => {
+                self.pressed(crate::press::talk::Press::Pick(row));
+                return self.pressed(crate::press::talk::Press::Ok);
+            }
             Use::Room(id) => return self.room_used(id),
             Use::Emotion(emotion) => return self.emotion_shown(emotion),
             // A card asks what it can be set into (`clicks/choosing.rs`).
@@ -47,6 +53,7 @@ impl App {
             Drop::Cart => self.cart_let_go(dragged),
             Drop::Stall | Drop::Stock | Drop::Vendor | Drop::Wants => self.vending_let_go(dragged, onto),
             Drop::InventoryTab(tab) => self.tab_let_go(dragged, tab),
+            Drop::Equipment => self.worn_let_go(dragged),
         }
     }
 

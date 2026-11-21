@@ -1,4 +1,5 @@
-//! The drawing of one frame: the map, on it the sprites and the numbers, and over them the effects.
+//! The drawing of one frame: the map, on it the effects' quads that lie under those standing, the sprites and
+//! the numbers, and over them the other effects.
 
 use super::*;
 
@@ -54,10 +55,11 @@ impl Gpu {
             let mut pass = self.pass(&mut encoder, &target, Self::sky(scene));
             self.draw_map(&mut pass, scene);
             self.draw_granny(&mut pass);
+            self.draw_effects(&mut pass, effects, true);
             if !corners.is_empty() {
                 self.draw_sprites(&mut pass, ((marks.len() / 5) as u32, (rings.len() / 5) as u32), sprites, &numbers);
             }
-            self.draw_effects(&mut pass, effects);
+            self.draw_effects(&mut pass, effects, false);
             self.draw_emitters(&mut pass);
         }
         self.queue.submit([encoder.finish()]);
@@ -207,13 +209,14 @@ impl Gpu {
         }
     }
 
-    /// The effects' quads, each through the see-through pipeline or the one that adds light.
-    fn draw_effects(&self, pass: &mut wgpu::RenderPass, effects: &Quads) {
-        if effects.pictures.is_empty() {
+    /// The effects' quads, each through the see-through pipeline or the one that adds light: those drawn
+    /// `under` everyone standing (ahead of the sprites: `Quads::picture_under`), or all the others.
+    fn draw_effects(&self, pass: &mut wgpu::RenderPass, effects: &Quads, under: bool) {
+        if effects.pictures.is_empty() || (under && effects.under.is_empty()) {
             return;
         }
         pass.set_vertex_buffer(0, self.effect_vertices.slice(..));
-        for (index, (binds, adds)) in effects.pictures.iter().enumerate() {
+        for (index, (binds, adds)) in effects.pictures.iter().enumerate().filter(|(index, _)| effects.under.contains(index) == under) {
             let which = usize::from(*adds);
             pass.set_pipeline(&self.effect_pipelines[which]);
             pass.set_bind_group(0, &self.effect_camera_binds[which], &[]);

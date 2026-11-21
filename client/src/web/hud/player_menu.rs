@@ -11,7 +11,7 @@ use crate::press::player_menu::{Entry, Press};
 impl App {
     /// The rows: looking at what the player wears, asking for a deal, inviting into the party (for a leader,
     /// when the player is not in it already) and into the guild, and for a guild's master the alliance and the
-    /// opposition; then the talk between two, making a friend of the player and a
+    /// opposition (each only while it does not stand); then the talk between two, making a friend of the player and a
     /// letter; then turning the player's whispers away.
     ///
     /// Not here, with the reason: the first two rows are left out by the client in two states of the player's
@@ -31,11 +31,18 @@ impl App {
         if self.guild.id != 0 && self.guild.invites && menu.guild == 0 {
             rows.push_str(&menu_row(&named(382, "Send (%s) a Guild Invitation"), Press::Do(Entry::Guild)));
         }
-        // The master's rows, under a line of their own, on anyone who is not of the master's guild: an alliance
-        // asked of that player's guild, and that guild set as one opposed.
-        if self.guild.id != 0 && self.guild.master && menu.guild != self.guild.id {
+        // The master's rows, under a line of their own, on a player of another guild: an alliance asked of that
+        // player's guild, and that guild set as one opposed; neither for a relation that stands already
+        // (`crate::guild::relation_rows`: the owner's decision, against the client, which offers both always).
+        let related = self.guild.related.iter().map(|(guild, _, opposed)| (*guild, *opposed));
+        let (ally, oppose) = crate::guild::relation_rows(self.guild.id, self.guild.master, menu.guild, related);
+        if ally || oppose {
             rows.push_str(MENU_BOUNDARY);
+        }
+        if ally {
             rows.push_str(&menu_row(&Self::words(399, "Send an Guild Alliance Request"), Press::Do(Entry::Ally)));
+        }
+        if oppose {
             rows.push_str(&menu_row(&Self::words(403, "Set this guild as an Antagonist"), Press::Do(Entry::Oppose)));
         }
         rows.push_str(MENU_BOUNDARY);

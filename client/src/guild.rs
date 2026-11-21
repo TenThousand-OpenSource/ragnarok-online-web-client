@@ -2,7 +2,8 @@
 //! list of them in the guild window's first tab, `UIGuildInfoManageWnd::OnCreate`; the menu on one,
 //! `UIListBoxAgit::OnRBtnDown`; the words of its two boxes, `UIListBoxAgitMenu::SendMsg` and
 //! `CGameMode::ReceiveAgitNotice`), and of the guilds allied and opposed in that tab (which row of the two lists
-//! the right button picks, `UIGuildInfoManageWnd::OnRBtnUp`). The packets are read in `net/guild/castles.rs`.
+//! the right button picks, `UIGuildInfoManageWnd::OnRBtnUp`), and which of a master's rows the menu on another
+//! player has (`relation_rows`). The packets are read in `net/guild/castles.rs`.
 
 /// The list of castles (`m_agitList`): 95 by 158, a line 13 high, twelve lines in sight.
 pub const CASTLE_LIST: (i32, i32) = (95, 158);
@@ -51,6 +52,25 @@ pub fn related_place(related: impl IntoIterator<Item = bool>, opposed: bool, row
     if row < RELATED_ROWS { places.nth(row) } else { None }
 }
 
+/// Which of a master's two rows the menu on another player has: asking that player's guild for an alliance,
+/// and setting it as an antagonist. The client's rule (`CGameMode::OpenActorMenu`,
+/// `Source/Contents/World/WorldObjects.cpp:814-828`) offers both to a master on anyone who is not of the
+/// master's guild, and looks at nothing else. Decided here against it (the owner's decision, 2026-11-21,
+/// `docs/DEBTS.md`): a relation that stands already is not offered (no alliance with a guild already allied,
+/// no opposing of one already opposed), and neither row on a player of no guild, where there is nothing to
+/// relate to. `own` and `theirs` are the two guilds (0 for none), `related` the guilds the master's own is
+/// related to, each with whether it is opposed.
+pub fn relation_rows(own: u32, master: bool, theirs: u32, related: impl IntoIterator<Item = (u32, bool)>) -> (bool, bool) {
+    if own == 0 || !master || theirs == 0 || theirs == own {
+        return (false, false);
+    }
+    let (mut allied, mut opposed) = (false, false);
+    for (_, against) in related.into_iter().filter(|(guild, _)| *guild == theirs) {
+        if against { opposed = true } else { allied = true }
+    }
+    (!allied, !opposed)
+}
+
 /// A line of the message table as it is written into a box: what the table writes as `\n` ends a line.
 fn lined(line: &str) -> String {
     line.replace("\\n", "\n")
@@ -73,6 +93,19 @@ pub fn castle_investment(line: &str, name: &str, economy: i32, defense: i32) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_master_is_offered_only_a_relation_that_does_not_stand() {
+        let related = [(7, false), (8, true), (9, false), (9, true)];
+        // A guild not related: both; one allied: only opposing; one opposed: only the alliance; both: neither.
+        assert_eq!(relation_rows(1, true, 5, related), (true, true));
+        assert_eq!(relation_rows(1, true, 7, related), (false, true));
+        assert_eq!(relation_rows(1, true, 8, related), (true, false));
+        assert_eq!(relation_rows(1, true, 9, related), (false, false));
+        // Nothing on a player of no guild or of the master's own, for one who is no master, or with no guild.
+        assert_eq!((relation_rows(1, true, 0, related), relation_rows(1, true, 1, related)), ((false, false), (false, false)));
+        assert_eq!((relation_rows(1, false, 5, related), relation_rows(0, true, 5, related)), ((false, false), (false, false)));
+    }
 
     #[test]
     fn the_menu_opens_by_the_right_edge_of_the_line_pressed() {

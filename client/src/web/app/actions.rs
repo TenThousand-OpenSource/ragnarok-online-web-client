@@ -68,6 +68,7 @@ impl App {
             // A skill of the homunculus or of the mercenary is used by its script, which is told where.
             Action::Aimed(whom, cell) if self.companion_aimed(whom, cell) => {}
             Action::Aimed(whom, cell) => self.skill_aimed(whom, cell),
+            Action::AimedOwn => self.own_aimed(),
             Action::Slid(name, level) => self.settings_slide(&name, level),
             Action::StrikeOnce(id) => self.send_on_map(&net::actors::attack_once(id)),
             Action::StopFight => self.send_on_map(&net::actors::stop_attack()),

@@ -6,7 +6,7 @@ use super::*;
 mod landing;
 
 pub use landing::number_over;
-pub(super) use landing::{ARROW, ARROW_MS, Flying, Landing, Struck, landings};
+pub(super) use landing::{ARROW_MS, Flying, Landing, Struck, landings};
 
 /// A blow or a skill that strikes, as the app tells it: who strikes whom (`own` is the player's own ID, who
 /// is not among the others), the speed of the swing and the time the one struck flinches as the server sent
@@ -50,7 +50,7 @@ pub fn struck(strike: Strike) -> f64 {
             // `attack_action`); monsters have one.
             let action = match &striker.look {
                 Look::Character(figure) => attack_action(figure),
-                Look::Creature(_) | Look::Model(_) => 16,
+                Look::Creature(_) | Look::Model(_) | Look::Unseen => 16,
             };
             striker.motion = Some((action, time, lasts.clamp(250.0, 2000.0)));
             lands = lands_after(striker, action, lasts, flinch);
@@ -139,7 +139,7 @@ fn lands_after(striker: &Mover, action: usize, speed: f64, otherwise: f64) -> f6
     let frame = match &striker.look {
         Look::Character(figure) => figure::body_strike_frame(figure.job, figure.sex, action),
         Look::Creature(path) => figure::strike_frame(path, action),
-        Look::Model(_) => None,
+        Look::Model(_) | Look::Unseen => None,
     };
     frame.map_or(otherwise, |frame| crate::blow::lands_after(frame, speed, striker.job)).clamp(0.0, 1500.0)
 }
@@ -215,19 +215,31 @@ pub fn cast_over(source: u32, own: u32, broken: bool) {
     });
 }
 
-/// An arrow is shot at someone, to arrive after `delay` milliseconds (the client's `CArrowEffect`): it leaves
-/// 10 above the archer's feet and flies for 8 of the client's frames.
+/// Someone's blow, landing after `delay` milliseconds, sends an arrow at the one struck if the striker shoots
+/// (the client's `CArrowEffect`): it leaves 10 above the archer's feet and flies for 8 of the client's frames.
+/// A character shoots if it holds a bow, and its arrow arrives as the blow lands (`CPc::SetState`: the blow is
+/// put off by the arrow's 8 frames); a monster shoots by its job alone, an arrow or a thing of its own, which
+/// leaves on the frame of its swing the blow is on (`crate::blow::shots`,
+/// `CGameActor::LaunchAttackProjectile`).
 pub fn arrow(source: u32, target: u32, own: u32, delay: f64) {
     STATE.with_borrow_mut(|state| {
         let Some(scene) = &state.scene else { return };
         let Some(archer) = scene.one(source, own) else { return };
-        // Only one who holds a bow shoots (the client asks its weapon table whether the weapon uses arrows).
-        let Look::Character(figure) = &archer.look else { return };
-        if !data::about(figure.weapon).is_some_and(|(_, facts)| facts.iter().any(|(key, kind)| key == "SubType" && kind == "Bow")) {
-            return;
-        }
+        let (leaves, sprite) = match &archer.look {
+            // (The client asks its weapon table whether the weapon uses arrows.)
+            Look::Character(figure) => {
+                if !data::about(figure.weapon).is_some_and(|(_, facts)| facts.iter().any(|(key, kind)| key == "SubType" && kind == "Bow")) {
+                    return;
+                }
+                ((delay - ARROW_MS).max(0.0), crate::blow::shots::ARROW)
+            }
+            _ => match crate::blow::shots::shot(archer.job) {
+                Some(sprite) => (crate::blow::shots::leaves_after(delay, archer.job), sprite),
+                None => return,
+            },
+        };
         let from = along(on_ground(&scene.gat, archer.at), [0.0, 1.0, 0.0], 10.0);
-        state.arrows.push((now() + (delay - ARROW_MS).max(0.0), from, target));
+        state.arrows.push((now() + leaves, from, target, sprite));
     });
 }
 
@@ -274,10 +286,15 @@ pub fn aim(at: Option<bool>, range: u16) {
     aim_shown();
 }
 
-/// Whether the skill being aimed needs Shift held to go on a monster (a skill of help, with the client's No
-/// Shift option off).
-pub fn aim_guarded(guarded: bool) {
-    STATE.with_borrow_mut(|state| state.aim_guarded = guarded);
+/// Whether the skill being aimed is one of help (`crate::skills::aim::support`).
+pub fn aim_support(support: bool) {
+    STATE.with_borrow_mut(|state| state.aim_support = support);
+}
+
+/// Whether the skill being aimed is used on a trap (the server's kind 32 of using a skill, the client's
+/// `skillUseType` 5: Remove Trap, Spring Trap): the press that follows picks a trap, not someone.
+pub fn aim_traps(traps: bool) {
+    STATE.with_borrow_mut(|state| state.aim_traps = traps);
 }
 
 /// What is written by the pointer while a skill is aimed: its name and the level it will be used at.
@@ -312,6 +329,7 @@ pub fn uses_skill(who: u32, own: u32, body: u8) {
                 }
                 return;
             }
+            Look::Unseen => return,
         };
         if mover.sitting || mover.dead {
             return;

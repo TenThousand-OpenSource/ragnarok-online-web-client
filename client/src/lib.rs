@@ -85,6 +85,7 @@ pub mod status;
 pub mod statuses;
 pub mod storage;
 pub mod tables;
+pub mod talk;
 pub mod unread;
 pub mod vector;
 pub mod vending;

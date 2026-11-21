@@ -9,6 +9,9 @@ pub(in crate::web::world) enum Piece {
     /// place in the world and where of the picture it shows, the colour of each corner, and whether its light
     /// is added to what is behind it.
     Picture(&'static str, [(Vector, [f32; 2]); 6], [[f32; 4]; 6], bool),
+    /// The same, of a primitive the client draws ahead of every shadow and body, at the depth it is at
+    /// (`crate::prim::Prim::under_bodies`: the particles of the aura of the highest level).
+    Under(&'static str, [(Vector, [f32; 2]); 6], [[f32; 4]; 6], bool),
     /// A frame of the first action of a sprite, facing the screen: the sprite's path among the client's
     /// sprites, the frame, where in the world the sprite's origin is, how many times its own size it is, how
     /// far it is turned (the client's degrees), the colour every layer of the frame is drawn in, and whether
@@ -75,17 +78,17 @@ impl Burst {
             }
             for rect in prim.rects(right, up).into_iter().filter(|rect| rect.alpha >= 1.0) {
                 let corners = rect.corners.map(|(at, uv)| ([place[0] + at[0], place[1] + at[1], place[2] + at[2]], uv));
-                draw(Piece::Picture(
-                    rect.picture,
-                    corners,
-                    [[
-                        f32::from(rect.colour[0]) / 255.0,
-                        f32::from(rect.colour[1]) / 255.0,
-                        f32::from(rect.colour[2]) / 255.0,
-                        rect.alpha / 255.0
-                    ]; 6],
-                    rect.adds
-                ));
+                let colours = [[
+                    f32::from(rect.colour[0]) / 255.0,
+                    f32::from(rect.colour[1]) / 255.0,
+                    f32::from(rect.colour[2]) / 255.0,
+                    rect.alpha / 255.0
+                ]; 6];
+                draw(if prim.under_bodies() {
+                    Piece::Under(rect.picture, corners, colours, rect.adds)
+                } else {
+                    Piece::Picture(rect.picture, corners, colours, rect.adds)
+                });
             }
             // (A kite has a corner that shows whatever its alpha is.)
             if prim.alpha < 1.0 && !prim.glares(1) {

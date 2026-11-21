@@ -31,6 +31,8 @@ presses! {
         Friend(usize) = "friend",
         /// A row of a list a skill or a card opened: it is picked and confirmed.
         Choice(usize) = "choice",
+        /// A line of the menu an NPC offers: it is picked and confirmed.
+        Answer(usize) = "answer",
         /// The sign of a chat room over its owner's head, by the room's number: the room is entered.
         Room(u32) = "room",
         /// An emotion of the window of emotions: it is shown.
@@ -134,6 +136,8 @@ presses! {
         /// A vendor's list, and the basket of what is bought from it.
         Vendor = "vendor",
         Wants = "wants",
+        /// The Equipment window: a thing of the inventory let go on it is put on.
+        Equipment = "equipment",
         /// A tab of the inventory, counted from 0: a thing let go on "Fav" is kept under it, on another no more.
         InventoryTab(usize) = "inventory-tab",
     }

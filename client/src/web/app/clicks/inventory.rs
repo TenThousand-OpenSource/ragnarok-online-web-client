@@ -100,6 +100,15 @@ impl App {
         }
     }
 
+    /// A thing of the inventory was let go over the Equipment window (`UIEquipWnd::DragAndDrop`): it is asked
+    /// to be put on, or readied if it is ammunition (`crate::inventory::worn_by_drop`); anything else, and a
+    /// thing taken out of the window itself, only ends the drag.
+    pub(in crate::web::app) fn worn_let_go(&mut self, dragged: Drag) {
+        let Drag::Item(id) = dragged else { return };
+        let Some(item) = self.bag.first_unworn(id).filter(|item| crate::inventory::worn_by_drop(item.kind, item.identified, item.wearable)) else { return };
+        self.send_on_map(&net::inventory::wear(item.index, item.wearable));
+    }
+
     /// An item carried is used, by a double click or from the hotkey bar: it is used, taken off or put on.
     pub(in crate::web::app) fn use_item(&mut self, index: u16) {
         let (Some(socket), Some(account)) = (&self.socket, &self.account) else { return };

@@ -12,3 +12,7 @@ display_version: no
 // so the client and the server stop it in the same place: without this a character struck while it runs is
 // stopped later on the client's screen than on the server, and jumps back at its next step.
 synchronize_damage: yes
+
+// The classic game: a blacksmith NPC refines through its dialog, not through the Refine UI window of later
+// clients (which this client does not have: without this the NPC says nothing).
+feature.refineui: off

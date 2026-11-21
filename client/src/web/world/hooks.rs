@@ -7,6 +7,8 @@ pub struct Options {
     /// A press on a monster fights it until it is down (`/noctrl`); off, that takes Ctrl, and a plain press
     /// fights only while the button is held.
     pub no_ctrl: bool,
+    /// A skill aimed at someone goes on whoever is pressed, Shift held or not (`/noshift`).
+    pub no_shift: bool,
     /// The right button uses the bar's ninth slot (`/q1`); the wheel its eighth and seventh (`/q2`).
     pub quick_right: bool,
     pub quick_wheel: bool,
@@ -38,6 +40,7 @@ impl Default for Options {
     fn default() -> Self {
         Self {
             no_ctrl: true,
+            no_shift: false,
             quick_right: false,
             quick_wheel: false,
             effects: true,
@@ -72,6 +75,9 @@ pub struct Hooks {
     pub ready: fn(Result<(), String>),
     /// The skill being aimed was pointed at someone (their ID) or at a cell.
     pub aimed: fn(Option<u32>, (u16, u16)),
+    /// The skill being aimed at someone was pointed at the player's own character, whose ID the world is not
+    /// told.
+    pub aimed_own: fn(),
     /// The right button was pressed and let go on someone without moving: their ID, and where on the page.
     pub menu: fn(u32, (f32, f32)),
     /// The wheel was turned while a skill is aimed: up (1) or down (-1) a level.

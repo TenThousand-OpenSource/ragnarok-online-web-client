@@ -39,7 +39,10 @@ impl App {
         let lines: Vec<String> = places
             .iter()
             .map(|place| match place.as_str() {
-                RANDOM => Self::words(212, "Random Area"),
+                // (rAthena names it "Random.gat", having put `.gat` after every name of the list:
+                // `clif_skill_warppoint`. The client knows "Random" alone and would write the name of no map
+                // there, its line `MSI_NOWHERE`; here it is taken for what it is. `docs/DEBTS.md`.)
+                place if crate::maps::bare(place) == RANDOM => Self::words(212, "Random Area"),
                 CANCEL => Self::words(218, "Cancel"),
                 map => data::map_name(map),
             })

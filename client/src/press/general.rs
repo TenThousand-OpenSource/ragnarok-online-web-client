@@ -25,6 +25,8 @@ presses! {
         EscClose = "esc-close",
         /// The game's menu of one who lies dead: to the save point (it asks first).
         EscSave = "esc-save",
+        /// The game's menu of one who lies dead with a Token of Siegfried: to rise where they lie.
+        EscRise = "esc-rise",
         /// The question about the save point: no, and yes.
         EscNo = "esc-no",
         EscYes = "esc-yes",

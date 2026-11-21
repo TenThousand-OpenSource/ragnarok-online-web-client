@@ -135,8 +135,9 @@ pub(super) fn casts(state: &mut State, time: f64, quads: &mut Quads) -> Vec<((f3
 /// was as it began), a touch nearer than where it stands. The sounds they start on the way are played. Gives
 /// back what they ask of the world around them (`prims::Asked`); the effects they end are ended here.
 pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quads) -> prims::Asked {
-    // The aura of the highest level is on those who show it now (`aura.rs`).
-    aura::kept(state, time);
+    // The aura of the highest level is on those who show it now (`aura.rs`); with effects off it lives on
+    // and is not drawn.
+    let unseen = aura::kept(state, time);
     let mut asked = prims::Asked::default();
     let (Some(gpu), Some(scene)) = (&mut state.gpu, &state.scene) else { return asked };
     // The effects that a state of someone's keeps going (Sight), begun and begun again while it holds.
@@ -197,36 +198,65 @@ pub(super) fn bursts(state: &mut State, view: &View, time: f64, quads: &mut Quad
     // The camera's yaw as the client has it (`crate::prim::camera_yaw` says from where): none looking north, a
     // quarter looking east.
     let yaw = crate::prim::camera_yaw(view.right);
-    for burst in state.bursts.iter_mut().filter(|burst| burst.begins <= time) {
+    for burst in state.bursts.iter_mut().filter(|burst| burst.begins <= time && !unseen.iter().any(|effect| burst.is(*effect, burst.on))) {
         let Some(place) = standing(burst.on).map(|at| burst.place(at)) else { continue };
         let nearer = nearer(view, place, 25.0);
-        burst.draw(place, (view.right, view.up, yaw), |piece| match piece {
-            prims::Piece::Picture(picture, corners, colours, adds) => {
-                let Some(binds) = gpu.effect_pictures.get(picture) else { return };
-                for ((at, uv), colour) in corners.into_iter().zip(colours) {
-                    quads.corner(view, nearer, at, uv, colour);
-                }
-                quads.picture(binds, adds);
-            }
-            // A frame of a sprite, across the screen about its place: each layer of the frame a quad of its
-            // own picture, in the frame's order, all in the one colour (`RenderSegmentSprites2`).
-            prims::Piece::Sprite { sprite, action, frame, at, scale, roll, colour, own, lit, adds, rim } => {
-                let Some(sheet) = gpu::sheet(sprite) else { return };
-                let Some(shown) = sheet.act.actions.get(action).and_then(|frames| frames.get(frame % frames.len().max(1))) else { return };
-                for layer in crate::sprite::layer_quads(shown, |truecolor, picture| sheet.sprite.size_of(truecolor, picture), scale, roll) {
-                    let Some(binds) = gpu.effect_layer(sprite, &sheet, layer.truecolor, layer.picture) else { continue };
-                    let colour = layer_colour(layer.colour, colour, own, lit);
-                    // (The kind 167: a colour made of the layer's own, and for its second drawing a larger quad.)
-                    let Some(colour) = rim.map_or(Some(colour), |rim| rim.colour(layer.colour)) else { continue };
-                    for [x, y, u, v] in rim.map_or(layer.corners, |rim| rim.widened(layer.corners)) {
-                        quads.corner(view, nearer, along(along(at, view.right, x * SPRITE_SCALE), view.up, -y * SPRITE_SCALE), [u, v], colour);
-                    }
-                    quads.picture(&binds, adds);
-                }
-            }
-        });
+        burst.draw(place, (view.right, view.up, yaw), |piece| piece_drawn(gpu, quads, view, nearer, piece));
     }
     asked
+}
+
+/// A piece of an effect put among the frame's quads, so much `nearer` than where the effect is.
+fn piece_drawn(gpu: &mut Gpu, quads: &mut Quads, view: &View, nearer: f32, piece: prims::Piece) {
+    match piece {
+        prims::Piece::Picture(picture, corners, colours, adds) => {
+            pictured(quads, view, gpu.effect_pictures.get(picture).zip(Some(adds)), Some(nearer), corners, colours);
+        }
+        // (A particle of the aura the client draws ahead of those standing, at the depth it is at.)
+        prims::Piece::Under(picture, corners, colours, adds) => {
+            pictured(quads, view, gpu.effect_pictures.get(picture).zip(Some(adds)), None, corners, colours);
+        }
+        // A frame of a sprite, across the screen about its place: each layer of the frame a quad of its
+        // own picture, in the frame's order, all in the one colour (`RenderSegmentSprites2`).
+        prims::Piece::Sprite { sprite, action, frame, at, scale, roll, colour, own, lit, adds, rim } => {
+            let Some(sheet) = gpu::sheet(sprite) else { return };
+            let Some(shown) = sheet.act.actions.get(action).and_then(|frames| frames.get(frame % frames.len().max(1))) else { return };
+            for layer in crate::sprite::layer_quads(shown, |truecolor, picture| sheet.sprite.size_of(truecolor, picture), scale, roll) {
+                let Some(binds) = gpu.effect_layer(sprite, &sheet, layer.truecolor, layer.picture) else { continue };
+                let colour = layer_colour(layer.colour, colour, own, lit);
+                // (The kind 167: a colour made of the layer's own, and for its second drawing a larger quad.)
+                let Some(colour) = rim.map_or(Some(colour), |rim| rim.colour(layer.colour)) else { continue };
+                for [x, y, u, v] in rim.map_or(layer.corners, |rim| rim.widened(layer.corners)) {
+                    quads.corner(view, nearer, along(along(at, view.right, x * SPRITE_SCALE), view.up, -y * SPRITE_SCALE), [u, v], colour);
+                }
+                quads.picture(&binds, adds);
+            }
+        }
+    }
+}
+
+/// A piece of a picture put among the frame's quads, if its picture is there (the picture, and whether its
+/// light is added): so much `nearer` than where the effect is and over those standing, as the effects are
+/// drawn here; or with none, at the depth each corner is at and under those standing, as the client draws a
+/// particle made with the `flags` 13 (`CParticle::Render`: `depth` on and no `depthOffset`;
+/// `Quads::picture_under`).
+fn pictured(
+    quads: &mut Quads,
+    view: &View,
+    picture: Option<(&Rc<[wgpu::BindGroup; 2]>, bool)>,
+    nearer: Option<f32>,
+    corners: [(Vector, [f32; 2]); 6],
+    colours: [[f32; 4]; 6]
+) {
+    let Some((binds, adds)) = picture else { return };
+    for ((at, uv), colour) in corners.into_iter().zip(colours) {
+        quads.corner(view, nearer.unwrap_or(1.0), at, uv, colour);
+    }
+    if nearer.is_some() {
+        quads.picture(binds, adds);
+    } else {
+        quads.picture_under(binds, adds);
+    }
 }
 
 /// The colour a layer of a primitive's sprite is drawn in: the primitive's `colour`; with `own` (the client's
@@ -265,14 +295,21 @@ pub(super) fn arrows(state: &mut State, view: &View, time: f64, quads: &mut Quad
     if state.arrows.is_empty() {
         return;
     }
-    let Some(EffectSprite { binds, size: (wide, tall), .. }) = gpu.effect_sprite(&SpriteKey::Creature(ARROW.to_owned(), 0, 0)) else { return };
-    for (leaves, from, target) in &state.arrows {
+    for (leaves, from, target, sprite) in &state.arrows {
         if time < *leaves {
             continue;
         }
+        // (A sprite not read yet is asked for, and the shot shows from when it is there.)
+        let Some(EffectSprite { binds, size: (wide, tall), .. }) = gpu.effect_sprite(&SpriteKey::Creature((*sprite).to_owned(), 0, 0)) else { continue };
         let Some(to) = scene.units.get(target).map(|unit| unit.at).or((*target != 0).then_some(scene.player.at)) else { continue };
         let to = along(on_ground(&scene.gat, to), [0.0, 1.0, 0.0], 10.0);
-        let at = along(*from, subtract(to, *from), ((time - leaves) / ARROW_MS) as f32);
+        // From near it flies faster and is there sooner (`crate::blow::shots::flies`); then it is gone.
+        let way = subtract(to, *from);
+        let flies = crate::blow::shots::flies(dot(way, way).sqrt());
+        if time - leaves > flies {
+            continue;
+        }
+        let at = along(*from, way, ((time - leaves) / flies.max(1.0)) as f32);
         // The way it flies as the screen shows it: the picture's head is at its bottom, and is turned to lead.
         let ([sine, cosine], _) = on_screen(view, subtract(*from, to));
         let nearer = nearer(view, at, 10.0);

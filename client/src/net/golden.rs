@@ -79,6 +79,7 @@ fn way_in(lines: &mut Vec<(&'static str, Vec<u8>)>) {
     built!(lines; link::ping_live;);
     built!(lines; npc::restart; true);
     built!(lines; npc::restart; false);
+    built!(lines; packets::rise;);
 }
 
 /// What is done on the map: to those in sight, to NPCs, with skills.

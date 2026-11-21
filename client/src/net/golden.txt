@@ -22,6 +22,7 @@ packets::raise_stat bb000d0001
 link::ping_live 1c0b
 npc::restart b20001
 npc::restart b20000
+packets::rise 9202
 units::stop_attack 1801
 units::pick_up 620304030201
 units::attack 37040403020107

@@ -261,7 +261,8 @@ impl App {
         } else {
             self.skills.aimed = Some((skill.id, level));
             world::aim(Some(skill.target == 2), u16::MAX);
-            world::aim_guarded(false);
+            world::aim_support(false);
+            world::aim_traps(false);
             self.aim_words();
         }
         true

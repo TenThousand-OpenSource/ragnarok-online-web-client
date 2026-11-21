@@ -5,18 +5,7 @@ use crate::net::commands;
 
 mod beside;
 
-/// The skills of help the client lets go on a monster only with Shift held, unless its No Shift option is on
-/// (its `IsOptionalSelfTargetSkill`, those of the first jobs): Heal, Increase and Decrease Agility, Blessing,
-/// Cure, Detoxify, Resurrection, Impositio Manus, Suffragium, Aspersio, Slow Poison, Status Recovery, Kyrie
-/// Eleison, Turn Undead, Lex Aeterna.
-const HELPING: [u16; 15] = [28, 29, 30, 34, 35, 53, 54, 66, 67, 68, 71, 72, 73, 77, 78];
-
 impl App {
-    /// Whether the skill needs Shift held to go on a monster, as the player's options stand.
-    pub(super) fn guarded(&self, skill: u16) -> bool {
-        HELPING.contains(&skill) && !self.option("TT_NOSHIFT_ON_OFF")
-    }
-
     /// Does one of the client's commands; `false` for words that are none of them (they are said, then). The
     /// client tells them by the first word, whatever the size of its letters (`CSession::GetTalkType`), from
     /// its table of commands (`crate::commands`).
@@ -128,9 +117,11 @@ impl App {
             }
             // Any other command that is an option of the Game Settings switches it, as its row of the window
             // does, and the option's own message says how it stands now (`GameSettings::ToggleOption`).
+            // (`/aura` while auras do not show says that alone: `aura_hidden_said`.)
             option if data::option_switched(option) => {
                 self.switch_option(option);
-                self.switched(data::option_says(option, self.option(option)));
+                let said = if self.aura_hidden_said(option) { None } else { data::option_says(option, self.option(option)) };
+                self.switched(said);
             }
             _ => return self.asked_beside(asks),
         }

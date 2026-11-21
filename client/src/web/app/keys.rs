@@ -115,6 +115,10 @@ impl App {
             self.assign_key(chord);
             return true;
         }
+        // An NPC is talked to: Enter and the arrows up and down are the talk's, wherever the keyboard is.
+        if self.talk_key(key) {
+            return true;
+        }
         // Letters and digits typed into a line of text (or into the text of a letter) are text, not keys of the game.
         let typing = crate::web::document().and_then(|document| document.active_element()).is_some_and(
             |active| matches!(active.tag_name().as_str(), "INPUT" | "TEXTAREA")
@@ -144,11 +148,7 @@ impl App {
                 self.used(Use::Slot(slot));
                 true
             }
-            (_, "Escape") if self.bag.throwing.is_some() => {
-                self.bag.throwing = None;
-                self.redraw(&[&wnd::THROW]);
-                true
-            }
+            (_, "Escape") => self.escape_key(chat, writing),
             // Enter goes to the chat's line; from there it sends (the form does that).
             // In a field of some window Enter belongs to that window.
             (_, "Enter") if crate::web::document().and_then(|document| document.active_element()).is_some_and(
@@ -162,35 +162,43 @@ impl App {
                 }
                 true
             }
-            // Escape lets go of a skill being aimed.
-            (_, "Escape") if world::aiming() => {
-                world::aim(None, 0);
-                self.skills.aimed = None;
-                true
-            }
-            // Escape closes the window in front, and with none open it opens the window of game options (or
-            // closes that), unless an NPC is being talked to: the client's `UIWindowMgr::ProcessHotkeyAction`,
-            // at `VK_ESCAPE` (`CloseWindow` of the first of `windowHistory`, else `WID_ESCOPTIONWND`). The
-            // client does so whether or not the chat's line has the cursor (`ProcessKeyDown` hands it every
-            // Escape, and its line of chat does nothing with one), so it is the same here; the line keeps
-            // the keyboard and what was typed.
-            (_, "Escape") if self.dialog.is_none() => {
-                if self.close_front() {
-                    return true;
-                }
-                self.esc = u8::from(self.esc == 0);
-                self.redraw(&[&wnd::DIALOG]);
-                true
-            }
-            // (While an NPC is talked to, Escape only lets go of the chat's line.)
-            (_, "Escape") if writing => {
-                if let Some(input) = chat {
-                    let _ = input.blur();
-                }
-                true
-            }
             _ => false,
         }
+    }
+
+    /// Escape, when no key bound for this player took it: the first of these that there is. Whether the key
+    /// was used. `chat` is the chat's line, and `writing` whether it has the keyboard.
+    fn escape_key(&mut self, chat: Option<web_sys::HtmlElement>, writing: bool) -> bool {
+        // The box that asks how many to drop goes away.
+        if self.bag.throwing.is_some() {
+            self.bag.throwing = None;
+            self.redraw(&[&wnd::THROW]);
+            return true;
+        }
+        // Escape lets go of a skill being aimed.
+        if world::aiming() {
+            world::aim(None, 0);
+            self.skills.aimed = None;
+            return true;
+        }
+        // Escape closes the window in front, and with none open it opens the window of game options (or
+        // closes that), unless an NPC is being talked to: the client's `UIWindowMgr::ProcessHotkeyAction`,
+        // at `VK_ESCAPE` (`CloseWindow` of the first of `windowHistory`, else `WID_ESCOPTIONWND`). The
+        // client does so whether or not the chat's line has the cursor (`ProcessKeyDown` hands it every
+        // Escape, and its line of chat does nothing with one), so it is the same here; the line keeps
+        // the keyboard and what was typed.
+        if self.dialog.is_none() {
+            if !self.close_front() {
+                self.esc = u8::from(self.esc == 0);
+                self.esc_redrawn();
+            }
+            return true;
+        }
+        // (While an NPC is talked to, Escape only lets go of the chat's line.)
+        if let Some(input) = chat.filter(|_| writing) {
+            let _ = input.blur();
+        }
+        writing
     }
 
     /// A key that does what a press on the page does. The key is used.

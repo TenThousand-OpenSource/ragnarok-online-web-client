@@ -12,6 +12,12 @@
 //!
 //! Each lives while its actor is there (`IsAlive` is `ActorExists`; `EffectLifetime` has 99999999 for them).
 //!
+//! The particles of 200 and of 977 are made with the `flags` 13 (`CreateParticle`, `Part::UNDER_BODIES`),
+//! those of 976 with 5 (`Part::OVER_BODIES`): the renderer draws the first ahead of every shadow and body, so
+//! that whoever stands there covers them, and the second over everyone (`crate::prim`'s `tei/max_level.rs`
+//! says from where). A part keeps them in its `flags[1]`; the frame asks `Prim::under_bodies`
+//! (`frame/effects.rs`).
+//!
 //! Not here: `CLevel99Effect::SetParticleTexture` and `SetColor`, by which a state of a later time
 //! (`EFST_EQUIPED_FLOOR`, `EffectLists::SpawnLevel99`) gives the same effect another picture
 //! (`번개3.bmp`) and colour; the other numbers the client calls `EF_LEVEL99…` (201, 202, 362, 397, 398, 881),
@@ -40,51 +46,36 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     }
     match effect {
         200 => prims.extend([glows(course), swirls(course)]),
-        976 => prims.push(orbs("whitelight.tga", 1.8, [80.0, 80.0, 255.0], false, course)),
-        977 => prims.push(orbs("freezing_circle.bmp", 0.55, [255.0; 3], true, course)),
+        976 => prims.push(orbs("whitelight.tga", 1.8, [80.0, 80.0, 255.0], (false, Part::OVER_BODIES), course)),
+        977 => prims.push(orbs("freezing_circle.bmp", 0.55, [255.0; 3], (true, Part::UNDER_BODIES), course)),
         _ => {}
     }
 }
 
-/// `CLevel99Effect::Open`: two squares of light, 9 from the middle to a side, at an alpha of 200, white; the
-/// second turned 22 degrees from the first and half a breath apart from it.
+/// `CLevel99Effect::Open`: two squares of light, white (`Part::level99_glow`).
 fn glows(course: &Course) -> Prim {
     let mut prim = of_parts(Tei::Level99Glow, "pikapika2.bmp", true, course);
-    prim.parts.extend((0..2).map(|index| Part { turned: index * 22, rise: index * 180, out: 9.0, alpha: 200, ..Part::default() }));
+    prim.parts.extend((0..2).map(Part::level99_glow));
     prim
 }
 
-/// `CLevel99Effect::AddRings`: three bands at an alpha of 120 in the blue (100, 100, 255), each 315 degrees
-/// round. The first is 3.9 from the middle, up to 15 tall along a slope of 55 degrees; each next begins a
-/// quarter further round, is 0.2 wider, 2 less tall and 5 degrees flatter.
+/// `CLevel99Effect::AddRings`: three bands in the blue (100, 100, 255) (`Part::level99_swirl`).
 fn swirls(course: &Course) -> Prim {
     let mut prim = of_parts(Tei::Level99Swirl, "ring_blue.tga", true, course);
     prim.colour = [100.0, 100.0, 255.0];
-    prim.parts.extend((0..3).map(|band| {
-        let mut swirl = Part {
-            turned: band * 90,
-            round: 315,
-            rise: 55 - band * 5,
-            tall: 15.0 - band as f32 * 2.0,
-            out: band as f32 * 0.2 + 3.9,
-            alpha: 120,
-            ..Part::default()
-        };
-        (swirl.flags[0], swirl.heights[0]) = (band as i8, (band * 90) as f32);
-        swirl
-    }));
+    prim.parts.extend((0..3).map(Part::level99_swirl));
     prim
 }
 
 /// `CLevel99Orb1Effect::Open` and `CLevel99Orb2Effect::Open`: sixteen lights that rise 0.15 a tick, each
 /// begun up to 99 under the feet with its turns by lot, showing nothing until it comes up. Those of the
-/// second effect are turned over (`over`).
-fn orbs(picture: &'static str, size: f32, colour: [f32; 3], over: bool, course: &Course) -> Prim {
+/// second effect are turned over (`over`); `flags` is what the particles are made with (`CreateParticle`).
+fn orbs(picture: &'static str, size: f32, colour: [f32; 3], (over, flags): (bool, i8), course: &Course) -> Prim {
     let mut prim = of_parts(Tei::Level99Orb, picture, true, course);
     prim.colour = colour;
     prim.parts.extend((0..16).map(|_| {
         let mut orb = part();
-        (orb.tall, orb.out, orb.flags[0]) = (0.15, size, i8::from(over));
+        (orb.tall, orb.out, orb.flags[0], orb.flags[1]) = (0.15, size, i8::from(over), flags);
         orb.begin_as_orb();
         orb
     }));

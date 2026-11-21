@@ -64,6 +64,14 @@ pub fn count_typed(typed: &str, most: u16) -> Option<u16> {
     typed.trim().parse::<u32>().ok().filter(|count| (1..=u32::from(most)).contains(count)).map(|count| count as u16)
 }
 
+/// Whether a thing of the inventory let go over the Equipment window is asked to be put on
+/// (`UIEquipWnd::DragAndDrop`): ammunition (the client's item kinds 10, 16, 17 and 19) is readied whatever
+/// else is true of it (`MM_WEAR_EQUIP_ARROW`); anything else must be identified and have a place to be worn
+/// (`MM_WEAR_EQUIP`). The rest only ends the drag.
+pub fn worn_by_drop(kind: u8, identified: bool, wearable: u32) -> bool {
+    matches!(kind, 10 | 16 | 17 | 19) || (identified && wearable != 0)
+}
+
 /// The order the things under the tab are put in while its "Align items" button is on (`ItemTypeNameLess`):
 /// by this rank of their kind (`ItemTypeSortRank`), then by name.
 pub fn sort_rank(kind: u8) -> u8 {
@@ -173,6 +181,13 @@ mod tests {
         assert!(item(5, 2, true).fits_hotkeys());
         assert!(!item(5, 0, true).fits_hotkeys());
         assert!(!item(5, 2, false).fits_hotkeys());
+    }
+
+    #[test]
+    fn a_thing_let_go_over_the_equipment_window_is_put_on_if_it_can_be() {
+        // A hat that is identified; arrows; not a hat that is not, nor a potion or loot.
+        assert!(worn_by_drop(4, true, 256) && worn_by_drop(10, true, 0x8000) && worn_by_drop(10, false, 0));
+        assert!(!worn_by_drop(4, false, 256) && !worn_by_drop(0, true, 0) && !worn_by_drop(3, true, 0));
     }
 
     #[test]

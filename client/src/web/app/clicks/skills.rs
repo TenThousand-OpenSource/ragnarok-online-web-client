@@ -28,9 +28,14 @@ impl App {
                 self.skills.writing = None;
                 self.redraw(&[&wnd::SKILL_WORDS]);
             }
+            // The plus by a skill: a level of it, and before that of what it asks for and lacks, as far as the
+            // points go (`crate::skills::raises`; the client's `IncreaseSkillLevel` and `ApplySkillPoints`,
+            // which plan the levels and send them on Apply: here each is sent at once).
             Press::Raise(id) => {
-                if let Some(socket) = &self.socket {
-                    socket.send(&net::inventory::raise_skill(id));
+                let job = self.own_figure().job;
+                let points = crate::skills::points(self.hero.params.get(&packets::parameter::SKILL_POINTS).copied().unwrap_or(0));
+                for skill in crate::skills::raises(id, points, |skill| self.skill_level(skill), |skill| data::skill_asks(job, skill).1) {
+                    self.send_on_map(&net::inventory::raise_skill(skill));
                 }
             }
             Press::InfoClose => {
@@ -91,7 +96,9 @@ impl App {
             // says on whom or where.
             self.skills.aimed = Some((skill.id, level.unwrap_or(skill.level).min(skill.level).max(1)));
             world::aim(Some(skill.target == 2), skill.range);
-            world::aim_guarded(self.guarded(skill.id));
+            world::aim_support(crate::skills::aim::support(skill.id));
+            // A skill for a trap (the server's kind 32: Remove Trap, Spring Trap) is pointed at a trap.
+            world::aim_traps(skill.target == 32);
             self.aim_words();
         }
     }
@@ -130,6 +137,23 @@ impl App {
                 Some(id) => net::inventory::use_skill(level, skill, id),
                 None => crate::net::skills::use_on_ground(level, skill, cell),
             });
+        }
+    }
+
+    /// The skill being aimed at someone was pointed at the player's own character (the client's pick has its
+    /// own character among the others: `CGameMode::HandleActorPick`, `Source/Client/Mode/GameMode.cpp:10499`):
+    /// a skill of the homunculus or of the mercenary is told to its script, as for anyone pointed at; of the
+    /// character's own skills only one for a friend is used (`Skill::on_friend`), and any other is let go.
+    pub(in crate::web::app) fn own_aimed(&mut self) {
+        let own = Some(self.own_account());
+        if self.companion_aimed(own, (0, 0)) {
+            return;
+        }
+        let friendly = self.skills.aimed.is_some_and(|(skill, _)| self.skills.known.iter().any(|known| known.id == skill && known.on_friend()));
+        if friendly {
+            self.skill_aimed(own, (0, 0));
+        } else {
+            self.skills.aimed = None;
         }
     }
 

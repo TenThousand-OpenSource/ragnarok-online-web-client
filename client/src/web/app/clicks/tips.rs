@@ -20,11 +20,27 @@ impl App {
         }
         let lot = (js_sys::Math::random() * tips.len() as f64) as usize;
         (self.tips.tip, self.tips.page, self.tips.found, self.tips.open) = (tips[lot.min(tips.len() - 1)].id, 0, None, true);
+        self.tip_items();
+    }
+
+    /// The items whose pictures the tip shown has in its lines (`^i[number]`, `crate::markup::pictured`) are
+    /// asked of the gateway, and the window is drawn again when they are known.
+    fn tip_items(&self) {
+        use crate::markup::Shown;
+        let tips = data::tips();
+        let Some(tip) = tips.iter().find(|tip| tip.id == self.tips.tip) else { return };
+        let items = tip.pages.iter().flat_map(|page| crate::markup::pictured(page)).filter_map(|shown| match shown {
+            Shown::Item(id) => Some(id),
+            Shown::Words(_) => None,
+        });
+        data::want_items(items, || dispatch(Action::ItemsKnown));
     }
 
     /// As the game is first entered the Tipbox opens, unless the player has it not (`UITipboxWnd`, the box
-    /// "Open on Startup").
+    /// "Open on Startup"; `CGameMode` looks at it once, entering the first map). What the browser keeps is read
+    /// again at that moment: the box may have been emptied in another tab since this page was opened.
     pub(in crate::web::app) fn tips_at_start(&mut self) {
+        self.load_tips();
         if !std::mem::replace(&mut self.tips.started, true) && !self.tips.not_at_start {
             self.open_tips();
         }
@@ -58,6 +74,7 @@ impl App {
             Press::Tip(tip) => {
                 if data::tips().iter().any(|known| known.id == tip) {
                     (self.tips.tip, self.tips.page, self.tips.found) = (tip, 0, None);
+                    self.tip_items();
                     self.redraw(&[&wnd::TIPS]);
                 }
             }

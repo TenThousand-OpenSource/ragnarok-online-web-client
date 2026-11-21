@@ -81,7 +81,7 @@ impl App {
         self.chat_rooms_moved();
         self.guild_castles_moved(same);
         self.refresh_values();
-        self.redraw(&[&wnd::DIALOG]);
+        self.esc_redrawn();
         if same {
             // The map is already drawn: the character is only put elsewhere on it.
             world::jump((x, y));
@@ -165,6 +165,7 @@ impl App {
             moved: |x, y| dispatch(Action::Moved(x, y)),
             ready: |outcome| dispatch(Action::WorldReady(outcome)),
             aimed: |whom, cell| dispatch(Action::Aimed(whom, cell)),
+            aimed_own: || dispatch(Action::AimedOwn),
             menu: |id, at| dispatch(Action::Menu(id, at)),
             aim_level: |step| dispatch(Action::AimLevel(step)),
             strike_once: |id| dispatch(Action::StrikeOnce(id)),
@@ -176,6 +177,8 @@ impl App {
         // The server is asked its time as each map begins (the client's `SendSyncRequest(true)` as its game
         // mode starts), and then every twelve seconds (`keep_alive`).
         self.send_on_map(&packets::tick(now()));
+        // And how many play, for the count by the chat (this project's own; `keep_alive` asks on).
+        self.send_on_map(&crate::net::commands::user_count());
         world::enter(game.map.clone(), (game.x, game.y), figure, hooks);
         // The client's loading screen stands over everything until the map shows.
         loading(Some(self.loadings));

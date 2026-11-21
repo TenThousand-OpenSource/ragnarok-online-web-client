@@ -333,6 +333,13 @@ impl App {
                 // How much was healed rises over the one healed, in green.
                 world::number_over(target, own, level, crate::blow::signs::GREEN);
             }
+            // Potion Pitcher (`AM_POTIONPITCHER`: `LaunchTargetEffect(0x12B, source, target, effectLevel)`): the
+            // one who used it throws a potion at the target (`EF_THROWITEM2`), in the colour of the packet's
+            // level.
+            if skill == 231 {
+                let thrown = world::Blow { striker: (who != own).then_some(who), place_of: (target != own).then_some(target), hits: level.max(0) as u32 };
+                self.effect_shown(299, who, own, 0.0, Some(thrown));
+            }
             // Spirit Recovery and the wife's gift of spirit (`MG_SRECOVERY`, `WE_FEMALE`) show the spirit
             // given, in blue, the same way.
             if matches!(skill, 9 | 335) {

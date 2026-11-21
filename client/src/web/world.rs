@@ -100,7 +100,7 @@ pub use cart::carted;
 pub use falcon::{Prey, falcon_sent};
 pub use quests::visit;
 pub use pvp::{sides, zone};
-pub use guild::{emblem_known, emblem_pixels, guild_changed, own_guild, player_card, player_guild, player_position};
+pub use guild::{emblem_known, emblem_pixels, guild_changed, guild_gone, own_guild, player_card, player_guild, player_position};
 pub use combat::*;
 pub use written::spot_says;
 pub use names::{own_level, unit_titled};

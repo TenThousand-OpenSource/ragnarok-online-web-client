@@ -7,6 +7,10 @@ pub fn enter(map: String, cell: (u16, u16), figure: Figure, hooks: Hooks) {
     let entered = STATE.with_borrow_mut(|state| {
         state.scene = None;
         state.early.clear();
+        // What was under way on the map left ends with it: the client's world goes with all its effects
+        // as another map is loaded, so the snow of one map does not fall on the next, nor an effect that
+        // stays on the character (`@effect`, a cast's ring) go on there.
+        state.forget_fights();
         state.reading = Some(map.clone());
         state.start = None;
         state.hooks = Some(hooks);
@@ -169,7 +173,12 @@ pub fn jump(cell: (u16, u16)) {
         };
         // Right after the character comes in the server names the cell it already stands on: nobody is
         // forgotten then, for the server has shown them (a pet among them) and will not show them again.
+        // One who fell on that very cell (killed again where it came back to, without a step between) still
+        // stands up: being moved is how the server brings the dead back to the save point.
         if scene.player.cell == cell && scene.player.walk.is_none() {
+            if std::mem::take(&mut scene.player.dead) {
+                scene.player.motion = None;
+            }
             return;
         }
         scene.player.put(cell);
@@ -202,6 +211,10 @@ pub fn stand(cell: (u16, u16)) {
 /// The player's options the world goes by, as they are now.
 pub fn options(options: Options) {
     STATE.with_borrow_mut(|state| {
+        // An option of the aura switched takes the auras away, to be made anew (`aura.rs`).
+        if (state.options.auras, state.options.aura_full) != (options.auras, options.aura_full) {
+            aura::switched(state);
+        }
         state.options = options;
         // A camera farther out than is now allowed comes in.
         if let Some(scene) = &mut state.scene {

@@ -31,7 +31,18 @@ impl App {
 
     /// How an option starts: as the client's table of the Game Settings has it, or, for one that has a
     /// command and no row there, as `commands/beside.rs` has it.
+    ///
+    /// The row of the full aura starts unticked, against its `Default` of the table: the client sets its
+    /// switches as it starts from `CmdOnOffList` of `System\OptionInfo.lub` (`CSession::LoadOptionInfo` calls
+    /// the script's `SetCmdOnOffList`, whose `SetOption` keeps each value as written), which has `/aura` at 1
+    /// and `/aura2` at 0; the value kept for these two is the reverse of the row (`IsServiceOption`), so the
+    /// aura is shown and is the full one, with its light on the ground and its rings, until `/aura` is typed.
+    /// (The table's `Default` is what "reset" gives. The other switches of that list are not read here yet:
+    /// `docs/DEBTS.md`.)
     fn option_starts(id: &str) -> bool {
+        if id == crate::aura::SIMPLE_OPTION {
+            return false;
+        }
         Self::starts_beside(id).unwrap_or_else(|| data::option_starts(id))
     }
 
@@ -60,12 +71,27 @@ impl App {
         }
     }
 
+    /// An option was switched, by a command or by its row: if it is the full aura's while auras do not show,
+    /// the client's line for that is said (`crate::aura::said_while_hidden`). Whether it was said: the
+    /// option's own message is not said then.
+    pub(super) fn aura_hidden_said(&mut self, option: &str) -> bool {
+        let said = crate::aura::said_while_hidden(option, self.option(crate::aura::SHOWN_OPTION))
+            .and_then(crate::commands::message)
+            .and_then(data::message);
+        let was_said = said.is_some();
+        if let Some(said) = said {
+            self.chat_line(said, PALE_YELLOW);
+        }
+        was_said
+    }
+
     /// Tells the world of the options it goes by.
     pub(in crate::web) fn apply_options(&self) {
         self.vending_signs_told();
         world::camera_fixed(self.option("TT_FIXED_CAMERA_ON_OFF"));
         world::options(world::Options {
             no_ctrl: self.option("TT_NOCTRL_ON_OFF"),
+            no_shift: self.option("TT_NOSHIFT_ON_OFF"),
             quick_right: self.option("TT_QUICKSPELL_ON_OFF"),
             quick_wheel: self.option("TT_QUICKSPELL2_ON_OFF"),
             effects: self.option("TT_EFFECT_ON_OFF"),
@@ -78,8 +104,8 @@ impl App {
             name_above: self.option("TT_NAME_ABOVE_HEAD_ON_OFF"),
             emblems: self.option("TT_SHOW_EMBLEM_ON_OFF"),
             // (The client keeps these two the other way round from their rows: `crate::aura::Options`.)
-            auras: self.option("TT_HIDE_AURA_ON_OFF"),
-            aura_full: !self.option("TT_FULL_AURA_ON_OFF"),
+            auras: self.option(crate::aura::SHOWN_OPTION),
+            aura_full: !self.option(crate::aura::SIMPLE_OPTION),
         });
         // The fog of maps shows or not (`/fog`).
         world::fog(self.option("TT_FOG_ON_OFF"));

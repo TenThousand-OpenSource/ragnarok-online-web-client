@@ -129,54 +129,45 @@ struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>,
 "
 );
 
+/// The program of what is a picture multiplied by the colour of its corners: `$faint` is the alpha under
+/// which a point of it is left out.
+macro_rules! tinted_shader {
+    ($faint:literal) => {
+        concat!(
+            "
+struct Camera { view_projection: mat4x4<f32> }
+@group(0) @binding(0) var<uniform> camera: Camera;
+@group(1) @binding(0) var picture: texture_2d<f32>;
+@group(1) @binding(1) var picture_sampler: sampler;
+
+struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) colour: vec4<f32> }
+
+@vertex fn vs(@location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) colour: vec4<f32>) -> Out {
+    var out: Out;
+    out.position = camera.view_projection * vec4<f32>(position, 1.0);
+    out.uv = uv;
+    out.colour = colour;
+    return out;
+}
+
+@fragment fn fs(in: Out) -> @location(0) vec4<f32> {
+    let texel = textureSample(picture, picture_sampler, in.uv) * in.colour;
+    if (texel.a < ",
+            $faint,
+            ") { discard; }
+    return texel;
+}
+"
+        )
+    };
+}
+
 /// The sprites' program: a picture, its colours multiplied by the colour of its corners (white for a picture
 /// as it is; the colour a state or an effect gives a body, and how see-through it is: `crate::body`).
-pub(super) const SPRITE_SHADER: &str = "
-struct Camera { view_projection: mat4x4<f32> }
-@group(0) @binding(0) var<uniform> camera: Camera;
-@group(1) @binding(0) var picture: texture_2d<f32>;
-@group(1) @binding(1) var picture_sampler: sampler;
-
-struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) colour: vec4<f32> }
-
-@vertex fn vs(@location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) colour: vec4<f32>) -> Out {
-    var out: Out;
-    out.position = camera.view_projection * vec4<f32>(position, 1.0);
-    out.uv = uv;
-    out.colour = colour;
-    return out;
-}
-
-@fragment fn fs(in: Out) -> @location(0) vec4<f32> {
-    let texel = textureSample(picture, picture_sampler, in.uv) * in.colour;
-    if (texel.a < 0.02) { discard; }
-    return texel;
-}
-";
+pub(super) const SPRITE_SHADER: &str = tinted_shader!("0.02");
 
 /// The client's effects (`.str`): textured quads, each tinted and as see-through as its corners say.
-pub(super) const EFFECT_SHADER: &str = "
-struct Camera { view_projection: mat4x4<f32> }
-@group(0) @binding(0) var<uniform> camera: Camera;
-@group(1) @binding(0) var picture: texture_2d<f32>;
-@group(1) @binding(1) var picture_sampler: sampler;
-
-struct Out { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32>, @location(1) colour: vec4<f32> }
-
-@vertex fn vs(@location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) colour: vec4<f32>) -> Out {
-    var out: Out;
-    out.position = camera.view_projection * vec4<f32>(position, 1.0);
-    out.uv = uv;
-    out.colour = colour;
-    return out;
-}
-
-@fragment fn fs(in: Out) -> @location(0) vec4<f32> {
-    let texel = textureSample(picture, picture_sampler, in.uv) * in.colour;
-    if (texel.a < 0.004) { discard; }
-    return texel;
-}
-";
+pub(super) const EFFECT_SHADER: &str = tinted_shader!("0.004");
 
 /// The Granny models (`gpu/granny.rs`): a corner's place, where of its picture it is and the grey the client
 /// lit it to, in fog as everything the client draws; what of the picture is see-through is not drawn.

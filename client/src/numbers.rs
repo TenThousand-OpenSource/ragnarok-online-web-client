@@ -73,9 +73,38 @@ pub fn filled(line: &str, with: &[&str]) -> String {
     out
 }
 
+/// A character's number as the client writes it for people to read (`ShortcutFilename`: beside "Game Options"
+/// in the title of the game's menu, on a party member's card): each figure is another one (0 is 3, 1 is 8, 2
+/// is 6, 3 is 7, 4 is 0, 5 is 1, 6 is 2, 7 is 4, 8 is 9, 9 is 5), the noughts before the number are left
+/// out, and a stroke stands before the last two figures when anything stands before them.
+pub fn coded(number: u32) -> String {
+    const FIGURES: [char; 10] = ['3', '8', '6', '7', '0', '1', '2', '4', '9', '5'];
+    let figures = number.to_string();
+    let mut coded = String::new();
+    // The client goes through ten figures and writes nothing for a nought until something is written: a
+    // number's own figures begin with none, but 0 itself is all noughts and comes out empty.
+    for (place, figure) in figures.bytes().enumerate().filter(|_| number != 0) {
+        if figures.len() - place == 2 && !coded.is_empty() {
+            coded.push('-');
+        }
+        coded.push(FIGURES[usize::from(figure - b'0')]);
+    }
+    coded
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_characters_number_is_written_in_other_figures() {
+        assert_eq!(coded(150_000), "8133-33");
+        assert_eq!(coded(1_234_567_890), "86701249-53");
+        assert_eq!(coded(123), "8-67");
+        assert_eq!(coded(45), "01");
+        assert_eq!(coded(7), "4");
+        assert_eq!(coded(0), "");
+    }
 
     #[test]
     fn a_price_is_coloured_by_how_many_figures_it_has() {

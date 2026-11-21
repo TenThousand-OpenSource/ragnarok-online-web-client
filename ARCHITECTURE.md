@@ -41,12 +41,13 @@ The rules, as `client/src/lib.rs` declares them:
 
 - *a system's rules*: `account`, `shops`, `inventory`, `storage`, `vending`, `exchange`, `mail`, `choosing`,
   `skills`, `pets`, `homunculus`, `mercenary`, `party`, `friends`, `guild`, `pvp`, `chat`, `chat_rooms`,
-  `chat_tabs`, `whispers`, `manner`, `family`, `guide`, `quests`, `books`, `links`, `commands`, `cooldowns`, `statuses`,
-  `hotkeys`, `item_names`, `jobs`, `maps`, `said`, `song_talk`, `screenshot`, `ai`, `status`, `basic`,
-  `notices`, `broadcast`, `marks`, `link`, `unread`;
+  `chat_tabs`, `talk`, `whispers`, `manner`, `family`, `guide`, `quests`, `books`, `links`, `commands`,
+  `cooldowns`, `statuses`, `hotkeys`, `item_names`, `jobs`, `maps`, `said`, `song_talk`, `screenshot`, `ai`,
+  `status`, `basic`, `notices`, `broadcast`, `marks`, `link`, `unread`;
 - *how the world is drawn*: `pose`, `blow`, `body`, `route`, `server_time`, `prim`, `scenery`,
   `effect_tables`, `state_effects`, `skill_units`, `ailments`, `aura`, `spirits`, `scope`, `quake`, `earshot`,
-  `names`, `cart`, `falcon`, `mounts`, `cursor`, `font`, `figures`, `bars`, `monster_skills`;
+  `names`, `cart`, `falcon`, `mounts`, `cursor`, `font`, `figures`, `creatures`, `dress`, `emitters`, `bars`,
+  `monster_skills`;
 - *shared by all*: `bytes`, `vector`, `tables`, `markup`, `kept`, `numbers`, `minimap`, `press`, `stack`,
   `snap`, `i18n`.
 
@@ -80,6 +81,7 @@ client/src/
     combos.rs             What the client's handler of a skill that strikes does by itself for the combos of a…
     flight.rs             How the numbers and words of a fight fly
     landing.rs            The hits a blow is made of: how many land, how long after the first each lands, and as…
+    shots.rs              What a monster sends flying as it strikes from afar, by its job
     signs.rs              What a hit shows over the one struck as it lands, and what it sounds like there
   bmp.rs                Windows BMP decoder for the client's textures
   body.rs               What an effect makes of the body of the one it is on
@@ -123,7 +125,7 @@ client/src/
     skill_sounds.txt      read by effect_tables.rs
     skill_struck.txt      read by effect_tables.rs
   emitters.rs           The particle emitters a map places (smoke over a chimney, dust in the wind)
-  exchange.rs           A deal between two players as rules: the most zeny a side puts into it, the zeny typed…
+  exchange.rs           A deal between two players as rules: the most zeny a side puts into it and the zeny typed…
   falcon.rs             The hunter's falcon as it is drawn by its owner
   family.rs             The family as rules: the lines the client says of a divorce and of an adoption that…
   figures.rs            How a character is put together as rules, with the client's tables given…
@@ -311,6 +313,7 @@ client/src/
       squares.rs            The kind 92 of the client's primitives: squares that lie level and slide along the…
       stretch.rs            The kind 141 of the client's primitives: a bar of light across the one the effect is…
       tests.rs              tests
+      thrown.rs             The kind `PP_THROWITEM` (53) of the client's primitives
       twinkles.rs           The kind 132 of the client's primitives: upright squares of light through the one the…
       winds.rs              `PP_WIND` (62), `PP_SPHEREWIND` (77) and `PP_SPHEREWIND2` (91)
     tests.rs              tests
@@ -339,6 +342,7 @@ client/src/
     pulse.rs              The box of light that stands on a cell of Sanctuary and of Magnus Exorcismus
     traps.rs              The traps a Hunter lays: the units the client shows as a model standing on their cell…
   skills.rs             Skills as rules, and no packets: which line of the client's message table says why a…
+    aim.rs                A skill aimed with the pointer: which skills are of help, whom the pointer picks first…
   snap.rs               A window being moved docks to what is near it, as the client's do with `/window` on
   song_talk.rs          The lines of Frost Joke and Scream: the client's effects `EF_TALK_FROSTJOKE` (295) and…
   spirits.rs            The spirit spheres about a monk and the coins about a gunslinger, as rules
@@ -361,6 +365,7 @@ client/src/
   statuses.txt          read by statuses.rs
   storage.rs            The storage as rules, those of the client's window of it (`UIItemStoreWnd`)
   tables.rs             The shapes the client's tables of text come in, each read here once
+  talk.rs               A talk with an NPC as rules: what the keyboard does to its windows, as the client's…
   unread.rs             The packets of the map server that this client does not read yet, counted
   vector.rs             Vectors of three, as far as the game needs them
   vending.rs            A player's shop as rules: what the client lets a shop have and a thing cost, what the…
@@ -625,6 +630,7 @@ client/src/
       pets.rs               The pets: their pictures, the actions of those that wear something, and what they say
       quests.rs             The quests: what the journal writes of each, what the client recommends, and how it…
       scenery.rs            What surrounds a map: the sky the client draws behind it (its `MapSkyData.lub`)
+      skill_needs.rs        What a skill needs by the rules the server plays (the gateway's…
       skills.rs             The skills: what they are called, their pictures and descriptions, and where they…
       song_talk.rs          The lines of Frost Joke and Scream (`crate::song_talk`)
       statuses.rs           The states a character is in (buffs and debuffs)
@@ -648,7 +654,7 @@ client/src/
       cooldowns.rs          The shade the client lays over a picture while a time runs (`Source/UI/Cooldowns`)
       emotions.rs           The window of emotions, and the Shortcut List
       equipment.rs          The Equipment window (the client's `UIEquipWnd`)
-      esc.rs                The game options (the client's `UIEscOptionWnd`), which stand where an NPC's window…
+      esc.rs                The game options (the client's `UIEscOptionWnd`), and the question they ask of the…
       exchange.rs           The windows of a deal between two players
       family.rs             The family on the page: the question of one who asks to adopt the character (the…
       fields.rs             The fields of the windows that are typed into, written once
@@ -769,7 +775,7 @@ client/src/
         marks.rs              What is laid on the ground and hung in the air this frame
         sprites.rs            Who and what is drawn standing in the world this frame
       gpu.rs                The GPU side: pipelines, textures and buffers, and the drawing of one frame
-        draw.rs               The drawing of one frame: the map, on it the sprites and the numbers, and over them…
+        draw.rs               The drawing of one frame: the map, on it the effects' quads that lie under those…
         emitters.rs           The particle emitters on the GPU (`world/scenery/emitters.rs` works their corners…
         granny.rs             The Granny models on the GPU: their pipeline, their pictures (a model's own and the…
         land.rs               The drawing of the map itself: its ground, its models and its water, and what their…
@@ -791,7 +797,7 @@ client/src/
       overlays.rs           What is laid over the picture of the world once it is drawn
         bars.rs               The bars and words laid over the world: the life of the monsters being fought, the…
         pointer.rs            The picture of the mouse pointer over the world
-      pick.rs               What the pointer is on: someone in the world, or a thing lying on the ground
+      pick.rs               What the pointer is on: someone in the world, a thing lying on the ground, or a trap…
       players.rs            What the app asks about the other players on the map
       pose.rs               How those in sight are posed and shown, as the server tells of each
       prims.rs              The effects the client draws by code, out of its primitives, under way in the world
@@ -834,6 +840,7 @@ client/src/
         sprays.rs             The effects of things struck or torn out of someone, that fly every way from a place
         sprites.rs            What of the client's effects is made of sprites (`PP_3DPARTICLE`, 5, and…
         struck.rs             What follows a blow on the one struck: effects only the client's tables of what…
+        thrown.rs             The effects of a thing thrown at someone, whose primitive is the client's kind 53…
         trails.rs             Lights that leave a trail of sparks behind them
         walls.rs              Walls of light round the one an effect is on, each with the figures of its function…
         waterfalls.rs         The waterfalls a map places about itself (`world/scenery/placed.rs` launches each…
@@ -897,6 +904,7 @@ gateway/src/
     pets.rs               The pets: the picture of each in its window, and the actions one is drawn with by what…
     quests.rs             The quests: what the journal writes of each, what the client recommends, and how it…
     scenery.rs            What surrounds a map: the sky the client draws behind it
+    skill_needs.rs        What a skill needs by the rules the server plays
     skills.rs             The skills: where they stand in the skill window, what they are called, what the client…
     statuses.rs           The states a character is in (its buffs and debuffs)
     tests.rs              tests
@@ -1058,9 +1066,10 @@ These hold for everyone who writes here, people and agents alike. A change that 
     - *no browser*: `net::bytes` for reading a number, a text or a name out of a packet and
       `net::bytes::Writer` for writing one (`net::bytes::testing` for their tests); `crate::bytes::Reader` for
       a file of the game; `crate::vector` for vectors of three; `crate::tables` for a table of text;
-      `crate::markup` for `^RRGGBB` and the tags in a text; `crate::kept` for what the browser keeps;
-      `crate::numbers::{grouped, typed, filled, price_colour}` for numbers written, typed and filled into a
-      line; `crate::jobs` for what a job is by its number; `crate::maps::bare` for a map's name without its
+      `crate::markup` for `^RRGGBB`, the tags and the items' pictures (`^i[…]`) in a text; `crate::kept` for
+      what the browser keeps; `crate::numbers::{grouped, typed, filled, price_colour}` for numbers written,
+      typed and filled into a line, and `numbers::coded` for a character's number as the client writes it for
+      people; `crate::jobs` for what a job is by its number; `crate::maps::bare` for a map's name without its
       ending; `crate::minimap` for places on the minimap; `crate::said` for the kind and the colour of a line
       of the chat; `crate::font` for the client's sizes of text; `crate::pose::{facing_of, direction_of}` for a
       direction of the servers as a sprite's facing and back, and `pose::hidden` for one not drawn;

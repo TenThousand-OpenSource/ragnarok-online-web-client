@@ -35,6 +35,7 @@ mod pets;
 mod quests;
 mod scenery;
 mod commands;
+mod skill_needs;
 mod skills;
 mod statuses;
 mod tips;
@@ -444,6 +445,7 @@ pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std:
         tables.insert("manner".to_owned(), manner::manner(grf));
         tables.insert("monster_skills".to_owned(), monster_skills::monster_skills(grf));
         tables.insert("castles".to_owned(), castles::castles(grf));
+        tables.insert("skill_needs".to_owned(), skill_needs::skill_needs(database));
         // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
         // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ
         // in what a player may do.

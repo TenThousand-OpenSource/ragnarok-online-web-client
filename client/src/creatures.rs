@@ -34,6 +34,10 @@ pub fn folder(job: u16) -> &'static str {
     }
 }
 
+/// The hidden NPC (`JT_HIDDEN_NPC`): what a script puts where something is to be pressed or to happen, with
+/// nothing to see (a plate under a monster of the museum, a sign, a door).
+pub const HIDDEN_NPC: u16 = 111;
+
 /// What is drawn for an object that is no player.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Shape {
@@ -43,6 +47,12 @@ pub enum Shape {
     Model(String),
     /// One sprite: its path under `data/sprite`, without an ending.
     Sprite(String),
+    /// Nothing, yet it is there to be pressed (`CNpc::Render`, its `JT_HIDDEN_NPC`: no sprite and no shadow
+    /// are drawn, and `SetRenderInfo` is given a rectangle at its feet as wide as the size the server tells
+    /// with it, doubled by `CNpc::SetState`, and half as high; rAthena tells a size of none for all but
+    /// players, so the rectangle is the place of its feet, which `CGameActor::SetRenderInfo` makes 40 pixels
+    /// each way as it does anyone's). `IsVisibleJob` is false for it.
+    Hidden,
 }
 
 /// What is drawn for a job that no player object has, `name` being what the client's table of jobs calls it
@@ -50,6 +60,9 @@ pub enum Shape {
 pub fn shape(job: u16, name: Option<&str>) -> Option<Shape> {
     if player(job) {
         return Some(Shape::Character);
+    }
+    if job == HIDDEN_NPC {
+        return Some(Shape::Hidden);
     }
     let name = name?;
     if name.contains(".gr2") {
@@ -112,5 +125,14 @@ mod tests {
         assert_eq!(shape(722, Some("Guildflag90_1.gr2")), Some(Shape::Model("Guildflag90_1.gr2".to_owned())));
         // A job the client's table does not name is not drawn.
         assert_eq!(shape(1002, None), None);
+    }
+
+    #[test]
+    fn the_hidden_npc_is_there_with_nothing_to_draw() {
+        // Whatever the table calls it; the jobs beside it are sprites as any.
+        assert_eq!(shape(HIDDEN_NPC, Some("1_ETC_01")), Some(Shape::Hidden));
+        assert_eq!(shape(HIDDEN_NPC, None), Some(Shape::Hidden));
+        assert_eq!(sprite(110, "x").as_deref(), Some("npc/x"));
+        assert_eq!(sprite(112, "x").as_deref(), Some("npc/x"));
     }
 }

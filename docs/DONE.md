@@ -67,8 +67,14 @@ Login, registration and password recovery, the server list, character select, cr
 - Login and character creation: seen in the game.
 - The names of the parts' files: tests (`dress.rs`), and every classic job, sex, kind of weapon, shield and
   colour asked of the gateway by `tools/sprite_files.py` (what is still missing there, the client's files do
-  not have either); in the game only a Lord Knight's body after `@job 4008` was seen: its weapon, shield and dyes were not
-  (the test account was in use by another session).
+  not have either). Seen in the game (2026-11-21, a male character): each reborn second job after `@job`
+  (4008 to 4013, 4015 to 4020) with the weapon of its kind and, where it carries one, a Guard, in battle
+  stance and striking, the head on the body; the requests show the weapon, the shield and the `.imf` taken
+  from the folders of the plain second jobs, none missing. `@dye` on a Swordman, a Knight, a Clown and a
+  High Thief: colours 2 to 4 each differ, 0 and 1 are the sprite's own, a High Thief wears its palette 1.
+  A reborn second job has no palette 4 in the client's files (`크라운_남_4.pal`, `로드나이트_남_4.pal`…: the
+  gateway answers 404, as `tools/sprite_files.py` says), so it stays in its own colours there. A female
+  character and a Gypsy were not seen: their files were only asked of the gateway (all there).
 - What an ID, a password and an e-mail may be, the packets of the login and character servers, the gateway's
   accounts, guard and limiter: tests only (`account.rs`, `net/packets/tests.rs`, `gateway/src/accounts/tests.rs`,
   `limiter.rs`).
@@ -120,8 +126,11 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
 - Pursuit (walking on towards someone to attack or to pick up, `web/world/pursuit.rs`): by reading only.
 - The sprite of one that is no player, by its job: tests (`creatures.rs`), and every monster of the classic
   database, every sprite the classic scripts give an NPC, the homunculi and the mercenaries asked of the
-  gateway by `tools/sprite_files.py` (none missing); in the game a homunculus (`@makehomun 6001`, a Lif) was seen drawn; a mercenary, an NPC that wears a monster
-  and `setnpcdisplay` were not.
+  gateway by `tools/sprite_files.py` (none missing). Seen in the game (2026-11-21): the eight homunculi
+  6001 to 6008, each drawn, the Lif following and fighting what Alt and the right button name twice; the
+  three mercenaries of the scrolls 12153, 12163 and 12173, each a whole figure that follows and fights; the
+  monsters of the museum (`yuno_in03`: Deviace, Seal, Sage Worm, Penomena) with their names under the
+  pointer. `setnpcdisplay` was not seen.
 
 ## 3. Fight
 
@@ -150,6 +159,13 @@ Blows, the numbers and words that fly, flinching, death, the name under the poin
 
 **State**
 - Attacking with a bow: seen in the game.
+- What monsters shoot (`blow/shots.rs` with its tests, `world::arrow`, `web/world/frame/effects.rs arrows`;
+  `CGameActor::LaunchAttackProjectile`, `CArrowEffect::SendMsg`, `CArrowEffect::OnProcess`): a monster sends
+  an arrow, or a thing of its own, by its job alone, leaving on the frame of its swing the blow is on; a shot
+  from nearer than 8 cells flies a cell a frame and is there sooner (a character's arrow too). Seen in the
+  game: the arrows of an Orc Archer and of a Kobold Archer at the player's character. The other sprites
+  (Peach Tree, Evil Cloud Hermit, Stone Shooter, Wootan Shooter, Parasite, the Poton Canons, Lady Tanee, Ragged
+  Zombie): the files are there; not seen in the game.
 - When a blow lands, how many hits it is made of, what each shows and sounds like, how the numbers fly, the
   colour of a name, who is fought on a PVP map, the packets: tests only.
 - Death, the bars over heads, the two windows, the standing on a PVP map: by reading only.
@@ -170,6 +186,15 @@ the falcon, spirit spheres.
 - App: `web/app/incoming/combat.rs`, `web/app/incoming/skill_units.rs`, `web/app/incoming/falcon.rs`,
   `web/app/incoming/spirits.rs`, `web/app/incoming/status.rs`, `web/app/{clicks,state}/skills.rs`
 - Windows: `web/hud/skills.rs` (the skill tree, a skill's description, the hotkey bar)
+- Tables: `gateway/src/tables/skill_needs.rs` ↔ `web/data/skill_needs.rs`: the SP of each level and what a
+  job's skill asks for, by the rules the server plays (its `skill_db.yml`, `skill_tree.yml`; the owner's
+  decision of 2026-11-21, `docs/DEBTS.md`). Used by the hotkey bar's tip ("… Use Lv n (Sp : n)",
+  `SkillTooltipFlat`), the list of a companion's skills ("Sp : n", `UISkillListWnd`), the tree's marks of the
+  skills asked for (`UINewSkillListWnd::UpdateRequiredSkills`, `DrawSkillTree`) and the plus
+  (`skills::raises`, after `IncreaseSkillLevel`). State: seen in the game on a Magician (2026-11-21): the marks while
+  a skill is pointed at (Fire Wall: Fire Ball 5, Sight 1) and the bar's tip ("Cold Bolt Use Lv 5 (Sp : 20)");
+  tests only: the plus on a skill whose needs are lacking, the marks kept by the right button with the
+  coloured tab, the companion's list.
 - World: `web/world/prims.rs` and `web/world/prims/` (one file per family of effects), `web/world/effects.rs`,
   `web/world/launch.rs`, `web/world/skill_units.rs`, `web/world/skill_units/traps.rs`, `web/world/scope.rs`,
   `web/world/state_effects.rs`, `web/world/ailments.rs`, `web/world/aura.rs`, `web/world/falcon.rs`,
@@ -199,11 +224,45 @@ the falcon, spirit spheres.
 - Seen in the game: Double Strafe, Arrow Shower, Improve Concentration, Blitz Beat, the flight of Detect, the
   falcon by its owner, Ankle Snare set and sprung, Land Mine set and sprung, Skid Trap and Claymore Trap set,
   traps standing as models, Play Dead, the level-up effect, the skill tree with its points.
+- Seen in the game in the playtest of the Hunter (Zombies and Orc Warriors walked into the traps, on
+  `pay_fild05` and in Izlude): Skid Trap set (with its sign, effect 69) and sprung (its model plays, the
+  monster is moved by the server's ZC_HIGHJUMP), Flasher sprung (the flash, effect 99, is drawn; the monster
+  is blinded), Sandman sprung (the monster sleeps), Freezing Trap sprung (the monster in ice), Shockwave Trap
+  set (its effect plays over it without end) and sprung, Blast Mine sprung (its number and flash) and left
+  alone (the server only takes it away: nothing goes off), Claymore Trap sprung (number and fire), Talkie Box
+  set through the box of its words (by OK and by Enter; not sprung: no monster was brought onto its cell),
+  Spring Trap on a trap (the falcon flies to it, the trap's model plays), Remove Trap on a trap (the character
+  walks into reach, the trap is taken back), Detect (the falcon and a faint light; nobody hidden was there),
+  Charge Arrow (the cast under the target, the number; the server moves the monster 6 cells), Arrow Crafting
+  (the list, Trunk made into arrows), the falcon's own Blitz Beat while shooting, the rows of Beast Bane,
+  Falconry Mastery and Steel Crow in the tree. The sizes of the traps' models on the screen: about 2 cells
+  wide for Skid Trap, Sandman, Claymore; about 1.5 for the six-sided ones and the Talkie Box
+  (`CSkill::ShowModel` gives a model no scale: `C3dActor` begins at 1, and so does `Models::raise`).
+- Seen in the game in the playtest of the swordsman's and the mage's lines (used on Pupas, Dragon Eggs and a
+  Barricade; looked at in still pictures, so what moves fast was seen in part): Bash, Magnum Break, Provoke,
+  Endure, Auto Berserk; Bowling Bash, Pierce, Spear Stab, Spear Boomerang, Brandish Spear on a Peco, Twohand
+  Quicken, Auto Counter, Charge Attack; Auto Guard with the guard of a blow warded off, Grand Cross with the
+  numbers on its caster, Holy Cross, Shield Boomerang, Reflect Shield, Defender, Shrink, Spear Quicken (the
+  body's colour and the copies left while walking); the three bolts at level 10 with their totals, Soul
+  Strike, Napalm Beat, Fire Ball, Fire Wall, Frost Diver with the ice and its breaking, Stone Curse's two
+  stages, Safety Wall, Thunder Storm, Sight, Energy Coat; Ice Wall, Sense with the Monster Info window; a
+  skill's description, its place on the hotkey bar and its use by the bar's keys; the lines "Skill has
+  failed.", "Insufficient SP" and "The skill cannot be used with this weapon."; a stat raised in the Status
+  window. Not seen there: Heal, Cure, Providence and Devotion (they want someone to be used on), what a
+  blow knocks back, a cast broken by a blow (once, unclearly), Pierce's hits by size and their times
+  (tests only), an Ice Wall walked into or struck.
 - Tests only: how the kinds of primitive live and are shaped (`prim/tests.rs`, `prim/particle_tests.rs`,
   `prim/slots_tests.rs`, `prim/walls_tests.rs`, `prim/horn_tests.rs`, `prim/tei/tests.rs` and the tests in the
   kinds' own files), the `.str` format and how a carried file flies (`effect/tests.rs`,
   `effect/carried/tests.rs`), units, traps and the circle under a cast, what states begin, end and keep
   (`state_effects/tests.rs`, `ailments/tests.rs`, `body/tests.rs`), the aura, spirit spheres, the packets.
+- Seen in the game (2026-11-21, play5): the aura of the highest level, full as the client starts it (the
+  light on the ground and the three rings under the character, the blue lights over it) on dark ground
+  (Niflheim) and light (`guild_vs3`), `/aura` to the lights alone and back; that the effects of a map left do
+  not go on on the next (`world::enter` forgets them: the snow of `xmas` fell on every map after it); the
+  effects a script sends, each showing and ending: 4, 5, 6, 9, 12, 20, 32, 34, 36, 50, 53, 54, 57, 59, 63,
+  71, 72, 99, 118, 120, 141, 159, 224, 304, 314, 328 (with Asura's letters), 342, 343, 348, 362, 363, 364,
+  373, 563 (looked at in small pictures: that something shows and ends, not each shape against the client).
 - By reading only: every other skill's effect as it is drawn (all of `web/world/prims/` beyond the skills
   above), casting bars and aiming, the aura and the spirit spheres on the screen.
 
@@ -212,16 +271,32 @@ the falcon, spirit spheres.
   `CRagEffect::OnProcess` too (the effects under 300 and 374 to 490, a step deeper than the first), every
   sound of an arm with its tick; `effect_tables/effect_sounds.txt` grew by 100 lines of 87 effects, 44 of them
   files that were silent (Thunder Storm, Angelus, Sanctuary, Kyrie, Magnus, Gloria, the traps, Endow, Strip,
-  the MVP…). `effect_tables::effect_sounds`, `effect/played.rs plain`. State: tests only.
+  the MVP…). `effect_tables::effect_sounds`, `effect/played.rs plain`. An arm that hands the effect to a
+  function of its own (`if (!this->Aspersio())`, `this->TwoHandQuicken();`) is read one step in too
+  (`timed_sounds` of the tool): that gave the sounds of Aspersio (86, tick 70), Lex Divina (87, five), Storm
+  Gust (89), `EF_GLASSWALL` (13), the bomb of a Fire Pillar (102, tick 30), Two-Hand and Spear Quicken (130,
+  250), Improve Concentration (153), Cart Revolution (170, ticks 7 and 20), the berserk potion (220), Magic
+  Rod (244). State: heard in the game (2026-11-21, by the files the page plays and their moments, not by
+  ear): `@effect` 83, 30, 112 (b at once, a at tick 15), 68, 86, 87, 89, 130, 153, 170, 244, 102, 13, 220;
+  by real skills Angelus, Kyrie, Magnificat, Gloria, Impositio (tick 60), Sanctuary, Meteor Storm (a sound a
+  meteor), Heaven's Drive, Fire Wall, Sight, Sightrasher, Quagmire (by lot, again at each launch), Steel Body
+  (the handler's and the state's sound together, as in the client); the potions 501, 502, 505, 506. Lord of
+  Vermilion and a waiting Fire Pillar are silent, as in the client. Sounds from afar came quieter (0.26 to
+  0.72), one's own whole.
 - Sounds a skill's handler starts beside its effects (`g_soundMgr->PlayWave` in `CGameMode::ReceiveSkillUse`,
   `CSession::PlaySkillEffect`, `CGameActor::PlayGroundSkillEffect`, `CGameMode::ReceiveNotifyGroundSkill`):
   the generated `effect_tables/skill_sounds.txt` (238 sounds of 228 skills, 82 of them classic: the songs and
   dances, Berserk, Aura Blade, Gospel, Basilica, Magic Power, the Taekwon's, the Gunslinger's…),
   `effect_tables::skill_sounds`, played by `App::skill_sounded` (`web/app/incoming/combat.rs`) through
-  `world::sound_on` and by `world::ground_skill`. State: tests only for the table; heard by nobody yet.
+  `world::sound_on` and by `world::ground_skill`. State: tests for the table; Steel Body's heard in the game
+  (2026-11-21), the songs' and the others' by nobody yet.
 - The monk's combos (`blow/combos.rs`, `App::combo_shown`; `CGameActor::ProcessSkillMessage`,
   `RenderObject.cpp:5688`), Spring Trap and Remove Trap on a trap (`skill_units/traps.rs used_with`,
-  `world::skill_unit_used`). State: tests only for the rules.
+  `world::skill_unit_used`). State: tests only for the rules of the combos; the two skills for traps were
+  seen in the game after traps became things to point at: a skill the server calls one for a trap (its
+  kind 32, the client's `skillUseType` 5) is aimed at a trap standing on the ground and used on the trap's
+  own ID (`web/world/pick.rs trap_at`, `web/world/input/press.rs`, `web/world/pursuit.rs`, `world::aim_traps`;
+  `CSkill::SetRenderInfo`, `CActorPickNode::Pick`, `CGameMode::HandleActorPick`, the pick of the kind 2).
 - Effects drawn by code, each from its function of `CRagEffect` (the comment over each says which):
   `prims/fields.rs` (Detect 119, Heaven's Drive 142, Ganbantein 223, Volcano 225, Deluge 236, Violent Gale
   237, Land Protector 238, Demonstration 302, EF_PORTAL3 341, Gospel 370, Basilica 374, Spider Web 404,
@@ -240,8 +315,16 @@ the falcon, spirit spheres.
   `floating.rs`, `spikes.rs`, `domes.rs`, `bottom.rs`, `fences.rs`, `cubes.rs`. `skill_units.rs` has the
   rows of the later classic kinds of units (177 to 197) and of `ground_effect` (459, 478, 483, 484; 491 on
   the caster). State: tests only for the primitives and the rules; drawn by reading only.
-- An NPC that is there without being seen (jobs 111, 139, 32767) is a place effects play on
+- An NPC that is there without being seen or pressed (jobs 139 and 32767) is a place effects play on
   (`web/world/actors.rs unit_shown`, `Scene::spots`): by reading only.
+- The hidden NPC (job 111, `JT_HIDDEN_NPC`) is there with nothing drawn, no shadow either, and is pressed,
+  pointed at and named as any NPC: `creatures.rs` (`Shape::Hidden`, with its test), `Look::Unseen`
+  (`web/world/mover.rs`), its rectangle for the pointer in `web/world/pick.rs` (`touched`), the emotion it
+  may show in `web/world/frame/sprites.rs` (`emoting`). Taken from `CNpc::Render` and `CNpc::SetState` at
+  `JT_HIDDEN_NPC` (`Source/Contents/Sound/SoundMaker.cpp:1048, 1598`), `CSession::IsVisibleJob`
+  (`Source/Contents/Jobs/JobInheritance.cpp:1212`), `CGameActor::SetRenderInfo`
+  (`Source/Contents/Actors/RenderObject.cpp:869`). State: seen in the game (2026-11-21): the plates by the
+  museum's monsters in `yuno_in03` open their texts when pressed; before, nothing there could be pressed.
 
 **The words of a Talkie Box and of Graffiti** (added with the classic gaps)
 - Files: `skills.rs` (`words_asked`), `net/skills.rs` (`use_on_ground_with_words`, 0x0367 of 31 bytes, with its
@@ -252,7 +335,9 @@ the falcon, spirit spheres.
   (`Source/UI/Skill/UIGraffiStrboxWnd.cpp`, `Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:635, 5404`),
   `CGameMode::SendMsg`, `MM_USE_SKILL_TOGROUND_WITH_TALKBOX` (`Source/Client/Mode/GameMode.cpp:3526`); the
   packet's length from rAthena's `clif_shuffle.hpp` and `TALKBOX_MESSAGE_SIZE`.
-- State: tests only (which skills ask and for how many letters, the packet); the box is by reading only.
+- State: tests for which skills ask, for how many letters, and the packet; the box of a Talkie Box was seen
+  in the game (opened, typed into, sent by OK and by Enter, the box of wood then stands there). Graffiti's
+  box, and what a Talkie Box says when stepped on (ZC_TALKBOX_CHATCONTENTS), by reading only.
 
 **The area a skill warns of while it is cast** (added with the classic gaps)
 - Files: `scope.rs` (`warned_cells`, `warned_alpha`, `WARNED_HALF`), `net/skills.rs` (`warned`, 0x0a41),
@@ -285,6 +370,74 @@ the falcon, spirit spheres.
   reading only. To see it: `@monster 1101` (Baphomet Jr.) or an Orc Warrior (1023, which smokes with skill 195
   round and round) and let it use its skills; `@spawn`ed Yoyo and Choco heal and strike in actions 6 to 8.
 
+**Aiming a skill at someone: Shift, `/noshift`, whom the pointer picks** (added in the playtest of the merchant,
+acolyte and thief lines)
+- Files: `skills/aim.rs` (`support`, `players_first`, `rank`, `goes_on_monster`, `goes_on_player`, with tests),
+  `net/inventory/skills.rs` (`Skill::on_friend`), `web/world/pick.rs` (`pointed_at` by rank),
+  `web/world/state.rs` (`State::players_first`, `aim_goes_on`, `shift`), `web/world/input/press.rs` (`aimed`),
+  `web/world/input.rs` (Shift told by the keys), `web/world/overlays/pointer.rs` (the pointer of a skill),
+  `web/world/hooks.rs` (`Options::no_shift`, `Hooks::aimed_own`), `web/app/clicks/skills.rs` (`own_aimed`).
+- Taken from: `IsSupportSkill` (`Source/Contents/Skills/SkillInfo.cpp:690`), `CGameActor::SetRenderInfo`
+  (`Source/Contents/Actors/RenderObject.cpp:869`: the ranks, `g_pickInvert`, `g_pickModifierKey`),
+  `CGameMode::HandleActorPick` and `ProcessActorClick` (`Source/Client/Mode/GameMode.cpp:10499, 8132`),
+  `MM_HANG_USE_SKILL` (`GameMode.cpp:2901`), `MM_USE_SKILL` (`GameMode.cpp:2078`: the ways of use by a
+  skill's kind).
+- What was wrong: the skills held back from a monster without Shift were the list of another function
+  (`IsOptionalSelfTargetSkill`), so Decrease Agility, Turn Undead and Lex Aeterna could not be used on a
+  monster without Shift; an attack went on a monster with Shift held too, and on another player without; the
+  pointer showed a skill's second picture over any monster; a skill for a friend (Heal, Blessing, Potion
+  Pitcher, Repair Weapon) could not be aimed at the player's own character at all; with a skill of help the
+  pointer still picked a monster before a player.
+- Also here: a skill told to be used waits out the character's own blow (`skills::aim::asked_now`,
+  `web/world/pursuit.rs reach`; `CPlayer::UpdatePendingAction`, `Source/Contents/Actors/Player.cpp:2973`): asked
+  for in the middle of a fight it was refused by the server every time ("Cannot use … due to cooldown delay",
+  or nothing at all).
+- State: tests for the rules. Seen in the game (2026-11-21, a Priest and an Assassin): Heal on a Zombie with
+  Shift held hurts it (the number, the Heal effect, its sound) and without Shift is not used; the pointer over
+  a monster is the skill's first picture with Shift up and its second with Shift held, changing as the key
+  goes down and up; with `/ns` on ("[no shift] option activated. [ON]") Heal goes on a monster without Shift;
+  Decrease Agility, Lex Divina, Lex Aeterna, Turn Undead and Holy Light go on a monster without Shift; Heal,
+  Blessing, Increase Agility, Kyrie Eleison, Status Recovery, Cure and Potion Pitcher on the player's own
+  character; Heal with Shift and Sonic Blow in the middle of a fight are used. Not tried: another player.
+
+**A thing thrown** (added in the same playtest)
+- Files: `prim/tei/thrown.rs` (the client's primitive 53, with tests), `web/world/prims/thrown.rs` (the
+  effects 298, 299, 308, 541, 600, 613 to 616), `tools/client-tables/skill_effects.py` (reads
+  `LaunchTargetEffect` in `CSession::PlaySkillEffect`: `effect_tables/skill_hits.txt` has Acid Terror, Throw
+  Stone, Venom Knife and the Ninja's four), `web/app/incoming/combat.rs` (`skill_used`: Potion Pitcher).
+- Taken from: `CRagEffect::ThrowItem` (`Source/Contents/Effects/Core/RagEffect.cpp:12130`),
+  `CEffectPrim::PrimThrowItem` (`Source/Contents/Effects/Primitives/EffectPrimitiveMotion.cpp:2130`),
+  `RenderFieldPanel`, `CGameMode::LaunchTargetEffect` (`Source/Contents/World/WorldObjects.cpp:399`), the arm
+  of `AM_POTIONPITCHER` in `CGameMode::ReceiveSkillUse` (`Source/Client/Mode/GameModePackets.cpp:18658`).
+- State: tests for the primitive. Seen in the game: the green bottle of Acid Terror flying in its bow to a
+  Pupa with the fainter ones behind it. Potion Pitcher was only thrown at the character itself, where
+  nothing flies (no way to go: the client's own sum gives the same). The stone, the knives and the coin were
+  not looked at.
+
+**What else the playtest of the three job lines changed** (2026-11-21)
+- A monster's life bar stays once its life was told, healed whole or not (`bars::shown`, test;
+  `AM_UPDATE_MONSTER_GAGE`, `Source/Contents/Actors/GameObject.cpp:4400`). It hid a bar that was full, so a
+  monster healed back to all its life lost its bar until it was hurt again. Seen in the game: a Pupa struck,
+  healed to full with Shift and Heal, keeps its bar full.
+- The coins of Mammonite (`web/world/prims/sprites.rs coins`; `CRagEffect::Coin`,
+  `Source/Contents/Effects/Core/RagEffect.cpp:9147`): an effect that is a file now begins what its function
+  draws by code besides (`web/world/launch.rs burst`). Seen in the game: the coins fly up out of the bag.
+- "Random" in the list of Teleport, which rAthena names "Random.gat" (`web/hud/choosing.rs
+  choose_place_window`): built, not looked at again.
+- Seen in the game as they are, nothing changed: the cart behind a Merchant and its four looks by Change Cart,
+  the cart window (put, take, the count box, weight), Vending (the window, the price, the name, the list said
+  in the chat, another worker's character bought a potion: "Red Potion 1 sold."), Item Appraisal (its list,
+  "Item Appraisal has completed successfully."), Mammonite (the zeny goes), Cart Revolution, Crazy Uproar,
+  Hammer Fall, Adrenaline Rush, Weapon Perfection, Power Thrust, Maximize Power, forging (the two lists, the
+  effect and sound of success), Pharmacy (its list, the effect of success), Bio Cannibalize and Summon Marine
+  Sphere; Heal, Blessing, Increase and Decrease Agility, Angelus, Cure, Ruwach, Teleport (its list), Warp
+  Portal (the list with the place kept by `/memo`, the portal), Pneuma, Signum Crucis, Holy Light, Kyrie
+  Eleison (the blows it takes, its guard), Sanctuary (it hurts the Zombies), Magnus Exorcismus, Turn Undead,
+  Lex Divina, Lex Aeterna, Status Recovery, Magnificat, Safety Wall; Steal ("Stone Heart - 1 obtained."),
+  Envenom (the monster turns purple), Hiding (the burst, the body gone, the shadow left), Throw Stone, Pick
+  Stone, Sonic Blow (its eight numbers), Enchant Poison; the skill trees of all eight jobs with their second
+  page, dragging to the hotkey bar, the descriptions; an axe, a dagger, a mace and a katar in the hand.
+
 ## 5. Items, inventory, equipment
 
 What is carried and worn, an item's name and description, the character's own numbers, looking at what
@@ -314,6 +467,14 @@ another player wears.
 
 **State**
 - The inventory, Equipment and Status windows, putting on a bow and arrows: seen in the game.
+- Seen in the game in the playtest of the Hunter: headgear put on and taken off by a double click (top, middle
+  and lower at once: Hat, Sunglasses, Flu Mask), taken off by dragging it out of the Equipment window, put on
+  by letting it go over the Equipment window, arrows readied the same way and changed for others (the name
+  under their picture follows). A thing of the inventory let go over the Equipment window is put on
+  (`inventory.rs worn_by_drop` with its test, `press::things::Drop::Equipment`, `clicks/inventory.rs
+  worn_let_go`; `UIEquipWnd::DragAndDrop`). The readied arrows' name begins 5 above where it was
+  (`hud/equipment.rs equipment_ammunition`; `UIFrameWnd::DrawTextLines` begins the first of a name's two
+  lines half a line above the place handed to `DrawItemName`).
 - Tabs, weight, how an item is named, item links, how numbers are written and typed, the packets: tests only.
 - Another player's equipment, the Fav tab, dragging between windows: by reading only (their packets have
   tests).
@@ -329,7 +490,9 @@ another player wears.
   (`Source/UI/Window/UIWindowMgr.cpp:5846, 4917, 4931`), `UINotifyLevelUpWnd::OnCreate` and `SendMsg`,
   `UINotifyJobLevelUpWnd::SendMsg` (`Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:7737, 6846, 5601`),
   `UIMenuIconWnd` (`ID_NOTICE`, `notificationButtons`, `notificationOpenButton`).
-- State: by reading only.
+- State: seen in the game (2026-11-21): after `@blvl` the button in the lower right corner and the mark on
+  the Status icon, after `@jlvl` the one in the lower left corner and the mark on the Skill icon; a press on
+  each opens Status or the Skill Tree and the button goes. The marks on the folded bar were not looked at.
 
 ## 6. Cards and making
 
@@ -355,7 +518,31 @@ arrows, Auto Spell, refining, repairing, identifying, the places of Teleport and
 - `CGameMode::ReceiveItemEffectResult`, `CGameMode::ReceiveCardCompositionResult`,
   `CGameMode::ReceiveRefineResult` (`Source/Client/Mode/GameModeNotices.cpp`)
 
-**State**: tests only (what may go into a forging, and every packet); the windows are by reading only.
+**State**: tests (what may go into a forging, and every packet). Seen in the game (2026-11-21): a card
+double-clicked lists the gear with a free slot of its kind, OK compounds it, the thing takes the card's
+word before its name ("Hurricane Javelin [3]", "Lucky Cotton Shirt [1]"), its description shows the card in
+its first slot, the card's own description opens from there, and "view" opens its illustration. The
+windows of making, forging, repairing and refining are by reading only.
+
+**Refining at the smith NPCs** (looked at in the game, 2026-11-21, rAthena's `npc/merchants/refine.txt` with
+`feature.refineui: off`)
+- Files: `web/app/incoming/choosing.rs` (`item_refined`), `net/choosing/mending.rs` (`item_refined`), the talk
+  with the NPC (section 14), the notice of the thing given anew (`incoming/inventory.rs`, `tell_obtained`).
+- Taken from: `CGameMode::ReceiveRefineResult` (`GameModeNotices.cpp`: `EF_REFINEOK` 154 / `EF_REFINEFAIL` 155
+  on the player, lines 498 / 499 in 0xFFFF00), `RagEffect.cpp` (`bs_RefineSuccess.str` with
+  `effect\bs_refinesuccess.wav` at tick 15, `bs_RefineFailed.str` with `effect\bs_refinefailed.wav` at tick
+  5), `ReceivePartyMemberEffect` for ZC_NOTIFY_EFFECT 3 and 2; `AddPickedUpItemEx` and
+  `UINotifyItemObtainWnd::SendMsg` for the notice's name (`DisplayName(0)`).
+- State: seen in the game at Hollgrehenn (`prt_in`), weapons of levels 1 to 3 (Knife, Stiletto, Arc Wand), a
+  Cotton Shirt and a Guard, 69 refinings in a row and more by hand: the menu of what is worn, the price and
+  the ore asked, the warning past the safe level, both effects on the character, "Upgrade success!!" /
+  "Upgrade failed!!", the name with its "+N" in the Equipment window and in the notice ("+5 Stiletto [2] - 1
+  obtained."), ATK and DEF in the Status window, the thing gone from what is worn when it breaks; the
+  refusals (no ore, a thing that cannot be refined, +10); the purifier Dietrich (5 rough ores for one).
+  Nothing of it is left in `/packets` (ZC_ACH_UPDATE, of the achievements, is). Not heard: the sounds (they
+  are the files and ticks of the client's table). Not told apart at that size: the weapon's and the shield's
+  picture on the character after a break. Not looked at: a level 4 weapon, the "+N" in the description
+  window, on the ground, in a deal and in a shop's list.
 
 ## 7. Shops, storage, cart, vending
 
@@ -382,8 +569,14 @@ An NPC's shop, the Kafra's storage and a guild's, the merchant's cart, a merchan
 - `UIMerchantShopMakeWnd`, `UIMerchantItemMyShopWnd`, `UIMerchantItemShopWnd`, `UIMerchantItemPurchaseWnd`,
   `UIMerchantShopTitle`, `UIMerchantMirrorItemWnd` (each in `Source/UI/Shop/<its name>.h`)
 
-**State**: tests only (the rules of the four and their packets); the windows, the cart and the signs in the
-world are by reading only.
+**State**: tests (the rules of the four and their packets). Seen in the game (2026-11-21): an NPC's shop
+(the Tool Dealer and the Armor Dealer of `prt_in`): the box of buy, sell and cancel, the goods with their
+pictures, names and prices, a row dragged into the basket with the box that asks how many, the total, "You
+do not have enough zeny." for more than can be paid, buying, and selling two kinds at once. The Kafra's
+storage: its fee, a thing put in and taken out with the box that asks how many, the count, the tab of
+weapons, the search (by the letters as written: "Pot", not "pot") with a thing taken out of the window of
+what was found, the server's refusal of a thing that cannot be stored. The cart, a merchant's own shop, a
+guild's storage and the signs in the world are by reading only.
 
 **The panel that compares what is worn, over the basket of an NPC's shop** (added with the classic gaps)
 - Files: `shops.rs` (`compared`, `change`, `Worn`), `gateway/src/tables/cards.rs` (`worn`:
@@ -403,8 +596,9 @@ world are by reading only.
   NPC's shop, `UIItemShopWnd`, does not (`UIEditCtrl.cpp:7129, 5433`). So beside an NPC's shop the panel says
   the figures of what is worn twice, with the grey bar between: the rule for an item pointed at is written
   and tested, and nothing calls it with one.
-- State: tests only (the sums, the comparison, the gateway's reading of the two files); the panel is by
-  reading only. To see it: talk to any NPC that sells, choose Buy; put on and take off a weapon or a guard
+- State: tests (the sums, the comparison, the gateway's reading of the two files); seen in the game
+  (2026-11-21) over the basket of Prontera's Armor Dealer, "ATK 25 = 25  DEF 3 = 3" with a Sword and a
+  Cotton Shirt on. To see it: talk to any NPC that sells, choose Buy; put on and take off a weapon or a guard
   with the shop open and the first figures follow.
 
 ## 8. Exchange
@@ -423,7 +617,8 @@ A deal between two players.
 - `UIExchangeAcceptWnd` (`Source/UI/Acceptance/UIJoinPartyAcceptWnd.h`), `UIItemDropCntWnd`
 - `CGameMode::SendMsg` with `MM_REQ_EXCHANGE_ITEM`, `MM_ADD_EXCHANGE_ITEM`, `MM_EXEC_EXCHANGE_ITEM`
 
-**State**: seen in the game, with zeny and with items. Its rules and packets also have tests.
+**State**: seen in the game, with zeny and with items. Its rules and packets also have tests. The zeny written once,
+without the client's coloured edge (the owner's decision of 2026-11-21): by reading only.
 
 ## 9. Chat and chat rooms
 
@@ -470,8 +665,9 @@ every window is by reading only. Nothing of this system is on the seen list.
   `UIAutoMessageWnd` (`Source/UI/Acceptance/UIChooseSellBuyWnd.cpp:6247, 9368, 9639`),
   `CGameMode::ProcessWhisper` (`Source/Client/Mode/GameModeNotices.cpp:7672`), `UIWindowMgr::ProcessKeyDown`
   at `VK_ESCAPE` (`Source/UI/Window/UIWindowMgr.cpp:2464`), `LoginMode.cpp:2237` (the message at first).
-- State: tests only (what is answered, and to what not); the command, the box and the answer sent are by
-  reading only.
+- State: tests (what is answered, and to what not); seen in the game (2026-11-21): `/am` opens the box,
+  its OK says the line 942, `/am` again says 943 and leaves an open box open, as the client does. The
+  answer to a whisper was not seen (it needs a second player).
 
 **The rankings by number, the points of fame, what a game master hears** (added with the classic gaps)
 - Files: `commands.rs` (`ranking_lines` with the headings and colours of each kind, `ranking_named`,
@@ -490,8 +686,11 @@ every window is by reading only. Nothing of this system is on the seen list.
   (`GameModePackets.cpp:25066`).
 - The ranking told with names (0x097d) was written with one heading and all in yellow; it has the client's
   four headings, its rule of 43 signs and its two colours a kind now.
-- State: tests only (the lines and colours, which names are waited for, the packets); the lines in the chat,
-  the wait of three seconds and "Fetching rank..." are by reading only.
+- State: tests (the lines and colours, which names are waited for, the packets); seen in the game
+  (2026-11-21): `/blacksmith`, `/alchemist`, `/taekwon` and `/pk` each write their heading, ten lines of
+  "Nameless" (nobody has points on the test server) and the player's own points. `/pk` asks for the fourth
+  kind of the same request (`web/app/commands/beside.rs`, `TT_REQ_KILLER_RANK`). A ranking with names in
+  it, the wait of three seconds and "Fetching rank..." are by reading only.
 
 **The words that are not let be written** (added with the classic gaps)
 - Files: `manner.rs` (`Words::allows`, `masked`), `gateway/src/tables/manner.rs` (`data\manner.txt`, 1403
@@ -631,7 +830,8 @@ every window is by reading only. Nothing of this system is on the seen list.
   reading only.
 - The castles (ZC_GUILD_AGIT_INFO 0x0b27, ZC_REQ_ACK_AGIT_INVESTMENT 0x0b2d, ZC_REQ_ACK_MOVE_GUILD_AGIT 0x0b2e,
   CZ_REQ_MOVE_GUILD_AGIT 0x0b28, CZ_REQ_AGIT_INVESTMENT 0x0b2c): tests only for the packets, the table and
-  the rules; the list, its menu and the two boxes are by reading only, nothing was seen in the game. The
+  the rules; the list, its menu and the two boxes are by reading only: in the game only a new guild's
+  empty list was seen (2026-11-21, "Castles Owned :" and nothing under it). The
   words the server sends of the castles ("None Taken"…) are no longer written: the client's list lies over
   them. The classic server answers the list and the economy and defence; it does not move the character
   (`db/pre-re/castle_db.yml` has no `WarpEnabled` for any castle, see `DEBTS.md`).
@@ -694,9 +894,15 @@ last two.
 - `CGameMode::Zc_Mer_Par_Change`, `CGameMode::GetClosestValidCell`
   (`Source/Contents/Messenger/ClientMessenger.cpp`); the messages `MM_PET_ACT`, `MM_COMMAND_HOMUN`
 
-**State**: tests only (the functions the client gives a script and a script run in a test, the words of the
-three windows, the packets); the windows are by reading only. No pet, homunculus or mercenary is on the seen
-list.
+**State**: tests (the functions the client gives a script and a script run in a test, the words of the
+three windows, the packets). Seen in the game (2026-11-21): a homunculus follows its owner, walks to and
+fights a monster named twice with Alt and the right button; its window on Alt+R with its figures, Feed
+(the question, then the server's line for no food), del (the question, then it is gone), the list of its
+skills. A mercenary called by a scroll follows, fights what Alt and the left button name twice, its window
+on Ctrl+R with its figures and the end of its contract, Dismiss with its question. A pet hatched from its
+egg by the Incubator (the list of eggs), follows, its window on Alt+J with its picture, the list of
+commands, Feed (question, the line of the food left, the emotion) and Performance. Not seen: a skill of
+either used, a pet's accessory and its talk, a renaming, a mercenary's kills and faith changing.
 
 ## 14. NPC scripts and books
 
@@ -725,6 +931,21 @@ minimap, gauges, sounds, books.
 
 **State**
 - The window of a talk with an NPC: seen in the game.
+- A menu's choices are the client's: one with no text is not listed and not counted
+  (`CGameMode::ReceiveWindow17Entries`); before 2026-11-21 it was counted, and the smith's menu of what is
+  worn sent a number the server dropped the player for. Seen in the game, and a test (`net/talk.rs`).
+- A talk by the keyboard (2026-11-21; rules `talk.rs` with tests, `web/app/clicks/talk.rs talk_key`, called
+  first of the game's keys in `web/app/keys.rs`; `Use::Answer` for the double click): Enter presses OK of the
+  box that asks, else OK of the menu, else "next" or "close", and goes nowhere else
+  (`UIWindowMgr::ProcessEnterKey`, `UIFrameWnd::SendMsg` at `UM_DEFPUSH`); the arrows up and down move the
+  menu's picked line and stop at its ends, the first line picked as it opens (`ConfirmActiveDialog`,
+  `SubmitActiveDialog`, `UIListBox::SendMsg`), or with no menu move what was said by 10
+  (`TagTextViewer::UIScroll::SendMsg`); "next" and a menu's OK are not taken twice in 300 ms
+  (`m_itemSendTick`); an empty box is not sent; a double click on a line is its OK
+  (`UIListBox::OnLBtnDblClk`); Escape does nothing in a talk. Seen in the game with the Kafra of Prontera:
+  next, the menu, the arrows to both ends with the list following, a choice, the next menu, "close", all by
+  the keyboard, and Enter with a line typed in the chat went to the talk and left the line unsent. The boxes
+  for a number and for words, the double click and the 300 ms: by tests and reading only.
 - Links, books, the packets of talk, of what a script shows, and of a book: tests only.
 - Cut-ins, marks, gauges, the sounds a script plays, the book's window: by reading only.
 
@@ -777,8 +998,11 @@ The minimap and the marks on it, the World Map, the Tipbox, the Adventure Guide.
   `CAdventureGuideMgr::IsAvailable` (`Source/Contents/AdventureGuide/AdventureGuideMgr.cpp`),
   `CJobCodeForItem::IsJobAllowed` (`Source/Contents/Items/JobCodeForItem.cpp`)
 - `mp3nametable.txt`
-- A map's names: `mapInfo_true.lub` and, written over it, `data\mapNameTable.txt` (`CSession::LoadMapNameTable`,
-  `Source/Contents/Map/MapNameTable.cpp`; `CMapInfoMgr::AddMapDisplayName`): `gateway/src/tables/maps.rs`
+- A map's names and whether its sign shows: `data\mapNameTable.txt` (`CSession::LoadMapNameTable`,
+  `Source/Contents/Map/MapNameTable.cpp`: a name and no sign) and, written over it, `mapInfo_true.lub`
+  (`CMapInfoMgr::LoadScript`, run after it: `ClientMessenger.cpp:6346`; its name and its `notifyEnter`), so a map
+  of both shows its sign as the Lua says (the owner saw Geffen's in the Windows client; 2026-11-21 the order of
+  the two was put right here, tests only): `gateway/src/tables/maps.rs`
 - A copy of a map made for one party (`0011@tower`) looked up as the map (`maps::original`):
   `ResourceMgr::Resolve` (`Source/Resource/ResourceAliases.cpp:17`), `CMapInfoMgr::FindMapInfo`,
   `CSession::GetBgmFileName`, `IsIndoorMapName`, `GetFogParameters`, `GetMapViewParameters`, `ScriptMapName`
@@ -789,8 +1013,16 @@ The minimap and the marks on it, the World Map, the Tipbox, the Adventure Guide.
 - The Tipbox opening as the game is first entered: seen in the game.
 - Where a cell lies on the minimap, a map's name and music, what the Guide shows a character of a level, the
   marks' packets, the gateway's tables of the Guide and the world map, the names of `mapNameTable.txt`, the
-  name of a copy of a map: tests only (no copy of a map was entered in the game).
+  name of a copy of a map: tests only (no copy of a map was entered in the game: every instance of the
+  classic server asks for a party of two). `1@tower` itself, by `@warp`: seen loading, with its music.
 - The World Map, the Adventure Guide's pages, the marks on the minimap: by reading only.
+- The Tipbox, 2026-11-21, seen in the game: it opens and closes by Alt+D, its cross, Close and Escape and is
+  dragged by its title; the box "Open on Startup" emptied keeps it shut at the next entry (after a reload
+  too), and the choice is read again as the game is entered (`tips_at_start`), so a box emptied in another
+  tab holds; an item's picture stands in the line where a tip writes `^i[number]` (`markup::pictured`, tests;
+  `CCreateLineInfo::ParseItemImage`, `LayoutItemImage`, `UIItemImage`: 25 by 25, named when pointed at, its
+  description by the right button), the items asked of the gateway as a tip is shown; a tip's text begins 20
+  higher under a title of one line (`UITipboxWnd::RefreshTip`).
 
 ## 17. Options and hotkeys
 
@@ -816,6 +1048,21 @@ Game Settings, Shortcut Settings, the game's menu, screenshots, what the browser
 **State**: tests only (which key does what and how it is written, a screenshot's name and stamp, what is
 kept, the switches' packet); the three windows are by reading only.
 
+**The game's menu and the menu of the dead** (2026-11-21, seen in the game)
+- Files: `web/hud/esc.rs`, its entry `ESC` in `web/hud/windows/talk.rs`, `press/general.rs` (`EscRise`),
+  `web/app/clicks/general.rs`, `numbers.rs` (`coded`), `pvp.rs` (`RAISING`, `Zone::raises`, `raises_with`),
+  `net/packets/zone.rs` (`rise`, CZ_STANDING_RESURRECTION 0x0292).
+- Taken from: `UIEscOptionWnd` (`OnCreate`, `Paint`, `LayoutButtons`, the constructor's three shapes,
+  `SendMsg`), `UIWindowMgr::MakeWindow` at `WID_ESCOPTIONWND` (185 of 640 across, 300 of 480 down),
+  `ShortcutFilename` (`Source/File/ShortcutFilename.cpp`), `CGameMode::HasResurrectionItem`, `MM_REBIRTH`
+  (`Source/Client/Mode/GameMode.cpp`), the death in `GameModePackets.cpp:11788`. The 2026 client shows this
+  window to the dead; its older `UIRestartWnd` and `UIRebirthWnd` are still in its code, and nothing opens
+  them.
+- Seen: dying (`@die`) opens it at once, where the client puts it, titled "Game Options (code)"; Escape and
+  the menu's icon open and close it; it is dragged by its title; "Return to last save point" asks first, and
+  cancel brings the menu back, OK returns the character; with a Token of Siegfried carried a third button,
+  Resurrection, raises the character where it lies. Tests: the code, the maps that let the dead rise, the packet.
+
 **The Hotkey Guide** (added with the classic gaps)
 - Files: `hotkeys/guide.rs` (the client's table of keys, the list, how keys are written), `web/hud/hotkeys/guide.rs`,
   `web/app/clicks/hotkeys.rs` (`Guide`, `GuideClose`, `GuideSettings`), the entry `KEY_GUIDE` of
@@ -826,7 +1073,9 @@ kept, the switches' packet); the three windows are by reading only.
   (`Source/UI/Menu/UIMenuIconWnd.cpp:432`), `UIHotKeyWnd::SendMsg`, `UM_TAB` from the guide
   (`Source/UI/GameSettings/UIHotKeyWnd.cpp:683`), `UIWindowMgr::EnsureWindow` at `WID_HOTKEYGUIDEWND`
   (`UIWindowMgr.cpp:7049`); the pictures of `data\texture\유저인터페이스\hotkey_guide\`.
-- State: tests only (the table, the list's places, how keys are written); the window is by reading only.
+- State: tests (the table, the list's places, how keys are written); seen in the game (2026-11-21): the
+  guide opens from the keyboard icon with its keyboard and its lists, and Shortcut Settings opens from the
+  Esc menu with its four tabs. Changing a key in it was not tried.
 
 ## 18. The map world
 
@@ -876,8 +1125,17 @@ A map's ground, models, water, fog, sky, weather, night, the camera, and the eff
   `.rsw` does not place, so the client shows nothing there either. State: tests for the gateway's reader
   (against the client's files) and the rule; drawn by reading only. The owner's gateway must be rebuilt and
   started anew for the table; until then no emitter is shown.
+- Seen in the game (2026-11-21, each at 60 frames a second, the longest frame 18 ms): the dust of Morocc (a
+  pale cloud, 81 emitters; the same rate with effects off), the pillars of Yuno and of `yuno_in02` (blue and
+  green), the snow of `xmas`, Comodo, Niflheim, `nif_fild01`, Jawaii, `yggdrasil01`, `jupe_core`,
+  `yuno_fild01`, Gonryun, Izlude, Hugel as they stand where the character came in. Not found in the views
+  taken: the smokes of Prontera, the ghosts and bats of Niflheim, the waterfalls of Yggdrasil, the portals of
+  Juperos (they are elsewhere on those maps).
 
 **State**
+- A model whose picture is a TGA (mixed in by its alpha) is bound through the layout of the pipeline that
+  draws it (`web/world/land.rs batch`): bound through the other pipeline's, the browser refused every frame
+  of such a map and it stayed black (Izlude). Seen in the game: Izlude is drawn.
 - Tests only: reading GAT, GND, RSW, RSM, SPR, ACT and IMF, a map's fog and view, the darkening at night,
   the makers of a map's effects and sounds.
 - By reading only: everything drawn (ground, models, water, fog, sky, weather, night, camera). The map is on
@@ -944,7 +1202,8 @@ Which sounds an effect and a skill start is section 4's (`effect_tables/effect_s
 `effect_tables/skill_sounds.txt`, both generated).
 
 **State**: tests only for how loud a sound is by its distance (`earshot.rs`) and the music table (`maps.rs`);
-playing itself (`web/sound.rs`) is by reading only.
+playing itself (`web/sound.rs`) was checked in the game by the files asked for, their moments and loudness
+(section 4), not by ear.
 
 ## 20. Server notices
 
@@ -1021,6 +1280,9 @@ Not systems of the list above, but a newcomer will meet them at once.
 - The menu the right button opens on another player: `web/hud/player_menu.rs`,
   `web/app/{clicks,state}/player_menu.rs`, `press/player_menu.rs`. Taken from `CGameMode::OpenActorMenu`. Its
   rows lead into equipment, deal, party, guild, whisper, friend, mail and block. State: seen in the game.
+  The master's two rows (alliance, antagonist) are offered only for a relation that does not stand, and not
+  on a player of no guild (`guild::relation_rows`, the owner's decision of 2026-11-21 against the client):
+  tests only.
 - What every window is made of: `web/hud.rs`, `web/hud/windows.rs`, and `web/hud/{frames,buttons,checks,fields,
   gauges,tabs,texts,boxes,colours,lists,items}.rs`; `web/parts.rs`, `web/view.rs`. State: by reading only.
 - The order and docking of windows: `stack.rs`, `snap.rs`, `web/app/windows.rs`. State: tests only.

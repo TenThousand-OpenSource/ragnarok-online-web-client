@@ -29,10 +29,13 @@ pub fn left(under: f32, width: f32) -> f32 {
 }
 
 /// Whether the life told of someone (what is left, and the most) is shown as a bar: a member of the
-/// player's party always, a monster only with the option for it and once it is hurt; nobody whose most is
-/// nothing.
+/// player's party always, a monster with the option for it; nobody whose most is nothing. A monster's bar
+/// stays once its life was told, whole again or not: the client makes the gauge at the first telling and takes
+/// it away only when told -1 for either figure (`CGameActor::SendMsg`, `AM_UPDATE_MONSTER_GAGE`,
+/// `Source/Contents/Actors/GameObject.cpp:4400`), so one healed back to all its life keeps its bar. (The
+/// server tells nothing of a monster nobody has hurt, and -1 with one that comes into sight unhurt.)
 pub fn shown((left, most): (i32, i32), member: bool, monster_life: bool) -> bool {
-    most > 0 && (member || monster_life && left < most)
+    most > 0 && left >= 0 && (member || monster_life)
 }
 
 /// How many of its 58 pixels the bar of a monster's life has filled. (`most` is over nothing: `shown`.)
@@ -81,7 +84,9 @@ mod tests {
     fn whose_life_has_a_bar() {
         // A member of the party whether whole or not; a monster with the option, once hurt.
         assert!(shown((100, 100), true, false) && shown((0, 100), true, false) && shown((99, 100), false, true));
-        assert!(!shown((100, 100), false, true) && !shown((50, 100), false, false) && !shown((150, 100), false, true));
+        // A monster healed back to all its life keeps the bar it was given; told -1, it has none.
+        assert!(shown((100, 100), false, true) && !shown((50, 100), false, false));
+        assert!(!shown((-1, -1), false, true) && !shown((-1, 100), false, true));
         assert!(!shown((0, 0), true, true) && !shown((5, -1), true, true));
     }
 

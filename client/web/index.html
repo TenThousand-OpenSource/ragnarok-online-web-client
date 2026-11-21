@@ -182,6 +182,10 @@
   .slot:hover { background: rgba(130, 170, 230, .63); }
   .cell img { position: absolute; left: 4px; top: 4px; pointer-events: none; }
   .slot img { position: absolute; left: 0; top: 0; pointer-events: none; }
+  /* What a skill of the tree asks for: marked while the skill is pointed at, or kept (hud/skills.rs skill_needs). */
+  .needs { display: none; }
+  .skill:hover + .needs, .needs.shown { display: block; }
+  .needs div { pointer-events: none; z-index: 1; }
   .cell[data-use] { cursor: pointer; }
   /* How many of a thing there are, in the corner of its cell. */
   .n { position: absolute; right: 1px; bottom: 0; font-size: 11px; line-height: 11px; color: #000; pointer-events: none;

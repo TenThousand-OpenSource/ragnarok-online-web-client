@@ -91,7 +91,12 @@ What the classic game has and this client lacks is not here: that is a debt, and
 ## Of the years before Renewal, put off with the rest
 These were in the original game before Renewal, so by this file's own rule they may belong in
 `docs/DEBTS.md` instead; they stand here until the owner decides, because they were put here on purpose.
-- Battlegrounds queue and status; the instances window (memorial dungeons).
+Looked over on 2026-11-21 against what is made: none of the three lines is done (no packet of a battleground's
+queue, of the instances window or of a buying store is read: `client/src/net`). Made since and never lines
+here: the maps of an instance load (a copy is looked up as its map, `maps::original`), and the siege's
+models, guardians, flags, the Emperium and treasure boxes, are drawn (`docs/DONE.md`, "Granny models").
+- Battlegrounds queue and status.
+- The instances window (memorial dungeons).
 - Buying stores.
 
 ## Two servers

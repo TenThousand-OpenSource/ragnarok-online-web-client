@@ -66,6 +66,11 @@ impl App {
             "TT_EX_RANK_BLACKSMITH" => self.send(&commands::ranking_ask(0)),
             "TT_EX_RANK_ALCHEMIST" => self.send(&commands::ranking_ask(1)),
             "TT_EX_RANK_TAEKWON" => self.send(&commands::ranking_ask(2)),
+            // `/pk`: the killers' ranking is the fourth kind of the same request (the server's `RANK_KILLER`;
+            // the client's tables of headings, `RankingBoardStyles`, have its row, "KILLER RANK"). What the
+            // client's own command sends was not found in the decompilation: its old request of its own
+            // (0x0237, CZ_KILLER_RANK) is in its table of packets beside this one.
+            "TT_REQ_KILLER_RANK" => self.send(&commands::ranking_ask(3)),
             // The client does nothing for `/stat`.
             "TT_STAT" => {}
             _ => return false,

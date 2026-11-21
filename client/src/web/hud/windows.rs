@@ -211,6 +211,7 @@ pub(in crate::web) static ALL: &[&Window] = &[
     &CART, &CART_LOOKS, &CART_COUNT, &VENDING_STALL, &VENDING_STOCK, &VENDING_MINE, &VENDOR, &VENDOR_BASKET, &VENDOR_CONFIRM, &VENDING_ASKS, &VENDING_COUNT,
     &EQUIPMENT,
         &DIALOG,
+        &ESC,
         &TRADE,
         &SHOP,
         &SHOP_BASKET,

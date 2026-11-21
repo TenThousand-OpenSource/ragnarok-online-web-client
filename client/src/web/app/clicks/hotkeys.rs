@@ -68,6 +68,8 @@ impl App {
     /// A slot of the bar is used, by a key or by the mouse: it stands for its item or its skill.
     pub(in crate::web::app) fn use_slot(&mut self, slot: usize) {
         match self.skills.hotkeys.get(slot).copied().filter(|hotkey| hotkey.id != 0) {
+            // A skill the character has not does not answer its slot (`crate::hotkeys::skill_shown`).
+            Some(hotkey) if hotkey.skill && !crate::hotkeys::skill_shown(self.skill_level(hotkey.id as u16), hotkey.count as u16) => return,
             Some(hotkey) if hotkey.skill => self.use_skill(hotkey.id as u16, Some(hotkey.count)),
             // The first of that item the character carries without wearing it.
             Some(hotkey) => match self.bag.first_unworn(hotkey.id) {

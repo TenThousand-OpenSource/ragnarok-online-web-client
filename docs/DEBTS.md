@@ -77,8 +77,29 @@ classic game not made yet.
 - Flat primitives are measured in pixels of a sprite, not of the screen (`web/world/prims.rs` header).
 - Sounds of coded effects are only started, all equally loud; the client places them
   (`web/world/prims/sounds.rs`, `played.rs`).
-- The aura of the highest level is held to once a frame; three differences from the client are listed in
-  `web/world/aura.rs` (not begun anew, ended with effects off, ended on one who shows no aura).
+- The aura of the highest level is held to once a frame (`web/world/aura.rs` lists the differences): a job set
+  anew does not begin a kept aura again; the client's `hasLevelAura` is not kept (one who came into sight while
+  `/aura2` hid the auras, or invisible, shows the aura here as soon as it may, in the client only after coming
+  into sight anew); a script's effect 200/976/977 on one who shows no aura is ended; the client's range of 130
+  for effects is not held.
+- The blue lights of the aura (976) are drawn 25 nearer the eye like every effect here; the client holds them
+  at their own depth (`CParticle::Render`). The squares, the bands and the baby lights (200, 977) are at their
+  own depth and under the bodies, as in the client. On a map whose RSW sets the renderer's `twoPass` the
+  client's sprites write depth and would hide lights behind them: not done.
+- What `/aura` and `/aura2` say is chosen by the row's tick (`data::option_says`); the client's code chooses by
+  the value it keeps, which for the five options of `IsServiceOption` is the row's reverse
+  (`NotifyServiceOption`, `GameSettings::ToggleOption`). By the code hiding auras would say "Aura effect is ON".
+  Not settled without the client itself; left as it was.
+- How the client's switches start: the client sets them as it starts from `CmdOnOffList` of
+  `System\OptionInfo.lub` (`CSession::LoadOptionInfo`, the script's `SetCmdOnOffList`), not from the `Default`
+  of the Game Settings' table, which is what "reset" gives. Only the full aura's row is started that way here
+  (`web/app/settings.rs option_starts`, written into the code: `/aura` 1, so the aura is the full one); the
+  gateway does not read that file, and the other switches of the list start by the table's `Default`
+  (the list has `/noctrl` 1, `/skillsnap` 1, `/miss` 1, `/quake` 1, `/fog` 1, `/mineffect` 0, `/window` 0…:
+  to be compared one by one).
+- Effect files the client draws primitives beside, which are played here as the file alone: Aspersio (86: the
+  drops that rise round one, `CRagEffect::Aspersio`), `EF_GLASSWALL` (13), Storm Gust (89, `StormGust`), Cart
+  Revolution (170), the berserk potion (220). Their sounds are played (`effect_sounds.txt`).
 - Water Screw's sprite (`EF_SPR_LIGHTPRINT3`, 941): the client writes no colour; drawn in the sprite's own
   (`web/world/prims/prints.rs`, `prim/fourfold.rs`).
 - Graffiti's words stand over the unit, not on the ground (`web/world/written.rs`).
@@ -89,20 +110,32 @@ classic game not made yet.
 - A figure's parts are painted into one picture, not drawn as quads of their own (`web/figure/compose.rs`).
 - The falcon and the mount of the player's own character are taken from the states told at login
   (`web/app/incoming/statuses.rs rides`).
-- **For the owner to decide.** `skillinfolist.lub` has `SpAmount` (SP at each level) and `_NeedSkillList` /
-  `NeedSkillList` (what a skill asks for) for every skill, and the Windows client shows from them the SP of
-  a skill at the level chosen in the skill window, on the hotkey bar and in its tip
-  (`UINewSkillListWnd.cpp:345-362`, `CSkillInfo::UseSpAmount` through `GetLevelUseSpAmount`) and the skills
-  asked for in the tree (`c_AddNeedSkillList`, `Source/Script/LuaScript.cpp:900`). In this client's files the two are Renewal's wherever the games differ:
-  of the 492 skills up to 700 with an `SpAmount`, 417 are the same in rAthena's `db/pre-re` and `db/re`, 44
-  are `db/re`'s alone (Brandish Spear 24 where the classic server takes 12, Chain Combo 5 to 9 for 11 to 15,
-  the songs), 6 `db/pre-re`'s alone, 25 neither's; of the requirements 403 are the same, 19 `db/re`'s alone
-  (Full Strip asks for Strip Weapon 5 alone), 1 `db/pre-re`'s. Not read here: this client says "Sp : n" with the
-  server's figure for the level known (ZC_SKILLINFO_LIST) whatever level is chosen, and shows no
-  requirements; the tree's places come from `skilltreeview.lub`. To decide: the client's table as it is (as
-  the Windows client would show on this server, wrong for some seventy skills), or the classic figures from
-  the server's database through the gateway (`db/pre-re/skill_db.yml`, `skill_tree.yml`, as the Adventure
-  Guide's are read), or as it is now.
+- **The owner's decision, 2026-11-21: the classic figures.** A skill's SP at each level and the skills it asks
+  for are read from the server's database through the gateway (`db/pre-re/skill_db.yml` `Requires.SpCost`,
+  `db/pre-re/skill_tree.yml`, the jobs' numbers from `src/common/mmo.hpp`; `db/re` when the server plays
+  Renewal: `gateway/src/tables/skill_needs.rs`, `web/data/skill_needs.rs`), not from the client's
+  `skillinfolist.lub` (`SpAmount`, `_NeedSkillList` / `NeedSkillList`), which the Windows client asks
+  (`CSkillInfo::UseSpAmount` through `GetLevelUseSpAmount`; `c_AddNeedSkillList`) and whose figures are
+  Renewal's wherever the games differ (some seventy skills: Brandish Spear 24 where the classic server takes
+  12). They stand where the client uses its table: "Sp : n" of the level a skill is used at in the list of a
+  homunculus's or mercenary's skills (`UISkillListWnd`), "… Use Lv n (Sp : n)" when a skill of the hotkey bar
+  is pointed at (`SkillTooltipFlat`), and in the tree the marks of what a skill asks for with the levels
+  asked (`UINewSkillListWnd::UpdateRequiredSkills`, `DrawSkillTree`). With a gateway that finds no database
+  the server's own figure for the level known is said and nothing is marked. This project's own in it:
+  - The plus by a skill raises at once (no Apply), so a press on a skill whose needs are lacking sends the
+    levels of what it asks for first and then its own, as far as the points go, and also of what those ask
+    for in turn (`crate::skills::raises`); the client's `IncreaseSkillLevel` plans the skill and only what it
+    asks for directly, in the order skill, needs. The plus on a skill the server has not listed is offered
+    from the table (points, the job level asked, needs lacking).
+  - The marks show while the skill's picture is pointed at (the page's style sheet) and stay while its
+    description is open (the client's `m_showDetail` after the right button); the tab of another page that has
+    a skill asked for is coloured only in the second case, not while pointing. The pink lies over the
+    pictures; the client tints the picture (`DrawAuxiliary(2, …)`, not read).
+  - The tree writes no SP, as the client's does not; its list of rows (`DrawSkillList`, "Sp : n" by every
+    skill) is not built, nor is the " (Sp : n)" the description window adds to the skill's name
+    (`UISkillDescribeWnd`, `UM_SKILLDESCRIBE`; where that text is drawn was not found).
+  - Not read: what `skillinfo_f.lub` (compiled) hands `c_AddNeedSkillList` for a job, so whether the client
+    lists only the direct needs was taken from the C++ alone.
 
 ### Items
 - A card in a slot is shown in the item's own window, not in a second one (`web/hud/inventory.rs slots_row`).
@@ -115,13 +148,24 @@ classic game not made yet.
   (`web/hud/equipment.rs`).
 
 ### Shops, storage, cart, vending
-- Refining at the smith NPCs does nothing on the owner's server as it is set: rAthena's `feature.refineui` is
-  on by default (`rathena/conf/battle/feature.conf:85`), so `npc/merchants/refine.txt:527` calls `refineui()`
-  and the server sends ZC_OPEN_REFINING_UI (0x0aa0), a window of a later client that is in `BACKLOG.md` and is
-  not made. For a classic server the owner would add `feature.refineui: off` to
-  `roweb/server/conf/battle_conf.txt`: the same NPCs then talk the old way (the script's own branch: a menu of
-  what is worn, the price, the chance, `successrefitem` / `failedrefitem`), which this client reads. Not
-  changed here: the server's settings are the owner's.
+- The owner's decision, 2026-11-21: a deal's zeny is written once, in the dark of the client's top text
+  (`web/hud/exchange.rs exchange_zeny`). The client makes three texts (`CUIExchangeUI::OnCreate`,
+  `UpdateZeny`): one in the colour of the amount's size a pixel to the left, one in that colour in place, the
+  dark one over both a pixel lower, which leaves an edge of colour round the digits. The two coloured texts
+  are not drawn, so the size of the amount is not told by colour.
+- Refining at the smith NPCs works the classic way only with `feature.refineui: off`
+  (`roweb/server/conf/battle_conf.txt`; in effect since the map server's restart of 2026-11-21, seen in the
+  game). With rAthena's default (`rathena/conf/battle/feature.conf:85`, on) `npc/merchants/refine.txt:527`
+  calls `refineui()`: the server sends ZC_OPEN_REFINING_UI (0x0aa0), a window of a later client that is in
+  `BACKLOG.md` and is not made, and holds the player (`sd->state.refineui_open`, `pc_cant_act`): no walking,
+  no NPC, until the map is changed, since this client never answers CZ_CLOSE_REFINING_UI. Seen so before the
+  restart; nothing was built for it.
+- The last line of what a smith says before a risky refining ("Do you still want to refine?", the sixth) is
+  cut by the lower edge of the talk's window until it is scrolled; how the client's `UISayDialogWnd` shows a
+  sixth line was not compared.
+- A refining's effect is begun twice at a smith NPC, as in the client: once by ZC_ACK_ITEMREFINING
+  (`CGameMode::ReceiveRefineResult`) and once by the ZC_NOTIFY_EFFECT the script sends after it (kind 3 or 2).
+  Whether the Windows client shows the two as one was not found (`EffectLists::Spawn` was not read through).
 - The storage stands where this client has always had it, not at the client's 360, 200
   (`web/hud/windows/storage.rs`).
 - Opening a stall: what is wrong is said in the chat in red, not in message boxes
@@ -129,6 +173,11 @@ classic game not made yet.
 - Long lists are scrolled themselves; the client has a 15-wide bar (`web/hud/lists.rs list_of`).
 
 ### Chat
+- The count of players by the chat's tabs ("N online") is this project's own: the Windows client has no such
+  indicator, only `/who`. It is fed by CZ_REQ_USER_COUNT, asked as each map begins and at every keep-alive,
+  twelve seconds apart (`web/app/actions/{travel,link}.rs`; before 2026-11-21 every 36 seconds, so two players
+  could read different counts for that long). A browser slows the timers of a tab that is not looked at, so
+  a hidden tab's count can be older.
 - `/packets` and its window: a developer's list of the map server's packets nobody reads; the client has
   none (`web/app/commands.rs`, `web/hud/unread.rs`, `net/unread.rs`, `press/unread.rs`).
 - Whisper blocks (`/ex name`) last one visit; the client keeps them with the account (`web/app/commands.rs
@@ -152,6 +201,11 @@ classic game not made yet.
   byte) is refused as a broken file; what the client does with one was not looked for (`sprite/spr.rs`).
 
 ### Party, guild
+- The owner's decision, 2026-11-21: the menu on another player offers a guild's master "Send an Guild Alliance
+  Request" only while that player's guild is not allied already, "Set this guild as an Antagonist" only while
+  it is not opposed already, and neither on a player of no guild (`crate::guild::relation_rows`,
+  `web/hud/player_menu.rs`). The client offers both on anyone who is not of the master's guild and looks at
+  nothing else (`CGameMode::OpenActorMenu`, `Source/Contents/World/WorldObjects.cpp:814-828`).
 - The party's side window stands where it was opened; the client keeps it beside the party window as that
   is dragged (`web/hud/windows/party.rs`).
 - Guild rights: decided from the member's position where rAthena does not send ZC_UPDATE_GDID
@@ -205,12 +259,6 @@ classic game not made yet.
   (`web/app/incoming/quests.rs quest_hunted`).
 
 ### Maps, minimap
-- A map that `data\mapNameTable.txt` names keeps the sign `mapInfo_true.lub` gives it. By the decompiled client
-  it would show none: `CSession::LoadMapNameTable` (`Source/Contents/Map/MapNameTable.cpp:21`) calls
-  `AddMapDisplayName(map, name, false)` for every line after `mapInfo_true.lub` was run (`CMapInfoMgr::Create`
-  in `CSession`'s constructor), and the `false` is "the sign is shown". With the owner's files that would take
-  the sign off 790 maps (Geffen, Morroc, Payon… ; Prontera is not in the file). Only the name is written over
-  (`gateway/src/tables/maps.rs renamed`) until this was looked at in the Windows client: the owner decides.
 - A map's files are asked of the gateway by the name without the number of its copy (`maps::original`); the
   client finds a copy only by the line `resnametable.txt` has for the map (`1@tower.gat#1@tower.gat#`), so a
   copy of a map with no such line would not load there and does here.
@@ -256,6 +304,11 @@ classic game not made yet.
 - The texture packing is not proven the same to the last bit as the DLL's (nothing to run the DLL with): see
   the head of `model/granny/bink/wavelet.rs`. S3TC textures and raw ones without alpha are not read: no file
   of the client has them.
+- When the player's own guild is broken up, the flags of its castle go bare at once (`world::guild_gone`). The
+  Windows client keeps the emblem on a flag in sight (`SetGuildInfo` refuses a guild of 0, the flag keeps its
+  texture), and rAthena sends nothing for the flags of a castle left without an owner (`agit_main.txt`,
+  `OnRecvCastle`: only an owned castle's flags are told `FlagEmblem`). For anyone who is not of the guild the
+  flags in sight keep the emblem until they come into sight anew, as in the client: nothing tells them.
 - An emblem on a flag is drawn smoothed (the usual sampler); which filter the client draws it with was not
   found, nor what its texture of 32 by 32 holds beside the 24 pixels of the emblem (taken as nothing).
 - `dragon_5.gr2` (job 1181) and `Hugeling90_6.gr2` (1284) are named in the table of jobs and are not among
@@ -277,11 +330,12 @@ Rule: everything that is not in the list of what was seen — the list is in `do
 written from `../rodecomp`, covered by tests where it is pure, never looked at in a browser.
 
 ### The names of sprite files by the client's tables (`dress.rs`, `creatures.rs`)
-- Never seen in the game: a reborn job's weapon and shield, the clothes' dye by the client's palette names
-  (and that colour 1 is the sprite's own for all but the first reborn jobs, which always wear palette 1:
-  `dress::clothes_colour`), a mercenary, an NPC that wears a monster's sprite, a disguise and
-  `setnpcdisplay` (`web/world/actors.rs reshaped`). The files were all asked of the gateway
-  (`tools/sprite_files.py`).
+- Never seen in the game: a female character of a reborn job with its weapon and shield, a Gypsy, a
+  disguise and `setnpcdisplay` (`web/world/actors.rs reshaped`; it turns one sprite into another and knows
+  nothing of a change to or from the hidden NPC, job 111). The files were all asked of the gateway
+  (`tools/sprite_files.py`). The rest was seen on a male character (`docs/DONE.md`).
+- A mercenary's body shows no weapon apart from what its one sprite has drawn into it: so it is in the
+  client (`CNpc`, one sprite), but nobody compared a striking Spearman with the Windows client.
 
 ### Never looked at after the refactoring
 - The HTML tour of every window (the windows package, `client/src/web/hud/**`, `web/view/**`): the strings
@@ -299,8 +353,8 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   item's description out of `translations/ru/labels.json` (`gateway/src/tables/items.rs`).
 
 ### Skills and effects
-- The box of a Talkie Box's and of Graffiti's words, and the packet sent from it (`web/hud/skills.rs
-  skill_words_window`, `net/skills.rs`): never used in the game.
+- Graffiti's box of words; what a Talkie Box says when someone steps on it (`net/skill_units.rs talkie`): never
+  seen in the game (the Talkie Box's own box was).
 - Every coded effect of `client/src/web/world/prims/*.rs` (40 files) and `prim/**`, except the few seen:
   bow attack, Double Strafe, Arrow Shower, Improve Concentration, Blitz Beat, Detect, Ankle Snare, Land Mine,
   Skid Trap, Claymore, the level-up and job-change effects, Fire Wall.
@@ -324,8 +378,8 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   the client ends it at the monster's next state whatever that is.
 
 ### Items
-- Cards and making: set card, forge, mend, identify, warps list (`choosing.rs`, `net/choosing/**`,
-  `web/hud/choosing.rs`); viewing another's equipment (`net/viewequip.rs`, `web/hud/viewequip.rs`).
+- Making: forge, mend, identify, warps list (`choosing.rs`, `net/choosing/**`, `web/hud/choosing.rs`;
+  setting a card was seen); viewing another's equipment (`net/viewequip.rs`, `web/hud/viewequip.rs`).
 
 ### Shops, storage, cart, vending
 - The panel over the basket of what is bought (`web/hud/shops.rs shop_compare_window`): beside an NPC's shop
@@ -333,9 +387,9 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   Windows client of this version really does only that was not looked at. Its place is not kept between
   visits (the client keeps it in the registry). The marks are drawn 8 by 8 where GDI's region leaves the last
   row and column out.
-- NPC shops (`shops.rs`, `web/hud/shops.rs`), storage (`storage.rs`, `web/hud/storage.rs`), cart (`cart.rs`,
-  `web/hud/cart.rs`, `web/world/cart.rs`), vending both sides (`vending.rs`, `web/hud/vending.rs`,
-  `vending/buying.rs`).
+- Of an NPC's shop and the storage (seen otherwise): "Toggle Item Amount", the storage's order box, its
+  eight small buttons that show a tab apart, a guild's storage. The cart (`cart.rs`, `web/hud/cart.rs`,
+  `web/world/cart.rs`), vending both sides (`vending.rs`, `web/hud/vending.rs`, `vending/buying.rs`).
 
 ### Chat
 - The words that are not let be written (`manner.rs`): every place they are asked in. With the client's
@@ -353,9 +407,16 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   `web/hud/mail/**`); family (`family.rs`, `web/hud/family.rs`).
 
 ### Companions
-- Pets, homunculus, mercenary (`pets.rs`, `homunculus.rs`, `mercenary.rs` and their `net/` and `web/hud/`
-  files); their AI (`ai.rs`, `ai/**`, `web/app/ai.rs`, `web/world/ai.rs`), tested natively against the
-  client's own scripts only.
+- Of pets, homunculus and mercenary (seen otherwise, `docs/DONE.md`): a skill of a homunculus or a
+  mercenary used from its list or the hotkey bar, a homunculus's own level and evolution, a pet's accessory
+  and talk, renaming any of them, a user's own AI script (`ai.rs`, `ai/**`, `web/app/ai.rs`,
+  `web/world/ai.rs`).
+- In the three windows the client's places are kept for words that are longer in English than in Korean:
+  "Name" runs into a mercenary's name and "Expiration" into its date (`web/hud/mercenary.rs`), "Intimacy"
+  into a pet's (`web/hud/pets.rs`) and a homunculus's (`web/hud/homunculus.rs`). Whether the Windows client
+  with the English table shows the same was not compared.
+- A pet's emotion stands 20 over its feet as anyone's (`web/world/frame/sprites.rs emoting`), which for a
+  Poring is well over it; not compared with the Windows client.
 
 ### NPC scripts, books, quests, guide
 - Books (`books.rs`, `web/hud/books.rs`); scripted pictures, marks and cut-ins (`net/scripted.rs`,
@@ -363,6 +424,10 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   beyond its first opening (`web/hud/tips.rs`).
 
 ### Maps, world
+- A copy of a map made for one party was not entered: every instance of the classic server asks for a party
+  of two (`instance_check_party(…, 2)` in `npc/instances/*.txt`), and a playtest has one player. The map
+  such a copy is of, `1@tower`, was entered by `@warp` and loads with its music; the client's files have no
+  minimap picture for it (`유저인터페이스\map\1@tower.bmp`: none in the archives), so none is shown.
 - The World Map (`web/hud/worldmap.rs`); weather (`web/world/prims/weather.rs`), sky, fog and night
   (`scenery/dark.rs`, `fog.rs`, `views.rs`, `web/world/scenery.rs`); map effects and sounds
   (`scenery/makers.rs`, `web/world/scenery/placed.rs`).
@@ -422,6 +487,11 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   `web/hud/exchange.rs`, `whispers.rs sent` / `heard`, `web/hud/whispers.rs`, `web/hud/mail/letter.rs`,
   `web/hud/player_menu.rs`.
 - That `TT_SKILLFAIL_ON_OFF` and `TT_LOGINOUT_ON_OFF` start switched on: `web/app/commands/beside.rs BESIDE`.
+
+### Chat
+- What the client's `/pk` (`TT_REQ_KILLER_RANK`) sends: here it asks CZ_REQ_RANKING for the fourth kind, as
+  the server takes it and as the client's table of headings has a row for (`web/app/commands/beside.rs`);
+  the client's table of packets also has the older CZ_KILLER_RANK (0x0237).
 
 ### Party, guild
 - What the chat says when a party gets another leader (nothing is said): `web/app/incoming/party.rs`.
@@ -497,11 +567,46 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   is never tried after that, because the first file there is the one taken.
 
 ### Found in the game by the owner and the lead, not explained or not compared
-- The readied arrow's name lies over the figure's face in the Equipment window; the places are the client's
-  (`client/src/web/hud/equipment.rs equipment_ammunition`). To compare with a video.
-- A trap cannot be pointed at or pressed, and a hidden trap shows to its setter only, not to the party
-  (`client/src/web/world/skill_units/traps.rs`). Trap models: size not compared with the client.
-- Flasher's flash (effect 99, `skill_units/traps.rs sprung_with`) is reported as not drawn; not re-checked.
+- A box of the client's messages does not grow with a text of four lines: the homunculus's "You have decided
+  to delete this Homunculus…" (asked by `del` in its window) runs over the rule above OK and Cancel
+  (`web/hud/boxes.rs message_box`). How high the client makes such a box was not read.
+- The list of an NPC's shop scrolls by pixels, so a row can be cut at the top; the client scrolls by rows
+  (`web/hud/shops.rs`).
+- A guild's castles in the game: only the empty list was seen ("Castles Owned :" with nothing under it, on a
+  new guild); a castle cannot be given to a guild without the server's owner.
+- The readied arrow's picture and name lie over the figure's head in the Equipment window. Read once more in
+  `UIEquipWnd::Paint`: the client draws them after the figure, so over it, the picture at (115, 64) of the
+  window and the name from 115, the figure's feet at (141, 149); the name was 5 too low here and is put
+  right, which brings it nearer the face, not off it. No picture of the original window is in `../rodecomp`
+  or `docs/`: to compare with a video (`client/src/web/hud/equipment.rs equipment_ammunition`).
+- A trap is pointed at only by a skill for traps (Remove Trap, Spring Trap). The client's pointer also becomes
+  the sword over a Blast Mine, a Claymore Trap and an Ice Wall, which it lets be struck, and over every trap
+  in a siege (`CGameMode::HandleActorPick`, the pick of the kind 2): not done. A hidden trap shows to its
+  setter only, not to the party (`client/src/web/world/skill_units/traps.rs`).
+- The traps' models: `CSkill::ShowModel` sets no scale and none is set here, so the size is the file's; on the
+  screen a Skid Trap, a Sandman and a Claymore Trap are about 2 cells wide. Not compared by eye with the
+  Windows client, and the models' own sizes were not read out of the files as numbers.
+- A Talkie Box was not seen sprung: no monster was brought onto its one cell.
+- What monsters shoot (`blow/shots.rs`): the monsters of later content in `CGameActor::LaunchAttackProjectile`
+  and `CArrowEffect::SendMsg` are left out (Phylla, Petal, Corruption Root, Nyailo, Limacina and the rest), as
+  are its two other launches: `SpawnMandraAttack` (the root of Mandragora, Hydra, Drosera, Nepenthes) and
+  `LaunchBulletSpriteEffect` (the Disguiser). A shot is one picture turned along its way; the client picks
+  the sprite's action by the direction faced (`GetDir`) and steps its pictures after 8 frames. When the shot
+  leaves was read as the frame handed to `SpawnArrowEffect` (`speed × attackMotion`); the decompiled call
+  hands that number in a place `CArrowEffect::SendMsg` does not read it from, so this is the likely reading,
+  not a certain one.
+- Skills cast by monsters, looked at in the game only in part: seen in the packets and on the screen from a
+  Marduk, a Marc, an Elder Willow — Fire Bolt (cast and bolts), NPC_FIREATTACK (its hit and number),
+  NPC_WATERATTACK, NPC_MAGICALATTACK, NPC_STUNATTACK, NPC_BLINDATTACK (numbers; their hits' effects not told
+  apart in the crowd), NPC_EMOTION (the server sends it as a cast of no time with an emotion). Not looked at:
+  Fire Wall and Heaven's Drive by a monster, Teleport, the poses of `monster_skills.rs`, summoning,
+  NPC_METAMORPHOSIS, an MVP's skills, the sounds. `world::cast` and the handlers of a skill's packets do not
+  ask whether the source is a character, but for the casting pose, which only characters have.
+- Seen in the playtest of the Hunter, not looked into (they are the fight's): a hit that lands just as a walk
+  begins leaves the character walking on here while the server holds it where it was struck (seen twice:
+  monsters then strike it from afar until the next walk); the attack is asked for again every 1.8 seconds on
+  a monster that is already dead; the Insert key was not seen to sit the character down through the test
+  tool (`/sit` does).
 - A monster's life bar empties before the arrow lands (the server tells life when damage is counted).
 - "White washed-out figure right after being struck": seen once, cause not found.
 - Shadows and a character hidden behind a tree: not compared by eye.
@@ -534,7 +639,9 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - `name24` / `Writer::text` / `field_whole_chars` (`net/bytes.rs`) into one: only two stop at a whole letter.
 - One queue for sounds; a place for placeless sounds: changes what is heard.
 - Cast rings, lock-on and portal rings of `web/world/effects.rs` as primitives: looks may differ.
-- Merging launchers in `web/world/prims/*.rs`: no test; small numeric differences change effects.
+- Merging the other launchers in `web/world/prims/*.rs`: no test; small numeric differences change effects.
+  (`blows.rs cloud_streaks` / `cloud_spread` are one function now, `streaks_to_aim`, by the owner's decision
+  of 2026-11-21: the same lots in the same order and the same figures, held against the two as they were.)
 - `under_a_round` twins and `% 360` against `rem_euclid` in `prim/tei`: differ for negatives.
 - `map::direction` against `route::facing`; `Gat` nearest-free against `ai/host.rs`: results differ.
 - Hud near-copies with other colours or 1-px offsets, the tabs, the drop-downs, `title=` → `data-tip`.
@@ -569,7 +676,8 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - The debug commands of the gateway (`main.rs`: `items`, `chat-tabs`, `dump`, `lua`) read the client's files
   on their own, not through `tables::Sources`: each is one purpose and not on the way of `for_browser`.
 - `js_sys::Math::random` picks in `web/data/pets.rs` and `song_talk.rs`; rAthena's YAML read by hand in
-  `tables/items.rs`, `quests.rs`, `guide.rs`.
+  `tables/items.rs`, `quests.rs`, `guide.rs` and `skill_needs.rs`, each in its own way (the last has the
+  fullest reader of a line, `field`: its depth, its dash, its key and its value).
 - Four changes of the refactoring that are not strictly the old behaviour, none seen on real data: the
   debug commands' parsing (`config.rs enum Command`), `items.rs with_english` would run a bytecode file, a
   tip's first page in the guide, the `commands` state.
@@ -626,14 +734,15 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - "Not ported…" headers in `prim/horn.rs`, `particle.rs`, `slots.rs`, `walls.rs`, `plate.rs` were not each
   read against the code again.
 
-### Written twice and left (`python3 tools/duplicates.py`: 11 groups, 93 lines, of 21 groups and 218)
-- `scenery/makers.rs heard_as_it_was` (and its last lines against `earshot.rs`), `prim/tei/max_level.rs
-  swirls`, `prim/tei/forest.rs light`: a test's own copy of the rule, kept whole to hold the rule to it.
+### Written twice and left (`python3 tools/duplicates.py`: 6 groups, 55 lines, of 21 groups and 218)
+- `scenery/makers.rs heard_as_it_was` (and its last lines against `earshot.rs`), `prim/tei/forest.rs light`:
+  a test's own copy of the rule, kept whole to hold the rule to it. (The parts of the aura of the highest
+  level are made once now, `Part::level99_glow` and `level99_swirl` of `prim/tei/max_level.rs`, by the
+  effect and by its tests alike.)
 - `net/notices/tests.rs a_line_takes_what_it_asks_for` is the test of `numbers.rs` once more: no test's name
   was to be lost.
-- `web/world/shaders.rs`: two programs of WGSL share lines of their text; a text is not divided here.
 - `web/world/prims/*.rs`: `known` / `thrown` / `run` begin alike in every file of effects (the table and the
-  rule differ), `blows.rs cloud_streaks` / `cloud_spread` draw their lots in another order: see "Risky".
+  rule differ).
 - Alike in shape only (`--shape`, `--loose`): the parsers of `net/` (each another layout through the same
   helpers), `cart_counted` / `storage_counted` (the seven count boxes, "Risky"), `guild_oppose_answered` /
   `guild_invite_answered` (two tables of the client), `Window::question` / `pick` (another width, in a `const
@@ -729,6 +838,35 @@ the decompiled client.
   (`client/src/web/world/prims/bursts.rs`).
 - `CSkillInfo::UsesLevel` tables are not read: every used skill has the level arrows —
   `client/src/web/hud/skill_list.rs`.
+- Aiming a skill at someone (`skills/aim.rs`, `web/world/input/press.rs aimed`): the rule of Shift is the
+  client's for a monster and for another player, but two of its conditions are left out: a player who ails
+  (`pick->healthState != 0`) is not taken for one a skill of attack goes on without Shift, and a plain attack
+  on another player with Shift held, off the maps where players are fought, is not asked of the server (the
+  client asks, and the server refuses it). The player's own character is picked when nobody else is under the
+  pointer, and before a monster while players come first, not ranked among the other players by how near it
+  is. Seen with a monster only: a second player was not tried.
+- A skill waits 70 ms past the end of the character's own blow before it is asked of the server
+  (`skills/aim.rs AFTER_BLOW`): the client waits for its picture of the blow to run out, whose length was not
+  ported; the figure is rAthena's (`amotion` and 50 ms) and a frame. A skill aimed at the player's own
+  character is asked at once, not held so (`web/app/clicks/skills.rs own_aimed`). Whether the client goes on
+  fighting after the skill was not found; here the fight ends with it, as the server ends it.
+- Found in the playtest of the merchant, acolyte and thief lines and left:
+  - the cart is sometimes not drawn after entering the game with one (seen once on a Blacksmith: no cart in
+    two looks, the cart window working) — `web/world/cart.rs`;
+  - the window of the player's own stall is titled "My Shop" where the client writes "My Shop : <its name>"
+    (`UIMerchantItemMyShopWnd::SendMsg`, `UM_SETTITLE`) — `web/hud/vending.rs`; no sign stands over the
+    vendor's own head (the server tells the others only; the client was not found to make one for itself);
+  - an NPC's shop shows a Merchant the discounted price alone ("38 Z"): whether the client writes both was
+    not compared — `web/hud/shops.rs`;
+  - the picture of a state without a time (Maximize Power, told 9999) looked washed out, as if its shade
+    lay whole over it — `web/hud/statuses.rs`, `cooldowns::turns`;
+  - a katar's blow sounds `_hit_mace.wav` (`blow/signs.rs weapon_sound`, what it falls back to): not
+    compared with the client's table of weapons;
+  - Hiding shows no smoke (`AM_MAKE_SMOKE_FFECT`, `RenderObject.cpp:4781`) — not found drawn;
+  - "Random" of Teleport: the client itself would not know rAthena's "Random.gat" and would write its line
+    for no map; here it is read as Random (`web/hud/choosing.rs`).
+- Monster Info (`web/hud/fight.rs sense_window`): in English "Element" runs under what it names, the client's
+  own places (260 and 300) being 40 apart; the monster itself is not drawn in the window's left.
 
 ### Chat, party, guild (the classic gaps)
 - `EF_TOPRANK` over each of the first ten on a PVP map, with its rank (`CGameMode::ReceiveEffectNumber`,
@@ -755,7 +893,8 @@ the decompiled client.
   that disbands) — `client/src/web/app/clicks/guild.rs`.
 
 ### Items, exchange, companions
-- The second `PriceColor` (a ground behind the zeny) — `client/src/web/hud/exchange.rs`.
+- The second `PriceColor` (a ground behind the zeny) — `client/src/web/hud/exchange.rs` (the first is not
+  drawn there either now: the owner's decision, section 1).
 - An egg's description — `client/src/web/app/incoming/pets.rs`.
 - The other settings of `ZC_CONFIG` — `client/src/web/app/incoming/viewequip.rs`.
 
@@ -765,4 +904,18 @@ the decompiled client.
 - World Map search and the Kafra's arrows; the large map's boxes for the marks of quests, towns and the guild,
   and its notes — `client/src/web/hud/worldmap.rs`.
 - The Tipbox: a tip's picture and the button that links a tip into the chat — `client/src/web/hud/tips.rs`.
+  Of the marks of `CCreateLineInfo` its texts are drawn with the colours, the `<TIPBOX>` links and the items'
+  pictures (`^i[number]`); `<ITEM>`, `<NAVI>` and `<URL>` are written as their names and are not pressed; the
+  other marks (`^nItemID^`, `^e[..]`, `<FONT>`, `<B>`, `<I>`) no text of this client's `tipbox.lub` has, and
+  they are not read. A line with a picture stands 25 high with its words on the line's foot by the browser's
+  own rule, not placed to the pixel as `ArrangeLines` does.
+- A talk with an NPC by the keyboard (`client/src/talk.rs`, `web/app/clicks/talk.rs`): a menu always has a
+  line picked (the client's list has none after a press on its empty ground, and its OK then does nothing);
+  the list follows the picked line by the line's own height, not by a line of 16; a press of the mouse on a
+  line draws the menu anew from its top.
+- The game's menu (`client/src/web/hud/esc.rs`): its shape follows the character while it is open (the
+  client's is that of the moment it opened); the menu is put away while the save point is asked about (the
+  client leaves it behind its message box); the dead rise by a thing they carry, the client's state 580 is
+  not looked at, nor a map of `isEventPVPMode`, which this client does not keep; a menu dragged stays where
+  it was dragged to, where the client opens a new one at its own place each time.
 - Fireworks weather (`pokjuk` of `etcinfo.txt`) — `client/src/web/world/scenery.rs`.

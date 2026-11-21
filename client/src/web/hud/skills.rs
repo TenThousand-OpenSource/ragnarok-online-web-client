@@ -75,7 +75,10 @@ impl App {
             bar.push_str(&text_in(SMALL, 6, row * 33 + 13, "rgb(74,74,47)", &(row + 1).to_string()));
             for column in 0..9 {
                 let slot = (row * 9 + column) as usize;
+                // A skill the character has not leaves its slot empty to the eye and the hand.
                 let hotkey = self.skills.hotkeys.get(slot).copied().unwrap_or_default();
+                let lost = hotkey.skill && !crate::hotkeys::skill_shown(self.skill_level(hotkey.id as u16), hotkey.count as u16);
+                let hotkey = if lost { Default::default() } else { hotkey };
                 let (icon, count, title) = self.hotkey_look(hotkey);
                 // A skill that waits to be used again has the shade of its wait over it (`hud/cooldowns.rs`).
                 let count = if hotkey.skill && hotkey.id != 0 { format!("{count}{}", self.waiting(hotkey.id as u16)) } else { count };
@@ -104,14 +107,36 @@ impl App {
         bar
     }
 
+    /// The SP a skill takes at a level, as the windows write it (`crate::skills::sp_shown`): the figure of the
+    /// rules the server plays (`data::skill_sp`), and with no table what the server told of the level the
+    /// skill is known at.
+    pub(in crate::web) fn skill_sp(&self, id: u16, level: u16) -> u16 {
+        let told = self.skills.known.iter().find(|skill| skill.id == id).map_or(0, |skill| skill.sp);
+        crate::skills::sp_shown(data::skill_sp(id, level), told)
+    }
+
+    /// The level a skill is known at: none for one not known.
+    pub(in crate::web) fn skill_level(&self, id: u16) -> u16 {
+        self.skills.known.iter().find(|skill| skill.id == id).map_or(0, |skill| skill.level)
+    }
+
+    /// Where a skill's cell of the tree begins in the window, by its place among the cells (seven to a row,
+    /// 68 apart, the rows 56 apart).
+    fn skill_cell_at(place: u16) -> (i32, i32) {
+        (i32::from(place % 7) * 68 + 72, i32::from(place / 7) * 56)
+    }
+
     /// A hotkey's picture, the number under it, and what it says when pointed at.
     pub(in crate::web) fn hotkey_look(&self, hotkey: Hotkey) -> (String, String, String) {
         if hotkey.id == 0 {
             return (String::new(), String::new(), String::new());
         }
         if hotkey.skill {
-            let name = data::skill_name(hotkey.id as u16, || format!("{} {}", tr("Skill"), hotkey.id));
-            (Self::skill_icon(hotkey.id as u16), count(hotkey.count), format!("{name} Lv {}", hotkey.count))
+            let (id, level) = (hotkey.id as u16, hotkey.count as u16);
+            let name = data::skill_name(id, || format!("{} {}", tr("Skill"), hotkey.id));
+            // What it says when pointed at (`ShortcutTooltip.cpp`, `UIQuickSlotWnd`): the level it is used at
+            // and the SP of that level.
+            (Self::skill_icon(id), count(hotkey.count), crate::skills::use_tip(&name, level, self.skill_sp(id, level)))
         } else {
             let carried = self.carried(hotkey.id);
             // An item that is used up stays on the bar, without its picture, until there is more of it.
@@ -123,7 +148,8 @@ impl App {
 
     /// The skill window as the client draws it (`UINewSkillListWnd`, its tree of skills): 560 by 400, the tabs of
     /// the jobs down its left, the skills of the job in seven columns 68 apart and rows 56 apart, each with its
-    /// name over it and its level under it, the character standing in the corner.
+    /// name over it and its level under it, the character standing in the corner. (The tree writes no SP: the
+    /// client's "Sp : n" is of its list of rows, `DrawSkillList`, which is not built here.)
     pub(in crate::web) fn skill_window(&self) -> String {
         let (width, height) = (560, 400);
         let job = self.own_figure().job;
@@ -133,8 +159,15 @@ impl App {
         window.push_str(&Self::skill_window_frame(width, height));
         // The tabs: one for each job the character grew through, down the window's left from 6 under its top
         // (`UINewSkillListWnd::OnCreate`: a `UITabControl` of 15 round each tab's letters; `hud/tabs.rs`).
+        // The tab of another page that has a skill the one looked at asks for is coloured
+        // (`UpdateRequiredSkills`: `0xE1E7FC`).
+        let looked = self.skills.info.filter(|looked| pages.get(page).is_some_and(|page| page.iter().any(|(_, skill)| skill == looked)));
+        let asked: Vec<u16> = looked.map(|looked| data::skill_asks(job, looked).1.into_iter().map(|(skill, _)| skill).collect()).unwrap_or_default();
         let tabs: Vec<(String, Option<&str>, String)> = (0..pages.len())
-            .map(|tab| (tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or("")).to_owned(), None, pressed(Press::Tab(tab))))
+            .map(|tab| {
+                let ground = (tab != page && pages[tab].iter().any(|(_, skill)| asked.contains(skill))).then_some("#fce7e1");
+                (tr(["1st", "2nd", "3rd", "4th"].get(tab).copied().unwrap_or("")).to_owned(), ground, pressed(Press::Tab(tab)))
+            })
             .collect();
         window.push_str(&tabs::side_tabs(0, 6, 15, false, page, &tabs));
         // The cells, empty ones first.
@@ -142,8 +175,9 @@ impl App {
             window.push_str(&art("basic_interface/no_skill.bmp", cell % 7 * 68 + 76, cell / 7 * 56 + 44, 24, 24));
         }
         let points = self.value(parameter::SKILL_POINTS);
-        for (place, id) in pages.get(page).into_iter().flatten().copied().filter(|(place, _)| *place < 42) {
-            window.push_str(&self.skill_cell(place, id, points));
+        let shown = pages.get(page).map(Vec::as_slice).unwrap_or_default();
+        for (place, id) in shown.iter().copied().filter(|(place, _)| *place < 42) {
+            window.push_str(&self.skill_cell(place, id, points, shown));
         }
         // The character stands in the corner, its feet 25 from the bottom.
         window.push_str(&figure_canvas("pc-skill", (0, height - 130, 100, 130), (48 - 80, 130 - 25 - 137)));
@@ -182,16 +216,86 @@ impl App {
         window
     }
 
-    /// One skill in its cell of the tree: its ground, picture, name, level, and the buttons by it.
-    fn skill_cell(&self, place: u16, id: u16, points: i64) -> String {
+    /// The marks of what a skill asks for (`UINewSkillListWnd::UpdateRequiredSkills`, `DrawSkillTree`, its
+    /// `m_values`): the skill's own cell and the cell of each skill it asks for on a pink ground (`0xCCC0FF`
+    /// inside a line of `0xC1B6FF`), and by each asked for the level asked, black in a white edge at 30, 58
+    /// ((0, 11), bold). The client shows them while the skill is pointed at, and keeps them after the right
+    /// button (`m_showDetail`): here they follow the skill's picture and the page's style sheet shows them
+    /// while it is pointed at (`.skill:hover + .needs`), and `kept` keeps them while its description is open.
+    /// `page` is the page's skills by their places. The pink lies over the pictures here; the client tints
+    /// the picture itself (`DrawAuxiliary(2, …)`, not read).
+    fn skill_needs(id: u16, needs: &[(u16, u16)], kept: bool, page: &[(u16, u16)]) -> String {
+        let mut marks = format!(r#"<div class="needs{}">"#, if kept { " shown" } else { "" });
+        for (skill, level) in std::iter::once((id, 0)).chain(needs.iter().copied()) {
+            let Some((place, _)) = page.iter().find(|(place, at)| *at == skill && *place < 42) else { continue };
+            let (x, y) = Self::skill_cell_at(*place);
+            marks.push_str(&format!(
+                r#"<div class="a" style="{};background:#ffc0cc;outline:1px solid #ffb6c1;border-radius:2px;mix-blend-mode:multiply"></div>"#,
+                at(x + 3, y + 43, 26, 26)
+            ));
+            if level > 0 {
+                marks.push_str(&format!(
+                    r#"<div class="a" style="left:{}px;top:{}px;{};color:#000;{}">{level}</div>"#,
+                    x + 30,
+                    y + 58,
+                    SMALL_BOLD.style(),
+                    outlined(WHITE)
+                ));
+            }
+        }
+        marks.push_str("</div>");
+        marks
+    }
+
+    /// Under a skill's cell at (x, y): the level it is known at, if any, and for a skill that is used (`used`:
+    /// the level it is used at) the two of them with the arrows that pick the second.
+    fn skill_cell_level(id: u16, (x, y): (i32, i32), level: u16, used: Option<u16>, shade: &str) -> String {
         let mut window = String::new();
-        let (x, y) = (i32::from(place % 7) * 68 + 72, i32::from(place / 7) * 56);
+        if level > 0 {
+            // "Used at / known at", the first in the client's pink when it is less than all (`0x7F3CFF`).
+            let shown = match used {
+                Some(used) => format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" }),
+                None => level.to_string(),
+            };
+            window.push_str(&format!(
+                r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;{};pointer-events:none">{shown}</div>"#,
+                at(x - 8, y + 70, 48, 13),
+                SMALL_BOLD.style(),
+                outlined(WHITE)
+            ));
+        }
+        // The arrows at either side of the level pick the level it is used at, one down or up (the client's
+        // `m_btnSkills` and `m_btnSkillUps`: 20 left of the cell and 55 further right, level with the text).
+        if used.is_some() {
+            for (arrow, step, across) in [("arw_left", Step::Less, -16), ("arw_right", Step::More, 39)] {
+                window.push_str(&format!(
+                    r#"<img class="a" style="left:{}px;top:{}px;cursor:pointer" src="{}" alt="" draggable="false" {}>"#,
+                    x + across,
+                    y + 70,
+                    picture(&format!("basic_interface/{arrow}.bmp")),
+                    pressed(Press::Level(LevelStep { skill: id, step }))
+                ));
+            }
+        }
+        window
+    }
+
+    /// One skill in its cell of the tree: its ground, picture, name, level, and the buttons by it. `page` is
+    /// the page's skills by their places, for the marks of what the skill asks for.
+    fn skill_cell(&self, place: u16, id: u16, points: i64, page: &[(u16, u16)]) -> String {
+        let mut window = String::new();
+        let (x, y) = Self::skill_cell_at(place);
         let known = data::skill(id);
         let learned = self.skills.known.iter().find(|skill| skill.id == id);
         let level = learned.map_or(0, |skill| skill.level);
         let name = known.as_ref().map_or_else(|| format!("{} {id}", tr("Skill")), |(_, name, _)| name.clone());
         let most = known.as_ref().map_or(level, |(.., most)| *most);
         let raisable = learned.is_some_and(|skill| skill.raisable) && points > 0 && level < most;
+        // What it asks for by the rules the server plays (`data::skill_asks`), and what of that is lacking.
+        let (job_level, needs) = data::skill_asks(self.own_figure().job, id);
+        // The plus is offered from the table too, by a skill the server does not list (`plus_by_table`).
+        let job = self.value(parameter::JOB_LEVEL);
+        let opens = crate::skills::plus_by_table(raisable, points, level, job, (job_level, &needs), |skill| self.skill_level(skill));
         // A skill that can be raised stands on light blue; the others on white.
         let ground = if raisable { "background:#afc4f0;outline:1px solid #afc4f0;border-radius:2px" } else { "background:#fff" };
         window.push_str(&format!(r#"<div class="a" style="{};{ground}"></div>"#, at(x + 3, y + 43, 26, 26)));
@@ -207,10 +311,11 @@ impl App {
         let dim = if level == 0 { "filter:grayscale(1) opacity(.55);" } else { "" };
         let icon = Self::skill_icon(id);
         window.push_str(&format!(
-            r#"<div class="a" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#,
+            r#"<div class="a skill" style="{};{dim}" {drag} data-skill="{id}" title="{}">{icon}</div>"#,
             at(x + 4, y + 44, 24, 24),
             escape(&name)
         ));
+        window.push_str(&Self::skill_needs(id, &needs, self.skills.info == Some(id), page));
         let shade = if level == 0 { "#787878" } else { "#666666" };
         // The name, over the cell, in the smaller text (`DrawSkillTree`: (0, 11), and the level under the cell
         // the same in bold): in the middle of 48 pixels, and one that is wider cut from their left edge to what
@@ -224,36 +329,10 @@ impl App {
             ),
             format!(r#"text-overflow:ellipsis;pointer-events:none">{}</div>"#, escape(&name))
         ].concat());
-        if level > 0 {
-            // "Used at / known at", the first in the client's pink when it is less than all (`0x7F3CFF`).
-            let shown = if usable {
-                format!(r#"<span style="color:{}">{used}</span> / {level}"#, if used == level { shade } else { "#ff3c7f" })
-            } else {
-                level.to_string()
-            };
-            window.push_str(&format!(
-                r#"<div class="a" style="{};{};color:{shade};text-align:center;white-space:nowrap;{};pointer-events:none">{shown}</div>"#,
-                at(x - 8, y + 70, 48, 13),
-                SMALL_BOLD.style(),
-                outlined(WHITE)
-            ));
-        }
-        // The arrows at either side of the level pick the level it is used at, one down or up (the client's
-        // `m_btnSkills` and `m_btnSkillUps`: 20 left of the cell and 55 further right, level with the text).
-        if usable {
-            for (arrow, step, across) in [("arw_left", Step::Less, -16), ("arw_right", Step::More, 39)] {
-                window.push_str(&format!(
-                    r#"<img class="a" style="left:{}px;top:{}px;cursor:pointer" src="{}" alt="" draggable="false" {}>"#,
-                    x + across,
-                    y + 70,
-                    picture(&format!("basic_interface/{arrow}.bmp")),
-                    pressed(Press::Level(LevelStep { skill: id, step }))
-                ));
-            }
-        }
+        window.push_str(&Self::skill_cell_level(id, (x, y), level, usable.then_some(used), shade));
         // The client writes here, in red, how many levels are being added ("+N", `DrawSkillTree`: (0, 11), not
         // bold, at 30, 44); this client's plus that raises the skill at once stands in its place and its text.
-        if raisable {
+        if raisable || opens {
             window.push_str(&format!(
                 r#"<button type="button" class="a" style="{};padding:0;border:0;background:none;{};color:#f00;cursor:pointer" {} title="{}">+</button>"#,
                 at(x + 30, y + 42, 12, 14),

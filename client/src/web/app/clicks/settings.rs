@@ -19,6 +19,7 @@ impl App {
             }
             Press::Switch(option) => {
                 self.switch_option(&option);
+                self.aura_hidden_said(&option);
                 self.redraw(&[&wnd::SETTINGS]);
             }
             // A row that does something at a press (the client's `CUIOptionItem::RunFunction`).

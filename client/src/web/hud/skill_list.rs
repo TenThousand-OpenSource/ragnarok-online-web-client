@@ -115,7 +115,13 @@ impl App {
             } else {
                 line.push_str(&text(113, top + 34, BLACK, &format!("Lv : {}", skill.level)));
             }
-            let costs = if skill.passive() { Self::words(286, "Passive") } else { format!("Sp : {}", skill.sp) };
+            // The SP of the level it is used at (`UISkillListWnd`: `UseSpAmount` of that level where it has
+            // a figure, else the server's), by the rules the server plays (`crate::skills::sp_shown`).
+            let costs = if skill.passive() {
+                Self::words(286, "Passive")
+            } else {
+                format!("Sp : {}", crate::skills::sp_shown(data::skill_sp(skill.id, used), skill.sp))
+            };
             line.push_str(&text(212, top + 34, BLACK, &costs));
         }
         if let (Some(raise), true, true) = (does.raise, points, skill.raisable) {

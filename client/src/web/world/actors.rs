@@ -3,8 +3,10 @@
 use super::*;
 use crate::creatures::Shape;
 
-/// The sprite numbers of things that are there without being seen: portals' touch areas and invisible NPCs.
-pub(super) const UNSEEN: [u16; 3] = [111, 139, 32767];
+/// The sprite numbers of things that are there without being seen or pressed: the areas a script is touched
+/// on (`JT_HIDDEN_WARP_NPC`, of which `CNpc::Render` makes nothing at all) and the server's own NPC of no
+/// place. (The hidden NPC, 111, is not seen but is pressed: `crate::creatures::Shape::Hidden`.)
+pub(super) const UNSEEN: [u16; 2] = [139, 32767];
 /// The sprite number of a portal: drawn as rings of light, not as a sprite.
 pub(super) const PORTAL: u16 = 45;
 
@@ -46,10 +48,9 @@ pub fn unit_shown(unit: &Unit) {
             scene.portals.insert(unit.id, (i32::from(unit.cell.0), i32::from(unit.cell.1)));
             return;
         }
-        // One that is there without being seen is a place effects play on and sounds are heard from (what a
-        // script's `specialeffect` aims at it), and nothing else: not drawn, not picked, not named. (The
-        // client has no case of its own for these jobs in `CGameMode`: it makes an NPC as any other, whose
-        // sprite shows nothing.)
+        // One that is there without being seen or pressed is a place effects play on and sounds are heard
+        // from (what a script's `specialeffect` aims at it), and nothing else: not drawn, not picked, not
+        // named.
         if UNSEEN.contains(&unit.job) && unit.kind != Kind::Player {
             scene.spots.insert(unit.id, (f32::from(unit.cell.0), f32::from(unit.cell.1)));
             return;
@@ -60,6 +61,7 @@ pub fn unit_shown(unit: &Unit) {
         let look = match (unit.kind, crate::creatures::shape(unit.job, data::sprite(unit.job).as_deref())) {
             (Kind::Player, _) => Look::Character(figure_of(unit, true)),
             (_, Some(Shape::Character)) => Look::Character(figure_of(unit, false)),
+            (_, Some(Shape::Hidden)) => Look::Unseen,
             // A pet that comes into sight wearing its accessory (what would be a player's lower headgear) is
             // drawn with the actions for that, as when it puts it on (`dressed`).
             (kind, Some(Shape::Sprite(path))) => match Some(unit.headgear[0]).filter(|worn| kind == Kind::Companion && *worn != 0).and_then(data::pet_act) {
@@ -343,7 +345,7 @@ pub fn unit_gone(id: u32, died: bool) {
                     let lasts = match &unit.look {
                         Look::Creature(path) => figure::timing(path, 32).map(|(pictures, each)| pictures as f64 * each),
                         Look::Model(name) => state.granny.lasts(name, crate::model::granny::shown::Action::Dead),
-                        Look::Character(_) => None,
+                        Look::Character(_) | Look::Unseen => None,
                     }
                     .unwrap_or(700.0);
                     unit.dying = Some(falls + lasts);

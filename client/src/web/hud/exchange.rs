@@ -2,7 +2,6 @@
 //! `CUIExchangeUI`), the question whether to deal (`UIExchangeAcceptWnd`), and how many of a thing go in.
 
 use super::*;
-use crate::exchange::zeny_colour;
 use crate::press::exchange::Press;
 
 /// One of the window's three buttons, 42 by 20: its pictures as the client names them (`name.bmp`, `name_b.bmp`
@@ -84,19 +83,14 @@ impl App {
         side
     }
 
-    /// A side's zeny, ending 150 right of `x`, 330 down, as the client's three texts (`CUIExchangeUI::OnCreate`,
-    /// `UpdateZeny`), in Arial 16: one in the colour of its size a pixel to the left, one in that colour in
-    /// place, and over both, added last, a dark one a pixel lower. So the number reads dark with an edge of
-    /// its colour. (The colour is the first of the two `PriceColor` gives; the second, a ground behind the text
-    /// for some sizes, is not drawn.)
+    /// A side's zeny, ending 150 right of `x`, in Arial 16, written once in the dark of the client's top text
+    /// (`50, 50, 50`), where that text stands (331 down). Decided here against the client (the owner's
+    /// decision, 2026-11-21, `docs/DEBTS.md`): its `CUIExchangeUI::OnCreate` and `UpdateZeny` make three
+    /// texts, one in the colour of the amount's size (`PriceColor`) a pixel to the left, one in that colour in
+    /// place and the dark one over both a pixel lower, which leaves an edge of colour round the digits; the
+    /// two coloured ones are not drawn, and so the amount's size is not told by colour here.
     fn exchange_zeny(x: i32, zeny: u32) -> String {
-        let words = grouped(i64::from(zeny));
-        let font = Font(1, 16, false);
-        let colour = zeny_colour(zeny);
-        [(x + 149, 330, colour), (x + 150, 330, colour), (x + 150, 331, "#323232")]
-            .into_iter()
-            .map(|(right, y, colour)| text_ending_in(font, right, 560, y, colour, &words))
-            .collect()
+        text_ending_in(Font(1, 16, false), x + 150, 560, 331, "#323232", &grouped(i64::from(zeny)))
     }
 
     /// The question whether to deal, in the client's message box (`UIExchangeAcceptWnd`, 280 by 120): who asks

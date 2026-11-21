@@ -35,7 +35,9 @@ impl Prim {
                 .flat_map(|(number, part)| part.quarter(self.picture, number, self.size))
                 .collect(),
             Tei::GrandCross2 => live.flat_map(|part| part.open_box(self.picture)).collect(),
-            Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky | Tei::Bottom => self.field_panels(right, up),
+            Tei::ShieldBoomerang | Tei::TeiHit2 | Tei::Drop | Tei::FirstAid | Tei::Sky | Tei::Bottom | Tei::ThrowItem => {
+                self.field_panels(right, up)
+            }
             Tei::DriftingSparks => self.pillar_squares(right, up),
             Tei::Level99Glow => self.level99_glows(right),
             Tei::Level99Swirl => self.level99_swirls(right),

@@ -29,6 +29,14 @@ impl Skill {
     pub fn on_self(&self) -> bool {
         self.target == 4
     }
+
+    /// Used on a friend: the one kind of skill the client lets be aimed at the player's own character
+    /// (`CGameMode::HandleActorPick`, `Source/Client/Mode/GameMode.cpp:10985`: `pick->accountId !=
+    /// g_session.m_aid || mode == 4`, and 4 is the way of use `MM_USE_SKILL` gives a skill of the kind 16,
+    /// `GameMode.cpp:2100`).
+    pub fn on_friend(&self) -> bool {
+        self.target == 16
+    }
 }
 
 /// ZC_SKILLINFO_LIST (0x010f): `u16 length`, then 37 bytes a skill: `u16 id, i32 target, u16 level, u16 sp,
@@ -112,5 +120,14 @@ mod tests {
         assert_eq!(told.len(), 15);
         assert_eq!(skill_changed(&told), Some(crate::net::inventory::Skill { id: 14, target: 1, level: 5, sp: 20, range: 9, raisable: false }));
         assert_eq!(skill_taken(&packet(ZC_SKILLINFO_DELETE, &[&14u16.to_le_bytes()])), Some(14));
+    }
+
+    /// Heal (for a friend) may be aimed at the player's own character; Bash (for an enemy) and Pneuma (for a
+    /// place) may not, and Angelus (on oneself) is not aimed at all.
+    #[test]
+    fn only_a_skill_for_a_friend_is_aimed_at_oneself() {
+        let of = |target| Skill { id: 28, target, level: 1, sp: 13, range: 9, raisable: false };
+        assert!(of(16).on_friend() && !of(16).on_self());
+        assert!(!of(1).on_friend() && !of(2).on_friend() && !of(4).on_friend() && of(4).on_self());
     }
 }

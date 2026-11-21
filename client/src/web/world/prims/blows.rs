@@ -140,23 +140,7 @@ fn way_to_aim(course: &Course) -> i32 {
 /// struck. Each begins up to 3 to each side of the striker and up to 15 behind, waits up to 19 ticks, is 8
 /// to 12 over the ground, a quarter thick and 20 to 40 long; yellow for the kind 0 and blue for the kind 4.
 fn cloud_streaks(kind: f32, course: &Course) -> Prim {
-    let way = way_to_aim(course);
-    let mut streaks = of_parts(Tei::PentaRing, "cloud11.tga", false, course);
-    streaks.size = 0.0;
-    streaks.parts.extend((0..4).map(|_| {
-        let mut streak = part();
-        (streak.process, streak.turned) = (-(lot(20) as i32), way);
-        let (east, north, back) = (lot(100) * 0.06 - 3.0, lot(100) * 0.06 - 3.0, lot(100) * 0.15);
-        streak.heights[1] = back;
-        let near = [east - cosine(way as f32) * back, 0.0, north - sine(way as f32) * back];
-        (streak.at[0], streak.at[1]) = (near, near);
-        streak.tall = 0.25;
-        streak.heights[0] = lot(100) * 0.04 + 8.0;
-        streak.out = lot(100) * 0.2 + 20.0;
-        streak.heights[4] = kind;
-        streak
-    }));
-    streaks
+    streaks_to_aim(kind, (0.06, 3.0), || lot(100) * 0.15, (0.2, 20.0), course)
 }
 
 /// `CRagEffect::CloudSpread`, at its first two ticks: four dark streaks of `cloud11.tga` (the kind 5 of the
@@ -164,20 +148,28 @@ fn cloud_streaks(kind: f32, course: &Course) -> Prim {
 /// side of that one and 100 behind, waits up to 19 ticks, is 8 to 12 over the ground, a quarter thick and 100
 /// to 150 long.
 fn cloud_spread(course: &Course) -> Prim {
+    streaks_to_aim(5.0, (0.3, 15.0), || 100.0, (0.5, 100.0), course)
+}
+
+/// The four streaks of the two above, of the primitive's `kind`. The lots of each are drawn in the client's
+/// order: how long it waits; a lot of 100 times `side.0`, less `side.1`, to the east and then to the north of
+/// the one the effect is on; how far `behind` (a lot for the first two functions, none for the third); how
+/// high; and how long, a lot of 100 times `long.0` and `long.1` more.
+fn streaks_to_aim(kind: f32, side: (f32, f32), behind: impl Fn() -> f32, long: (f32, f32), course: &Course) -> Prim {
     let way = way_to_aim(course);
     let mut streaks = of_parts(Tei::PentaRing, "cloud11.tga", false, course);
     streaks.size = 0.0;
     streaks.parts.extend((0..4).map(|_| {
         let mut streak = part();
         (streak.process, streak.turned) = (-(lot(20) as i32), way);
-        let (east, north) = (lot(100) * 0.3 - 15.0, lot(100) * 0.3 - 15.0);
-        streak.heights[1] = 100.0;
-        let near = [east - cosine(way as f32) * 100.0, 0.0, north - sine(way as f32) * 100.0];
+        let (east, north, back) = (lot(100) * side.0 - side.1, lot(100) * side.0 - side.1, behind());
+        streak.heights[1] = back;
+        let near = [east - cosine(way as f32) * back, 0.0, north - sine(way as f32) * back];
         (streak.at[0], streak.at[1]) = (near, near);
         streak.tall = 0.25;
         streak.heights[0] = lot(100) * 0.04 + 8.0;
-        streak.out = lot(100) * 0.5 + 100.0;
-        streak.heights[4] = 5.0;
+        streak.out = lot(100) * long.0 + long.1;
+        streak.heights[4] = kind;
         streak
     }));
     streaks

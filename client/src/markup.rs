@@ -62,6 +62,49 @@ pub fn uncoloured(text: &str) -> String {
     pieces(text, &[]).into_iter().filter_map(|piece| if let Piece::Text(words) = piece { Some(words) } else { None }).collect()
 }
 
+/// A piece of a text that carries items' pictures.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Shown<'a> {
+    /// Words as they stand, their other marks still in them.
+    Words(&'a str),
+    /// The small picture of the item of this number, in the line (`^i[501]`).
+    Item(u32),
+}
+
+/// A text as its words and the items' pictures written into it: `^i[501]` is the picture of item 501, 25 by
+/// 25 in the line, and what follows it stays text (the tips of `tipbox.lub` write `^i[537] [Pet Food]`). As
+/// the client's `CCreateLineInfo::ParseItemImage` takes it: `^i` and every `[number]` of one to seven digits
+/// right after it are the mark, and `LayoutItemImage` draws the item of the first; a `^i` that no such
+/// number follows is taken out of the text all the same, with no picture. A colour is looked for before this
+/// (`ParseTag`), which changes nothing: no colour begins with an `i`.
+pub fn pictured(text: &str) -> Vec<Shown<'_>> {
+    let mut shown = Vec::new();
+    let mut rest = text;
+    while let Some(found) = rest.find("^i") {
+        if found > 0 {
+            shown.push(Shown::Words(&rest[..found]));
+        }
+        rest = &rest[found + 2..];
+        let mut first = None;
+        while let Some((number, size)) = bracketed(rest) {
+            first = first.or(Some(number));
+            rest = &rest[size..];
+        }
+        shown.extend(first.map(Shown::Item));
+    }
+    if !rest.is_empty() {
+        shown.push(Shown::Words(rest));
+    }
+    shown
+}
+
+/// The number in square brackets a text begins with, of one to seven digits, and how many bytes it takes.
+fn bracketed(text: &str) -> Option<(u32, usize)> {
+    let inside = text.strip_prefix('[')?;
+    let digits = inside.bytes().take_while(u8::is_ascii_digit).count();
+    ((1..=7).contains(&digits) && inside[digits..].starts_with(']')).then(|| (inside[..digits].parse().unwrap_or(0), digits + 2))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,5 +150,24 @@ mod tests {
         assert_eq!(uncoloured("^0000FFFather^000000 waits"), "Father waits");
         assert_eq!(uncoloured("2^3 and ^ff"), "2^3 and ^ff");
         assert_eq!(uncoloured("<NAVI>kept</NAVI>"), "<NAVI>kept</NAVI>");
+    }
+
+    #[test]
+    fn the_pictures_of_items_are_told_from_the_words() {
+        use Shown::{Item, Words};
+        assert_eq!(pictured("Feed it ^i[537] [Pet Food] now"), [Words("Feed it "), Item(537), Words(" [Pet Food] now")]);
+        assert_eq!(pictured("^i[9140] [Pet Blue Moon Loli Ruri]"), [Item(9140), Words(" [Pet Blue Moon Loli Ruri]")]);
+        assert_eq!(pictured("^i[12580]^i[23368]"), [Item(12580), Item(23368)]);
+        // Every number right after the mark belongs to it, and the first is the one drawn.
+        assert_eq!(pictured("^i[501][502] a"), [Item(501), Words(" a")]);
+        // No number of one to seven digits after it: the mark is taken out, and nothing is drawn.
+        assert_eq!(pictured("a ^i{501} b"), [Words("a "), Words("{501} b")]);
+        assert_eq!(pictured("^i[12345678]"), [Words("[12345678]")]);
+        assert_eq!(pictured("^i[]x"), [Words("[]x")]);
+        assert_eq!(pictured("^i"), []);
+        // The other marks are left to whoever writes the words.
+        assert_eq!(pictured("^ff0000red ^i[501]"), [Words("^ff0000red "), Item(501)]);
+        assert_eq!(pictured("no marks"), [Words("no marks")]);
+        assert_eq!(pictured(""), []);
     }
 }

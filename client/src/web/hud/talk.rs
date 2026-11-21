@@ -46,15 +46,15 @@ impl App {
     /// the box's width on its grey, OK 55 from the right and 32 from the bottom. (That their frame is that
     /// of the system boxes is taken from `UIPasswordWnd`, which is made alike.)
     ///
-    /// The game options and what they ask stand in this window's place while they are open (`esc_window`).
+    /// What the game options ask of the dead is drawn into this window while it is asked (`esc_question`).
     pub(in crate::web) fn dialog_window(&self) -> String {
-        if let Some(options) = self.esc_window() {
-            return options;
-        }
-        let Some(dialog) = &self.dialog else { return String::new() };
         // How much lower than the first window one stands that the client puts so far of 480 down the screen.
         let stage = (crate::web::page_size().1 / crate::web::stage_scale()) as i32;
         let lower = |down: i32| stage * down / 480 - stage * 100 / 480;
+        if let Some(question) = self.esc_question() {
+            return question;
+        }
+        let Some(dialog) = &self.dialog else { return String::new() };
         let mut window = Self::said_box(dialog);
         if !dialog.menu.is_empty() {
             window.push_str(&Self::choices_box(dialog, lower(300)));
@@ -90,10 +90,14 @@ impl App {
             .menu
             .iter()
             .enumerate()
-            .filter(|(_, choice)| !choice.is_empty())
             .map(|(index, choice)| {
                 let picked = if index == dialog.picked { "background:#c6d6f7;" } else { "" };
-                format!(r#"<div style="{picked}padding:1px 3px;cursor:default" {}>{}</div>"#, pressed(Press::Pick(index)), linked(choice))
+                format!(
+                    r#"<div style="{picked}padding:1px 3px;cursor:default" {} {}>{}</div>"#,
+                    pressed(Press::Pick(index)),
+                    used(Use::Answer(index)),
+                    linked(choice)
+                )
             })
             .collect();
         let mut window = format!(

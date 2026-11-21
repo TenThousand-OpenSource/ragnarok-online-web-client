@@ -100,7 +100,7 @@ impl App {
                 self.hero.dead = false;
                 self.esc = 0;
                 world::own_dead(false);
-                self.redraw(&[&wnd::DIALOG]);
+                self.esc_redrawn();
                 self.refresh_values();
             }
             Some(who) => world::risen(who),
@@ -158,7 +158,7 @@ impl App {
                     self.esc = u8::from(self.esc == 0);
                     self.dialog = None;
                     world::own_dead(true);
-                    self.redraw(&[&wnd::DIALOG]);
+                    self.esc_redrawn();
                     self.refresh_values();
                 }
             } else {

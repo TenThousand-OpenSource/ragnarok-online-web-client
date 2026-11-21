@@ -17,6 +17,8 @@ pub(super) enum Look {
     /// A Granny model, by its name in the client's table of jobs (`granny.rs`): in everything but its
     /// picture it is a monster or an NPC as the others are.
     Model(String),
+    /// A hidden NPC (`crate::creatures::Shape::Hidden`): nothing of it is drawn, and it is pressed as any NPC.
+    Unseen,
 }
 
 impl Look {
@@ -276,7 +278,7 @@ impl Mover {
         match &self.look {
             Look::Character(figure) => figure::body_timing(figure.job, figure.sex, action),
             Look::Creature(path) => figure::timing(path, action),
-            Look::Model(_) => None,
+            Look::Model(_) | Look::Unseen => None,
         }
     }
 
@@ -374,8 +376,8 @@ impl Mover {
                 SpriteKey::Player(Figure { action, frame, ..figure.clone() })
             }
             Look::Creature(path) => SpriteKey::Creature(path.clone(), action, frame),
-            // (A model has no picture: nothing asks for this one.)
-            Look::Model(_) => SpriteKey::Creature(String::new(), action, frame),
+            // (A model has no picture, a hidden NPC neither: nothing asks for this one.)
+            Look::Model(_) | Look::Unseen => SpriteKey::Creature(String::new(), action, frame),
         };
         (position, key)
     }

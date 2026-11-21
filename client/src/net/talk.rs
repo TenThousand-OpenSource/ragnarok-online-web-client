@@ -46,14 +46,13 @@ pub fn said(id: u16, packet: &[u8]) -> Option<String> {
     Some(text(packet.get(if id == ZC_SAY_DIALOG2 { 9 } else { 8 }..)?))
 }
 
-/// The choices of a menu. An empty one is still a choice: the server counts it.
+/// The choices of a menu, as the client lists them: a choice with no text is left out, and the choices are
+/// counted without it (`CGameMode::ReceiveWindow17Entries`, `GameModePackets.cpp`: `Split(text, ":")`, then
+/// `UM_SETCHOOSE` for each entry that is not empty). The server counts the same way (rAthena's
+/// `menu_countoptions`) and drops a player who answers with a number past the choices it counted: the
+/// smiths' menu of what is worn is written with an empty choice for every place nothing is worn at.
 pub fn menu(packet: &[u8]) -> Option<Vec<String>> {
-    let mut choices: Vec<String> = text(packet.get(8..)?).split(':').map(str::to_owned).collect();
-    // The list ends with a colon.
-    if choices.last().is_some_and(String::is_empty) {
-        choices.pop();
-    }
-    Some(choices)
+    Some(text(packet.get(8..)?).split(':').filter(|choice| !choice.is_empty()).map(str::to_owned).collect())
 }
 
 /// CZ_CONTACTNPC (0x0090): `u32 npc, u8 type` (1): the player presses an NPC.
@@ -108,10 +107,14 @@ mod tests {
     }
 
     #[test]
-    fn reads_a_menu_and_keeps_empty_choices() {
+    fn reads_a_menu_without_its_empty_choices() {
         let mut packet = vec![0xb7, 0, 0, 0, 9, 0, 0, 0];
         packet.extend(b"Save::Quit:\0");
-        assert_eq!(menu(&packet), Some(vec!["Save".to_owned(), String::new(), "Quit".to_owned()]));
+        assert_eq!(menu(&packet), Some(vec!["Save".to_owned(), "Quit".to_owned()]));
+        // The smith's menu of what is worn: the right hand is the second choice, not the fourth.
+        let mut worn = vec![0xb7, 0, 0, 0, 9, 0, 0, 0];
+        worn.extend(b":Body-[Cotton Shirt]::Right hand-[Knife]::::::\0");
+        assert_eq!(menu(&worn).map(|choices| choices.len()), Some(2));
     }
 
     #[test]

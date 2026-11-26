@@ -81,14 +81,14 @@ pub fn attack_motion(job: u16, male: bool, katar: bool, second: bool) -> f64 {
 
 /// How much later the blow of a character who shoots an arrow lands (milliseconds): the 8 pictures of 24
 /// milliseconds its arrow flies (`CPc::SetState`: `attackMotion = 8 / render.speed + attackMotion`).
-pub const ARROW_LATER: f64 = 192.0;
+pub const ARROW_LATER: f64 = 8.0 * FRAME_MS;
 
 /// How much later than its frame of the swing the blow of a job lands (milliseconds): the client gives a few
 /// archers and guardians longer.
 pub fn lands_later(job: u16) -> f64 {
     match job {
         // JT_ARCHER_SKELETON, JT_G_ARCHER_SKELETON.
-        1016 | 1420 => 192.0,
+        1016 | 1420 => ARROW_LATER,
         // JT_ARCHER_GUARDIAN, JT_BOW_GUARDIAN.
         1285 | 1830 => 912.0,
         // JT_KNIGHT_GUARDIAN, JT_SWORD_GUARDIAN, JT_SOLDIER_GUARDIAN.

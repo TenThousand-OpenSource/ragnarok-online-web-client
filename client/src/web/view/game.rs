@@ -8,7 +8,10 @@ pub(in super::super) const TOWN_PICTURES: [&str; 8] = ["store", "weaponshop", "a
 /// The picture of a map as the minimap shows it (`map\<name>.bmp`). A map's name goes into a URL: only what
 /// map names are made of passes. A copy of a map has the map's picture (`crate::maps::original`).
 pub(in super::super) fn map_picture(map: &str) -> String {
-    let map: String = crate::maps::original(map).chars().filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@')).collect();
+    let map: String = crate::maps::original(map)
+        .chars()
+        .filter(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '@'))
+        .collect();
     picture(&format!("map/{map}.bmp"))
 }
 

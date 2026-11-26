@@ -58,7 +58,7 @@ impl App {
             ),
             format!(
                 r#"box-sizing:border-box;white-space:normal;user-select:text" {}><div style="width:215px">{said}</div></div>"#,
-                stepped(crate::scrolling::TEXT_STEP, 1)
+                text_stepped()
             )
         ].concat();
         match dialog.button {

@@ -21,7 +21,7 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
             }
             let feet = touched(gpu, scene, view, unit, pointer)?;
             let under = match (&unit.look, unit.lively, unit.companion) {
-                (_, _, true) if crate::skills::aim::homunculus(unit.job) => Under::Homunculus,
+                (_, _, true) if crate::jobs::companion(unit.job) => Under::Homunculus,
                 (_, _, true) => Under::Pet,
                 (_, true, _) => Under::Monster,
                 (Look::Creature(_) | Look::Model(_) | Look::Unseen, ..) => Under::Npc,

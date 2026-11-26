@@ -48,7 +48,7 @@ fn body_known(figure: &Figure, body_act: &Act) {
             || body_act.actions
                 .iter()
                 .enumerate()
-                .map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * 25.0))
+                .map(|(index, frames)| (frames.len(), f64::from(body_act.delays.get(index).copied().unwrap_or(4.0)) * DELAY_MS))
                 .collect()
         );
     });

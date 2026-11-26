@@ -38,6 +38,20 @@ classic game not made yet.
   In the client such a press does nothing. ON by default by the owner's decision (a place in sight is to be
   walked to when the way round is there); `/farwalk` switches it off (`web/app/commands.rs`,
   `web/world/pursuit.rs journey`, `map/paths.rs goal_towards`, `web/world/hooks.rs Options::far_walk`).
+- Going round what is in the way to attack, to use a skill and to pick up — part of the far walk, ON by
+  default by the owner's decision ("it must find the way"), off with `/farwalk`. The client has none of it:
+  `CPlayer::UpdatePendingAction` (`Source/Contents/Actors/Player.cpp`) measures the distance alone, asks for
+  the blow or the skill when it is within reach, and when it is not asks for the cell `range` cells from the
+  target on the straight line to it (`CGameMode::FindWalkableCellToward`; a step towards a thing,
+  `StepTowardWalkableCell`), with no search and no look at the line of sight; rAthena never walks a player and
+  answers a blow or a skill asked across a wall with nothing (`unit_attack_timer_sub`, `unit_skilluse_id2`;
+  ZC_ATTACK_FAILURE_FOR_DISTANCE only for the distance), so the client's character stands behind a pillar.
+  Here in reach is what the server lets through (`map/sight.rs Gat::reaches`, `sees`: rAthena's
+  `battle_check_range`, `path_search_long`), the character walks to the nearest cell from which it is
+  (`Gat::way_into_reach`, in stretches when far; `web/world/scene.rs step_into_reach`,
+  `web/world/pursuit.rs chase`/`close_in`, `reach`, `fetch`), and the fight, the skill or the thing is let be
+  when there is no such cell within 20 cells of the two. Known and left: one walking is taken a cell less for a
+  skill; the server's extra cell of reach at a walking target is not counted.
 - One who walks does not sit down: the Sit key does nothing until the character stands
   (`web/app/keys.rs interface_key`).
 - The server's clock is a line that does not run round after 2^32 ms (`server_time.rs`).
@@ -45,8 +59,9 @@ classic game not made yet.
 ### Fight
 - The monster being fought keeps its turning mark while the pointer is on another, which gets a second one;
   the client has one mark (`web/world/overlays.rs pointed`).
-- Chasing: reach is counted in cells as the server does, not straight across as the client does
-  (`web/world/pursuit.rs chase`).
+- Chasing: reach is judged as the server does (`Gat::reaches`: straight across less a tenth of a cell, in
+  whole cells, and a clear line), not by the client's own measure (`web/world/pursuit.rs chase`); with
+  `/farwalk` off, by cells along the longer side as before.
 - A right press is a menu and not a camera turn when the pointer moved 4 pixels or less; the client's measure
   was not found (`web/world/input/pointer.rs`).
 - The screen always shakes when an effect asks: the client's option is not asked first (`quake.rs` header;

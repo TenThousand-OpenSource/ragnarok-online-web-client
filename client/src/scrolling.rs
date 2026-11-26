@@ -18,7 +18,8 @@ pub fn rows_a_notch(shown: i32) -> i32 {
 /// How many lines a notch moves a list of lines (`UIListBox::OnWheel`).
 pub const LINES_A_NOTCH: i32 = 3;
 
-/// How far a notch, or an arrow, moves a text of `UITagTextViewer`, in pixels.
+/// How far a notch, or an arrow, moves a text of `UITagTextViewer`, in pixels (what an NPC said by the arrows:
+/// `UISayDialogWnd::SendMsg` hands `UM_UPPUSH` and `UM_DOWNPUSH` to its viewer).
 pub const TEXT_STEP: i32 = 30;
 
 /// Where a list stands after it is moved `steps` steps of `step` pixels, down for more than none, from `top`:
@@ -35,7 +36,7 @@ pub fn moved(top: i32, step: i32, steps: i32, most: i32) -> i32 {
 
 /// How far the wheel must be turned for a notch, in the pixels a page counts it in: a notch of a mouse's
 /// wheel is about a hundred.
-const NOTCH: f64 = 100.0;
+pub const NOTCH: f64 = 100.0;
 
 /// The notches in what the wheel was turned, added to what was left of the turns before (`kept`): how many
 /// whole ones, down for more than none, and what is left for the next. A mouse's wheel gives one at once; a

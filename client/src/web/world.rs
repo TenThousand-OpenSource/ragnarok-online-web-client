@@ -107,7 +107,10 @@ pub use names::{own_level, unit_titled};
 pub use launch::*;
 pub use state_effects::{own_states_again, state_effects, third_option_told};
 pub use scope::{area_warned, scope_shown};
-pub use skill_units::{cell_retyped, ground_skill, skill_unit_becomes, skill_unit_gone, skill_unit_seen, skill_unit_shown, skill_unit_stands, skill_unit_strikes, skill_unit_used};
+pub use skill_units::{
+    cell_retyped, ground_skill, skill_unit_becomes, skill_unit_gone, skill_unit_seen, skill_unit_shown, skill_unit_stands,
+    skill_unit_strikes, skill_unit_used
+};
 pub use signs::{Board, SIGN, sign};
 pub use scripted::{gauge, sounded};
 pub use spirits::{spheres_gone, spheres_seen, spheres_told};

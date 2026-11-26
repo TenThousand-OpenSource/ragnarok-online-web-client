@@ -42,7 +42,7 @@ pub(super) fn confirm_box(words: &str, yes: impl Into<Press>, no: impl Into<Pres
         format!(
             r#"<div class="a t bar" style="{};line-height:{LINE}px;white-space:pre" {}><div style="padding:{above}px 0 {under}px 3px">{}</div></div>"#,
             at(10, 22, 260, 65),
-            stepped(LINE, crate::scrolling::LINES_A_NOTCH),
+            lines_stepped(LINE),
             coloured(&lines)
         ),
         // (Begun a pixel higher, under the third line's letters: a page drawn larger than its measures lets

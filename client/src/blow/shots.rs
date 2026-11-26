@@ -83,7 +83,7 @@ pub fn root_picture(job: u16, elapsed: f64, speed: f32, pictures: usize) -> Opti
     if pictures == 0 || speed <= 0.0 || elapsed < 0.0 {
         return None;
     }
-    let gone = (elapsed / 24.0) as f32 / speed;
+    let gone = (elapsed / super::FRAME_MS) as f32 / speed;
     (gone < pictures as f32).then_some(gone as usize % pictures)
 }
 
@@ -99,7 +99,7 @@ pub fn leaves_after(lands: f64, job: u16) -> f64 {
 /// faster by 40 over the distance (`CArrowEffect::OnProcess`, `speedScale`), so that it flies 5 a frame, a
 /// cell, and is there sooner: from the next cell in one frame.
 pub fn flies(distance: f32) -> f64 {
-    192.0 * f64::from((distance / 40.0).clamp(0.0, 1.0))
+    super::ARROW_LATER * f64::from((distance / 40.0).clamp(0.0, 1.0))
 }
 
 #[cfg(test)]

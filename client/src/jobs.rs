@@ -44,6 +44,12 @@ pub fn hireling(job: u16) -> bool {
     (6018..=6052).contains(&job)
 }
 
+/// Whether a job is a homunculus's, or of the mercenaries numbered among them (the client's
+/// `CSession::IsCompanionJob`: 6001 to 6052).
+pub fn companion(job: u16) -> bool {
+    (6001..=6052).contains(&job)
+}
+
 /// The job a new Doram character starts as.
 pub const SUMMONER: u16 = 4218;
 /// The Doram's jobs; every other player job is human. (rodecomp, `CSession::IsDoramJob`.)
@@ -182,6 +188,7 @@ mod tests {
         assert!(monster(1001) && monster(1002) && monster(3998) && monster(20021) && monster(31999));
         assert!(!monster(1000) && !monster(3999) && !monster(20020) && !monster(32000) && !monster(45));
         assert!(hireling(6018) && hireling(6052) && !hireling(6017) && !hireling(6053));
+        assert!(companion(6001) && companion(6052) && !companion(6000) && !companion(6053) && !companion(1002));
     }
 
     #[test]

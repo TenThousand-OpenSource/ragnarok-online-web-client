@@ -121,7 +121,7 @@ async fn creature(path: &str, action: usize, frame_number: usize) -> Result<Pict
             || actions.actions
                 .iter()
                 .enumerate()
-                .map(|(index, frames)| (frames.len(), f64::from(actions.delays.get(index).copied().unwrap_or(4.0)) * 25.0))
+                .map(|(index, frames)| (frames.len(), f64::from(actions.delays.get(index).copied().unwrap_or(4.0)) * DELAY_MS))
                 .collect()
         );
     });
@@ -211,6 +211,10 @@ pub fn sound_of(path: &str, action: usize, frame: usize) -> Option<String> {
         frames.get(frame % frames.len().max(1))?.clone()
     })
 }
+
+/// The milliseconds a picture shows for one of the speed its `.act` gives the action: `timing` and
+/// `body_timing` tell an action's speed so, and whoever needs the file's own figure divides by this.
+pub const DELAY_MS: f64 = 25.0;
 
 /// How many frames an action of a sprite has and how long each shows (milliseconds), once the sprite was read.
 pub fn timing(path: &str, action: usize) -> Option<(usize, f64)> {

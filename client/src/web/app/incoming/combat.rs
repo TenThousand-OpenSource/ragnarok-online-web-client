@@ -323,9 +323,8 @@ impl App {
     fn skill_used(&mut self, packet: &[u8]) {
         if let Some(skills::Used { skill, level, target, who, worked }) = skills::used(packet) {
             let own = self.own_account();
-            // Chase Walk (`ST_CHASEWALK`, `GameModePackets.cpp:18990`): the one who used it puffs smoke, as one
-            // that hides does; the client does so only for a skill that worked.
-            if skill == 389 && worked {
+            // Chase Walk that worked: the one who used it puffs smoke, as one that hides does.
+            if crate::skills::puffs_smoke(skill, worked) {
                 world::puffed((who != own).then_some(who));
             }
             world::cast_over(who, own, false);

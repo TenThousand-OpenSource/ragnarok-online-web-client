@@ -156,6 +156,8 @@ client/src/
     gat.rs                GAT: where one can walk on a map, and how high the ground is there
     gnd.rs                GND: the ground's shape, textures and baked light, and the mesh drawn from them
     paths.rs              The paths walked on a map's cells, and the direction of a step
+    sight.rs              From where something is reached on a map's cells
+      tests.rs              tests
     tests.rs              tests
   maps.rs               A map by its name, and the client's table of the music of each (`mp3nametable.txt`)
   marks.rs              The marks of the minimap that the server tells of, as the client takes them
@@ -988,8 +990,8 @@ under the windows, over them as one that asks something, over those as a menu); 
 the list, `App::redraw` draws some of them anew
 where they are (typing and scrolling survive; a closed one is emptied and hidden), and the order and Escape are
 read from it. What can be pressed is a value (`crate::press`): its element carries the value's name
-(`data-click`, `data-use` for a double click, `data-drag`, `data-drop`, `data-menu`, `data-submit`), written
-only by `web/parts.rs`, and the app reads the value back and matches on it. `data-info` / `data-skill` (right
+(`data-click`, `data-use` for a double click, `data-drag`, `data-drop`, `data-menu`, `data-submit`; and
+`data-step` with `data-notch` on a list or a text the wheel moves by steps), written only by `web/parts.rs`, and the app reads the value back and matches on it. `data-info` / `data-skill` (right
 click) carry numbers.
 
 **One system, one name.** A system of the game (pets, shops, skills…) is the same word in every layer:
@@ -1042,7 +1044,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
    (`world/state.rs`). No second copy, no hidden global except: the tables in `data/`; what `figure.rs` has
    read and painted and what `sound.rs` plays; and a pointer's gesture while it lasts and what it left on the
    page: the window being dragged, where each was dragged to and whether windows dock (`app/page.rs`), the
-   thing being dragged (`app/dragging.rs`).
+   thing being dragged (`app/dragging.rs`), and where the pointer was last, what of the wheel's turn is not
+   a notch yet and the thing last pressed (`app/wiring.rs`).
 6. **The original client is the reference, and the comment says where from.** Behaviour, sizes and texts come
    from the client's code and files; the comment names the function or file (`UIItemIdentifyWnd`,
    `Guide_Monster.lub`). What was not found there, or was decided here against it, says so in the comment.
@@ -1077,9 +1080,9 @@ These hold for everyone who writes here, people and agents alike. A change that 
       direction of the servers as a sprite's facing and back, and `pose::hidden` for one not drawn;
       `crate::bars::{below, over, left}` for where a bar or a name sits by the feet;
       `crate::scenery::views::{eased, followed, limits}` for the camera's easing and a map's limits;
-      `crate::broadcast::wrapped` for words cut into lines of so many letters; in `crate::press`, `worded!`
-      for what goes with a press and is one of a few words, and `press::testing::read_back` for the test
-      every system's presses have.
+      `crate::broadcast::wrapped` for words cut into lines of so many letters; `crate::scrolling` for how far
+      the wheel moves a list or a text; in `crate::press`, `worded!` for what goes with a press and is one of
+      a few words, and `press::testing::read_back` for the test every system's presses have.
     - *primitives* (`prim/`): for a kind of `prim/tei/`, `Part::waits`, `wander`, `fly_level`, `trail`
       (`tei/part.rs`), `Rect::band` and `Part::facing` (`tei/rect.rs`); `Slot::waits` for a kind of
       `prim/slots.rs`; `prim::testing` for what their tests share.
@@ -1099,13 +1102,15 @@ These hold for everyone who writes here, people and agents alike. A change that 
       primitive several effects launch alike, and `prims.rs`'s own `lot` (the same lot as a figure of a
       primitive); a part's own lot is `Part::lot`. `world::sign` puts a sign over someone.
     - *what windows are made of*: `parts::{at, picture, pressed, used, dragged, dropped, menued, sent}`
-      (`web/parts.rs`); `hud::{text, text_in, Font}` for a text in the client's own size; `pictured` for a
-      button of three pictures, `pictured_by` with a `Convention` for one whose files are named by a rule, and
-      over them `picture_press`, `submit_press`, `press_button` (`hud/buttons.rs`); `title_bar`, `system_box`
-      (`hud/frames.rs`); `App::item_icon`, `icon_of`, `skill_icon` (`hud/items.rs`); `message_box`,
+      (`web/parts.rs`; its `stepped` only under `rows_stepped`, `lines_stepped` and `text_stepped` of
+      `hud/lists.rs`, for a list or a text the wheel moves by steps); `hud::{text, text_in, Font}` for a text in
+      the client's own size, `linked_with` (`hud/texts.rs`) for a text with the client's links in it; `pictured`
+      for a button of three pictures, `pictured_by` with a `Convention` for one whose files are named by a rule,
+      and over them `picture_press`, `submit_press`, `press_button` (`hud/buttons.rs`); `title_bar`, `system_box`
+      (`hud/frames.rs`); `App::item_icon`, `icon_of`, `skill_icon` (`hud/items.rs`); `message_box`, `confirm_box`,
       `menu_row`, `pick_list`, `App::count_box` and `count_box_of` (`hud/boxes.rs`); `list_frame`, `list_of`,
-      `item_row` (`hud/lists.rs`); `side_tabs` (`hud/tabs.rs`); the other pieces in `hud/{checks, gauges,
-      fields, colours}.rs`; `escape` (`app/page.rs`) for a text put into HTML.
+      `item_row` (`hud/lists.rs`); `side_tabs` (`hud/tabs.rs`); the other pieces in `hud/{checks, gauges, fields,
+      colours}.rs`; `escape` (`app/page.rs`) for a text put into HTML.
     - *windows as entries* (`hud/windows.rs`): `Window::usual`, `Window::pick`, `Window::question`,
       `Window::count`, `Window::menu` for the usual shapes of an entry, `Window::field` for the name of a
       box's field.
@@ -1187,8 +1192,10 @@ written with `Window::usual` if it is a plain window in the order; its texts thr
 **…add a window that asks something** (it lies over the windows that are in the order): its entry has
 `layer: Layer::Asks`. Four kinds are written once and only named by a system:
 - *a question with OK and Cancel*: the entry is `Window::question("<system>-asks", open, App::<system>_question)`;
-  the drawing is `message_box(Asked::Offer or Asked::Sure, &words, Press::Yes, Press::No)` (`hud/boxes.rs`;
-  the two layouts are the client's two); what is asked is an `Option<…Ask>` in the system's group, and the
+  the drawing is `message_box(&words, Press::Yes, Press::No)` for a question someone else asks, to accept or
+  refuse, and `confirm_box(&words, Press::Yes, Press::No)` for whether the player means what was just pressed
+  (`hud/boxes.rs`; the two are the client's two: `win_msgbox.bmp`, and `UIMessageBox` with its lines cut by
+  `crate::message_box`); what is asked is an `Option<…Ask>` in the system's group, and the
   two presses are arms of `app/clicks/<system>.rs`.
 - *how many of a thing*: the entry is `Window::count("<system>-count", open, App::<system>_count_window)`; the
   drawing is `self.count_box(&windows::<WINDOW>, counting, Form::…, Press::…)` with `counting` the place in the
@@ -1378,8 +1385,9 @@ The structural ones, as they stand now:
   holds that, no test and no type.
 - **Three clocks in `app/`**: `page::now()` (the page's `web::now()`, as the servers count it),
   `page::epoch()` (seconds since 1970) and `js_sys::Date::now()` called where it is needed (17 places in
-  `app/` and `hud/`). **Several timer drivers**: two intervals and `after(..)` in `app/wiring.rs`, the fade's
-  timeout in `app/page.rs`, an interval of its own in `app/actions/taming.rs`; systems that run by time
+  `app/` and `hud/`). **Several timer drivers**: three intervals (the keep-alive, the watch on the
+  connection, the look under a pointer that stands still while a tooltip shows) and `after(..)` in
+  `app/wiring.rs`, the fade's timeout in `app/page.rs`, an interval of its own in `app/actions/taming.rs`; systems that run by time
   (`scripted`, `broadcast`) compare times themselves.
 - **Two queues of sounds in the world** (`web/world/state.rs`): `sounds_due`, sounds by name and moment, and
   `heard`, sounds on someone heard from where that one is then (`world/earshot.rs`).

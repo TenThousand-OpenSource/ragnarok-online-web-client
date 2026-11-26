@@ -35,7 +35,11 @@ impl App {
                 r#"<img class="a" src="{}" alt="" draggable="false" style="left:3px;top:3px" onerror="this.remove()">"#,
                 picture(if room.kind == kind::PRIVATE { "chat_close.bmp" } else { "chat_open.bmp" })
             ),
-            format!(r#"<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div></div>"#, at(31, 8, 106, 15), escape(&data::starred(&room.sign())))
+            format!(
+                r#"<div class="a t" style="{};overflow:hidden;white-space:nowrap;color:{BLACK}">{}</div></div>"#,
+                at(31, 8, 106, 15),
+                escape(&data::starred(&room.sign()))
+            )
         ].concat()
     }
 

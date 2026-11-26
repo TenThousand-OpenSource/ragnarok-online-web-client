@@ -114,7 +114,7 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
     // client's four plain blows, a character by what its job wears, a monster by the weapon that struck it.
     if hurts && landing.striker != target {
         let four = lot(4);
-        let own_taekwon = scene.one(own, own).is_some_and(|me| matches!(me.job, 4046 | 4225));
+        let own_taekwon = scene.one(own, own).is_some_and(|me| signs::kicks(me.job));
         let sound = if hit.how.of_skill() {
             signs::weapon_sound(None, data::weapon_hit, four, own_taekwon)
         } else if between.struck_is_character {

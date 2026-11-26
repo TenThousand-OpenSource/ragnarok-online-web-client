@@ -59,6 +59,12 @@ pub fn words_asked(skill: u16) -> Option<usize> {
     }
 }
 
+/// Whether one who used a skill puffs smoke where it stands, as one that hides does: Chase Walk (389) that
+/// `worked` (`ST_CHASEWALK`, `GameModePackets.cpp:18990`: `AM_MAKE_SMOKE_FFECT` to the one who used it).
+pub fn puffs_smoke(skill: u16, worked: bool) -> bool {
+    skill == 389 && worked
+}
+
 /// The effect ZC_NOTIFY_EFFECT (0x019b) shows for its kinds beyond the two levels gained, by the client's
 /// numbers (`ReceivePartyMemberEffect`, `EffectTypes.h`): a refining that failed (2: `EF_REFINEFAIL`, 155) or
 /// went well (3: `EF_REFINEOK`, 154), a potion brewed (5: `EF_PHARMACY_OK`, 305) or spoilt (6:
@@ -271,6 +277,7 @@ mod tests {
         assert_eq!((notified_effect(2), notified_effect(3), notified_effect(5), notified_effect(6)), (Some(155), Some(154), Some(305), Some(306)));
         assert_eq!((notified_effect(7), notified_effect(8), notified_effect(9)), (Some(338), Some(337), Some(582)));
         assert_eq!((notified_effect(0), notified_effect(4)), (None, None));
+        assert!(puffs_smoke(389, true) && !puffs_smoke(389, false) && !puffs_smoke(51, true));
     }
 
     #[test]

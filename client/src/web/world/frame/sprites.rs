@@ -236,8 +236,7 @@ fn roots(roots: &mut Vec<(f64, Vector, u16, &'static str)>, gpu: &mut Gpu, time:
             gpu.has_sprite(&SpriteKey::Creature(sprite.to_owned(), 0, 0));
             return time - began <= 4000.0;
         };
-        // (`figure::timing` has a picture's time as 25 milliseconds to each of the file's speed.)
-        let Some(picture) = crate::blow::shots::root_picture(job, time - began, (each / 25.0) as f32, pictures) else { return false };
+        let Some(picture) = crate::blow::shots::root_picture(job, time - began, (each / figure::DELAY_MS) as f32, pictures) else { return false };
         let key = SpriteKey::Creature(sprite.to_owned(), 0, picture);
         if gpu.has_sprite(&key) {
             sprites.push((key, at, 1.0, crate::body::Quad::PLAIN));

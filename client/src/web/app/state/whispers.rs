@@ -38,7 +38,17 @@ pub(in crate::web) struct Whispers {
 
 impl Default for Whispers {
     fn default() -> Self {
-        Self { talks: Default::default(), strangers: true, friends: true, sound: true, last: Default::default(), menu: None, away: false, away_words: None, away_asked: false }
+        Self {
+            talks: Default::default(),
+            strangers: true,
+            friends: true,
+            sound: true,
+            last: Default::default(),
+            menu: None,
+            away: false,
+            away_words: None,
+            away_asked: false
+        }
     }
 }
 

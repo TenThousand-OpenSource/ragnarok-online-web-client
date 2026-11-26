@@ -32,11 +32,12 @@ fn pressed(event: &Event, attribute: &str) -> Option<Element> {
 /// The game's own tooltip (the client's `CMode::ShowTooltip`): white words on a see-through black box, shown
 /// at once over whatever has one (`data-tip`), 16 above its top left corner, and gone when the pointer leaves.
 ///
-/// (It was listened for in the windows only, so a tooltip stayed when the pointer went from its thing straight
-/// onto the world.) The pointer leaves a thing also when it stands still and a window opens under it, or the thing is drawn
-/// away: a page tells of neither until the pointer moves. So while a tooltip shows, what is under the pointer
-/// is looked at again five times a second, and the tooltip goes, or changes, with it (the client draws its
-/// tooltip anew each frame for the window under the pointer).
+/// The whole page is listened to, not the windows alone: the pointer leaves a thing for the world too, which
+/// is no part of them, and for nowhere at all when it goes off the page. It leaves a thing also when it
+/// stands still and a window opens under it, or the thing is drawn away: a page tells of neither until the
+/// pointer moves. So while a tooltip shows, what is under the pointer is looked at again every `TIP_LOOK_MS`,
+/// and the tooltip goes, or changes, with it (the client draws its tooltip anew each frame for the window
+/// under the pointer).
 fn wire_tooltip() -> Result<(), String> {
     thread_local! {
         /// Where the pointer was last, on the page.
@@ -53,22 +54,25 @@ fn wire_tooltip() -> Result<(), String> {
             tip_over(under.and_then(|under| under.closest("[data-tip]").ok().flatten()));
         }
     });
-    // The whole page is listened to, not the windows alone: the pointer leaves a thing for the world too,
-    // which is no part of them, and for nowhere at all when it goes off the page.
-    let page = crate::web::document().ok_or("no document")?;
     let on_out = Closure::<dyn FnMut()>::new(|| tip_over(None));
+    let page = crate::web::document().ok_or("no document")?;
     page.add_event_listener_with_callback("mouseover", on_over.as_ref().unchecked_ref()).map_err(js_error)?;
     page.add_event_listener_with_callback("mousemove", on_move.as_ref().unchecked_ref()).map_err(js_error)?;
     page.add_event_listener_with_callback("mouseleave", on_out.as_ref().unchecked_ref()).map_err(js_error)?;
-    on_out.forget();
     if let Some(window) = web_sys::window() {
-        window.set_interval_with_callback_and_timeout_and_arguments_0(on_look.as_ref().unchecked_ref(), 200).map_err(js_error)?;
+        window.set_interval_with_callback_and_timeout_and_arguments_0(on_look.as_ref().unchecked_ref(), TIP_LOOK_MS).map_err(js_error)?;
     }
+    // These live as long as the page.
     on_over.forget();
     on_move.forget();
+    on_out.forget();
     on_look.forget();
     Ok(())
 }
+
+/// How often what is under a pointer that stands still is looked at again while a tooltip shows, in
+/// milliseconds (this project's own: the client looks each frame).
+const TIP_LOOK_MS: i32 = 200;
 
 /// Shows the tooltip of the thing under the pointer (`tipped`), or takes it away when there is none.
 fn tip_over(tipped: Option<Element>) {
@@ -104,7 +108,7 @@ fn wire_wheel(ui: &Element) -> Result<(), String> {
         event.prevent_default();
         let number = |name: &str| list.get_attribute(name).and_then(|number| number.parse::<i32>().ok()).unwrap_or(0);
         // A wheel that counts in lines or pages gives a notch a turn.
-        let turned = if event.delta_mode() == 0 { event.delta_y() } else { event.delta_y().signum() * 100.0 };
+        let turned = if event.delta_mode() == 0 { event.delta_y() } else { event.delta_y().signum() * crate::scrolling::NOTCH };
         let (whole, left) = crate::scrolling::notches(TURNED.get(), turned);
         TURNED.set(left);
         if whole != 0 {

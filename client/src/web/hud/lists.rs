@@ -21,7 +21,7 @@ pub(super) fn list_frame(width: i32, height: i32, title: &str) -> String {
 
 /// What marks a list of rows, each `row` high and `shown` of them showing, as one the wheel moves by whole
 /// rows, as the client moves all of its own (`crate::scrolling::rows_a_notch`): a row is never cut at the
-/// list's top. Every list of rows of the windows has it.
+/// list's top. (Which lists of the windows do not have it yet: `docs/DEBTS.md`.)
 pub(in crate::web) fn rows_stepped(row: i32, shown: i32) -> String {
     stepped(row, crate::scrolling::rows_a_notch(shown))
 }
@@ -29,6 +29,12 @@ pub(in crate::web) fn rows_stepped(row: i32, shown: i32) -> String {
 /// What marks a list of lines of the client's `UIListBox`, each `line` high: the wheel moves it three lines.
 pub(in crate::web) fn lines_stepped(line: i32) -> String {
     stepped(line, crate::scrolling::LINES_A_NOTCH)
+}
+
+/// What marks a text of the client's `UITagTextViewer` (what an NPC says, a page of a tip): the wheel moves it
+/// 30 pixels a notch.
+pub(in crate::web) fn text_stepped() -> String {
+    stepped(crate::scrolling::TEXT_STEP, 1)
 }
 
 /// The list of such a window: `rows` rows of 32 from the title down, from `x` to `width`, scrolled when it

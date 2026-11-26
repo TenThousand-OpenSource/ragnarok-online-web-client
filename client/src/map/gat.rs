@@ -10,6 +10,9 @@ pub struct Gat {
     /// corners.
     heights: Vec<[f32; 4]>,
     walkable: Vec<bool>,
+    /// Per cell, whether it is a wall (type 1): what cannot be walked on and cannot be shot over either. A
+    /// cliff (type 5) cannot be walked on and can be shot over.
+    walls: Vec<bool>,
 }
 
 impl Gat {
@@ -25,16 +28,19 @@ impl Gat {
         }
         let mut heights = Vec::with_capacity(width * height);
         let mut walkable = Vec::with_capacity(width * height);
+        let mut walls = Vec::with_capacity(width * height);
         for _ in 0..width * height {
             heights.push([-reader.f32()?, -reader.f32()?, -reader.f32()?, -reader.f32()?]);
-            walkable.push(Self::walked(reader.i32()?));
+            let kind = reader.i32()?;
+            walkable.push(Self::walked(kind));
+            walls.push(kind == 1);
         }
-        Ok(Self { width, height, heights, walkable })
+        Ok(Self { width, height, heights, walkable, walls })
     }
 
     /// A flat, open map, for tests.
     pub fn open(width: usize, height: usize) -> Self {
-        Self { width, height, heights: vec![[0.0; 4]; width * height], walkable: vec![true; width * height] }
+        Self { width, height, heights: vec![[0.0; 4]; width * height], walkable: vec![true; width * height], walls: vec![false; width * height] }
     }
 
     /// Whether a cell of that type can be walked on: types 1 (a wall) and 5 (a cliff one can shoot over) cannot.
@@ -47,11 +53,20 @@ impl Gat {
     pub fn retype(&mut self, x: i32, y: i32, kind: i32) {
         if x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height {
             self.walkable[y as usize * self.width + x as usize] = Self::walked(kind);
+            self.walls[y as usize * self.width + x as usize] = kind == 1;
         }
     }
 
+    /// A cell becomes a wall, for tests.
     pub fn block(&mut self, x: usize, y: usize) {
         self.walkable[y * self.width + x] = false;
+        self.walls[y * self.width + x] = true;
+    }
+
+    /// Whether a cell is a wall: one that stops a shot (rAthena's `CELL_CHKWALL`, neither walked on nor shot
+    /// over). A cell outside the map is none, as there.
+    pub fn wall(&self, x: i32, y: i32) -> bool {
+        x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height && self.walls[y as usize * self.width + x as usize]
     }
 
     pub fn walkable(&self, x: i32, y: i32) -> bool {

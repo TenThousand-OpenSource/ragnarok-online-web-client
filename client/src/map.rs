@@ -6,15 +6,18 @@
 //!
 //! World space: x grows east and z north, 5 units per cell, y up (the files keep heights pointing down).
 //!
-//! `gat.rs` reads the GAT, `paths.rs` finds the ways over it, `gnd.rs` reads the GND and makes its mesh.
+//! `gat.rs` reads the GAT, `paths.rs` finds the ways over it, `sight.rs` tells from where something is reached,
+//! `gnd.rs` reads the GND and makes its mesh.
 
 mod gat;
 mod gnd;
 mod paths;
+mod sight;
 
 pub use gat::*;
 pub use gnd::*;
 pub use paths::*;
+pub use sight::*;
 
 /// World units per GAT cell.
 pub const CELL: f32 = 5.0;

@@ -30,11 +30,6 @@ pub fn stepped(picked: usize, rows: usize, down: bool) -> usize {
     if down { (picked + 1).min(rows.saturating_sub(1)) } else { picked.saturating_sub(1) }
 }
 
-/// How far an arrow moves what the NPC said, in pixels, down for the arrow down: what a notch of the wheel
-/// moves it (`UISayDialogWnd::SendMsg` hands `UM_UPPUSH` and `UM_DOWNPUSH` to its viewer, whose
-/// `UITagTextViewer::SendMsg` moves 30; see `crate::scrolling`).
-pub const TEXT_STEP: i32 = crate::scrolling::TEXT_STEP;
-
 /// How long after "next" or a menu's OK another of them is not taken, in milliseconds: the client keeps one
 /// moment for both (`g_session.m_itemSendTick`, 300).
 pub const APART: u32 = 300;

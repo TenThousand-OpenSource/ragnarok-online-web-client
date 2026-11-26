@@ -93,9 +93,19 @@ impl Scene {
     /// it walks, has died or goes out of sight; portals and unseen NPCs are never on it, and one who hides
     /// (the effect state's bit 2) does not count (`IsRegisterCell`).
     pub(super) fn goal_towards(&self, from: (i32, i32), to: (i32, i32), far: bool) -> Option<(i32, i32)> {
-        let taken = |cell: (i32, i32)| self.units.values().any(
-            |unit| unit.cell == cell && unit.walk.is_none() && !unit.dead && unit.dying.is_none() && unit.state & 2 == 0
-        );
-        self.gat.goal_towards(from, to, taken, far)
+        self.gat.goal_towards(from, to, |cell| self.taken(cell), far)
+    }
+
+    /// Whether somebody stands on a cell, as the client's list has it (see `goal_towards`).
+    fn taken(&self, cell: (i32, i32)) -> bool {
+        self.units.values().any(|unit| unit.cell == cell && unit.walk.is_none() && !unit.dead && unit.dying.is_none() && unit.state & 2 == 0)
+    }
+
+    /// The cell to send the player's character to, for it to come to the nearest cell from which `reached`
+    /// says what it is after (at `near`) is in reach: round whatever is in the way, the cell itself or the
+    /// end of a stretch towards it (`Gat::way_into_reach`, `crate::map::stretch`). None when there is no such
+    /// cell to walk to, or the character stands on one. This project's own, part of its far walk.
+    pub(super) fn step_into_reach(&self, near: (i32, i32), reached: impl Fn((i32, i32)) -> bool) -> Option<(i32, i32)> {
+        crate::map::stretch(&self.gat.way_into_reach(self.player.cell, near, reached, |cell| self.taken(cell))?)
     }
 }

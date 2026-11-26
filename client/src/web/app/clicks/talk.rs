@@ -65,7 +65,7 @@ impl App {
     /// A key while an NPC is talked to; whether it was this talk's key. Enter presses the button of one of the
     /// talk's windows (`crate::talk::entered`) and goes nowhere else, wherever the keyboard is: the chat's
     /// line does not open or send. The arrows up and down move the menu's picked line, or with no menu what
-    /// the NPC said (`crate::talk::stepped`, `TEXT_STEP`).
+    /// the NPC said (`crate::talk::stepped`, `crate::scrolling::TEXT_STEP`).
     pub(in crate::web::app) fn talk_key(&mut self, key: &str) -> bool {
         // The game's menu asking about the save point is a box over everything, and has the keys.
         let Some(dialog) = self.dialog.as_ref().filter(|_| self.esc != 2) else { return false };
@@ -86,7 +86,7 @@ impl App {
             }
             "ArrowUp" | "ArrowDown" => {
                 if let Some(said) = element(wnd::DIALOG.id).and_then(|window| window.query_selector(".said").ok().flatten()) {
-                    said.set_scroll_top(said.scroll_top() + if key == "ArrowDown" { crate::talk::TEXT_STEP } else { -crate::talk::TEXT_STEP });
+                    said.set_scroll_top(said.scroll_top() + if key == "ArrowDown" { crate::scrolling::TEXT_STEP } else { -crate::scrolling::TEXT_STEP });
                 }
                 true
             }

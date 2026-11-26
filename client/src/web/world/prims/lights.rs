@@ -17,10 +17,11 @@
 //! two stay where they began.
 //!
 //! Not as the client has it: the dome of `EF_ATTACKENERGY2` points the way the one it is on faced as the
-//! effect began, where the client turns it with that one at every tick (`prim/tei/domes.rs`). And a spark of `Sphere` that would outlive its effect begins to fade as the others
-//! do here, to nothing by the effect's end (`Prim::fade` sets the speed anew every tick); the client sets that
-//! speed once, by the time the effect then thinks it has left, which is about twice what it has, so that its
-//! sparks are still at half their light as the effect ends.
+//! effect began, where the client turns it with that one at every tick (`prim/tei/domes.rs`). And a spark of
+//! `Sphere` that would outlive its effect begins to fade as the others do here, to nothing by the effect's end
+//! (`Prim::fade` sets the speed anew every tick); the client sets that speed once, by the time the effect then
+//! thinks it has left, which is about twice what it has, so that its sparks are still at half their light as
+//! the effect ends.
 
 use super::launched::{PARTICLE1, of_parts, part};
 use super::*;

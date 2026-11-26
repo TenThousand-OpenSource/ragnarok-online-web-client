@@ -315,9 +315,9 @@ impl Mover {
     fn rests(&mut self, walking: bool, now: f64) -> (usize, usize) {
         use crate::pose::{LIES, READY, SITS, STANDS, WALKS};
         if walking {
-            // (The speed of an action is kept here in milliseconds, 25 to one of the file's units.)
+            // (The speed of an action is kept in milliseconds: `figure::DELAY_MS` to one of the file's units.)
             let (pictures, each) = self.pace(WALKS).unwrap_or((WALK_FRAMES, WALK_FRAME_MS));
-            return (WALKS, (f64::from(self.pose.walked) * 0.37 * 4.0 / (each / 25.0).max(1.0)) as usize % pictures.max(1));
+            return (WALKS, (f64::from(self.pose.walked) * 0.37 * 4.0 / (each / figure::DELAY_MS).max(1.0)) as usize % pictures.max(1));
         }
         if self.look.creature() {
             let action = self.pose.loops.unwrap_or(STANDS);

@@ -86,7 +86,7 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
 
 **Files**
 - Rules: `route.rs` (tests `route/tests.rs`), `server_time.rs` (tests `server_time/tests.rs`), `map/paths.rs`,
-  `map/gat.rs`, `pose.rs`, `mounts.rs`, `cursor.rs`; what is drawn for an object that is no player, by its
+  `map/sight.rs` (tests `map/sight/tests.rs`), `map/gat.rs`, `pose.rs`, `mounts.rs`, `cursor.rs`; what is drawn for an object that is no player, by its
   job alone (a character's body, or one sprite and its folder): `creatures.rs`
 - Packets: `net/packets/zone.rs`, `net/actors.rs`, `net/actors/changes.rs`, `net/actors/ground.rs`,
   `net/actors/requests.rs` (tests `net/actors/tests.rs`)
@@ -123,7 +123,20 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
   after a job change: seen in the game.
 - The clock, a route's times, the path search, poses, mounts, the pointer's pictures, the packets of those in
   sight: tests only.
-- Pursuit (walking on towards someone to attack or to pick up, `web/world/pursuit.rs`): by reading only.
+- Pursuit (walking on towards someone to attack or to pick up, `web/world/pursuit.rs`): by reading, and:
+- Going round what is in the way to attack, use a skill or pick up (this project's own, see DEBTS;
+  `map/sight.rs`: the server's line of sight `path_search_long` and reach `battle_check_range`, the way to
+  the nearest cell in reach): tests for the line, the reach, the cell chosen, a cell somebody stands on and
+  giving up. Seen in the game (2026-11-26, moc_fild03, the packets sent written down): a Hunter with a bow at
+  250,253 and a Red Plant at 260,258 behind the tree on 255..256,254..255 — one walk request to 250,254 and one
+  attack, the arrows land (with `/farwalk` off, as before and as the client: the attack asked every 1.5 s,
+  no answer, the character stands — seen on moc_fild12 at 247,266 by the stone lantern); from 262,266 at a
+  plant on 254,280 beyond the rock, out of reach and not seen — a walk to 260,266 and the attack; Double
+  Strafe from 251,254 at a plant on 263,254 behind the tree — a step to 251,253 and the skill; a Resin lying
+  behind the tree picked up from 252,254 (a walk to 256,256 round it, then the pickup); a Knight with bare
+  hands from 262,266 at a plant on 258,280 — one walk of 13 cells round the rock to 257,279 and the attack;
+  on moc_fild12 a Knight from 248,266 round the stone lantern (251..253,265..267). Not seen in the game: a way
+  longer than one stretch in a chase, giving up, a target that walks.
 - The sprite of one that is no player, by its job: tests (`creatures.rs`), and every monster of the classic
   database, every sprite the classic scripts give an NPC, the homunculi and the mercenaries asked of the
   gateway by `tools/sprite_files.py` (none missing). Seen in the game (2026-11-21): the eight homunculi
@@ -1370,7 +1383,7 @@ the golden packets); the `/packets` window is by reading only.
   like, `UIListBox::OnWheel`, `UITagTextViewer::SendMsg`), `message_box.rs` (`UIMessageBox::Configure`,
   `WrapRichText`), `web/parts.rs stepped`, `web/app/wiring.rs` (`wire_wheel`, `wire_tooltip`, the double
   click counted on the second press: `press/things.rs doubled`), `web/hud/lists.rs` (`rows_stepped`,
-  `lines_stepped`), `web/hud/boxes.rs confirm_box`, `web/hud/texts.rs linked_with`, `.bar` of `index.html`.
+  `lines_stepped`, `text_stepped`), `web/hud/boxes.rs confirm_box`, `web/hud/texts.rs linked_with`, `.bar` of `index.html`.
 - Seen in the game: what a smith says with its bar, moved by the wheel and the arrows; the homunculus's
   question of six lines in the message box, three lines a notch; an NPC's shop moved three whole rows a notch;
   a double click on a line of an NPC's menu answering it (it did nothing before: the first press drew the line

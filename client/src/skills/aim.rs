@@ -42,13 +42,8 @@ pub enum Under {
     Player,
     /// A pet (the client's object of the kind 7), and a mercenary (its `NPC_MERSOL_TYPE`).
     Pet,
-    /// A homunculus (a job of 6001 to 6052, the client's `CSession::IsCompanionJob`).
+    /// A homunculus (the client's `CSession::IsCompanionJob`, `crate::jobs::companion`).
     Homunculus,
-}
-
-/// Whether a job is a homunculus's (the client's `CSession::IsCompanionJob`: 6001 to 6052).
-pub fn homunculus(job: u16) -> bool {
-    (6001..=6052).contains(&job)
 }
 
 /// Whether players are picked before monsters: with a skill of help aimed and Shift up, or with Shift held
@@ -148,6 +143,5 @@ mod tests {
         assert!(rank(Under::Homunculus, false) > rank(Under::Player, false) && rank(Under::Homunculus, false) < rank(Under::Monster, false));
         assert!(rank(Under::Homunculus, true) > rank(Under::Npc, true) && rank(Under::Homunculus, true) < rank(Under::Player, true));
         assert!(rank(Under::Pet, false) < rank(Under::Player, false) && rank(Under::Pet, true) < rank(Under::Npc, true));
-        assert!(homunculus(6001) && homunculus(6052) && !homunculus(6053) && !homunculus(6017 + 100) && !homunculus(1002));
     }
 }

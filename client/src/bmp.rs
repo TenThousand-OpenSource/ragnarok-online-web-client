@@ -113,7 +113,6 @@ mod tests {
         assert_eq!(plain.rgba[4..8], [0, 0, 0, 255]);
     }
 
-
     /// A 2x2 24-bit image, stored bottom-up with row padding: red, magenta / green, blue.
     #[test]
     fn decodes_24_bit_bottom_up() {

@@ -100,7 +100,7 @@ impl App {
                 // The viewer's own bar and its step of 30 (`UITagTextViewer`; `crate::scrolling`).
                 r#"<div class="a t bar" style="{};white-space:normal;line-height:15px;color:{BLACK}" {}>{}</div>"#,
                 at(250, top, 226, height),
-                stepped(crate::scrolling::TEXT_STEP, 1),
+                text_stepped(),
                 tip.pages.get(page).map(|page| page_html(page)).unwrap_or_default()
             ));
             window.push_str(&pictured(

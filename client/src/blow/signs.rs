@@ -125,6 +125,12 @@ pub fn struck_sound(job: u16) -> &'static str {
     }
 }
 
+/// Whether a job, as it is drawn, is the Taekwon whose bare hands sound as the weapon table has them
+/// (`GetWeaponHitWaveName`: `JT_TAEKWON`, 4046, and its baby, 4225; not the rest of the Taekwon line).
+pub fn kicks(job: u16) -> bool {
+    matches!(job, 4046 | 4225)
+}
+
 /// The sound of a weapon's blow landing on a monster (`CSession::GetWeaponHitWaveName`, `HitSounds.cpp:65`).
 /// `kind` is the client's number for the kind of weapon the striker holds (0: bare hands; none: the hit of a
 /// skill, or a striker that is no character), `named` what the client's weapon table has for a kind
@@ -134,8 +140,8 @@ pub fn struck_sound(job: u16) -> &'static str {
 /// arrow's for a bow, the guns' own, and `_hit_mace.wav` for a mace, a knuckle, an instrument, a whip, a book,
 /// a katar and a huuma shuriken alike; a kind it does not name sounds so too (what the client fills its list
 /// with, `InitWeaponHitWaveNames`). Bare hands are one of four fists, unless the player's own character is
-/// drawn as a Taekwon (4046, 4225; `own_taekwon`: the client asks its own job, whoever strikes): then they
-/// are what the table has for no weapon.
+/// drawn as a Taekwon (`own_taekwon`, `kicks`: the client asks its own job, whoever strikes): then they are
+/// what the table has for no weapon.
 pub fn weapon_sound(kind: Option<u16>, named: impl Fn(u16) -> Option<String>, lot: u32, own_taekwon: bool) -> String {
     match kind {
         None => format!("_enemy_hit_normal{}.wav", 1 + lot % 4),
@@ -218,6 +224,7 @@ mod tests {
         // The player's own Taekwon: bare hands are the table's, and a skill's hit stays what it is.
         assert_eq!(weapon_sound(Some(0), table, 6, true), "_hit_mace.wav");
         assert_eq!(weapon_sound(None, table, 3, true), "_enemy_hit_normal4.wav");
+        assert!(kicks(4046) && kicks(4225) && !kicks(4047) && !kicks(4049) && !kicks(0));
         assert!(two_handed(1002, false) && two_handed(12, true) && two_handed(4013, true) && !two_handed(7, true));
     }
 }

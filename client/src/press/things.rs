@@ -219,9 +219,10 @@ pub fn doubled(presses: i32, before: Option<&str>, on: Option<&str>) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn a_double_click_is_two_presses_on_one_thing() {
-        use super::doubled;
         // A line of an NPC's menu, picked by the first press (and drawn anew) and answered by the second.
         assert!(doubled(2, Some("answer:2"), Some("answer:2")));
         assert!(!doubled(1, None, Some("answer:2")));
@@ -233,8 +234,6 @@ mod tests {
         assert!(doubled(4, Some("answer:2"), Some("answer:2")));
         assert!(!doubled(2, None, None));
     }
-
-    use super::*;
 
     /// One thing of every name of a kind, made from the kind's own list of names: with nothing beside it, or
     /// with what the things here take (a number, a skill and its level).

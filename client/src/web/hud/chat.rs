@@ -10,6 +10,10 @@ use crate::press::chat::Press;
 /// writes colours, blue first).
 const LINK: &str = "#e1f282";
 
+/// How wide the list of the chat window is: the window's 600 less the 4 at each side. Its rows are cut by it
+/// (`App::chat_lines`), wherever the list is written.
+const LIST_WIDE: i32 = 600 - 8;
+
 impl App {
     /// The chat's tabs as they are now: the player's, or the client's own until the player changes one.
     pub(in crate::web) fn chat_tabs(&self) -> Vec<Tab> {
@@ -29,7 +33,7 @@ impl App {
     pub(in crate::web) fn refresh_chat(&self) {
         let tabs = self.chat_tabs();
         if let Some(log) = crate::web::by_id("chat-lines") {
-            log.set_inner_html(&self.chat_lines(tabs.get(self.chat_tab_open(&tabs)), 600 - 8));
+            log.set_inner_html(&self.chat_lines(tabs.get(self.chat_tab_open(&tabs)), LIST_WIDE));
         }
         if tabs.iter().any(|tab| tab.own.is_some()) {
             self.redraw(&windows::CHAT_OWN);
@@ -162,8 +166,8 @@ impl App {
             window.push_str(&fill(600 - 4, 18, 1, height - 18, "#8e8e8e"));
             window.push_str(&format!(
                 r#"<div id="chat-log" class="a chat-log" style="{}"><div id="chat-lines">{}</div></div>"#,
-                at(5, 18, 600 - 8, height - 16 - 24 - 4),
-                self.chat_lines(all.get(open), 600 - 8)
+                at(5, 18, LIST_WIDE, height - 16 - 24 - 4),
+                self.chat_lines(all.get(open), LIST_WIDE)
             ));
         }
         window.push_str(&fill(4, base, 600 - 8, 1, "#8e8e8e"));
@@ -218,7 +222,11 @@ impl App {
             right -= size.0 + 2;
             window.push_str(&Self::chat_button(right, name, size, press, title));
         }
-        window.push_str(&format!(r#"<div class="a chat-log" style="{}"><div>{}</div></div>"#, at(5, 20, width - 8, height - 35), self.chat_lines(Some(tab), width - 8)));
+        window.push_str(&format!(
+            r#"<div class="a chat-log" style="{}"><div>{}</div></div>"#,
+            at(5, 20, width - 8, height - 35),
+            self.chat_lines(Some(tab), width - 8)
+        ));
         window
     }
 

@@ -54,6 +54,12 @@ pub(in crate::web) struct Party {
     pub asks: Option<PartyAsk>,
     /// The menu on a member, opened with the right button: where on the stage, and which member.
     pub menu: Option<((i32, i32), usize)>,
+    /// That menu was opened on the member's small window, not in the party window.
+    pub menu_mini: bool,
+    /// The small windows of single members (`crate::party::mini`): kept in the browser, and read from it
+    /// once the party is known, for the character of that name (`mini_of`).
+    pub mini: crate::party::mini::Windows,
+    pub mini_of: String,
     /// What members obtained that the chat has not told yet, each with the member's name: told once the
     /// gateway has said what the thing is called.
     pub obtained: Vec<(String, party::Picked)>,

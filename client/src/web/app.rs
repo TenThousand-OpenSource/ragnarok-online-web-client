@@ -47,6 +47,7 @@ mod incoming;
 mod chat;
 mod screen;
 mod screenshot;
+mod replay_files;
 mod windows;
 
 pub(in crate::web) use state::*;
@@ -161,7 +162,17 @@ pub(super) struct App {
     pub emotions: Emotions,
     pub worldmap: WorldMap,
     pub tips: Tips,
+    pub navigation: Navigation,
     pub books: Books,
+    pub cashshop: CashShop,
+    pub achievements: Achievements,
+    pub reputation: Reputation,
+    pub probability: Probability,
+    pub attendance: Attendance,
+    pub bank: Bank,
+    pub battleground: Battleground,
+    pub agency: Agency,
+    pub replay: Replay,
     pub choosing: Choosing,
     pub notices: Notices,
     pub link: Link,

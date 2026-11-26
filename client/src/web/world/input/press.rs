@@ -115,6 +115,7 @@ fn aimed(event: &MouseEvent) {
         state.chase = None;
         state.fetch = None;
         state.reach = Some((aimed.0, (i32::from(aimed.1.0), i32::from(aimed.1.1)), state.aim_range, 0.0));
+        state.ordered();
         None
     });
     if let Some(own) = aimed {
@@ -163,6 +164,18 @@ fn left(event: &MouseEvent, at: (f32, f32)) {
     walk_towards(at);
 }
 
+impl State {
+    /// The character was told to fight someone, to use a skill or to pick a thing up: that takes the place,
+    /// at once, of whatever it walked for — the place pressed far away that it goes to in stretches, the
+    /// place kept until its blow ends, the button still held on the ground (the client's pending action
+    /// replaces its pending move, `AM_PROCEEDATTACK` and the like of `CPlayer::SendMsg`).
+    fn ordered(&mut self) {
+        (self.journey, self.walk_waits, self.held) = (None, None, None);
+        // The walk under way was not asked for by this order (`pursuit::ordered`).
+        self.asked = (i32::MIN, i32::MIN);
+    }
+}
+
 /// A press on someone talks to them or fights them: whether it was such a press.
 fn on_someone(event: &MouseEvent) -> bool {
     let pressed = STATE.with_borrow(|state| {
@@ -192,9 +205,21 @@ fn on_someone(event: &MouseEvent) -> bool {
         // while the button is held (the client's `forcedAttack` and `AM_ATTACKCLICKUP`).
         let kept = event.ctrl_key();
         STATE.with_borrow_mut(|state| {
-            state.chase = monster.then_some((id, 0.0, false));
+            state.chase = match state.chase.filter(|(fought, ..)| monster && *fought == id) {
+                // The monster already fought, pressed again: nothing begins anew. The blow is asked for
+                // again in its time, in case the server let the fight go.
+                Some((_, looked, _)) => Some((id, looked, false)),
+                None => {
+                    // Another monster: its first blow does not wait out the client's time between two
+                    // requests, which the last one's request began (`pursuit::strikes_now`).
+                    state.strike_asked = 0.0;
+                    state.ordered();
+                    monster.then_some((id, 0.0, false))
+                }
+            };
             state.fight = u8::from(!(kept || state.options.no_ctrl));
             state.reach = None;
+            state.fetch = None;
         });
         if !monster {
             press(id, monster);
@@ -214,7 +239,12 @@ fn on_a_thing(event: &MouseEvent) -> bool {
     if let Some(id) = lying {
         STATE.with_borrow_mut(|state| {
             state.chase = None;
-            state.fetch = Some((id, 0.0));
+            state.reach = None;
+            // (A thing pressed again while the character goes to it begins nothing anew.)
+            if state.fetch.map(|(fetched, _)| fetched) != Some(id) {
+                state.fetch = Some((id, 0.0));
+                state.ordered();
+            }
         });
         ready_to_pick_up();
         return true;

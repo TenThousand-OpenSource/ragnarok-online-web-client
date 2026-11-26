@@ -7,9 +7,16 @@
 //! `src/map/clif.cpp`) at PACKETVER 20260219.
 
 mod bytes;
+pub mod achievements;
+pub mod agency;
+pub mod battleground;
+pub mod reputation;
 pub mod cart;
 pub mod choosing;
 pub mod books;
+pub mod cashshop;
+pub mod attendance;
+pub mod bank;
 pub mod broadcast;
 pub mod emotions;
 pub mod exchange;
@@ -23,6 +30,7 @@ pub mod inventory;
 pub mod link;
 pub mod mail;
 pub mod marks;
+pub mod navigation;
 pub mod mercenary;
 pub mod notices;
 pub mod talk;

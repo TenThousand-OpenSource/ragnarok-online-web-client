@@ -17,8 +17,8 @@ pub(in super::super) fn map_picture(map: &str) -> String {
 
 /// The minimap's marks of who stands where in a town (the client's `CGameMode::DrawMiniMap` and
 /// `UIMinimapZoomWnd::AddTownButton`): each a small picture by its kind, its middle on the cell, with the name
-/// shown under the pointer. Those outside the part of the map shown are left out. (In the client a press on one
-/// starts the navigation there; this client has no navigation yet.)
+/// shown under the pointer. Those outside the part of the map shown are left out. A press on one starts the
+/// navigation to its cell, the navigation's window kept away (`StartNavigation(map, 0, 5, true, …)`).
 pub(in super::super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> String {
     if hidden {
         return String::new();
@@ -26,12 +26,14 @@ pub(in super::super) fn minimap_marks(game: &Game, zoom: f32, hidden: bool) -> S
     data::town_marks(&game.map)
         .iter()
         .filter_map(|(name, x, y, kind)| {
+            let cell = (*x as i32, *y as i32);
             let picture_name = TOWN_PICTURES.get(usize::try_from(*kind).ok()?)?;
             minimap_spot(game, zoom, (*x as f32, *y as f32)).map(|(x, y)| {
                 format!(
-                    r#"<img class="mark" src="{}" alt="" title="{}" draggable="false" style="left:{x:.2}%;top:{y:.2}%" onerror="this.remove()">"#,
+                    r#"<img class="mark" src="{}" alt="" title="{}" draggable="false" style="left:{x:.2}%;top:{y:.2}%" {} onerror="this.remove()">"#,
                     picture(&format!("information/{picture_name}.bmp")),
-                    escape(name)
+                    escape(name),
+                    pressed(crate::press::navigation::Press::Mark(crate::press::navigation::Place(cell.0, cell.1)))
                 )
             })
         })

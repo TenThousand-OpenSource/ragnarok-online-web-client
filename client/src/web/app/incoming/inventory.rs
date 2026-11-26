@@ -270,6 +270,7 @@ impl App {
         // The shop's list and basket name what they hold, as the question's window does.
         self.redraw(&[&wnd::TRADE, &wnd::SHOP, &wnd::SHOP_BASKET]);
         self.redraw(&[&wnd::GUIDE, &wnd::TIPS]);
+        self.redraw(&[&wnd::ATTENDANCE, &wnd::CASH_SHOP]);
         self.redraw(&[&wnd::QUEST_PANE]);
         self.redraw(&[&wnd::MAIL_READ, &wnd::MAIL_WRITE]);
         self.vending_redrawn();

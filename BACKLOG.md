@@ -8,15 +8,17 @@ what they meet and leave for later; nothing here is to be built until the owner 
 What the classic game has and this client lacks is not here: that is a debt, and belongs in `docs/DEBTS.md`.
 
 ## Interface
-- Cash shop, mileage, cash emotions (the tabs of emotions bought with cash, the search and Buy:
-  `client/src/web/hud/emotions.rs`); auction; roulette; attendance; stylist and dress room.
-- Achievements and titles; bank; reputation; rune and collection systems; probability table.
-- Navigation (`UINavigationWnd`, NavigationData), and what the World Map does with it: a press on a map that
-  starts navigation there, and the routes (`client/src/web/hud/worldmap.rs`); replay; adventurer agency and
-  party booking (the button is there and does nothing: `client/src/web/app/clicks/party.rs`).
+- Mileage, cash emotions (the tabs of emotions bought with cash, the search and Buy:
+  `client/src/web/hud/emotions.rs`); auction; roulette; stylist and dress room. (The cash shop and the
+  attendance check are made: `docs/DONE.md`, section 22.)
+- Rune and collection systems; the table of what a package item gives and at what chance
+  (`CUIProbabilityTable`, opened from an item's description; `probabilityinfo\packageitem.lub`). (Achievements
+  and titles, the reputation and the menu's icon of the probabilities are made: `docs/DONE.md`, section 23.)
+- (The navigation is made: `docs/DONE.md`, "Navigation"; what is left of it: `docs/DEBTS.md`.)
+  (Replay and the Adventurer's Agency are made: `docs/DONE.md`, section 25; what is left of them, and the
+  older party booking: `docs/DEBTS.md`.)
 - The menu icons of these are drawn faded and pressed for nothing (`client/src/web/hud/basic.rs`):
-  Battleground, Navigation, Bank, Replay, Achievements, Cash Shop, Attendance, Adventurer's Agency,
-  Reputation, Probabilities.
+  Bank, Cash Shop, Attendance.
 - Clans.
 - Shop search; barter and NPC markets.
 - Refine UI, grade enchant, enchant, item reform, Lapine boxes, random options, select-package boxes.
@@ -100,13 +102,12 @@ Looked over on 2026-11-21 against what is made: none of the three lines is done 
 queue, of the instances window or of a buying store is read: `client/src/net`). Made since and never lines
 here: the maps of an instance load (a copy is looked up as its map, `maps::original`), and the siege's
 models, guardians, flags, the Emperium and treasure boxes, are drawn (`docs/DONE.md`, "Granny models").
-- Battlegrounds queue and status.
+- (The battlegrounds' queue and what a battle's map shows are made: `docs/DONE.md`, section 25.)
 - The instances window (memorial dungeons).
 - Buying stores.
 
 ## Packets of later content the classic server still sends
-- ZC_ACH_UPDATE (0x0a24, achievements) and ZC_REPUTE_INFO (0x0b8d, reputation), once at the way in: no reader
-  takes them (`/packets`).
+- (None left: ZC_ACH_UPDATE 0x0a24 and ZC_REPUTE_INFO 0x0b8d are read since 2026-11-26.)
 
 ## Two servers
 - Classic and Renewal as two separate servers on separate databases, chosen at login (asked for on 2026-11-18).

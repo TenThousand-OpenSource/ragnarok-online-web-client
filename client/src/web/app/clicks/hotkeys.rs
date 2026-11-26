@@ -106,6 +106,8 @@ impl App {
             // Nor a thing of the cart, or of a merchant's shop (the client lets go of what was taken up in the
             // cart there and nothing happens).
             Some(Drag::Carted(_) | Drag::Stock(_) | Drag::Stalled(_) | Drag::Vended(_) | Drag::Wanted(_)) => return,
+            // Nor a member of the party taken out of the party window.
+            Some(Drag::Member(_)) => return,
             None => Hotkey::default(),
             // From another slot of the bar: what was there moves here, and that slot is left empty.
             Some(Drag::Slot(from)) => {

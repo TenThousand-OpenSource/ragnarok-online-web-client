@@ -23,6 +23,8 @@ impl App {
                 }
             }
             Press::EquipmentPage(page) => {
+                // The third page is the titles' (`UM_TAB` of `UIEquipWnd::SendMsg`).
+                self.achievements.titles_page = page == 2;
                 self.bag.costumes = page == 1;
                 self.redraw(&[&wnd::EQUIPMENT]);
             }
@@ -59,6 +61,9 @@ impl App {
             )),
             Press::Equipment => {
                 self.bag.equipment_open = !self.bag.equipment_open;
+                if !self.bag.equipment_open {
+                    self.titles_seen();
+                }
                 self.render();
             }
             Press::InfoClose => {

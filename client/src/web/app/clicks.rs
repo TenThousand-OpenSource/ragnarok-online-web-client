@@ -41,7 +41,17 @@ mod family;
 mod emotions;
 mod tips;
 mod worldmap;
+mod navigation;
 mod books;
+mod cashshop;
+mod achievements;
+mod reputation;
+mod probability;
+mod attendance;
+mod bank;
+mod battleground;
+mod agency;
+mod replay;
 
 impl App {
     /// Something on the page was pressed: the press its name and what went with it stand for (`crate::press`).
@@ -89,9 +99,19 @@ impl App {
             Press::Emotions(press) => self.emotions_pressed(press),
             Press::WorldMap(press) => self.worldmap_pressed(press),
             Press::Tips(press) => self.tips_pressed(press),
+            Press::Navigation(press) => self.navigation_pressed(press),
             Press::Choosing(press) => self.choosing_pressed(press),
             Press::Fight(press) => self.fight_pressed(press),
             Press::Books(press) => self.books_pressed(press),
+            Press::CashShop(press) => self.cashshop_pressed(press),
+            Press::Achievements(press) => self.achievements_pressed(press),
+            Press::Reputation(press) => self.reputation_pressed(press),
+            Press::Probability(press) => self.probability_pressed(press),
+            Press::Attendance(press) => self.attendance_pressed(press),
+            Press::Bank(press) => self.bank_pressed(press),
+            Press::Battleground(press) => self.battleground_pressed(press),
+            Press::Agency(press) => self.agency_pressed(press),
+            Press::Replay(press) => self.replay_pressed(press),
         }
     }
 }

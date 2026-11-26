@@ -138,3 +138,15 @@ fn a_long_way_is_asked_for_in_stretches() {
     assert_eq!(stretch(&way[..5]), Some((5, 0)));
     assert_eq!(stretch(&[]), None);
 }
+
+#[test]
+fn an_order_takes_the_place_of_a_walk_at_once() {
+    // Standing: asked for when in reach, walked to when not.
+    assert_eq!((order(true, false, false), order(false, false, false)), (Order::Ask, Order::Go));
+    // Walking elsewhere (a place pressed far away): in reach now, the walk is ended and the order asked for
+    // in the same breath; out of reach, the walk into reach replaces the walk under way.
+    assert_eq!((order(true, true, false), order(false, true, false)), (Order::Halt, Order::Go));
+    // Walking to where the target is in reach (the walk the order itself asked for): asked for as soon as it
+    // comes into reach, and nothing asked anew before (a press again restarts nothing).
+    assert_eq!((order(true, true, true), order(false, true, true)), (Order::Ask, Order::Wait));
+}

@@ -251,12 +251,17 @@ impl App {
                 return true;
             }
             crate::hotkeys::interface::MAIL => return self.mail_key(),
+            crate::hotkeys::interface::BANK => return self.bank_key(),
+            crate::hotkeys::interface::CASH_SHOP => return self.cashshop_key(),
             crate::hotkeys::interface::CART => return self.cart_key(),
             crate::hotkeys::interface::FRIENDS | crate::hotkeys::interface::PARTY => return self.messenger_key(place == crate::hotkeys::interface::FRIENDS),
             crate::hotkeys::interface::WORLD_MAP => return self.pressed_key(crate::press::worldmap::Press::Window),
             crate::hotkeys::interface::EMOTIONS => return self.pressed_key(crate::press::emotions::Press::Window),
             crate::hotkeys::interface::SHORTCUTS => return self.pressed_key(crate::press::emotions::Press::Shortcuts),
             crate::hotkeys::interface::TIPS => return self.pressed_key(crate::press::tips::Press::Window),
+            crate::hotkeys::interface::NAVIGATION => return self.pressed_key(crate::press::navigation::Press::Window),
+            crate::hotkeys::interface::ACHIEVEMENTS => return self.pressed_key(crate::press::achievements::Press::Window),
+            crate::hotkeys::interface::REPUTATION => return self.pressed_key(crate::press::reputation::Press::Window),
             crate::hotkeys::interface::MENU => return self.pressed_key(crate::press::general::Press::Menu),
             crate::hotkeys::interface::FRIEND_SETUP => return self.pressed_key(crate::press::friends::Press::Setup),
             // The party's setup opens only for one who is in a party (`WID_PARTYSETTINGWND_PARTYCOUNT`).

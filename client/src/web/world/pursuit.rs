@@ -131,34 +131,59 @@ fn walk_on(state: &mut State, view: &View, (width, height): (f32, f32), time: f6
     }
 }
 
+/// What the character does now about something it was sent after, of which `reached` says from which cells
+/// it is in reach (`crate::map::order`). A walk under way counts as leading into reach only when it is the
+/// one last asked for, to `asked`: a press that gives the order forgets what was asked for before
+/// (`State::ordered`), so the walk the character was on when told is always ended or replaced.
+fn ordered(scene: &Scene, asked: (i32, i32), reached: impl Fn((i32, i32)) -> bool) -> crate::map::Order {
+    let bound = scene.player.walk.as_ref().is_some_and(|walk| walk.goal() == asked && reached(asked));
+    crate::map::order(reached(scene.player.cell), scene.player.walk.is_some(), bound)
+}
+
+impl State {
+    /// Whether a walk may be asked for at this moment at all: none was asked for a moment ago
+    /// (`asks_walk`), and the character is not in the motion of a blow of its own (`pursue`). An order that
+    /// needs a walk first waits for this and looks again the next frame.
+    fn may_walk(&self, time: f64) -> bool {
+        crate::route::may_ask(time, self.walk_asked) && time >= self.own_striking_until
+    }
+}
+
 /// A thing to pick up is walked to, and picked up from beside it. With the project's far walk on, the way is
 /// found round whatever stands between, to the nearest cell beside the thing (`Scene::step_into_reach`), and
 /// the thing is let be when there is none; the client asks for the cell a step towards the thing and no more
-/// (`CGameMode::StepTowardWalkableCell`).
+/// (`CGameMode::StepTowardWalkableCell`). A walk under way that leads elsewhere is replaced at once
+/// (`crate::map::order`).
 fn fetch(state: &mut State, time: f64, pursuit: &mut Pursuit) {
-    let Some(scene) = &mut state.scene else { return };
+    use crate::map::Order;
+    let Some(scene) = &state.scene else { return };
     let Some((id, looked)) = state.fetch else { return };
-    let beside = |from: (i32, i32), cell: (i32, i32)| (cell.0 - from.0).abs().max((cell.1 - from.1).abs()) <= 1;
-    match scene.drops.get(&id) {
-        None => state.fetch = None,
-        Some(Lying { cell, .. }) if time - looked > 350.0 => {
-            let own = scene.player.cell;
-            state.fetch = Some((id, time));
-            if beside(own, *cell) {
-                pursuit.take = state.hooks.as_ref().map(|hooks| (hooks.take, id));
-            } else if scene.player.walk.is_none() {
-                let goal = match state.options.far_walk {
-                    true => scene.step_into_reach(*cell, |from| beside(from, *cell)),
-                    false => scene.goal_towards(own, *cell, false),
-                };
-                pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
-                if goal.is_none() && state.options.far_walk {
-                    state.fetch = None;
-                }
+    let Some(cell) = scene.drops.get(&id).map(|lying| lying.cell) else { return state.fetch = None };
+    if time - looked <= 350.0 {
+        return;
+    }
+    let beside = |from: (i32, i32)| (cell.0 - from.0).abs().max((cell.1 - from.1).abs()) <= 1;
+    let (order, own) = (ordered(scene, state.asked, beside), scene.player.cell);
+    let walks = |goal: (i32, i32)| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal));
+    match order {
+        Order::Wait => {}
+        Order::Halt | Order::Go if !state.may_walk(time) => return,
+        Order::Ask | Order::Halt => {
+            pursuit.follow = Some(own).filter(|_| order == Order::Halt).and_then(walks);
+            pursuit.take = state.hooks.as_ref().map(|hooks| (hooks.take, id));
+        }
+        Order::Go => {
+            let goal = match state.options.far_walk {
+                true => scene.step_into_reach(cell, beside),
+                false => scene.goal_towards(own, cell, false),
+            };
+            pursuit.follow = goal.and_then(walks);
+            if goal.is_none() && state.options.far_walk {
+                return state.fetch = None;
             }
         }
-        Some(_) => {}
     }
+    state.fetch = Some((id, time));
 }
 
 /// The monster being fought is run after when it is out of reach, and struck again once it is near. The
@@ -172,78 +197,100 @@ fn fetch(state: &mut State, time: f64, pursuit: &mut Pursuit) {
 /// client measures the distance alone, so behind a pillar its character stands and asks in vain (the server
 /// answers nothing); with the project's far walk on, the character goes round to where it does reach
 /// (`close_in`), and lets the monster be when there is no such place.
+///
+/// A monster pressed while the character walks somewhere takes the place of that walk at once
+/// (`crate::map::order`): struck from where the character is when it is in reach there, the walk ended
+/// first; else the walk into reach replaces the walk under way.
 fn chase(state: &mut State, time: f64, pursuit: &mut Pursuit) {
+    use crate::map::Order;
     /// The wait between two walks of the client's second way of chasing.
     const CHASE_APART_SECOND: f64 = 1200.0;
-    /// The wait between two requests to strike (`attackReqTime` of `CPlayer::UpdatePendingAction`).
-    const STRIKES_APART: f64 = 1200.0;
-    let Some(scene) = &mut state.scene else { return };
+    let Some(scene) = &state.scene else { return };
     let Some((id, looked, told)) = state.chase else { return };
-    match scene.units.get(&id) {
-        None => state.chase = None,
-        // One struck down is asked nothing of, and left alone until it is gone from the map: then the fight
-        // is over (`UpdatePendingAction`: `target->render.state == ST_DEAD` returns before anything is asked).
-        Some(unit) if unit.dying.is_some() => {}
-        Some(unit) if time - looked > crate::route::CHASE_APART => {
-            let cell = scene.player.cell;
-            let range = state.strike_range.unwrap_or(30).max(1);
-            let far = match state.options.far_walk {
-                true => !scene.gat.reaches(cell, unit.cell, range),
-                // The client's own measure is straight across (the reach and a little more); by cells here.
-                false => (unit.cell.0 - cell.0).abs().max((unit.cell.1 - cell.1).abs()) > range,
-            };
-            // The client's second way of chasing (`PT_ATTACK_2`, chosen in its `AM_PROCEEDATTACK` when four
-            // thirds of the player's own time for a cell is still less than the target's): it is then sent
-            // on only every 1200 milliseconds, not every 450.
-            let second = scene.player.speed * 4.0 / 3.0 < unit.speed;
-            let mut lost = false;
-            if far && second && time - state.walk_asked <= CHASE_APART_SECOND {
-                // (It waits for its time.)
-            } else if far {
-                let goal = close_in(scene, unit.cell, range, state.asked, state.options.far_walk);
-                lost = goal.is_none();
-                let goal = goal.flatten().filter(|goal| *goal != state.asked || scene.player.walk.is_none());
-                pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
-            } else if (!told && time - state.strike_asked > STRIKES_APART)
-                || (scene.player.walk.is_none() && time - state.own_struck > 1500.0 && time - state.strike_asked > 1500.0)
-            {
-                // Near enough: the server is told to strike. It is told again when nothing came of it
-                // (it drops a request that reaches it while the character still ends something else,
-                // as after the player changed targets quickly), so the character does not stand idle.
-                pursuit.strike = state.hooks.as_ref().map(|hooks| (hooks.press, id));
-                state.strike_asked = time;
-                // One blow only, the button having been let go: asked for as that, and the fight is over.
-                if state.fight == 2 {
-                    pursuit.once = state.hooks.as_ref().map(|hooks| (hooks.strike_once, id));
-                    pursuit.strike = None;
-                }
+    let Some(unit) = scene.units.get(&id) else { return state.chase = None };
+    // One struck down is asked nothing of, and left alone until it is gone from the map: then the fight
+    // is over (`UpdatePendingAction`: `target->render.state == ST_DEAD` returns before anything is asked).
+    if unit.dying.is_some() {
+        return;
+    }
+    let (cell, target) = (scene.player.cell, unit.cell);
+    let range = state.strike_range.unwrap_or(30).max(1);
+    let own_way = state.options.far_walk;
+    let order = ordered(scene, state.asked, |from| match own_way {
+        true => scene.gat.reaches(from, target, range),
+        // The client's own measure is straight across (the reach and a little more); by cells here.
+        false => (target.0 - from.0).abs().max((target.1 - from.1).abs()) <= range,
+    });
+    // The client's second way of chasing (`PT_ATTACK_2`, chosen in its `AM_PROCEEDATTACK` when four
+    // thirds of the player's own time for a cell is still less than the target's): it is then sent
+    // on only every 1200 milliseconds, not every 450.
+    let second = scene.player.speed * 4.0 / 3.0 < unit.speed;
+    let walks = |goal: (i32, i32)| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal));
+    // The first walk of a fight just ordered waits for neither of the client's times between two walks of
+    // a chase: those begin with a walk of the chase itself (`tickOfMoveForAttack`), not with the walk the
+    // character was on when it was told to fight (`State::ordered` has forgotten that one).
+    let fresh = state.asked == (i32::MIN, i32::MIN);
+    match order {
+        // In reach, or bound for it: looked at every frame, so the blow is asked for the moment it can be.
+        Order::Wait => return,
+        Order::Ask | Order::Halt if !strikes_now(state, scene, told, time) => return,
+        Order::Halt if !state.may_walk(time) => return,
+        Order::Ask | Order::Halt => {
+            // Near enough: the server is told to strike, the walk that led elsewhere ended first.
+            pursuit.follow = Some(cell).filter(|_| order == Order::Halt).and_then(walks);
+            state.strike_asked = time;
+            // One blow only, the button having been let go: asked for as that, and the fight is over.
+            if state.fight == 2 {
+                pursuit.once = state.hooks.as_ref().map(|hooks| (hooks.strike_once, id));
+                return (state.chase, state.fight) = (None, 0);
             }
-            let asked = pursuit.strike.is_some() || (told && !far);
-            state.chase = if pursuit.once.is_some() || lost { None } else { Some((id, time, asked)) };
-            if pursuit.once.is_some() || lost {
-                state.fight = 0;
+            pursuit.strike = state.hooks.as_ref().map(|hooks| (hooks.press, id));
+            state.chase = Some((id, looked, true));
+        }
+        Order::Go if !fresh && time - looked <= crate::route::CHASE_APART => {}
+        Order::Go if !fresh && second && time - state.walk_asked <= CHASE_APART_SECOND => {}
+        // (A walk that cannot be asked for yet is looked at again the next frame.)
+        Order::Go if !state.may_walk(time) => {}
+        Order::Go => {
+            let Some(goal) = close_in(scene, target, range, own_way) else {
+                // No place to strike from: the fight is given up.
+                return (state.chase, state.fight) = (None, 0);
+            };
+            pursuit.follow = goal.filter(|goal| *goal != state.asked || scene.player.walk.is_none()).and_then(walks);
+            // Out of reach, it is to be told to strike anew when it comes into reach.
+            state.chase = Some((id, time, false));
+            if fresh && pursuit.follow.is_none() {
+                // (Nothing to ask for: the fight is no longer one just ordered.)
+                state.asked = cell;
             }
         }
-        Some(_) => {}
     }
 }
 
-/// Where the character is sent to come into reach of one on `target` with a weapon of `range` cells; `asked`
-/// is the cell it was last sent to. The outer None: there is no place to strike from, and the fight is given
-/// up. The inner None: nothing is asked for now.
+/// Whether the server is told to strike now, the monster being in reach: it was not told yet (`told`) and
+/// the client's wait between two requests is over (1200 milliseconds, `attackReqTime` of
+/// `CPlayer::UpdatePendingAction`; a press on another monster ends the wait, `input/press.rs`); or it was
+/// told and nothing came of it for a second and a half (it drops a request that reaches it while the
+/// character still ends something else, as after the player changed targets quickly), so that the character
+/// does not stand idle.
+fn strikes_now(state: &State, scene: &Scene, told: bool, time: f64) -> bool {
+    const STRIKES_APART: f64 = 1200.0;
+    (!told && time - state.strike_asked > STRIKES_APART)
+        || (scene.player.walk.is_none() && time - state.own_struck > 1500.0 && time - state.strike_asked > 1500.0)
+}
+
+/// Where the character is sent to come into reach of one on `target` with a weapon of `range` cells. The
+/// outer None: there is no place to strike from. The inner None: nothing is asked for now.
 ///
 /// With the project's far walk (`own`): to the nearest cell, by the steps walked, from which the server
-/// lets the target be struck, or a stretch towards it (`Scene::step_into_reach`); one already walking to a
-/// cell that reaches walks on. Without: as it was before, the cell of the server's way to the monster from
-/// which the weapon is near enough, which is nothing when a wall is between (the client asks for the cell
-/// `range` cells from the target on the straight line to it, `CGameMode::FindWalkableCellToward`, and its
-/// character stands behind what is in the way just the same).
-fn close_in(scene: &Scene, target: (i32, i32), range: i32, asked: (i32, i32), own: bool) -> Option<Option<(i32, i32)>> {
+/// lets the target be struck, or a stretch towards it (`Scene::step_into_reach`). Without: as it was before,
+/// the cell of the server's way to the monster from which the weapon is near enough, which is nothing when
+/// a wall is between (the client asks for the cell `range` cells from the target on the straight line to
+/// it, `CGameMode::FindWalkableCellToward`, and its character stands behind what is in the way just the
+/// same).
+fn close_in(scene: &Scene, target: (i32, i32), range: i32, own: bool) -> Option<Option<(i32, i32)>> {
     let cell = scene.player.cell;
     if own {
-        if scene.player.walk.is_some() && scene.gat.reaches(asked, target, range) {
-            return Some(None);
-        }
         return scene.step_into_reach(target, |from| scene.gat.reaches(from, target, range)).map(Some);
     }
     let way = scene.gat.path(cell, target);
@@ -259,9 +306,11 @@ fn close_in(scene: &Scene, target: (i32, i32), range: i32, asked: (i32, i32), ow
 /// cells of 5, and 5.5 more, is at least the distance; it then asks, and the server answers nothing when a
 /// wall is between. With the project's far walk on, in reach is what the server lets the skill be used from
 /// (`Gat::reaches`: its range and a clear line), the character goes round to the nearest such cell
-/// (`Scene::step_into_reach`), and the skill is let be when there is none.
+/// (`Scene::step_into_reach`), and the skill is let be when there is none. A walk under way that leads
+/// elsewhere is ended or replaced at once (`crate::map::order`).
 fn reach(state: &mut State, time: f64, pursuit: &mut Pursuit) {
-    let Some(scene) = &mut state.scene else { return };
+    use crate::map::Order;
+    let Some(scene) = &state.scene else { return };
     let Some((whom, cell, range, looked)) = state.reach else { return };
     // In the motion of a blow of its own the character uses no skill yet: it waits here, as in the client
     // (`crate::skills::aim::asked_now`).
@@ -276,29 +325,33 @@ fn reach(state: &mut State, time: f64, pursuit: &mut Pursuit) {
         None => Some((cell, (cell.0 as f32, cell.1 as f32))),
     };
     let Some((cell, at)) = aimed else { return state.reach = None };
-    let own = scene.player.cell;
-    let near = match state.options.far_walk {
-        // One still walking is a cell before or behind where the server has it: a cell to spare then.
-        true => scene.gat.reaches(own, cell, range as i32 - i32::from(scene.player.walk.is_some())),
+    let (own, own_way) = (scene.player.cell, state.options.far_walk);
+    let order = match own_way {
+        true => ordered(scene, state.asked, |from| scene.gat.reaches(from, cell, range as i32)),
+        // The client's own measure, from where the character is; it is sent on only when it stands.
         false => {
             let (across, along) = (at.0 - scene.player.at.0, at.1 - scene.player.at.1);
-            (across * across + along * along).sqrt() * 5.0 <= range * 5.0 + 5.5
+            let near = (across * across + along * along).sqrt() * 5.0 <= range * 5.0 + 5.5;
+            if near { Order::Ask } else if scene.player.walk.is_some() { Order::Wait } else { Order::Go }
         }
     };
-    if near {
-        pursuit.used = state.hooks.as_ref().map(|hooks| (hooks.aimed, whom, (cell.0.max(0) as u16, cell.1.max(0) as u16)));
-        state.reach = None;
-    } else if time - looked > 350.0 {
-        state.reach = Some((whom, cell, range, time));
-        if scene.player.walk.is_none() {
-            let goal = match state.options.far_walk {
+    let walks = |goal: (i32, i32)| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal));
+    match order {
+        Order::Wait => {}
+        Order::Halt if !state.may_walk(time) => {}
+        Order::Ask | Order::Halt => {
+            pursuit.follow = Some(own).filter(|_| order == Order::Halt).and_then(walks);
+            pursuit.used = state.hooks.as_ref().map(|hooks| (hooks.aimed, whom, (cell.0.max(0) as u16, cell.1.max(0) as u16)));
+            state.reach = None;
+        }
+        Order::Go if time - looked <= 350.0 || !state.may_walk(time) => {}
+        Order::Go => {
+            let goal = match own_way {
                 true => scene.step_into_reach(cell, |from| scene.gat.reaches(from, cell, range as i32)),
                 false => scene.goal_towards(own, cell, false),
             };
-            pursuit.follow = goal.and_then(|goal| state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal)));
-            if goal.is_none() && state.options.far_walk {
-                state.reach = None;
-            }
+            pursuit.follow = goal.and_then(walks);
+            state.reach = (goal.is_some() || !own_way).then_some((whom, cell, range, time));
         }
     }
 }

@@ -31,6 +31,13 @@ pub(super) fn forget_moved(id: &str) {
     MOVED.with_borrow_mut(|moved| moved.remove(id));
 }
 
+/// A window that was just put on the page under the pointer is held by it from there on, as if it had been
+/// pressed: a tab of the chat torn out into a window of its own. `from` is where the pointer is.
+pub(super) fn drag_begun(id: &str, from: (f64, f64)) {
+    forget_moved(id);
+    DRAG.set(Some((id.to_owned(), from, (0.0, 0.0))));
+}
+
 /// Gives the player a file to keep: the browser saves what is at that address under that name.
 pub(super) fn give_file(name: &str, address: &str) {
     let Some(link) = crate::web::document().and_then(|document| document.create_element("a").ok()) else { return };
@@ -86,12 +93,14 @@ pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
             return;
         }
         let Some(window) = target.closest(".hud").ok().flatten().filter(|window| !window.id().is_empty()) else { return };
-        // Only the top strip moves a window; the chat moves by all of it, unless its lock is closed.
-        let chat = window.id() == "chat";
-        if chat && window.get_attribute("data-locked").as_deref() == Some("1") {
+        // Only the top strip moves a window; the chat and the windows marked so (`data-whole`: a tab of the
+        // chat in a window of its own, a party member's small window) move by all of them, unless their lock
+        // is closed.
+        let whole = window.id() == "chat" || window.has_attribute("data-whole");
+        if whole && window.get_attribute("data-locked").as_deref() == Some("1") {
             return;
         }
-        if !chat && f64::from(event.client_y()) - window.get_bounding_client_rect().top() > 20.0 {
+        if !whole && f64::from(event.client_y()) - window.get_bounding_client_rect().top() > 20.0 {
             return;
         }
         let id = window.id();
@@ -110,7 +119,8 @@ pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
         MOVED.with_borrow_mut(|moved| moved.insert(id.clone(), to));
         place_moved();
         // With the player's `/window` on, a window docks to the screen's edges and to the other windows.
-        if SNAP.get() {
+        // (Not one the client keeps out of the docking: `data-apart`, a party member's small window.)
+        if SNAP.get() && !element(&id).is_some_and(|window| window.has_attribute("data-apart")) {
             if let Some(by) = docked(&id, scale) {
                 MOVED.with_borrow_mut(|moved| moved.insert(id.clone(), (to.0 + by.0 / scale, to.1 + by.1 / scale)));
                 place_moved();
@@ -129,7 +139,12 @@ pub(super) fn drag_windows(document: &web_sys::Document) -> Result<(), String> {
             }
         }
     });
-    let on_up = Closure::<dyn FnMut()>::new(|| DRAG.set(None));
+    // A window let go is told to the app: some do something where they are let go (`App::window_dropped`).
+    let on_up = Closure::<dyn FnMut()>::new(|| {
+        if let Some((id, ..)) = DRAG.take() {
+            dispatch(Action::WindowDropped(id));
+        }
+    });
     document.add_event_listener_with_callback("mousedown", on_down.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("mousemove", on_move.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("mouseup", on_up.as_ref().unchecked_ref()).map_err(js_error)?;

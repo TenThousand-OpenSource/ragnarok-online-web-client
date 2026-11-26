@@ -55,7 +55,10 @@ impl App {
     /// `clicks/inventory.rs worn_let_go`).
     pub(in crate::web) fn equipment_window(&self) -> String {
         let mut window = self.equipment_frame();
-        if self.bag.costumes {
+        if self.achievements.titles_page {
+            // The page of titles shows neither the character nor what is worn (`UIEquipWnd::Paint`).
+            window.push_str(&self.title_page());
+        } else if self.bag.costumes {
             // On the page of costumes the client switches the "off" button off; here it is not drawn there.
             window.push_str(&Self::worn_in(&self.bag.items, true, &COSTUMES));
         } else {
@@ -75,11 +78,11 @@ impl App {
         window.push_str(&cross(280, Press::Equipment));
         window.push_str(&side_rimmed(0, 17, 280, 20));
         window.push_str(&art("basic_interface/equipwin_bg2.bmp", 0, 37, 280, 150));
-        // The pages (`UIEquipWnd::OnCreate`: a row of tabs 15 high under the title, the client's lines 1805
-        // and 2419; its third, "Title", belongs to the achievements, which the classic game does not have).
+        // The pages (`UIEquipWnd::OnCreate`: a row of tabs 15 high under the title, the client's lines 1805,
+        // 2419 and 2685; the third, "Title", is the achievements': `hud/achievements.rs`).
         // The client measures a tab by its words; how it colours them was not read: the open one white here.
-        for (page, (line, otherwise)) in [(1805, "General"), (2419, "Costume")].into_iter().enumerate() {
-            let open = (page == 1) == self.bag.costumes;
+        for (page, (line, otherwise)) in [(1805, "General"), (2419, "Costume"), (2685, "Title")].into_iter().enumerate() {
+            let open = page == if self.achievements.titles_page { 2 } else { usize::from(self.bag.costumes) };
             window.push_str(&format!(
                 r#"<div class="a t" style="{};line-height:13px;text-align:center;box-sizing:border-box;border:1px solid #c3c3c3;{}cursor:default" {}>{}</div>"#,
                 at(page as i32 * 59, 17, 60, 15),
@@ -88,7 +91,7 @@ impl App {
                 escape(&Self::words(line, otherwise))
             ));
         }
-        if self.bag.costumes {
+        if self.bag.costumes && !self.achievements.titles_page {
             // The frame of the costumes' places (`equipwin_special.bmp`, 14 under where the first page's
             // picture begins less 17: 0, 34).
             window.push_str(&art("basic_interface/equipwin_special.bmp", 0, 34, 280, 133));
@@ -98,7 +101,9 @@ impl App {
         window.push_str(&panel_ground(0, 187, 280, 20));
         window.push_str(&self.equipment_open_box(192));
         // The character stands on the shadow drawn into the picture.
-        window.push_str(&figure_canvas("pc-equip", (61, 37, crate::web::figure::WIDTH as i32, 150), (0, -25)));
+        if !self.achievements.titles_page {
+            window.push_str(&figure_canvas("pc-equip", (61, 37, crate::web::figure::WIDTH as i32, 150), (0, -25)));
+        }
         window
     }
 

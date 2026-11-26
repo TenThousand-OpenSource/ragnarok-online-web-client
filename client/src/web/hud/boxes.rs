@@ -28,6 +28,17 @@ pub(super) fn message_box(words: &str, yes: impl Into<Press>, no: impl Into<Pres
 /// right and by the wheel, three lines a notch (`crate::message_box`, `crate::scrolling`). `words` are the
 /// client's own markup (`^RRGGBB`), written here.
 pub(super) fn confirm_box(words: &str, yes: impl Into<Press>, no: impl Into<Press>) -> String {
+    [message_frame("Message", words), picture_press(189, 96, "btn_ok", yes), picture_press(234, 96, "btn_cancel", no)].concat()
+}
+
+/// The same box telling something, with OK alone, 46 from its right edge (`UIMessageBox::Configure` with the
+/// kind 0), under that caption ("Message", or "Error").
+pub(super) fn told_box(caption: &str, words: &str, ok: impl Into<Press>) -> String {
+    [message_frame(caption, words), picture_press(234, 96, "btn_ok", ok)].concat()
+}
+
+/// The client's message box without its buttons: the caption, the panel and the words in their list.
+fn message_frame(caption: &str, words: &str) -> String {
     use crate::message_box::{LINE, SHOWN, letters, lines};
     let lines = lines(words, letters(280)).join("\n");
     // A line's letters stand 4 under its top; the line here is 18 with its 15 in the middle of it.
@@ -36,7 +47,7 @@ pub(super) fn confirm_box(words: &str, yes: impl Into<Press>, no: impl Into<Pres
     // (`UITextViewer::Paint` draws whole lines only), and the list ends on a whole line when scrolled.
     let under = 65 - above - SHOWN * LINE;
     [
-        title_bar(280, "Message"),
+        title_bar(280, caption),
         base_button(3, 3),
         panel_ground_round(0, 17, 280, 103),
         format!(
@@ -47,9 +58,7 @@ pub(super) fn confirm_box(words: &str, yes: impl Into<Press>, no: impl Into<Pres
         ),
         // (Begun a pixel higher, under the third line's letters: a page drawn larger than its measures lets
         // a hair of the fourth line show otherwise.)
-        fill(10, 22 + 65 - under - 1, 260 - 13, under + 1, WHITE),
-        picture_press(189, 96, "btn_ok", yes),
-        picture_press(234, 96, "btn_cancel", no)
+        fill(10, 22 + 65 - under - 1, 260 - 13, under + 1, WHITE)
     ].concat()
 }
 

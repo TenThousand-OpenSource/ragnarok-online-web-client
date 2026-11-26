@@ -23,9 +23,16 @@ impl App {
             }
             Action::Use(what) => self.used(what),
             Action::Dropped(slot, dragged) => self.set_hotkey(slot, dragged),
-            Action::WindowPressed(window) => self.window_pressed(&window),
+            Action::WindowPressed(window) => {
+                self.window_pressed(&window);
+                self.party_mini_pressed(&window);
+            }
+            Action::WindowDropped(window) => self.window_dropped(&window),
+            Action::ChatTabTorn(tab, pointer) => self.chat_tab_torn(tab, pointer),
+            Action::ChatOwnSized(tab, width, height) => self.chat_own_sized(tab, width, height),
             // What was on the hotkey bar, dragged off it and let go over the world: the slot is emptied.
             Action::Thrown(Drag::Slot(slot)) => self.set_hotkey(slot, None),
+            Action::Thrown(Drag::Member(row)) => self.party_mini_taken(row),
             Action::Thrown(dragged) => self.thrown(dragged),
             Action::Offered(dragged) => self.exchange_offered(dragged),
             Action::Mailed(dragged) => self.mail_dropped(dragged),
@@ -39,6 +46,7 @@ impl App {
             Action::SkillInfo(id) => self.skill_info(id),
             Action::Info(id, identified) => self.item_info(id, identified),
             Action::ItemsKnown => self.items_known(),
+            Action::Navigation(news) => self.navigation_news(news),
             Action::Resized => self.render(),
             Action::CheckMusic => self.music_checked(),
             Action::RetryLogin(generation) => self.login_retried(generation),
@@ -56,6 +64,11 @@ impl App {
             Action::TamingRead(waiting, turning) => self.taming_read(waiting, turning),
             Action::PetIdle => self.pet_idles(),
             Action::PvpRead(digits) => self.pvp_digits_read(digits),
+            Action::BattlegroundTick => self.battleground_tick(),
+            Action::ReplayTick => self.replay_tick(),
+            Action::ReplaysRead(files) => self.replays_read(files),
+            Action::ReplayPicked(name, bytes) => self.replay_taken(name, bytes),
+            Action::AgencyAnswered(request, answer) => self.agency_answered(request, answer),
             Action::EmotionsRead(pictures) => self.emotions_read(pictures),
             Action::Pictured(saved) => self.screenshot_saved(saved),
             Action::TamingTick => self.taming_tick(),

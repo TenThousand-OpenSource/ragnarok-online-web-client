@@ -18,6 +18,21 @@ pub fn unit_titled(id: u32, group: u32, title: &str) {
     });
 }
 
+/// The title a player wears, as the server names it with the player's names (ZC_ACK_REQNAMEALL) or answers
+/// one asked for (ZC_ACK_CHANGE_TITLE): what it is called, or nothing for none (`CGameMode::SetActorNameCard`,
+/// `ReceiveJobTitle`).
+pub fn player_titled(id: u32, title: &str) {
+    STATE.with_borrow_mut(|state| state.cards.entry(id).or_default().title = title.to_owned());
+}
+
+/// A name with the title of the one named before it, if that one has a title.
+pub(super) fn titled(state: &State, id: u32, label: String) -> String {
+    match state.cards.get(&id) {
+        Some(card) => crate::names::written(&label, &card.title),
+        None => label,
+    }
+}
+
 /// The level of someone who came into sight, and whether it is a boss (the packet that shows a unit).
 pub(super) fn ranked(state: &mut State, id: u32, level: u16, boss: u8) {
     let card = state.cards.entry(id).or_default();
@@ -36,13 +51,14 @@ pub(super) fn written(state: &State, id: u32, unit: &Mover, label: String) -> (S
     let none = Card::default();
     let card = state.cards.get(&id).unwrap_or(&none);
     let colour = crate::names::colour(who, unit.job, card.level, state.own_level);
-    // A title and a group are a monster's or an NPC's: a player's name is written by its own rules.
+    // A group is a monster's or an NPC's; a title is theirs (a script's) or a player's (an achievement's), and
+    // stands before the name either way (`UINameBalloonText::SetName`).
     let creature = unit.look.creature();
     // The name of a pet or a homunculus that is no monster by its job, which is a homunculus's, has stars for
     // a word that is not let be written (`UpdateNameBalloon`, `crate::manner`). (A mercenary's, which the
     // client does not go through, is not told apart here: it is of the server's own words.)
     let label = if unit.companion && !crate::jobs::monster(unit.job) { data::starred(&label) } else { label };
-    let label = if creature { crate::names::written(&label, &card.title) } else { label };
+    let label = crate::names::written(&label, &card.title);
     (label, colour, Some(card).filter(|_| creature).and_then(|card| crate::names::mark(card, unit.lively)))
 }
 

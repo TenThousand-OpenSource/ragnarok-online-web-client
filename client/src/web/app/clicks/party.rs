@@ -3,6 +3,8 @@
 use super::*;
 use crate::net::party;
 
+mod mini;
+
 impl App {
     /// A press of this system (`crate::press::party`). What each button of the party window does is the
     /// client's `UIMessengerGroupWnd::SendMsg`; the setup window's, `UIPartySettingWnd::SendMsg`; the
@@ -20,14 +22,17 @@ impl App {
                 self.party.small = !self.party.small;
                 self.render();
             }
+            // A row pressed is picked, and its member takes the skill being aimed (`OnLBtnDown`).
             Press::Row(row) => {
                 self.party.picked = Some(row);
                 self.close_party_menu();
                 self.redraw(&[&wnd::PARTY]);
+                self.party_member_picked(row);
             }
-            // The Adventurer's Agency, the lock that keeps the window's buttons from being pressed and the
-            // small windows of single members are not made here yet: these do nothing.
-            Press::Agency | Press::Lock | Press::Sort => {}
+            // The Adventurer's Agency and the lock that keeps the window's buttons from being pressed are not
+            // made here yet: these do nothing.
+            Press::Agency | Press::Lock => {}
+            Press::Sort => self.party_mini_sorted(),
             // The Friend tab: the window lists the friends (`clicks/friends.rs`).
             Press::Friends => self.messenger_turned(true),
             // The setup shows for a party there is (`ID_PARTY_SETTING`).
@@ -209,11 +214,14 @@ impl App {
     fn party_menu_row(&mut self, entry: crate::press::party::Entry) {
         use crate::press::party::Entry;
         let Some((_, row)) = self.party.menu.take() else { return };
+        self.party.menu_mini = false;
         self.render();
         let Some(member) = self.party.members.get(row).cloned() else { return };
         match entry {
-            // Letters and the small windows of single members are not made here yet.
-            Entry::Mail | Entry::AddSmall | Entry::RemoveSmall => {}
+            // A letter to the member is begun (`MM_OPEN_WRITE_RODEX` with the member's name).
+            Entry::Mail => self.mail_write_to(&member.name),
+            Entry::AddSmall => self.party_mini_added(member.account),
+            Entry::RemoveSmall => self.party_mini_removed(member.account),
             Entry::Leave => self.party_asks(PartyAsk::Leave),
             Entry::Chat => self.whisper_to(&member.name),
             Entry::Expel => self.party_asks(PartyAsk::Expel(member.name)),
@@ -225,6 +233,7 @@ impl App {
     /// Puts the menu on a member away, if it is open.
     pub(in crate::web::app) fn close_party_menu(&mut self) {
         if self.party.menu.take().is_some() {
+            self.party.menu_mini = false;
             self.render();
         }
     }
@@ -232,7 +241,7 @@ impl App {
     /// The right button on a member in the party window: the member is picked and its menu opens there.
     pub(in crate::web::app) fn party_menu_opens(&mut self, row: usize, at: (f32, f32)) {
         if row < self.party.members.len() {
-            (self.party.picked, self.party.menu) = (Some(row), Some((Self::on_stage(at), row)));
+            (self.party.picked, self.party.menu, self.party.menu_mini) = (Some(row), Some((Self::on_stage(at), row)), false);
             self.render();
         }
     }

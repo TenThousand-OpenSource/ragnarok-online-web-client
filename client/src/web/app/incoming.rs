@@ -42,12 +42,21 @@ mod notices;
 mod link;
 mod broadcast;
 mod marks;
+mod navigation;
 mod statuses;
 mod cooldowns;
 mod commands;
 mod skill_units;
 mod spirits;
 mod books;
+mod cashshop;
+mod achievements;
+mod reputation;
+mod attendance;
+mod bank;
+mod battleground;
+mod agency;
+mod replay;
 
 /// The readers of the map server's packets, a system each (a file each in `incoming/`), in the order they are
 /// asked: each gives back whether the packet was its own, and the first that says so has read it.
@@ -58,8 +67,8 @@ mod books;
 ///
 /// | The packet | Overheard by (in this order) | Read by |
 /// |---|---|---|
-/// | `ZC_ACCEPT_ENTER` (the game is entered) | cart, vending, ai, mail: each forgets the character before | travel |
-/// | `ZC_NPCACK_MAPMOVE` (another map) | vending, ai | travel |
+/// | `ZC_ACCEPT_ENTER` (the game is entered) | achievements, reputation, cart, vending, ai, mail, battleground: each forgets the character before | travel |
+/// | `ZC_NPCACK_MAPMOVE` (another map) | vending, ai, battleground | travel |
 /// | `ZC_INVENTORY_START`, `ZC_INVENTORY_ITEMLIST_NORMAL`, `_EQUIP` | cart: the cart's list is one kind of these |
 /// inventory (which hands the storage's kind on) |
 /// | `ZC_MSG_STATE_CHANGE`, `2`, `3`, `ZC_EFST_SET_ENTER2` | cart (who pushes which cart), mail (letters sent today; `2` and `3` only) | statuses |
@@ -70,12 +79,18 @@ mod books;
 /// | `ZC_NOTIFY_GROUNDSKILL` | falcon (Detect) | skill units |
 /// | `ZC_NOTIFY_VANISH` | spirits (the spheres go), vending (the sign goes), ai | actors |
 /// | `ZC_USER_COUNT` | commands: the answer to `/who` | status |
+/// | `ZC_NOTIFY_PLAYERMOVE`, `ZC_RESTART_ACK` | navigation: the way may be over, and is forgotten | travel |
+/// | `ZC_ACK_REQNAMEALL` | achievements: the title a player wears | guild |
 ///
 /// Two readers take a packet only when it is theirs by what it says, and so stand before the reader that takes
 /// it otherwise: chat rooms take `ZC_NOTIFY_CHAT` and `ZC_NOTIFY_PLAYERCHAT` while the character sits in a
 /// room, before talk; the homunculus takes `ZC_CONFIG` for its own setting, before viewequip. And choosing
 /// stands before notices: both name `ZC_ACK_REQNAME_BYGID`, and it is choosing that reads it.
-const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 41] = [
+const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 49] = [
+    // Overhear the game entered (each forgets the character before) and, the achievements, a player's names
+    // for the title told with them: before travel and the guild.
+    App::achievements_packet,
+    App::reputation_packet,
     // Overhears the game entered, the inventory's lists and the states: before travel, inventory, statuses.
     App::cart_packet,
     // Overhears the skills that send a falcon; reads nothing: before skill units and combat.
@@ -98,10 +113,14 @@ const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 41] = [
     App::choosing_packet,
     // Overhears the game entered, the states, a thing leaving the inventory: before travel, statuses, inventory.
     App::mail_packet,
+    // Overhears the game entered and another map (the score and the team's marks are the map's): before travel.
+    App::battleground_packet,
     App::statuses_packet,
     App::cooldowns_packet,
     // Overhears how many play: before status.
     App::commands_packet,
+    // Overhears the character sent walking and let out of the game: before travel.
+    App::navigation_packet,
     App::travel_packet,
     App::actors_packet,
     App::combat_packet,
@@ -132,6 +151,10 @@ const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 41] = [
     App::broadcast_packet,
     App::marks_packet,
     App::books_packet,
+    App::cashshop_packet,
+    App::attendance_packet,
+    App::bank_packet,
+    App::agency_packet,
 ];
 
 impl App {
@@ -143,6 +166,8 @@ impl App {
             Server::Login => self.login_packet(id, packet),
             Server::Char => self.char_packet(id, packet),
             Server::Map => {
+                // (Every packet is the replays' too: what a recording begins from, and the recording.)
+                self.replay_heard(id, packet);
                 let known = MAP_SERVER.iter().any(|read| read(self, id, packet));
                 // Whatever is not read yet is at least counted, so that it shows there is more to do
                 // (`incoming/unread.rs`).

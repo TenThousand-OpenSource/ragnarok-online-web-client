@@ -15,6 +15,10 @@ impl App {
             Use::Take(index) => self.storage_let_out(index),
             // A double click on a friend opens the talk with that friend (`clicks/friends.rs`).
             Use::Friend(row) => self.friend_talk(row),
+            Use::Replay(row) => {
+                self.replay.picked = Some(row);
+                self.pressed(crate::press::replay::Press::Play);
+            }
             // A double click on a vendor's sign asks what the shop sells (`clicks/vending.rs`).
             Use::Sign(vendor) => self.vending_used(vendor),
             // A double click on a row of a list to pick from is picking it and pressing OK (the client's
@@ -36,6 +40,10 @@ impl App {
             }
             Use::Room(id) => return self.room_used(id),
             Use::Emotion(emotion) => return self.emotion_shown(emotion),
+            // A double click on a tab of the chat has its name typed anew (`clicks/chat.rs`).
+            Use::ChatTab(tab) => return self.chat_tab_named(tab),
+            // A double click on a line of the titles asks for that title (`clicks/achievements.rs`).
+            Use::Title(title) => return self.title_used(title),
             // A card asks what it can be set into (`clicks/choosing.rs`).
             Use::Item(index) if self.card_used(index) => return,
             Use::Item(index) => self.use_item(index),
@@ -61,6 +69,7 @@ impl App {
     pub(super) fn menu_on(&mut self, what: things::Menu, at: (f32, f32)) {
         match what {
             things::Menu::Member(row) => self.party_menu_opens(row, at),
+            things::Menu::MiniMember(row) => self.party_mini_menu_opens(row, at),
             things::Menu::GuildMember(row) => self.guild_menu_opens(GuildMenu::Member(row), at),
             things::Menu::GuildRelated(slot) => self.guild_related_pressed(slot, at),
             things::Menu::GuildCastle(line) => self.guild_castle_menu_opens(line),

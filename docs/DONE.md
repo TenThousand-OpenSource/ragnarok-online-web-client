@@ -137,6 +137,18 @@ Walking, the server's clock, routes, pursuit, and everyone else in sight walking
   hands from 262,266 at a plant on 258,280 — one walk of 13 cells round the rock to 257,279 and the attack;
   on moc_fild12 a Knight from 248,266 round the stone lantern (251..253,265..267). Not seen in the game: a way
   longer than one stretch in a chase, giving up, a target that walks.
+- An order given in a walk takes the place of the walk at once (`map/sight.rs order`, tests;
+  `web/world/pursuit.rs`, `web/world/input/press.rs State::ordered`; the client's pending action replacing
+  its pending move, `CPlayer::SendMsg` `AM_PROCEEDATTACK`, `CPlayer::UpdatePendingAction`). Seen in the game
+  (2026-11-26, moc_fild07, presses timed by a script, the packets written down): a Hunter on a journey of
+  two stretches east from 232,150, a plant on 241,153 pressed at 235,152 — the walk to 235,152 and the attack
+  in the same frame, 17 ms after the press, the first blow 7 ms later, no walk after; from 232,128, a plant on
+  249,141 out of reach pressed at 235,129 — a walk to 237,131 15 ms after the press, the attack on arriving,
+  pressed three times more and nothing begun anew; Double Strafe pressed at 235,138 on a plant on 246,147 —
+  the walk to 235,138 and the skill together; a Blue Herb on 231,136 pressed at 226,136 — a walk to 230,136,
+  picked up; a Knight with bare hands, a plant on 243,140 pressed at 232,145 — a walk to 243,142 34 ms later
+  and the attack on arriving. Not seen: a skill out of its reach pressed in a walk, a thing pressed while
+  beside it in passing.
 - The sprite of one that is no player, by its job: tests (`creatures.rs`), and every monster of the classic
   database, every sprite the classic scripts give an NPC, the homunculi and the mercenaries asked of the
   gateway by `tools/sprite_files.py` (none missing). Seen in the game (2026-11-21): the eight homunculi
@@ -626,7 +638,7 @@ windows of making, forging, repairing and refining are by reading only.
   "Upgrade failed!!", the name with its "+N" in the Equipment window and in the notice ("+5 Stiletto [2] - 1
   obtained."), ATK and DEF in the Status window, the thing gone from what is worn when it breaks; the
   refusals (no ore, a thing that cannot be refined, +10); the purifier Dietrich (5 rough ores for one).
-  Nothing of it is left in `/packets` (ZC_ACH_UPDATE, of the achievements, is). Heard on 2026-11-26:
+  Nothing of it is left in `/packets` (ZC_ACH_UPDATE, of the achievements, was then; it is read since: section 23). Heard on 2026-11-26:
   `bs_refinesuccess.wav`, once a refining. Not told apart at that size: the weapon's and the shield's
   picture on the character after a break. Not looked at: a level 4 weapon, the "+N" in the description
   window, on the ground, in a deal and in a shop's list.
@@ -845,14 +857,41 @@ every window is by reading only. Nothing of this system is on the seen list.
   (it comes back "this is ****"); make a chat room or a stall called "sex" (the box says "Foul Language
   Detected."); `/organize sex`; rename a pet to "bitch".
 
+**The chat's tabs taken out and put back** (2026-11-26; the owner's "the Public chat got detached and there
+is no way to put it back")
+- Files: `chat_tabs.rs` (`detached`, `attached`, `own_place`, `own_shown`, `own_resized`, `own_dropped_in`,
+  `torn`, `tab_wide`, `room`, `name_fits`; tests), `web/app/chat.rs` (`drag_chat_tabs`: a tab pulled out, a
+  corner dragged), `web/app/clicks/chat.rs`, `web/app/page.rs` (`drag_begun`, a window let go told to the app),
+  `web/app/windows.rs` (`window_rect`, `window_dropped`), `web/hud/chat.rs`, `web/hud/windows/chat.rs`.
+- Taken from: `UINewChatWnd::SendMsg` (`UM_DETACH_CHAT_TAB`, `UM_ATTACH_CHAT_TAB`, `ID_STICK_OFF`,
+  `ID_ADD_CHAT_TAB`, `ID_MINI`; `Source/UI/Chat/UINewChatWnd.cpp`), `UITabControl::OnMouseMove`,
+  `OnLBtnDblClk`, `SendMsg`, `RecalculateWidths` (`Source/UI/Buttons/UITextButton.cpp`,
+  `Source/UI/Lists/UIScrollBar.cpp`), `UISubChatHisWnd::OnLBtnDown`, `OnLBtnUp`, `OnLBtnDblClk`, `Paint`,
+  `OnCreate` (`Source/UI/Chat/UISubChatHisWnd.cpp`), its `SendMsg` and `Resize`
+  (`Source/UI/Shortcuts/UIShortCutWnd.cpp:1169`), `ApplyButtonLayout` (`Source/UI/Chat/ChatSuggestions.cpp`),
+  `UIWindowMgr::OpenSubChatWindow` (`Source/UI/Window/UIWindowMgr.cpp:2255`), `UINewChatWnd::SaveChatWndInfo`.
+- What there is: a tab goes out by the button `stickoff` or by being pulled out of the line of tabs with the
+  pointer (the window then stands where the tab was and follows the pointer); its window is moved by all of
+  it, made larger by its corner (280 by 74 to 512 by 384 in steps of 32), has its name, its own list and the
+  buttons that take it away, put it back (`stickon`) and set what it lists; it goes back by `stickon`, or by
+  being let go with its left side within the chat's width and its bottom within the chat's height, as the
+  last tab and the open one; the tabs are as wide as the widest name and 10; a double click on a tab, or on
+  the name of a tab's own window, has the name typed anew (refused in a box when too wide, line 1577); the
+  lock keeps the windows where they are and leaves only the options button; place, size, name and what is
+  listed are kept in the browser as the client's `ChatWndInfo_U.lua`; an own window kept out of sight is
+  brought into the screen.
+- State: seen in the game (2026-11-26, one player: out by the button and by pulling the tab, moved, made
+  larger, back by the button and by letting go over the chat, a pull of 3 points tears nothing, renamed in
+  the window and in its own window, locked and unlocked, kept over a reload); the rules by tests.
+
 ## 10. Party
 
 **Files**
-- Rules: `party.rs`
+- Rules: `party.rs`, `party/mini.rs`
 - Packets: `net/party.rs`, `net/party/requests.rs` (tests `net/party/tests.rs`)
 - App: `web/app/{incoming,clicks,state}/party.rs`
-- Windows: `web/hud/party.rs`, `web/hud/party/side.rs`, `web/hud/messenger.rs` (what the Party and Friend
-  sides of one window share)
+- Windows: `web/hud/party.rs`, `web/hud/party/side.rs`, `web/hud/party/mini.rs`, `web/hud/messenger.rs`
+  (what the Party and Friend sides of one window share)
 
 **Taken from**
 - `UIMessengerGroupWnd` (`Source/Contents/Messenger/MessengerWindows.h`): `OnCreate`, `Paint`, `SendMsg`;
@@ -874,6 +913,31 @@ every window is by reading only. Nothing of this system is on the seen list.
   of the message table with the member's name and `ITEM_INFO::DisplayName(0)`, in 0xFFFF00, kind 9; nothing
   for the player's own account or for one not of the party.
 - State: tests only (the packet); the line is by reading only.
+
+**The small windows of single members** (2026-11-26)
+- Files: `party/mini.rs` (the grid of cells, the free cell, where one let go lands, the order, the text they
+  are kept as, the label, the gauge; tests), `web/hud/party/mini.rs`, `web/hud/windows/party.rs`
+  (`PARTY_MINI`), `web/app/clicks/party/mini.rs`, `web/app/state/party.rs` (`mini`).
+- Taken from: `UIMiniPartyWnd`, `UIMiniPartyInfoWnd` (`Source/UI/Party/UIMiniPartyWnd.cpp`: `Paint`,
+  `OnLBtnDown`, `OnLBtnUp`, `OnRBtnUp`, `UM_MAKEMENU`, `UM_MENU_SELECTED`), `CMiniPartyWndAreaMgr`
+  (`MiniPartyGrid.cpp`, `MiniPartyPlacement.cpp`: cells 177 by 55, `FindCell`, `FindFreeCell`),
+  `UIWindowMgr::GetMiniPartyUsableArea`, `RearrangeMiniPartyWindows`, `RebuildMiniPartyWindows`
+  (`MiniPartyManager.cpp`), `CloseMiniPartyWindow`, `UIMessengerGroupWnd`'s menu rows 0x3C and 0x3D,
+  `DropMember`, its button 0x16C (`Source/Contents/Messenger/MessengerMember.cpp`),
+  `CSession::SaveMiniPartyInfo`, `LoadMiniPartyInfo` (`Source/Client/Session/Session.cpp`),
+  `CGameMode::TargetActorByAid` (`Source/Client/Mode/GameMode.cpp:5666`), `UIPcGage::Paint`.
+- What there is: "Add small party window" and "Remove small party window" of the menu on a member, and a
+  member pulled out of the party window with the pointer; the window (174 by 52: back, job's picture, crown,
+  `Lv.N name(map)`, the gauge of life) in the first free cell under the height of the menu icons; moved by
+  all of it and let go into the nearest cell, changing places with one that is there; "Sort Mini Party
+  Window"; the right button's menu (letter, leave or talk, expel, hand over, remove the window); a press on
+  it, or on a row of the party window, uses the skill of help being aimed on that member; kept in the
+  browser by the character's name, gone when the player leaves the party. "Send a mail" of both menus opens
+  the letter to that member (`MM_OPEN_WRITE_RODEX`).
+- State: seen in the game with a party of one (2026-11-26: added, drawn, moved to another cell, sorted, its
+  menu, the letter's window opened with the name, Heal used on oneself by a press on it, kept over a
+  reload); the rules by tests. Not seen, for want of a second player: another member's gauge and map, one
+  offline or dead, two windows changing places, a member leaving, the leader's rows of the menu.
 
 ## 11. Guild
 
@@ -1393,6 +1457,243 @@ the golden packets); the `/packets` window is by reading only.
   in a tip opening the item, a tip's link the tip; the storage closed by a warp (it stayed, and could not be
   closed).
 - Tests only: `vending::own_title` (one's own stall titled with its name), `links::Link::number`.
+
+## 22. Bank, attendance check, cash shop (the menu's icons, 2026-11-26)
+
+Three systems of the menu's icons, each under its own name in every layer: `bank`, `attendance`, `cashshop`.
+
+**Bank** (`UIBank_NewWnd`)
+- Files: `bank.rs` (the sum a button leaves in the field, what Deposit and Withdraw send or say instead, the
+  lines for the server's reasons; tests), `net/bank.rs`, `press/bank.rs`,
+  `web/app/{incoming,clicks,state}/bank.rs`, `web/hud/bank.rs`, `web/hud/windows/bank.rs`; the icon in
+  `web/hud/basic.rs`, the key `HK_BANK` in `hotkeys.rs` and `web/app/keys.rs`.
+- Taken from: `UIBank_NewWnd::OnCreate`, `Paint`, `SendMsg`, `TransactionAmount`, `AdjustAmount`, `IsNumeric`
+  (`Source/UI/Dialogs/UIMessageBox.cpp`, `Source/UI/Window/UIFrameWnd.cpp`), `CGameMode::ReceiveBankCheck`,
+  `ReceiveBankDepositAck`, `ReceiveBankWithdrawAck` (`Source/Client/Mode/GameModeNotices.cpp`),
+  `UIMenuIconWnd::SendMsg` at `MENUICON_BANK`, `UIWindowMgr` at `HK_BANK` and `WID_BANK_NEWWND`. The client
+  opens the window by CZ_REQ_BANKING_CHECK and never sends CZ_REQ_OPEN_BANKING or CZ_REQ_CLOSE_BANKING.
+- Server: `feature.banking: on` (rAthena's default, on here).
+- State: tests (the rules, the packets, the golden lines); **seen in the game** (2026-11-26, `play4`): the
+  icon (its tip names Ctrl+B) opens the window in the middle with the balance and the zeny carried, the field
+  has the keyboard; 5000 and 20000 deposited and all of it withdrawn with "Max", the zeny of Basic
+  Information following; "+ 100,000", "+ 1z", "- 1z" write into the field; more than is carried, nothing
+  typed and letters typed each say their line in the chat in red and their short line at the window's foot,
+  and empty the field; Escape closes. Not seen: the key, the icon pressed while the window is open, the
+  server's own refusals, the sums at the limit of 2,147,483,647 (tests only).
+
+**Attendance check** (`UICheckAttendanceWnd`)
+- Files: `attendance.rs` (what the server's number says, the cells, the days left; tests),
+  `net/attendance.rs`, `press/attendance.rs`, `web/app/{incoming,clicks,state}/attendance.rs`,
+  `web/hud/attendance.rs`, `web/hud/windows/attendance.rs`; the table `gateway/src/tables/attendance.rs`
+  (tests) with `web/data/attendance.rs`.
+- Taken from: `UICheckAttendanceWnd` (`Source/UI/Events/UICheckAttendanceWnd.cpp`), `CCheckAttendanceMgr`
+  (`Source/Contents/Events/CheckAttendanceMgr.cpp`, the table `System\CheckAttendance.lub`),
+  `UIMenuIconWnd::SendMsg` at `MENUICON_ATTENDANCE`, `CGameMode::ReceiveServiceRequest` (ZC_UI_OPEN) and
+  `ReceiveWindow328Result`. ZC_UI_OPEN is read here: the attendance check (7) and the bank (0); its other
+  windows are left unread.
+- Server: `feature.attendance: on` is set, but `db/attendance.yml` (and `db/pre-re/attendance.yml`) has no
+  period, so the server answers the icon with "Currently there is no attendance check event."
+- State: tests (the rules, the packets, the table, the golden lines); **seen in the game** only that the
+  icon asks the server and its refusal is said in the chat in red. The window itself, the claim and its
+  answer are **by reading only**: no server here opens it.
+
+**Cash shop** (`UICashShopWnd`)
+- Files: `cashshop.rs` (tabs and pages, the list of what is bought, the search, the purchase, the server's
+  answers; tests), `net/cashshop.rs`, `press/cashshop.rs`, `web/app/{incoming,clicks,state}/cashshop.rs`,
+  `web/hud/cashshop.rs`, `web/hud/windows/cashshop.rs`; the banners `gateway/src/tables/cashshop.rs` (tests)
+  with `web/data/cashshop.rs`; `web/hud/boxes.rs told_box` (the message box with OK alone).
+- Taken from: `UICashShopWnd`, `UICashShopWnd_Item`, `UICashShopWnd_Cart`, `UICashShopWnd_CartItem`,
+  `UICashShopWnd_Banner` (`Source/UI/CashShop/UICashShopWnd.cpp`), `CGameMode::SendMsg` at
+  `MM_REQUEST_CASH_SHOP` and `MM_GET_ACCOUNT_LIMITED_SALE_LIST`, `ReceiveCashShopBanner`,
+  `ReceiveTypedItemList` (eight bytes a thing: read from the executable at 0x00D1B690, where the decompiled
+  structure has fourteen), `ReceiveRequestResult`, `datainfo\tb_cashshop_banner.lub`.
+- Server: rAthena's `db/item_cash.yml` is empty here, so every tab is empty; cash points are the account's
+  (`@cash`). No real money is involved anywhere.
+- State: tests (the rules, the packets, the banners' table, the golden lines); **seen in the game**
+  (2026-11-26): the icon opens the window with the 5000 points `@cash` gave, the banner, the tabs and "0 / 0";
+  a tab is picked, a banner is picked and the next comes after five seconds, a search that finds nothing says
+  so in a message box with OK and keeps the words, "Purchase" with an empty list does nothing, the icon and
+  Escape close the window; nothing of it is left in `/packets`. **By reading only**: the things of a page,
+  the list of what is bought with its plus, minus and cross, the question before a purchase, the purchase and
+  its answers, "Charging" and a banner's page: there is nothing to buy on this server.
+
+## 23. Achievements and titles, reputation, probabilities (the menu's icons, 2026-11-26)
+
+Three systems of the menu's icons, each under its own name in every layer: `achievements`, `reputation`,
+`probability`.
+
+**Achievements and titles** (`UIAchievementWnd`, `UIAchTracingWnd`, the third page of `UIEquipWnd`)
+- Files: `achievements.rs` (which achievements a tab lists and in what order, the counts, a goal's words,
+  colour and gauge, the two completed last, those kept in sight, the titles to wear; tests),
+  `net/achievements.rs` (ZC_ALL_ACH_LIST 0x0a23, ZC_ACH_UPDATE 0x0a24, ZC_REQ_ACH_REWARD_ACK 0x0a26,
+  ZC_ACK_CHANGE_TITLE 0x0a2f, the title of ZC_ACK_REQNAMEALL; CZ_REQ_ACH_REWARD 0x0a25 and
+  CZ_REQ_CHANGE_TITLE 0x0a2e, in `golden.txt`), `press/achievements.rs`,
+  `web/app/{incoming,clicks,state}/achievements.rs`, `web/hud/achievements.rs` and `achievements/list.rs`,
+  `web/hud/windows/achievements.rs`; the table `gateway/src/tables/achievements.rs` ↔
+  `web/data/achievements.rs`; the page of titles drawn from `web/hud/equipment.rs`; the title before a
+  name in `web/world/names.rs`; the icon and its mark in `web/hud/basic.rs`; the key `HK_ACHIEVEMENT` (place
+  49 of the interface's keys, none set at first) in `hotkeys.rs` and `web/app/keys.rs`.
+- Taken from: `CAchievementMgr` (`Source/Contents/Achievement/AchievementMgr.cpp`: the file
+  `System\achievement_list.lub` read by running its `main` over the seven functions the client registers;
+  the English `SystemEN/achievements.lub` is read first where it is there), `UIAchievementWnd` and its parts
+  (`Source/UI/Achievement/UIAchWnd.cpp`, `UITextViewer.cpp` for the presses), `CSession`'s records
+  (`SessionAchievements.cpp`, `ClientSkills.cpp`, `ClientTiming.cpp`), `CGameMode::ReceiveAchievementList`,
+  `ReceiveAchievementUpdate`, `ReceiveAchievementResult`, `ReceiveJobTitle`, `SetActorNameCard`,
+  `UIAchBalloonText`, `UIEquipWnd::RefreshTitleList` and `UIListBoxTitle`, `GetJobTitleString`
+  (`Lua Files\DataInfo\TitleTable`), `UINameBalloonText::SetName`, `UIMenuIconWnd`. The server: rAthena's
+  `feature.achievement: on`, `db/pre-re/achievement_db.yml` (521 achievements) and
+  `achievement_level_db.yml`: the classic server has it whole.
+- Seen in the game (2026-11-26, play5, a Lord Knight with 23 of 363 completed): the icon opens and closes the
+  window; the summary with the rank, the points and their gauge, the score, the seven gauges and the two
+  completed last; every tab and the tabs under one, the arrows that move those of Adventure; the list with
+  its grounds, pictures, points, reward boxes and days, its own bar; the two round buttons; the pane with
+  the stamp, the goals and the three rewards; the reward taken (the button and the box go, the item's
+  picture comes, the server's state and letter arrive); the page "Title" of the Equipment window, a title
+  put on by a double click, "[Junction of life] PlayFive" under the character, also after logging in again;
+  a row's picture pressed keeps it in sight (the pin, the window at the right), its name unfolds its goals,
+  its arrow opens the window on it; a goal that leads to another achievement opens the list on that one;
+  an achievement completed (`/organize`, `@zeny`) shows "< Rich King (4) > achieved." for ten seconds with
+  the effect 1094 on the character and the mark on the icon, which goes when the window is opened.
+  `/packets` has neither 0x0a23 nor 0x0a24 left.
+- Tests only: the title of another player (no second player was in sight); the fourth achievement kept in
+  sight refused (line 2680); a counted goal's gauge (the character has none under way).
+
+**Reputation** (`UIReputeWnd`)
+- Files: `reputation.rs` (what the window lists for all, a group or a word, its pages, a group's sum, the
+  lights and the bar of a reputation; tests), `net/reputation.rs` (ZC_REPUTE_INFO 0x0b8d, ZC_REPUTE_OPEN
+  0x0b8e; the client sends nothing), `press/reputation.rs`, `web/app/{incoming,clicks,state}/reputation.rs`,
+  `web/hud/reputation.rs`, `web/hud/windows/reputation.rs`; the tables `gateway/src/tables/reputation.rs`
+  (the two BSON files of `data\ContentData\Repute`, with a small reader of BSON) ↔ `web/data/reputation.rs`;
+  the key at place 60 of the interface's keys (none set at first).
+- Taken from: `UIReputeWnd` (`Source/UI/Repute/UIReputeWnd.cpp`), `CReputeMgr`
+  (`Source/Contents/Repute/ReputeMgr.cpp`), `CGameMode::ReceiveReputeInfo` and `ReceiveReputeOpen`,
+  `UIWindowMgr` at `WID_REPUTEWND`. The server: rAthena reads `db/re/reputation.yml` in Renewal only, so the
+  classic server's table is empty and it sends ZC_REPUTE_INFO with no points at all.
+- Seen in the game: the icon opens the window, which lists what the client's own table always shows (Orc
+  Village and Goblin Village, three empty lights and "0 / 1000 P" each), page "1 / 1"; the drop-down of the
+  eight lines, a group picked ("GROUP :" with its light and "0 P"), a word sought ("Goblin"), Close and the
+  cross. Tests only: points for and against, a second page and its arrows, the window opened by a script
+  (ZC_REPUTE_OPEN) with a reputation marked: the classic server has none of it.
+
+**Probabilities** (`UIMenuIconWnd::SendMsg`, `MENUICON_PROBABILITY`)
+- The client has no window for the icon: it asks "Visit the probability list webpage?" in its message box
+  and on OK hands the address of its message table to Windows (`ShellExecuteA`): the publisher's page,
+  `https://probability.gnjoy.com/` in this client's files. Files: `probability.rs` (only an address of the
+  web is opened; test), `press/probability.rs`, `web/app/{clicks,state}/probability.rs`,
+  `web/hud/probability.rs`, `web/hud/windows/probability.rs`; the three lines (4119, 4128, 4129, which lie
+  past the end of `msgstringtable.txt`) out of `msgstringtable.csv` by their names:
+  `gateway/src/tables/probability.rs` ↔ `web/data/probability.rs`.
+- Seen in the game: the icon says "Probablity" (the client's own spelling) and asks; Cancel closes the
+  question; OK asks the browser for a new tab at that address (looked at with the page's `window.open`
+  caught, the publisher's page itself not loaded).
+- The window `CUIProbabilityTable` (`Source/UI/ProbabilityTable/`) is another thing: the chances of what a
+  package item gives, opened from an item's description; it is not what the icon opens and is not made
+  (`BACKLOG.md`).
+
+## 24. Navigation (the menu's icon, 2026-11-26)
+- Files: rules `client/src/navigation.rs` with `navigation/{atlas,search,route,guide,guide/going,texts}.rs`
+  (tests in `navigation/tests.rs`); the packet `client/src/net/navigation.rs`; the tables
+  `gateway/src/tables/navigation.rs` (`GET /tables/navigation.json`, read when first asked for) ↔
+  `client/src/web/data/navigation.rs`; the app `web/app/{state,clicks,incoming}/navigation.rs`; the presses
+  `client/src/press/navigation.rs`; the windows `web/hud/navigation.rs`, `hud/navigation/beside.rs`,
+  `hud/windows/navigation.rs`; the marks on the ground `web/world/navigation.rs`.
+- From the client: `CNavigationManager`, `CNaviData`, `CNaviInfo`, `CNavi_Object`, `CNavi_Link`
+  (`Source/Contents/Navigation/*`, `LoadScript` in `Source/Contents/Time/ClientTiming.cpp`),
+  `UINavigationV4Wnd`, `UINavigationroadiconWnd`, `UINavigationRuideWnd`, `UIListBox_NaviSearch`
+  (`Source/UI/Window/UIWindow.cpp`), `UINavigationHelpWnd`, `UIRoMapWnd` (`OnLBtnUp`, `DrawWorld`,
+  `DrawMarks`, `UpdateNavigationButtons`), `CWorldViewMgr::AddLevel`, `OpenTextButtonNavigation`,
+  `UINaviLinkButton`, `NavigationLinkParser`, `CGameMode::ReceiveNavigation`, `TT_NAVIGATION*`,
+  `GroundGeometry::DrawCellDecal` and `DrawTerrainOverlay`, `CPathFinder` with `useNodePool`.
+- What it does: the search (words, `$$all`, `$$lv20~30`, `$$DB NAME`) and its groups; the route across maps
+  by the client's own search (the first way in found a map deeper at a time; ways for zeny and the airship by
+  the box "service"); the way over the map one is on; `/navi`, `/navi2`, `/naviopen`; `<NAVI>` in a text and
+  `<NAVIL>` in the chat; the World Map's press, search, marks and route; the server's packet; going on from
+  map to map, and the end near the place.
+- Seen in the game (2026-11-26, a gateway of this build): the menu's icon opening and closing the window;
+  the search by Enter and by its button ("poring", "Edd", "kafra", "prontera"), the box of kinds on All, Map,
+  Npc and Mob; a group and a member picked, with the target's lines, picture and map; Find to a monster's map
+  across seven maps (Prontera to pay_fild10) with the map of the way, its dots, the character's mark and the
+  end's; the arrows on the ground; the way going on after `@warp` to the next map; the small window and the
+  large again; the help, the list of the route, the sets of arrows (the button taking the set picked); the
+  arrow that turns the window; "service" and "Minimize" ticked, and the window folding as the ground was
+  pressed; Share for an NPC (the link in the chat's line) and for a map (the map to press, its notice, a
+  place pressed); the cross asking "Do you want to cancel navigation?" and both answers; `/navi prontera
+  150/150` from another map (the ground of Prontera read for it), "Please go to indicated direction" on
+  arriving and "Arrived at the target map" five cells from the place; a `<NAVIL>` said in the chat shown as
+  `<prontera 150,180>` and pressed; a mark of the minimap pressed; on the World Map the search with its
+  pictures on the maps found, a map pressed, and the line of the route with its end.
+- Tests only: ZC_NAVIGATION_ACTIVE; the copies of maps; `/navi2`'s switches; `<NAVI>` links (wired in
+  `hud/texts.rs linked_with`, not pressed in the game); the key `HK_NAVIGATION_ONOFF` (place 42 of the
+  interface's keys; it has no key in the client's table until one is set).
+
+## 25. Battleground, Adventurer's Agency, Replay (the menu's icons, 2026-11-26)
+
+Three systems of the menu's icons, each under its own name in every layer: `battleground`, `agency`, `replay`.
+
+**Battleground** (`UIEntryQueueWnd` and its three companions, `CEntryQueueMgr`)
+- Files: `battleground.rs` (what the client refuses before it asks the server, what the answers mean, the level's
+  wording, the twenty seconds of the entry, the score's digits, who is a foe by team; tests),
+  `net/battleground.rs`, `press/battleground.rs`, `web/app/{incoming,clicks,state}/battleground.rs`,
+  `web/hud/battleground.rs`, `web/hud/windows/battleground.rs`, `web/data/battleground.rs`,
+  `gateway/src/tables/battleground.rs` (the client's `EntryQueueList.lub`, read through its own
+  `ReadEntryQueueList` with a stand-in for `AddEntryQueue`; tests); the teams in `web/world/pvp.rs`, the mark
+  over a foe in `web/world/signs.rs` (`Board::Foe`), the score in the corner of the PVP standing
+  (`web/app/incoming/pvp.rs`, `rank_shown`), the team on the minimap (`web/hud/party.rs`); the icon in
+  `web/hud/basic.rs`.
+- Taken from: `Source/UI/EntryQueue/UIEntryQueueWnd.cpp`, `Source/Contents/EntryQueue/EntryQueueMgr.cpp`,
+  `AddEntryQueue` (`Source/Script/LuaScript.cpp`), `UIMenuIconWnd::SendMsg` at `MENUICON_BATTLE`, the
+  `ID_ZC_BATTLEFIELD_NOTIFY_*` arms of `GameModePackets.cpp`, `CRenderer::DrawBattleFieldIcon`,
+  `UIWordDisplayWnd`, `CGameMode::HandleActorPick`; rAthena's `clif_bg_queue_*`, `clif_bg_hp`, `clif_bg_xy`,
+  `clif_bg_updatescore`, `clif_sendbgemblem_area`. Lines 1539, 2099 to 2162 of the message table.
+- Server: `feature.bgqueue: on` (rAthena's default, on here), `db/battleground_db.yml` (five battlegrounds, the
+  same five as the client's list), pre-renewal capable.
+- State: **seen in the game** (2026-11-26, `play6`): the icon lit; the list with its five battlegrounds, the
+  picture and the seven lines of the one picked; Help and its Close; applying alone (the question, then the
+  window of the queue with the name, "Persons required:10", "Your position:1", the line in the chat, the list
+  closing); "Cancel" (the box, the red line, the window closing); applying as a party without one (the
+  client's box) and within a minute of leaving a queue (the box of the delay). **Tests only**: the window that
+  asks whether to enter with its count, the gong, the refusals of the server, and everything of a battle's
+  map (teams, the mark over foes, the score, the team on the minimap and its life): a battle needs five or
+  six players a side, and two accounts cannot begin one.
+
+**Adventurer's Agency** (`UIAdvenPartyBoardWnd`, `UIRegisterPartyWnd`, `UIApplyForPartyWnd`,
+`UIRequestJoinPartyWnd`, `CAdventurerAgencyMgr`)
+- Files: `agency.rs` with `agency/json.rs` (a notice, the forms posted in the client's fields and order, the
+  answers read, the levels typed, the pages' arrows, what joining says; tests in `agency/tests.rs`),
+  `net/agency.rs`, `press/agency.rs`, `web/app/{incoming,clicks,state}/agency.rs`, `web/hud/agency.rs`,
+  `web/hud/windows/agency.rs`; the gateway's `gateway/src/agency.rs` (`POST /party/<request>` handed on to the
+  game's web service, `--web-server host:port`; tests); the login's token in `net/packets.rs`
+  (`LoginAccepted::token`); the icon in `web/hud/basic.rs`.
+- Taken from: `Source/UI/Party/UIAdvenPartyBoardWnd.cpp`, `UIPartyInfoWnd.cpp`, `UIRegisterPartyWnd.cpp`,
+  `UIApplyForPartyWnd.cpp`, `UIRequestJoinPartyWnd.cpp`, `UIRequestJoinPartyMgr.cpp`,
+  `Source/Contents/Party/AdventurerAgencyMgr.cpp`, `AgencyRequests.cpp`, the `…AsyncWork.cpp` and
+  `…Completion.cpp` files, `PartyJoinResult.cpp`, `UIComboBoxDef2Wnd`; rAthena's
+  `src/web/partybooking_controller.cpp`, `auth.cpp`, `clif_parse_partybooking_join`, `clif_partybooking_ask`,
+  `clif_partybooking_reply`. Lines 3356 to 3378, 3415 to 3420, 3442 to 3444, 3489 to 3518 of the message table.
+- State: **seen in the game**: the icon lit; the board opening with its search bar (levels around the
+  character's own, the box of purposes, the four roles, the note, Search, Reset), the page "1 / 1" between dim
+  arrows and Close, as the client's board stands while the service does not answer. **Tests only, by reading
+  beyond**: the list, a notice put up, changed, read and taken down, asking to join and the leader's
+  question: the web service is not running here (see `docs/DEBTS.md`).
+
+**Replay** (`Replay`, `UIReplayRECControlWnd`, `UISelectReplayDataWnd`, `UIReplayControlWnd`)
+- Files: `replay.rs` (the `.rrf` file written and read: text, signature, keys, table of sections, the header's
+  tagged records, the packets' records, the cipher; the options' boxes; which packets a recording without the
+  chat leaves out; names, times, speeds; tests in `replay/tests.rs`), `press/replay.rs`,
+  `web/app/{incoming,clicks,state}/replay.rs`, `web/app/replay_files.rs` (the recordings kept in the browser's
+  IndexedDB, saving one as a file and taking a file in), `web/hud/replay.rs`, `web/hud/windows/replay.rs`,
+  the login screen's button and list in `web/view/accounts.rs`; the icon in `web/hud/basic.rs`; the one line
+  of `web/app/incoming.rs` that hands every packet of the map server to `replay_heard`.
+- Taken from: `Source/Client/Replay/Replay.cpp`, `Replay.h`, `ReplayPacketRecorder.cpp`,
+  `ReplayRecordOption.h`, the three windows in `Source/UI/Dialogs/UIMessageBox.cpp`, `UIWindowMgr.cpp` at their
+  IDs, `UIMenuIconWnd::SendMsg` at `MENUICON_REC`. Lines 1955 to 1988, 2084 to 2086, 2350 of the message table.
+- State: **seen in the game** (2026-11-26): the icon lit; the recorder with its turning picture and its time;
+  its options; a recording begun at once and one begun after its name was asked for; Stop, and the file in
+  the browser; from the login screen the button, the list with the five lines about the file picked, OK: the
+  game entered with no server as the recorded character on its map, the recorded walk played, the player's
+  time, bar and map; hold and go on; faster to four times; from the beginning; out, back to the list; the way
+  back to the login. Not looked at: Save to a file, Load a file, Delete (tests of the file's format only), a
+  recording across a change of map, a long one.
 
 ## Two players at once (playtest of 2026-11-21 and 2026-11-26)
 

@@ -36,9 +36,15 @@ impl App {
             Form::RoomPassword => self.room_password_typed(),
             Form::Shortcuts => self.shortcuts_kept(),
             Form::TipSearch => self.tip_searched(),
+            Form::ReplayName => self.pressed(crate::press::replay::Press::NameOk),
+            Form::NavigationSearch => self.navigation_searched(),
+            Form::WorldSearch => self.navigation_world_searched(),
+            Form::CashShopSearch => self.cashshop_searched(),
+            Form::ReputeSearch => self.reputation_searched(),
             Form::SkillWords => self.skill_words_typed(),
             Form::AwayWords => self.away_typed(),
             Form::Chat => self.chat_typed(),
+            Form::ChatTabName => self.chat_tab_name_typed(),
         }
     }
 }

@@ -79,11 +79,21 @@ pub mod interface {
     pub const PARTY_SETUP: usize = 29;
     /// The strip of menu icons folded away and brought back (Alt+~).
     pub const MENU: usize = 32;
+    /// The navigation's window (`HK_NAVIGATION_ONOFF`).
+    pub const NAVIGATION: usize = 42;
+    /// The cash shop (`HK_CASHSHOPWND`).
+    pub const CASH_SHOP: usize = 37;
+    /// The bank (`HK_BANK`).
+    pub const BANK: usize = 46;
     pub const STATUS: usize = 47;
     /// The mailbox (`HK_MAIL_ONOFF`).
     pub const MAIL: usize = 51;
+    /// The achievements' window (no key of its own until one is set).
+    pub const ACHIEVEMENTS: usize = 49;
     /// The Tipbox (Alt+D).
     pub const TIPS: usize = 54;
+    /// The reputation's window (no key of its own until one is set).
+    pub const REPUTATION: usize = 60;
     /// Other players drawn faintly, or as they are (Ctrl+End).
     pub const HIDE_PLAYERS: usize = 59;
 }

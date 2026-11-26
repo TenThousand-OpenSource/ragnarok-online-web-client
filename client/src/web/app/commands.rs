@@ -47,6 +47,18 @@ impl App {
             return true;
         }
         let Some(asks) = crate::commands::asks(&command) else { return false };
+        // `/navi`, `/navi2` and `/naviopen` take what stands after them (`clicks/navigation.rs`).
+        match asks {
+            "TT_NAVIGATION" | "TT_NAVIGATION2" => {
+                self.navigation_command(&rest.split_whitespace().collect::<Vec<_>>(), asks == "TT_NAVIGATION2");
+                return true;
+            }
+            "TT_NAVIGATION3" => {
+                self.navigate(Wanted::Open);
+                return true;
+            }
+            _ => {}
+        }
         if !self.asked(asks) {
             // A command of the client's that this client does nothing for yet is not said aloud. The words are
             // this client's own.

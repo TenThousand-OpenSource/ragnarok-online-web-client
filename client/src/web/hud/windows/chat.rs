@@ -4,19 +4,22 @@
 use super::*;
 
 /// The own window of the tab in one place of the list of tabs (the client's `UISubChatHisWnd`): where and as
-/// large as the tab has it. It lies under the windows, as the chat does.
+/// large as the tab has it, brought into the screen if it was kept out of sight (`chat_tabs::own_shown`). It
+/// is moved by all of it (`UISubChatHisWnd::OnLBtnDown`), unless the chat is locked, and lies among the usual
+/// windows, over the pieces of the screen that are always there (the client makes it a window like any other,
+/// `UIWindowMgr::OpenSubChatWindow`).
 macro_rules! own_window {
     ($name:ident, $id:literal, $place:literal) => {
         pub(in crate::web) static $name: Window = Window {
             id: $id,
-            open: |app| app.chat_own($place).is_some(),
-            frame: |app, _| {
-                let (x, y, width, height) = app.chat_own($place).unwrap_or_default();
-                framed(at(x, y, width, height))
+            open: |app| app.chat_own($place).is_some() && !app.chat.hidden,
+            frame: |app, view| {
+                let (x, y, width, height) = crate::chat_tabs::own_shown(app.chat_own($place).unwrap_or_default(), (view.0 as i32, view.1 as i32));
+                format!(r#"class="a hud" data-whole data-locked="{}" style="{}""#, u8::from(app.chat.locked), at(x, y, width, height))
             },
             draw: |app| app.chat_own_window($place),
             order: None,
-            layer: Layer::Under,
+            layer: Layer::Usual,
             drawn: None,
         };
     };

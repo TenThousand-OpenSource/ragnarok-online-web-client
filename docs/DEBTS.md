@@ -50,8 +50,17 @@ classic game not made yet.
   `battle_check_range`, `path_search_long`), the character walks to the nearest cell from which it is
   (`Gat::way_into_reach`, in stretches when far; `web/world/scene.rs step_into_reach`,
   `web/world/pursuit.rs chase`/`close_in`, `reach`, `fetch`), and the fight, the skill or the thing is let be
-  when there is no such cell within 20 cells of the two. Known and left: one walking is taken a cell less for a
-  skill; the server's extra cell of reach at a walking target is not counted.
+  when there is no such cell within 20 cells of the two. Known and left: the server's extra cell of reach at
+  a walking target is not counted.
+- An order given while the character walks (a monster, a skill's target or a thing pressed) ends the walk
+  before it is asked for: a walk to the cell the character is on and the request go together, the walk
+  first (`map/sight.rs order`, `Order::Halt`; `web/world/pursuit.rs`, `web/world/frame.rs tell`). The client
+  only asks (`CPlayer::UpdatePendingAction`). rAthena keeps a blow or a skill asked of one who walks and is
+  not a cell nearer than the reach needs until the walk is over (`unit_attack`, `unit_skilluse_id2`:
+  `stepaction`) — seen: asked at 209,204 in a walk to 202,204, the character walked on, stopped, and no blow
+  came — and calls a blow off when a walk is asked for after it (`unit_walktoxy`: `unit_stop_attack`).
+  Also this project's own here: a monster pressed again while fought is asked for again no sooner than the
+  client's 1200 ms, and a press on another monster does not wait those out.
 - One who walks does not sit down: the Sit key does nothing until the character stands
   (`web/app/keys.rs interface_key`).
 - The server's clock is a line that does not run round after 2^32 ms (`server_time.rs`).
@@ -190,6 +199,18 @@ classic game not made yet.
 - Long lists are scrolled themselves; the client has a 15-wide bar (`web/hud/lists.rs list_of`).
 
 ### Chat
+- The chat's tabs (`chat_tabs.rs`, 2026-11-26). A tab is pulled out of the window once the pointer is more
+  than 5 away from where it was pressed, every time; the client (`UITabControl::OnMouseMove`) pulls it out at
+  the first move of the pointer, and after the first time only at a move more than 5 to the left of or above
+  where the last one was pulled out (the owner asked that a tab not come out by accident). A tab's own
+  window kept out of sight is brought wholly into the screen (`own_shown`); the client only puts one past
+  the right side against it and one past the bottom at 100. The own windows lie over the pieces of the screen
+  that are always there and under the windows that are opened; in the client they come to the front when
+  pressed. The window that sets what a tab lists is put away when a tab goes out, comes back or is taken
+  away; the client's follows the open tab. The names' widths are the page's, so the tabs are a little wider
+  or narrower than the client's, and the limits of a name fall a letter sooner or later. Escape does not put
+  away the line a name is typed in (a press on a tab does). Page Up and Page Down do not turn the list of a
+  tab's own window.
 - The count of players by the chat's tabs ("N online") is this project's own: the Windows client has no such
   indicator, only `/who`. It is fed by CZ_REQ_USER_COUNT, asked as each map begins and at every keep-alive,
   twelve seconds apart (`web/app/actions/{travel,link}.rs`; before 2026-11-21 every 36 seconds, so two players
@@ -236,6 +257,19 @@ classic game not made yet.
   it is not opposed already, and neither on a player of no guild (`crate::guild::relation_rows`,
   `web/hud/player_menu.rs`). The client offers both on anyone who is not of the master's guild and looks at
   nothing else (`CGameMode::OpenActorMenu`, `Source/Contents/World/WorldObjects.cpp:814-828`).
+- The small windows of the party's members (`party/mini.rs`, `web/hud/party/mini.rs`, 2026-11-26). A new
+  one goes under the HEIGHT of the strip of menu icons (238), as `UIWindowMgr::GetMiniPartyUsableArea` reads,
+  not under where the strip ends: with the strip open under Basic Information the first window stands over
+  its lower icons. A member pulled out of the party window is carried as the picture of its job alone; the
+  client carries the whole row (`UIDragMiniPartyWnd::Paint`). The whole text is in the page's own tip
+  always; the client shows it by the pointer only when it is cut. With no free cell no window is made (the
+  client makes one in a cell of no place). A press on a member uses only a skill of help that is aimed; the
+  client's `TargetActorByAid` also takes another skill with Shift held or on a map where players fight. The
+  gauge is not shown for a member whose life is not known or who is offline (the client moves it away in
+  `UM_REFRESHITEM` and back in `Paint`: which of the two wins was not made out). The two narrower forms
+  (`m_sizeMode` 1 and 2, `img_partymini_bg_mini.tga`) are not made: nothing in the client was found to ask
+  for them. Line 3236 "Mini party windows can't be overlapped." is said by the client for a cell out of the
+  grid, which `FindCell` never gives: it is not said here either. Not seen with two players.
 - The party's side window stands where it was opened; the client keeps it beside the party window as that
   is dragged (`web/hud/windows/party.rs`).
 - Guild rights: decided from the member's position where rAthena does not send ZC_UPDATE_GDID
@@ -956,8 +990,8 @@ the decompiled client.
 - `/setcamera` (`TT_SET_CAMERA`) and `/viewpointvalue` (`TT_VIEW_CAMERAINFO_ON_OFF`) are in
   `client/src/commands.txt` and do nothing.
 - Chat-room menu rows (look at a character, write to a file) — `client/src/web/hud/chat_rooms.rs`.
-- Letters to party members, the small windows of single members, Lock and Sort —
-  `client/src/web/app/clicks/party.rs`.
+- The party window's Lock (`ID_TOGGLE_PARTY_MOUSE_LOCK`, `m_lockMouse`: it keeps the window's buttons, its
+  menu and the members' small windows from the pointer) — `client/src/web/app/clicks/party.rs`.
 - `UIGuildHelperWnd` (the guild key with no guild opens nothing) and `WID_CREATEGUILDWND_MODE_1` (the window
   that disbands) — `client/src/web/app/clicks/guild.rs`.
 
@@ -973,9 +1007,7 @@ the decompiled client.
 - World Map search and the Kafra's arrows; the large map's boxes for the marks of quests, towns and the guild,
   and its notes — `client/src/web/hud/worldmap.rs`.
 - The Tipbox: a tip's picture and the button that links a tip into the chat — `client/src/web/hud/tips.rs`.
-  Its links to tips and to items are pressed (`hud/texts.rs linked_with`, seen in the game); `<NAVI>` is shown
-  and not pressed, for the client starts its navigation there (`OpenTextButtonNavigation`,
-  `g_navigationManager`) and this client has none; `<URL>` is shown and not pressed (the client hands the
+  Its links to tips and to items are pressed (`hud/texts.rs linked_with`, seen in the game); `<NAVI>` starts a navigation (`clicks/navigation.rs`); `<URL>` is shown and not pressed (the client hands the
   address to Windows, `OpenTextButtonLink`; every address of this `tipbox.lub` is `http://127.0.0.1/`). The
   other marks (`^nItemID^`, `^e[..]`, `<FONT>`, `<B>`, `<I>`) no text of this client's `tipbox.lub` has, and
   they are not read. A line with a picture stands 25 high with its words on the line's foot by the browser's
@@ -1008,8 +1040,8 @@ the decompiled client.
 - A game master sees the HP bar of every player (rAthena's `disp_hpmeter`), so the bar under a party member
   could not be told from that.
 - Packets no reader takes, each time a map is entered: ZC_CONFIG 0x02d9 (10 bytes) of the kinds the readers
-  of `incoming/homunculus.rs` and `incoming/viewequip.rs` do not take; ZC_ACH_UPDATE 0x0a24 and
-  ZC_REPUTE_INFO 0x0b8d once at the way in (achievements and reputation: later content, `BACKLOG.md`).
+  of `incoming/homunculus.rs` and `incoming/viewequip.rs` do not take. (ZC_ACH_UPDATE 0x0a24 and
+  ZC_REPUTE_INFO 0x0b8d are read since 2026-11-26.)
 - A press, a double press and a drag made by a script of the page (not by the mouse) are not always taken
   since the build of 2026-11-26 (a skill of the tree, a stall's sign, a thing dragged into a basket): only
   whoever drives the page by script meets it; the mouse works.
@@ -1028,3 +1060,162 @@ the decompiled client.
 - Enter in an NPC's menu was not seen to fail in any case tried (Kafra, smith, metal seller; the chat's line
   with and without the keyboard; the pointer on the window and off it); what the owner saw fail was not found
   beyond the double click and the boxes that ask, which are mended.
+
+### Achievements and titles, reputation, probabilities (2026-11-26)
+- **The server answers a reward the other way round.** rAthena sends ZC_REQ_ACH_REWARD_ACK with 1 for a reward
+  given and 0 for one refused (`achievement_get_reward`); the client takes 0 for given
+  (`CGameMode::ReceiveAchievementResult`) and is read so here. Nothing is lost by it: the server sends the
+  achievement, or the whole list, again with the reward marked. But a title just gained is never coloured in
+  the list of titles (`UIListBoxTitle`, 0x92C0FA), which the client does from that answer alone: by reading
+  only.
+- **Titles the server allows and the client does not list.** rAthena lets a title be worn once its
+  achievement is completed (`achievement_get_titles`); the client lists it once the reward was taken
+  (`ReceiveAchievementList`), and so does this one.
+- This client's own: the names of the character itself and of players of no guild are asked of the server
+  as the game is entered and as they come into sight (CZ_REQNAME), for the title told with them; the client
+  asks when the pointer first comes over someone, so its page of titles shows none worn until then. The
+  line of an achievement completed goes up to a second late (it is looked at with the watch on the
+  connection). The tabs under an open tab are moved by the bar's two arrows only, not by its handle or the
+  wheel. The list is scrolled by the browser, its bar in the client's pictures (WebKit only).
+- Not found in the client: how `UITextButton` colours the names of the achievements kept in sight (black over
+  white here, as the count beside them); `/achievement` (the client's line 3089 names it, its table of
+  commands does not have it: not made); where the window `UIAchTracingWnd` is kept between visits (its
+  `AchTracingWndInfo`): here it is not moved and not kept, and those kept in sight are forgotten at a reload.
+- The date of an achievement completed lies over the box of its reward not taken yet, in the list and in the
+  summary: so `UIAchListWnd::Paint` places them (263, 49 and about 276, 55). Not compared with a picture of
+  the Windows client.
+- Reputation: the classic server has no reputations (`db/re/reputation.yml` is Renewal's), so the window
+  lists the two of the client's table that are always shown, with no points. For the rest the owner would
+  add reputations to `server`'s `db/import/reputation.yml` (and scripts that give points). How the client
+  draws the drop-down (`UIComboBoxDefWnd`: its arrow, its list's rim) and whether a picture button writes its
+  label on itself (`btn_search` with line 3777: told when pointed at here) were not read.
+- Probabilities: the page is the publisher's own web page (`https://probability.gnjoy.com/`, Korea's); there
+  is no service of this project behind it. The icon does what the client's does; to lead it elsewhere the
+  line `MSI_ETC_PROBABILITY_URL` of the client's `data\msgstringtable.csv` would have to say another address.
+- The message table of this version has 4,405 lines in `msgstringtable.csv`, of which the gateway gives the
+  4,023 of `msgstringtable.txt`: the lines past it are read one by one where a system needs them
+  (`tables/probability.rs`), by names copied out of the client's compiled list.
+
+### Bank, attendance check, cash shop (2026-11-26)
+- What the server here lacks, for the owner to add (never done by the workers): `rathena/db/import/attendance.yml`
+  with a period (`Start`, `End` as YYYYMMDD and `Rewards: - Day, ItemId, Amount`), whose days and rewards must
+  be the same as the client's `System\CheckAttendance.lub` (now 20260304 to 20260331, twenty days of items of
+  later content that the classic item database does not have: the file of the client has to be written anew
+  with it); `rathena/db/import/item_cash.yml` with `- Tab: <New|Hot|Limited|Rental|Permanent|Scrolls|
+  Consumables|Other>` and `Items: - Item: <AegisName>, Price: <cash points>`. Until then the attendance
+  window never opens and the cash shop is empty, and both are by reading only beyond that.
+- Cash shop, not made: dragging a thing into the list of what is bought and out of it, with the box that asks
+  how many (`UICashShopWnd::DragAndDrop`, `UICashShopWnd_Cart::DragAndDrop`: a thing goes in one at a time
+  by "Buy" and the plus); the double click on a kind that takes it out; the wheel and the thumb of the list's
+  bar (its two arrows move it); the larger layout of the sale for one account (tab 9: rAthena ignores the
+  request, the tab shows nothing); ZC_SE_CASHSHOP_UPDATE (0x08d3), which rAthena never sends; the second
+  banner and the lists of the Stove launcher. The box before a purchase is the plain message box, not
+  `UIPayConfirmWnd` with the item's picture, which was not looked at.
+- Cash shop, the client's own: a hundred of a kind may be put in the list, and rAthena refuses more than 99
+  (`cashshop_buylist`); a search keeps the page's size of the tab it was begun on.
+- Attendance: the banners of `tb_checkattendance_banner.lub` are not drawn (the table is empty); the files
+  `CheckAttendance_<server>.lub` for the Korean servers are not read; the days left are counted as the client
+  counts them, by the player's own clock.
+- Bank: the client refuses a deposit and a withdrawal while a window of Lapine, reforming, enchanting or
+  runes is open, and the window while one of refining or of the barter market is: none of those windows
+  exists here. The window's field takes any letters, as the client's does.
+- ZC_UI_OPEN's other windows are not read: a tip of the Tipbox (5), a quest's information (6), the stylist,
+  the windows against macros, the grade enchanting.
+- Escape closing these three windows was not found in the client's code and is taken from its other windows.
+- The colours of the texts of the attendance check and the cash shop are read as `0xBBGGRR`
+  (`TextContext::SetColor`): not compared with a picture of the Windows client.
+
+### Battleground, Adventurer's Agency, Replay (2026-11-26)
+- **For the owner, to switch on (never done by the workers)**: the Adventurer's Agency talks to the game's web
+  service, rAthena's `web-server`, which the Docker setup neither builds nor runs
+  (`server/Dockerfile` copies `login-server`, `char-server`, `map-server` only; `docker-compose.yml` has no
+  service for it). Needed: build it (`make web` beside `make server`, copy `/rathena/web-server` into the
+  image), run it as a fourth service (`./web-server`, its port 8888 published on 127.0.0.1, `conf/web_athena.conf`
+  pointed at the database as the others are), and keep the login server's `use_web_auth_token: yes` (its
+  default). The gateway hands `POST /party/<request>` on to `--web-server` (`127.0.0.1:8888` when not given)
+  and answers 502 until then; the map server reads the same `party_bookings` table when a leader is asked.
+  Until it runs the board shows as the client's does without its service: empty, its arrows dim.
+- rAthena's web service answers `/party/add`, `del`, `get`, `info`, `list`, `search`; not `/party/change`
+  (`CAdventurerAgencyMgr::RequestChangeMaster`, sent when the party's leader changes): this client does not
+  send it. Its `list` gives every notice at once and calls their number `totalPage`: the board shows the first
+  ten and that number as its pages, as the Windows client would against the same service.
+- The agency, against the client: the browser posts to the gateway, which hands the form on (a page cannot post
+  to another origin); the name of the world is the name of the char server picked; a row's right button (a
+  talk with the leader, `UIPartyInfoWnd::OnRBtnUp`) is not made (the window of a notice has the button "PM");
+  the fields of the search and of a notice are named by hand on both sides (`agency::SEARCH_FIELDS`,
+  `NOTICE_FIELDS`); the windows open where the client first puts them and are not kept from one session to the
+  next.
+- **The older party booking** (`UISeekPartyWnd`, `UISeekPartyListWnd`, `UISeekPartyMBWnd`,
+  `UIPartyBookingHelpWnd`, `CPartyBookingMgr`; CZ_PARTY_BOOKING_REQ_REGISTER 0x0802 and its kin, and
+  CZ_PARTY_RECRUIT_* 0x08e5…) is not made. In the client of 2026 nothing of the menu or of the party window
+  opens it: only the chat commands `TT_SEEK_PARTY` and `TT_REQ_RECRUIT` do (`MM_OPEN_SEEKPARTY_MEMBER`,
+  `MM_OPEN_SEEKPARTY_LIST`), and the menu's old "booking" icon is skipped as the strip is built
+  (`UIMenuIconWnd::OnCreate`). rAthena reads 0x0802 as a party invitation at this PACKETVER and has 0x08e5 only
+  "to prevent disconnections". Left: the four windows (some 1500 lines of the client), their packets, the two
+  commands.
+- Battleground, against the client: the window that asks whether to enter has no cross (the client's does
+  nothing); the help opens beside the list (the client gives it no place); the list's windows are not kept
+  from one session to the next. Not made: the battleground's own chat (`/battlechat`, CZ_BATTLEFIELD_CHAT
+  0x02db; ZC_BATTLEFIELD_CHAT 0x02dc is read with the other notices as before), ZC_BATTLEFIELD_NOTIFY_HPSP
+  (0x0baa, not sent by rAthena). Not seen in the game: everything from a battle that is ready onward (see
+  `docs/DONE.md`).
+- **Replay: where the browser decides.** There is no `Replay` folder: recordings are kept in the browser's
+  IndexedDB (`roweb-replays`), and the list has three buttons of this project's own, "Save to a file", "Load
+  a file" and "Delete" (their words are not the client's). The Windows client is started apart for replays
+  (its replay mode); here the login screen has the client's `btn_replay.bmp` under the login window, which
+  opens the list in the login's place. The list has no Exit button (a page is not quit).
+- **Replay: the file.** The container is the client's `.rrf` (text, signature, keys, table of sections, header
+  as tagged records in section 2, packets in section 1, the cipher), but a file of one client does not play in
+  the other: the Windows client keeps what its session held when the recording began as copies of its own
+  memory (sections 3 to 25: `CSession::Build…ReplayRecords`), which this client neither writes nor reads. In
+  their place a file here has one section of its own (the 24th place of the table, number 124): who the
+  character is, and every packet of the map server from entering the game to the recording's beginning, which
+  the player hands to the game at once. More than 32 MB of them are not kept (`BEFORE_MOST`): a recording
+  begun after that many begins from an incomplete state. A file of the Windows client shows in the list with
+  its header and is answered "No Replay File." at OK.
+- **Replay: left.** What the client records of its own windows (CC_REPLAYPACKET 0x08ae: presses, drags, texts
+  typed, `UIWindow::RecordResponse` and its kin) is neither recorded nor played, so windows the player had
+  open are not opened in a replay. The options other than the chat change nothing here (in the client they
+  decide which windows a viewer may open, `Replay::AllowsEvent`, and which sections are written); the boxes
+  "Guild" and "Status" are not shown, as in the client. While a recording plays, the windows and the keys are
+  not held back as the client holds them (`AllowsEvent`): what is pressed sends nothing, there being no
+  server, but opens what it opens. The sounds of what is caught up with at the beginning are all heard at
+  once. The keys of the player (the client's interface keys 39 to 41) are not made. The direction the
+  character faced is written as 0. Speeds of 8 and 16 times have their lines in the table and no button, as
+  in the client.
+
+### Navigation (2026-11-26)
+- The tables are the Korean service's of 2026 (`navi_*_krpri.lub`, with the translated client's names from
+  `SystemEN\Navi_Data.lub`): the NPCs, monsters and ways out of kRO's Renewal world. On this classic server a
+  way may lead through a portal, a Kafra or a map the server does not have, and monsters are listed where
+  Renewal has them. A table of the server's own world is made by rAthena's `map-server-generator
+  --generate-navi` (it writes `navi_*_krpri.lub` from the server's scripts): the owner would run it against
+  the server's `npc/` and put the files into the client's `data\luafiles514\lua files\navigation\`.
+  Nothing here checks a way against the server.
+- Not made: the button "Read external file path information" (`NAVI_BUTTON_DATA`: the list of the `.txt`
+  files of the game's `NavigationData` folder, each a list of places) and the private airship's button
+  (`NAVI_BUTTON_PRIVATE_AIRPLANE`, `UIPrivateAirplaneWnd`, `CZ_PRIVATE_AIRSHIP_REQUEST`; the server has
+  `feature.privateairship` and Renewal's items for it): both are drawn and do nothing. The scrolls of the
+  route search (`Navi_Scroll`, kind 400, `includeObjects`) are not read: the client's table holds none.
+- The window's own differences: the two lines that follow the pointer over the map to press a place on are
+  not drawn; the picture of an NPC or a monster looked at stands still (the client plays it, 1500 ms a
+  round) and is not drawn out to its space; an NPC that `navi_picknpc` dresses as a player is shown by its
+  job's picture; the lists have the browser's scroll bar, not `Navi_scroll_*.bmp`; the box of kinds has one
+  picture for its button whatever its state; the small window does not grow more solid under the pointer;
+  the windows of the arrows and of the route open by where the navigation's window stood when one of them was
+  last opened; the window's place is not kept between visits (the client keeps it and the set of arrows in the
+  registry). The message of line 4195 (a map the search does not list) and of 4692 (inside a copy of a map)
+  are not in this client's table: the first is not said, the second in this client's words.
+- On the World Map: a press on a dungeon's rectangle opens the client's list of its floors, which is not
+  made (only maps with a rectangle of their own are pressed); the line of a route is drawn plain, not with
+  `wv_Airf2.bmp`.
+- The mark at a way's end is lifted 0.4 over the ground as the mark of the cell under the pointer is, not
+  drawn nearer by a hair of the depth; an arrow is looked for anew when the character has strayed at each of
+  its steps, not at each frame.
+- `Line::Unsupported` (the client's box "That does not support the navigation area") is said in the chat.
+- Not wired yet: the quest window's picture of the NPC to go to (`UINpcSprWnd`, which is not made), the
+  marks of quests on the minimap, the Adventure Guide's buttons that start a navigation
+  (`UIAdventureGuide.cpp:1593`), the shop's (`UIChooseSellBuyWnd.cpp:859`) and `UIShortCutWnd.cpp:720`.
+- ZC_NAVIGATION_ACTIVE (0x08e2) is read and tested natively; no script of the classic server sends it
+  (`navigateto` is only in `npc/re`), so it was not seen in the game.
+

@@ -32,6 +32,9 @@ pub(in crate::web) struct Chat {
     pub hidden: bool,
     /// The tab whose window of what it lists is open (`UIBattleMsgOptionWnd`).
     pub options: Option<usize>,
+    /// The tab whose name is being typed anew, after a double click on it (`UITabControl::OnLBtnDblClk`,
+    /// `UISubChatHisWnd::OnLBtnDblClk`).
+    pub renaming: Option<usize>,
 }
 
 impl Chat {

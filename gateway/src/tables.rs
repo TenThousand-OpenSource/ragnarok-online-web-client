@@ -18,8 +18,10 @@ use crate::grf::Grf;
 
 // Each kind of table has its file here; what is common to them (running the client's Lua, reading its Korean,
 // putting the browser's tables together) is in this one.
+mod achievements;
 mod ai;
 mod aura;
+mod battleground;
 mod cards;
 mod castles;
 mod emitters;
@@ -31,14 +33,19 @@ mod jobs;
 mod manner;
 mod maps;
 mod monster_skills;
+mod navigation;
 mod pets;
+mod probability;
 mod quests;
+mod reputation;
 mod scenery;
 mod commands;
 mod skill_needs;
 mod skills;
 mod statuses;
 mod tips;
+mod attendance;
+mod cashshop;
 mod worldmap;
 
 #[cfg(test)]
@@ -47,6 +54,7 @@ mod tests;
 pub use ai::scripts as ai_scripts;
 pub use emitters::emitters;
 pub use interface::{chat_tabs, emotions, hotkeys, options};
+pub use navigation::navigation;
 pub use items::{translated, About, Items, Translated, Unidentified};
 pub use skills::skill_texts;
 use skills::{job_inherits, skill_tree, skills};
@@ -441,11 +449,17 @@ pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std:
         tables.insert("figures".to_owned(), figures::figures(read));
         tables.insert("worldmap".to_owned(), worldmap::worldmap(grf));
         tables.insert("tips".to_owned(), tips::tips(&read.tips));
+        tables.insert("attendance".to_owned(), attendance::attendance(client_dir));
+        tables.insert("cashshop".to_owned(), cashshop::cashshop(grf));
         tables.insert("aura".to_owned(), aura::aura(grf));
         tables.insert("manner".to_owned(), manner::manner(grf));
         tables.insert("monster_skills".to_owned(), monster_skills::monster_skills(grf));
         tables.insert("castles".to_owned(), castles::castles(grf));
+        tables.insert("battleground".to_owned(), battleground::battleground(read));
         tables.insert("skill_needs".to_owned(), skill_needs::skill_needs(database));
+        tables.insert("achievements".to_owned(), achievements::achievements(grf, client_dir));
+        tables.insert("reputation".to_owned(), reputation::reputation(grf));
+        tables.insert("probability".to_owned(), probability::probability(grf));
         // Which rules the server plays by, told by the database that goes with them: rAthena's `db/re` is
         // Renewal's, `db/pre-re` the classic game's. The client, which is one for both, asks where they differ
         // in what a player may do.

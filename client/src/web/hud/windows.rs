@@ -31,7 +31,7 @@ mod places;
 mod redraw;
 pub(in crate::web) use places::menu_style;
 use places::*;
-use redraw::typed_over;
+use redraw::{typed_into, typed_over};
 
 mod basic;
 mod choosing;
@@ -70,7 +70,17 @@ mod chat;
 mod emotions;
 mod tips;
 mod worldmap;
+mod navigation;
 mod books;
+mod cashshop;
+mod achievements;
+mod reputation;
+mod probability;
+mod attendance;
+mod bank;
+mod battleground;
+mod agency;
+mod replay;
 pub(in crate::web) use {exchange::*, friends::*, guide::*, guild::*, inventory::*, mail::*, party::*, pets::*, player_menu::*, quests::*};
 pub(in crate::web) use choosing::*;
 pub(in crate::web) use {homunculus::*, mercenary::*};
@@ -79,7 +89,15 @@ pub(in crate::web) use {chat_rooms::*, family::*, scripted::*};
 pub(in crate::web) use broadcast::*;
 pub(in crate::web) use {chat::*, emotions::*, tips::*, worldmap::*};
 pub(in crate::web) use fight::*;
+pub(in crate::web) use navigation::*;
 pub(in crate::web) use books::*;
+pub(in crate::web) use cashshop::*;
+pub(in crate::web) use {achievements::*, probability::*, reputation::*};
+pub(in crate::web) use attendance::*;
+pub(in crate::web) use bank::*;
+pub(in crate::web) use battleground::*;
+pub(in crate::web) use agency::*;
+pub(in crate::web) use replay::*;
 pub(in crate::web) use {cart::*, vending::*};
 pub(in crate::web) use {settings::*, shops::*, skills::*, status::*, storage::*, talk::*, viewequip::*, whispers::*};
 pub(in crate::web) use {basic::*, equipment::*, signs::*, statuses::*};
@@ -244,6 +262,8 @@ pub(in crate::web) static ALL: &[&Window] = &[
         &PARTY,
         &PARTY_SIDE,
         &PARTY_ASKS,
+        &PARTY_MINI_0, &PARTY_MINI_1, &PARTY_MINI_2, &PARTY_MINI_3, &PARTY_MINI_4, &PARTY_MINI_5, &PARTY_MINI_6, &PARTY_MINI_7, &PARTY_MINI_8,
+        &PARTY_MINI_9, &PARTY_MINI_10, &PARTY_MINI_11,
         &PARTY_MENU,
         &GUILD,
         &GUILD_ASKS,
@@ -264,6 +284,7 @@ pub(in crate::web) static ALL: &[&Window] = &[
         &LEVEL_TOLD,
         &JOB_LEVEL_TOLD,
         &QUEST_LIST,
+    &NAVIGATION, &NAVIGATION_ROUTE, &NAVIGATION_ICONS, &NAVIGATION_HELP, &NAVIGATION_ASKS,
     &FRIEND_SETUP,
         &FRIEND_ASKS,
         &FRIEND_MENU,
@@ -302,4 +323,11 @@ pub(in crate::web) static ALL: &[&Window] = &[
         &WORLD_MAP,
     &SENSE_WINDOW, &STAR_ASKS,
     &BOOK, &BOOK_LINE,
+    &ACHIEVEMENTS_TRACED, &ACHIEVEMENTS, &ACHIEVEMENT_TOLD, &REPUTATION, &PROBABILITY_ASKS,
+    &BANK,
+    &ATTENDANCE,
+    &CASH_SHOP, &CASH_SHOP_ASKS,
+    &BATTLEGROUND, &BATTLEGROUND_HELP, &BATTLEGROUND_STANDBY, &BATTLEGROUND_ENTRY, &BATTLEGROUND_ASKS,
+    &AGENCY, &AGENCY_NOTICE, &AGENCY_READ, &AGENCY_ASKS,
+    &REPLAY_RECORDER, &REPLAY_PLAYER,
 ];

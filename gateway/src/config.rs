@@ -39,6 +39,9 @@ pub struct Config {
     /// as a player far away has it. None unless given. Never for the gateway others play through
     /// (`public.sh`): it delays everyone.
     pub lag: bridge::Lag,
+    /// Where the game's web service is (`--web-server <host:port>`; rAthena's `web-server`, its `web_port`
+    /// 8888): the Adventurer's Agency is asked of it (`agency.rs`).
+    pub web_server: String,
 }
 
 impl Default for Config {
@@ -56,6 +59,7 @@ impl Default for Config {
             invite: None,
             behind_proxy: false,
             lag: bridge::Lag::default(),
+            web_server: "127.0.0.1:8888".into(),
             // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.
             accounts: accounts::Config {
                 database_url: "mysql://ragnarok:ragnarok@127.0.0.1:3306/ragnarok".into(),
@@ -100,6 +104,7 @@ pub fn config() -> Result<(Config, Option<Command>), String> {
             "--web-dir" => config.web_dir = value()?.into(),
             "--listen" => config.listen = value()?.parse().map_err(|error| format!("--listen: {error}"))?,
             "--server-host" => config.server_host = value()?,
+            "--web-server" => config.web_server = value()?,
             "--server-ports" => {
                 config.server_ports =
                     value()?.split(',').map(|port| port.trim().parse()).collect::<Result<_, _>>().map_err(|error| format!("--server-ports: {error}"))?;

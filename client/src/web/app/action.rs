@@ -16,8 +16,16 @@ pub(in crate::web) enum Action {
     Dropped(usize, Option<Drag>),
     /// A window of the game was pressed, anywhere on it: its element's ID.
     WindowPressed(String),
+    /// A window of the game that was being moved was let go: its element's ID.
+    WindowDropped(String),
+    /// A tab of the chat held by the pointer was pulled out of the window: the tab, and where the pointer is.
+    ChatTabTorn(usize, (f64, f64)),
+    /// The corner of a tab's own window was dragged to make the window that large: the tab, and the size.
+    ChatOwnSized(usize, i32, i32),
     /// The gateway told what some items are called.
     ItemsKnown,
+    /// Something the navigation waited for has come: its tables, the ground of a map, a picture.
+    Navigation(News),
     Resized,
     /// A moment after the music was asked for: see whether the browser let it play.
     CheckMusic,
@@ -107,6 +115,16 @@ pub(in crate::web) enum Action {
     /// Something of the books has come back: a book's text, a button's picture, the next line read aloud.
     Book(BookNews),
     /// A moment has passed while the player has a homunculus or a mercenary: its script may be due.
+    /// A second of the question whether to enter a battleground has passed.
+    BattlegroundTick,
+    /// The game's web service has answered a request of the Adventurer's Agency, or could not be asked.
+    AgencyAnswered(crate::agency::Request, Option<String>),
+    /// The clock of a recording being played goes on.
+    ReplayTick,
+    /// The recordings the browser keeps were read: each its name and its bytes.
+    ReplaysRead(Vec<(String, Vec<u8>)>),
+    /// A file of the player's machine was picked for the list of recordings.
+    ReplayPicked(String, Vec<u8>),
     AiTick,
     /// The mouse commanded the homunculus, or the mercenary (true): to fight someone or to walk to a cell, at
     /// once or (true) after its other commands.

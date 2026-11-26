@@ -23,6 +23,13 @@ pub(super) fn pressed(press: impl Into<Press>) -> String {
     format!(r#"data-click="{what}" data-arg="{}""#, super::app::escape(&arg))
 }
 
+/// The same for a thing whose press says where on it the pointer was: what goes with the press is then that
+/// place, counted from the thing's left and top in its own measure (`app/wiring.rs` writes it as `x,y`), in
+/// the place of what the press was drawn with.
+pub(super) fn pressed_at(press: impl Into<Press>) -> String {
+    format!("{} data-place", pressed(press))
+}
+
 /// What marks a thing as one a double click does something with (`crate::press::things`).
 pub(super) fn used(thing: Use) -> String {
     format!(r#"data-use="{}""#, things::written(&thing))

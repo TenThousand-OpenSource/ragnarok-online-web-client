@@ -83,6 +83,9 @@ impl App {
             // A player of a guild: its name and emblem are asked for (`incoming/guild.rs`).
             if unit.kind == net::actors::Kind::Player {
                 self.guild_looked_up(unit.id, unit.guild, u32::from(unit.emblem));
+                // …and one of no guild is asked for its names too, for the title it may wear
+                // (`incoming/achievements.rs`).
+                self.title_looked_up(unit.id, unit.guild);
             }
             // A guild flag: the emblem drawn on it is asked for (the client's `C3dGrannyGameActor` reads it
             // from `CGuildMgr` as it draws the flag).

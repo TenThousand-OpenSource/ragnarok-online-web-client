@@ -12,6 +12,13 @@ pub(super) fn typed_over(window: &web_sys::Element) {
     }
 }
 
+/// The field of a window that is typed into has the keyboard, with nothing marked (the bank's sum).
+pub(super) fn typed_into(window: &web_sys::Element) {
+    if let Some(field) = window.query_selector("input").ok().flatten().and_then(|field| field.dyn_into::<web_sys::HtmlInputElement>().ok()) {
+        let _ = field.focus();
+    }
+}
+
 impl Window {
     /// What is in it now: nothing while it is closed.
     fn inside(&self, app: &App) -> String {
@@ -72,6 +79,8 @@ impl App {
         crate::web::world::own_life(self.value(parameter::HP), self.value(parameter::MAX_HP), self.value(parameter::SP), self.value(parameter::MAX_SP));
         crate::web::world::own_level(self.value(parameter::BASE_LEVEL) as u16);
         self.redraw(&[&BASIC, &STATUS]);
+        // The player's own life shows in the party's windows too.
+        self.party_shown();
     }
 
     /// Redraws the windows that show items and skills.

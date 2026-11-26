@@ -13,6 +13,8 @@ use crate::web::app::{PartyAsk, PartySide};
 use crate::web::parts::menued;
 
 mod side;
+mod mini;
+use mini::life_gauge;
 
 /// How the party window is laid out in its two forms (`UIMessengerGroupWnd::OnCreate`, `UM_RESIZE`): the
 /// large one is 273 by 326 less what is left over of a row, the small one 243 by 179 less the same; a row is
@@ -115,30 +117,34 @@ impl App {
             format!(r#"<span style="display:inline-block;vertical-align:top;margin-left:5px;max-width:{}px;overflow:hidden;"#, layout.width * 8 / 10 - 80),
             format!(r#"color:{name_colour}">{}</span></div>"#, escape(&name))
         ].concat());
-        // The life of a member is known once the server has told it (it does for those in sight); the
-        // player's own is the character's.
-        let life = if own {
-            Some((self.value(parameter::HP) as i32, self.value(parameter::MAX_HP) as i32))
-        } else {
-            self.party.life.get(&member.account).copied()
-        };
-        if let Some((left, most)) = life.filter(|(_, most)| !member.offline && *most > 0) {
+        if let Some((left, most)) = self.party_life(member) {
             let top = layout.row * 76 / 100;
-            let full = (i64::from(left.clamp(0, most)) * 58 / i64::from(most)) as i32;
-            inside.push_str(&[
-                format!(r#"<div class="a" style="{};background:#424242;border:1px solid #10189c;box-sizing:border-box">"#, at(47, top, 60, 5)),
-                format!(r#"<div style="width:{full}px;height:3px;background:{}"></div></div>"#, if left * 4 < most { "#ff0000" } else { "#10ef21" })
-            ].concat());
+            inside.push_str(&life_gauge(47, top, 60, left, most));
             inside.push_str(&text_in(Font(0, 10, false), 47 + 66, top - 2, BLACK, &format!("{left}/{most}")));
         }
         let status = if member.offline { "off" } else if own { "me" } else { "on" };
         inside.push_str(&art(&format!("renewalparty/icon_party_{status}.bmp"), layout.width * 8 / 10, layout.row * 65 / 100, 26, 11));
+        // A member who is online and has no small window is taken out of the list with the pointer, to get
+        // one (`UIMessengerGroupWnd::OnLBtnDown`, `UIDragMiniPartyWnd`).
+        let taken = if member.offline || self.party.mini.has(member.account) { String::new() } else { dragged(Drag::Member(row)) };
         format!(
-            r#"<div style="position:relative;height:{}px;cursor:default" {} {}>{inside}</div>"#,
+            r#"<div style="position:relative;height:{}px;cursor:default" {} {} {taken}>{inside}</div>"#,
             layout.row,
             pressed(Press::Row(row)),
             menued(Menu::Member(row))
         )
+    }
+
+    /// A member's life, left and most, where its gauge shows: the life of a member is known once the server
+    /// has told it (it does for those in sight), the player's own is the character's, and one who is offline
+    /// has no gauge.
+    fn party_life(&self, member: &Member) -> Option<(i32, i32)> {
+        let life = if self.own_account() == member.account {
+            Some((self.value(parameter::HP) as i32, self.value(parameter::MAX_HP) as i32))
+        } else {
+            self.party.life.get(&member.account).copied()
+        };
+        life.filter(|(_, most)| !member.offline && *most > 0)
     }
 
     /// The bar of buttons under the list (`OnCreate` and `LayoutButtons`): the Adventurer's Agency, the setup,
@@ -160,9 +166,11 @@ impl App {
         bar
     }
 
-    /// The menu the right button opens on a member (`UM_MAKEMENU`): a letter; for the player's own row leaving
-    /// the party, for another's the talk between two and, for the leader, expelling and handing the party
-    /// over; and for one who is online the small window of that member.
+    /// The menu the right button opens on a member (`UIMessengerGroupWnd`'s `UM_MAKEMENU`): a letter; for the
+    /// player's own row leaving the party, for another's the talk between two and, for the leader, expelling
+    /// and handing the party over; and for one who is online the small window of that member, put on the
+    /// screen and taken off it. Opened on a member's small window (`UIMiniPartyInfoWnd`'s `UM_MAKEMENU`) it
+    /// ends with taking that window off, whether the member is online or not.
     pub(in crate::web) fn party_menu(&self) -> String {
         let Some(member) = self.party.menu.and_then(|(_, row)| self.party.members.get(row)) else { return String::new() };
         let own = self.own_account() == member.account;
@@ -176,8 +184,10 @@ impl App {
                 rows.push_str(&menu_row(&Self::words(1532, "Assign Party Leader"), Press::Do(Entry::HandOver)));
             }
         }
-        if !member.offline {
+        if !member.offline && !self.party.menu_mini {
             rows.push_str(&menu_row(&Self::words(3101, "Add small party window"), Press::Do(Entry::AddSmall)));
+        }
+        if !member.offline || self.party.menu_mini {
             rows.push_str(&menu_row(&Self::words(3102, "Remove small party window"), Press::Do(Entry::RemoveSmall)));
         }
         rows
@@ -218,6 +228,6 @@ impl App {
                 ].concat())
             })
             .collect();
-        members + &self.minimap_server_marks()
+        members + &self.minimap_team() + &self.minimap_server_marks()
     }
 }

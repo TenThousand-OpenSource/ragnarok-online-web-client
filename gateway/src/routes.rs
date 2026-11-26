@@ -25,6 +25,8 @@ pub struct App {
     skills_russian: tables::Translated,
     /// The client's folder: the scripts of a homunculus and a mercenary are read from beside its archives.
     client_dir: PathBuf,
+    /// The navigation's tables as JSON (`tables/navigation.rs`): read when first asked for, then kept.
+    navigation: std::sync::OnceLock<String>,
 }
 
 impl App {
@@ -41,6 +43,7 @@ impl App {
             skill_texts,
             skills_russian: tables::translated(FilePath::new("translations/ru"), "skills"),
             client_dir: client_dir.to_owned(),
+            navigation: std::sync::OnceLock::new(),
             grf,
         }
     }
@@ -61,6 +64,7 @@ pub fn router(app: App) -> Router {
         .route("/tables/ai.json", get(client_ai))
         .route("/tables/ai-user.json", get(client_ai_user))
         .route("/tables/emitters/{map}", get(client_emitters))
+        .route("/tables/navigation.json", get(client_navigation))
         .with_state(Arc::new(app))
 }
 
@@ -128,6 +132,12 @@ async fn client_ai_user(State(app): State<Arc<App>>) -> Response {
 /// read as it is asked for: once as a map is entered.
 async fn client_emitters(State(app): State<Arc<App>>, Path(map): Path<String>) -> Response {
     json(tokio::task::spawn_blocking(move || tables::emitters(&app.grf, &map).to_string()).await.unwrap())
+}
+
+/// `GET /tables/navigation.json`: the navigation's tables (`tables/navigation.rs`). They are large and only the
+/// navigation reads them, so they are not part of `/tables.json`; read once, when first asked for.
+async fn client_navigation(State(app): State<Arc<App>>) -> Response {
+    json(tokio::task::spawn_blocking(move || app.navigation.get_or_init(|| tables::navigation(&app.grf, &app.client_dir).to_string()).clone()).await.unwrap())
 }
 
 /// `GET /tables.json`: everything the browser is given at once (`tables::for_browser`).

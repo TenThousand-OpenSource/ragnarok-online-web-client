@@ -90,7 +90,13 @@ impl App {
                 String::new()
             };
             let rim = if self.worldmap.labels { ";outline:1px solid #505050" } else { "" };
-            fields.push_str(&format!(r#"<div class="wv-field" style="{}{rim}">{label}{}</div>"#, spot(world, field.at), preview(world, field)));
+            // A press on a map opens the navigation on what the map has (`UIRoMapWnd::OnLBtnUp`).
+            fields.push_str(&format!(
+                r#"<div class="wv-field" style="{}{rim}" {}>{label}{}</div>"#,
+                spot(world, field.at),
+                pressed(crate::press::navigation::Press::Field(field.map.clone())),
+                preview(world, field)
+            ));
         }
         [
             format!(r#"<svg class="a" style="left:0;top:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 {} {}" "#, world.size.0, world.size.1),
@@ -136,11 +142,86 @@ impl App {
             .collect()
     }
 
+    /// What the navigation shows on a world (`UIRoMapWnd::DrawWorld`, `DrawMarks`): on each map of what was
+    /// found the picture of what was found there (`crate::navigation::texts::map_marks`); the maps of the
+    /// route joined by a line from middle to middle (white, three fifths there; the client draws it 5 wide
+    /// with `wv_Airf2.bmp`) with `wv_End.bmp` on the last, its corner on the map's middle; and `wv_Select.bmp`
+    /// over the map of the target looked at. Only maps with a rectangle of their own, not the floors of a
+    /// dungeon.
+    fn world_navigation(&self, world: &World) -> String {
+        let Some(atlas) = data::atlas() else { return String::new() };
+        let guide = &self.navigation.guide;
+        let field = |map: &str| world.fields.iter().find(|field| field.id >= 100 && field.map == map);
+        let laid = |at: [f32; 4], name: &str, more: &str| format!(
+            r#"<div class="a" style="{};background:url('{}') 0 0 / 100% 100% no-repeat;pointer-events:none{more}"></div>"#,
+            spot(world, at),
+            picture(&format!("worldview_interface/{name}.bmp"))
+        );
+        let mut marks: String = crate::navigation::texts::map_marks(&guide.found_maps(&atlas))
+            .iter()
+            .filter_map(|(map, name)| Some(laid(field(map)?.at, &format!("wv_Sreach{name}"), ";opacity:.93")))
+            .collect();
+        let route: Vec<&Field> = guide.route_maps(&atlas).into_iter().filter_map(field).collect();
+        let middle = |field: &Field| ((field.at[0] + field.at[2]) / 2.0, (field.at[1] + field.at[3]) / 2.0);
+        let lines: String = route
+            .windows(2)
+            .map(|pair| (middle(pair[0]), middle(pair[1])))
+            .map(|(from, to)| [
+                format!(r#"<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="rgba(255,255,255,.6)" stroke-width="5" "#, from.0, from.1, to.0, to.1),
+                r#"vector-effect="non-scaling-stroke"/>"#.to_owned()
+            ].concat())
+            .collect();
+        marks.push_str(&[
+            format!(r#"<svg class="a" style="left:0;top:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 {} {}" "#, world.size.0, world.size.1),
+            format!(r#"preserveAspectRatio="none">{lines}</svg>"#)
+        ].concat());
+        if let Some(last) = route.last().filter(|last| guide.goal.is_some_and(|(map, _)| atlas.maps[map].name == last.map)) {
+            let (x, y) = middle(last);
+            marks.push_str(&[
+                format!(r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:{:.3}%;"#, picture("worldview_interface/wv_End.bmp"), x / world.size.0.max(1.0) * 100.0),
+                format!(r#"top:{:.3}%;transform:translate(-100%,-100%);opacity:.8;pointer-events:none">"#, y / world.size.1.max(1.0) * 100.0)
+            ].concat());
+        }
+        if let Some(looked) = field(guide.looked_map(&atlas)) {
+            marks.push_str(&laid(looked.at, "wv_Select", ";opacity:.93"));
+        }
+        marks
+    }
+
+    /// The line to search with in the title bar, while the navigation's window is away or small
+    /// (`UpdateNavigationButtons`): the line 200 wide at 131, its button (`NaviSearch_A.bmp`…) at 335, and at
+    /// (375, 3) the button that opens the navigation's window.
+    fn world_search(&self) -> String {
+        if self.navigation_open() && !self.navigation.guide.small {
+            return String::new();
+        }
+        let [off, over, down] = states("navigation_interface/NaviSearch", Convention::ABC);
+        [
+            format!(r#"<form {} class="a" style="{}">"#, sent(Form::WorldSearch), at(131, 0, 237, 18)),
+            format!(
+                r#"<input class="a in" id="{}" maxlength="60" autocomplete="off" style="{};background:{FIELD_GROUND};border:1px solid #c86464;box-sizing:border-box" value="{}">"#,
+                windows::WORLD_MAP.field(),
+                at(0, 0, 200, 18),
+                escape(&self.navigation.world_sought)
+            ),
+            format!(
+                r#"<button type="submit" class="a b" style="{};--n:url('{}');--o:url('{}');--p:url('{}')" data-tip="{}"></button></form>"#,
+                at(204, 0, 33, 18),
+                picture(&off),
+                picture(&over),
+                picture(&down),
+                escape(&Self::words(2196, "Search"))
+            ),
+            pictured(375, 3, (13, 13), ["scroll0down.bmp"; 3], crate::press::navigation::Press::Large, &format!(r#" data-tip="{}""#, escape(&Self::words(3213, "Open navigation window")))),
+        ].concat()
+    }
+
     /// The World Map (the client's `UIRoMapWnd`): as large as the screen; a title bar with no title, at (17,
     /// 0) the box that names the world shown and opens the list of worlds, at the right the box
     /// "Monster(Tab)" (line 2440) and the cross (`world_close_off.bmp`, 18 from the edge); under it the
-    /// world's picture drawn out over the rest. A press on a map starts the client's navigation there, which
-    /// this client does not have; nor has it the search, the routes and the Kafra's arrows.
+    /// world's picture drawn out over the rest, with what the navigation marks on it (`world_navigation`) and
+    /// its line of search (`world_search`). A press on a map opens the navigation on what that map has. (Not
+    /// made: the list of floors a press on a dungeon opens, and the Kafra's arrows and the airships' ways.)
     pub(in crate::web) fn worldmap_window(&self) -> String {
         let worlds = data::worlds();
         let shown = self.world_shown(&worlds);
@@ -164,7 +245,12 @@ impl App {
         window.push_str(&[
             format!(r#"<div class="a" style="left:0;right:0;top:17px;bottom:0;overflow:hidden">"#),
             format!(r#"<img src="{}" alt="" draggable="false" style="position:absolute;left:0;top:0;width:100%;"#, picture(&world.picture)),
-            format!(r#"height:100%">{}{}</div>"#, self.world_fields(world, 9 + scale), self.world_party(world, 2 * (scale * 2 + 8)))
+            format!(
+                r#"height:100%">{}{}{}</div>"#,
+                self.world_fields(world, 9 + scale),
+                self.world_navigation(world),
+                self.world_party(world, 2 * (scale * 2 + 8))
+            )
         ].concat());
         window.push_str(&[
             format!(r#"<div class="a t" style="{};background:#e8e8e8;border:1px solid #646464;box-sizing:border-box;"#, at(17, 0, 110, 18)),
@@ -189,6 +275,7 @@ impl App {
                 format!(r#"background:#e8e8e8">{rows}</div>"#)
             ].concat());
         }
+        window.push_str(&self.world_search());
         // The box stands 82 before the cross, which is 18 from the right edge.
         window.push_str(&[
             format!(r#"<div class="a t" style="right:20px;top:3px;width:80px;height:12px;line-height:12px;"#),

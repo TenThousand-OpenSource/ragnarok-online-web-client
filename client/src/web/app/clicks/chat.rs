@@ -12,6 +12,8 @@ impl App {
         if let Some((tabs, locked)) = stored(KEPT).and_then(|text| chat_tabs::read(&text)) {
             (self.chat.tabs, self.chat.locked) = (tabs, locked);
         }
+        // (A tab's own window kept at a place that is out of sight is shown on the screen all the same:
+        // `chat_tabs::own_shown`, asked as the window is placed, `hud/windows/chat.rs`.)
     }
 
     /// The tabs made the player's own (until one is changed they are the client's, read from its table), to be
@@ -61,7 +63,7 @@ impl App {
         use crate::press::chat::Press;
         match press {
             Press::Tab(tab) => {
-                self.chat.tab = tab;
+                (self.chat.tab, self.chat.renaming) = (tab, None);
                 // The window that sets what a tab lists follows the tab that is open.
                 if self.chat.options.is_some() {
                     self.chat.options = Some(tab);
@@ -113,9 +115,22 @@ impl App {
         }
     }
 
+    /// Keeps the tabs after one of them changed its place among them: the windows that follow a tab by its
+    /// place (what it lists, its name being typed) are put away, and no own window is where an earlier one
+    /// of its place was dragged to.
+    fn tabs_moved(&mut self) {
+        (self.chat.options, self.chat.renaming) = (None, None);
+        for window in wnd::CHAT_OWN {
+            forget_moved(window.id);
+        }
+        self.tabs_changed();
+    }
+
     /// The button that adds a tab (`ID_ADD_CHAT_TAB`): with ten already the client says so in a box (line 1578
     /// of its message table); else the tab is added, listing nothing yet, and opened. One that no longer fits
     /// among the tabs (the tabs may take the window's width less 90) opens in a window of its own at once.
+    /// (The client asks whether one more tab as wide as those there are fits; here the new tab's own name
+    /// counts, as it does once the tab is there.)
     fn chat_tab_added(&mut self) {
         let total = self.own_tabs().len();
         if total >= chat_tabs::MOST {
@@ -123,55 +138,143 @@ impl App {
             return self.render();
         }
         let mut tab = Tab::added(total);
-        let inside = self.chat.tabs.iter().filter(|tab| tab.own.is_none()).count() as i32;
-        if (inside + 1) * 71 > 600 - 90 {
-            tab.own = Some(chat_tabs::own_place(total));
+        let inside = chat_tabs::inside(&self.chat.tabs);
+        // (The tabs are as wide as the widest name of them, the new one's too: `UITabControl::AddTab`.)
+        let mut with = self.chat.tabs.clone();
+        with.insert(inside, tab.clone());
+        if chat_tabs::inside(&with) as i32 * Self::chat_tab_wide(&with) <= chat_tabs::WINDOW - 90 {
+            self.chat.tabs.insert(inside, tab);
+            self.chat.tab = inside;
         } else {
-            self.chat.tab = total;
+            tab.own = Some(chat_tabs::own_place(total - inside));
+            self.chat.tabs.push(tab);
         }
-        self.chat.tabs.push(tab);
-        self.tabs_changed();
+        self.tabs_moved();
     }
 
     /// A tab is taken away with what it was set to list (`ID_MINI`): of those in the window the last one
-    /// stays.
+    /// stays, and the tab before the one taken is the open one then.
     fn chat_tab_removed(&mut self, tab: usize) {
         let tabs = self.own_tabs();
         let Some(removed) = tabs.get(tab) else { return };
-        if removed.own.is_none() && tabs.iter().filter(|tab| tab.own.is_none()).count() <= 1 {
+        if removed.own.is_none() && chat_tabs::inside(tabs) <= 1 {
             return;
         }
-        tabs.remove(tab);
-        self.chat.options = None;
-        self.chat.tab = self.chat.tab.saturating_sub(usize::from(self.chat.tab >= tab && self.chat.tab > 0));
-        self.tabs_changed();
+        if tabs.remove(tab).own.is_none() {
+            self.chat.tab = tab.saturating_sub(1);
+        }
+        self.tabs_moved();
     }
 
-    /// The open tab goes out into a window of its own (`UM_DETACH_CHAT_TAB`): not while the window is locked,
-    /// and not the only tab.
+    /// The open tab goes out into a window of its own (`ID_STICK_OFF`, `UM_DETACH_CHAT_TAB`): not while the
+    /// window is locked, and not the only tab. The window opens where the client opens the next one
+    /// (`chat_tabs::own_place`).
     fn chat_tab_detached(&mut self) {
-        let locked = self.chat.locked;
-        let tabs = self.chat_tabs();
-        let open = self.chat_tab_open(&tabs);
-        if locked || tabs.iter().filter(|tab| tab.own.is_none()).count() <= 1 {
+        let open = self.chat_tab_open(&self.chat_tabs());
+        let place = chat_tabs::own_place(self.own_tabs().len() - chat_tabs::inside(&self.chat.tabs));
+        if self.chat.locked {
             return;
         }
-        self.own_tabs()[open].own = Some(chat_tabs::own_place(open));
-        forget_moved(wnd::CHAT_OWN[open.min(chat_tabs::MOST - 1)].id);
+        if let Some(open) = chat_tabs::detached(&mut self.chat.tabs, open, place) {
+            self.chat.tab = open;
+            self.tabs_moved();
+        }
+    }
+
+    /// A tab held by the pointer was pulled out of the window (`UITabControl::OnMouseMove`, then
+    /// `UM_DETACH_CHAT_TAB` from the tabs themselves): it goes into a window of its own, which stands where
+    /// the tab was, at the top of the chat window, and is held by the pointer from there on. Let go while it
+    /// is still over the chat, it goes back (`chat_own_dropped`).
+    pub(in crate::web::app) fn chat_tab_torn(&mut self, tab: usize, pointer: (f64, f64)) {
+        let Some((x, y, ..)) = Self::window_rect(wnd::CHAT.id) else { return };
+        if self.chat.locked {
+            return;
+        }
+        let before = self.own_tabs().iter().take(tab).filter(|tab| tab.own.is_none()).count() as i32;
+        let place = (x + Self::chat_tab_wide(&self.chat.tabs) * before, y, chat_tabs::OWN_SIZE.0, chat_tabs::OWN_SIZE.1);
+        if let Some(open) = chat_tabs::detached(&mut self.chat.tabs, tab, place) {
+            self.chat.tab = open;
+            self.tabs_moved();
+            drag_begun(wnd::CHAT_OWN[(self.chat.tabs.len() - 1).min(chat_tabs::MOST - 1)].id, pointer);
+        }
+    }
+
+    /// A tab's own window was let go where it was moved to (`UISubChatHisWnd::OnLBtnUp`): it is kept there,
+    /// and with its left side within the chat window's width and its bottom within the chat window's height
+    /// it goes back among the tabs.
+    pub(in crate::web::app) fn chat_own_dropped(&mut self, tab: usize) {
+        let (Some(window), Some(own)) = (wnd::CHAT_OWN.get(tab), Self::window_rect(wnd::CHAT_OWN[tab.min(chat_tabs::MOST - 1)].id)) else { return };
+        let Some(kept) = self.chat.tabs.get_mut(tab).and_then(|tab| tab.own.as_mut()) else { return };
+        (kept.0, kept.1) = (own.0, own.1);
+        forget_moved(window.id);
+        if Self::window_rect(wnd::CHAT.id).is_some_and(|chat| !self.chat.hidden && chat_tabs::own_dropped_in(own, chat)) {
+            return self.chat_tab_attached(tab);
+        }
         self.tabs_changed();
     }
 
-    /// A tab's own window goes back among the tabs (`UM_ATTACH_CHAT_TAB`), if there is room for one more;
-    /// else the client says in the chat that there is not (line 1776, in red).
+    /// The corner of a tab's own window was dragged (`UISubChatHisWnd::SendMsg`, `UM_RESIZE`): the window
+    /// takes the size, unless the chat is locked.
+    pub(in crate::web::app) fn chat_own_sized(&mut self, tab: usize, width: i32, height: i32) {
+        if self.chat.locked {
+            return;
+        }
+        if let Some(own) = self.chat.tabs.get_mut(tab).and_then(|tab| tab.own.as_mut()) {
+            (own.2, own.3) = chat_tabs::own_resized(width, height);
+            self.tabs_changed();
+        }
+    }
+
+    /// A tab's own window goes back among the tabs (`ID_STICK_ON`, `UM_ATTACH_CHAT_TAB`), as the last of them
+    /// and the open one: not while the chat is locked, nor when the tabs there are leave no room for one
+    /// more; and when its own name, as wide as it is, times the tabs there would be, is more than the room,
+    /// the chat says that there is none (line 1776, in red).
     fn chat_tab_attached(&mut self, tab: usize) {
-        let inside = self.own_tabs().iter().filter(|tab| tab.own.is_none()).count() as i32;
-        if (inside + 1) * 71 > 600 - 90 {
+        let wide = Self::chat_tab_wide(self.own_tabs());
+        let Some(name) = self.chat.tabs.get(tab).map(|tab| crate::web::text_widths()(crate::i18n::tr(&tab.name)).ceil() as i32) else { return };
+        if self.chat.locked || !chat_tabs::room(&self.chat.tabs, wide) {
+            return self.tabs_changed();
+        }
+        if !chat_tabs::room(&self.chat.tabs, name) {
+            self.tabs_changed();
             return self.chat_line(Self::words(1776, "Failed to add because you have reached the limit."), RED);
         }
-        if let Some(tab) = self.chat.tabs.get_mut(tab) {
-            tab.own = None;
+        if let Some(back) = chat_tabs::attached(&mut self.chat.tabs, tab) {
+            self.chat.tab = back;
+            self.tabs_moved();
         }
-        self.chat.tab = tab;
+    }
+
+    /// A double click on a tab (`UITabControl::OnLBtnDblClk`), or on the name of a tab's own window
+    /// (`UISubChatHisWnd::OnLBtnDblClk`: not while the chat is locked): its name is typed anew in its place.
+    pub(in crate::web::app) fn chat_tab_named(&mut self, tab: usize) {
+        let Some(own) = self.own_tabs().get(tab).map(|tab| tab.own.is_some()) else { return };
+        if own && self.chat.locked {
+            return;
+        }
+        (self.chat.tab, self.chat.renaming) = (if own { self.chat.tab } else { tab }, Some(tab));
+        self.render();
+        if let Some(name) = element(crate::web::hud::CHAT_TAB_NAME).and_then(|name| name.dyn_into::<HtmlInputElement>().ok()) {
+            let _ = name.focus();
+            name.select();
+        }
+    }
+
+    /// Enter in the name of a tab being typed anew (`UITabControl::SendMsg` and `UISubChatHisWnd::SendMsg`,
+    /// `UM_DEFPUSH`): nothing typed leaves the name; a name too wide is refused in a box (line 1577): in the
+    /// window, one that with its 10 of room, times the tabs there, would not leave 90 of the window's width;
+    /// in a window of its own, one that with those 10 would not leave 50 of that window's.
+    pub(in crate::web::app) fn chat_tab_name_typed(&mut self) {
+        let name = field(crate::web::hud::CHAT_TAB_NAME).trim().replace("]]", "");
+        let Some(tab) = self.chat.renaming.take() else { return };
+        let wide = crate::web::text_widths()(&name).ceil() as i32;
+        let inside = chat_tabs::inside(&self.chat.tabs);
+        match self.chat.tabs.get_mut(tab) {
+            Some(_) if name.is_empty() => {}
+            Some(tab) if chat_tabs::name_fits(wide, inside, tab.own.map(|own| own.2)) => tab.name = name,
+            Some(_) => self.message = Some(Self::words(1577, "Not very long to change the name of the specified tab.")),
+            None => {}
+        }
         self.tabs_changed();
     }
 

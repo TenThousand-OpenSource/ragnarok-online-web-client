@@ -53,6 +53,7 @@ impl App {
     /// announcement across the top of the screen) is looked over at the same beat.
     pub(super) fn watch(&mut self) {
         self.announcements_pass();
+        self.achievement_told();
         let (Server::Map, Some(socket), true) = (&self.server, &self.socket, self.game.is_some()) else { return };
         match crate::link::watch(js_sys::Date::now(), self.link.heard_at, socket.sent_at()) {
             crate::link::Watch::Close => self.leave(Some(Key::Disconnected.text(self.lang).to_owned())),

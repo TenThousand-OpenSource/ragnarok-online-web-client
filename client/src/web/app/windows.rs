@@ -47,6 +47,27 @@ impl App {
         ((f64::from(at.0) / scale) as i32 + 1, (f64::from(at.1) / scale) as i32 + 1)
     }
 
+    /// Where a window stands on the stage now, moved as it may have been, and how large it is: in the stage's
+    /// own measure.
+    pub(super) fn window_rect(id: &str) -> Option<(i32, i32, i32, i32)> {
+        let stage = crate::web::document()?.query_selector(".stage").ok().flatten()?.get_bounding_client_rect();
+        let window = element(id)?.get_bounding_client_rect();
+        let scale = crate::web::stage_scale();
+        let on = |length: f64| (length / scale).round() as i32;
+        Some((on(window.left() - stage.left()), on(window.top() - stage.top()), on(window.width()), on(window.height())))
+    }
+
+    /// A window that was being moved was let go: one of a tab of the chat is kept where it is, or goes back
+    /// among the tabs (`clicks/chat.rs`); a party member's small window goes to the nearest of its places
+    /// (`clicks/party/mini.rs`).
+    pub(super) fn window_dropped(&mut self, id: &str) {
+        if let Some(tab) = wnd::CHAT_OWN.iter().position(|window| window.id == id) {
+            self.chat_own_dropped(tab);
+        } else if let Some(place) = wnd::PARTY_MINI.iter().position(|window| window.id == id) {
+            self.party_mini_dropped(place);
+        }
+    }
+
     /// What was typed into a box that asks how many of a thing there are `most` of (`hud::App::count_box`
     /// of that window): the number, when it is one that can be (`crate::inventory::count_typed`).
     pub(super) fn counted(window: &wnd::Window, most: u16) -> Option<u16> {

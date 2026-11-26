@@ -4,6 +4,7 @@
 
 use super::*;
 
+mod achievements;
 mod ai;
 mod books;
 mod broadcast;
@@ -29,9 +30,11 @@ mod mercenary;
 mod notices;
 mod party;
 mod pets;
+mod probability;
 mod player_menu;
 mod pvp;
 mod quests;
+mod reputation;
 mod scripted;
 mod settings;
 mod shops;
@@ -41,19 +44,34 @@ mod statuses;
 mod storage;
 mod talk;
 mod tips;
+mod navigation;
 mod unread;
 mod vending;
 mod viewequip;
 mod whispers;
 mod worldmap;
+mod cashshop;
+mod attendance;
+mod bank;
+mod battleground;
+mod agency;
+mod replay;
 
 // Every system's group, by its own names; the books' under names that say whose they are.
 pub(in crate::web) use {ai::*, broadcast::*, cart::*, chat::*, chat_rooms::*, choosing::*, commands::*, cooldowns::*};
 pub(in crate::web) use {emotions::*, exchange::*, family::*, fight::*, friends::*, guide::*, guild::*, homunculus::*};
 pub(in crate::web) use {inventory::*, link::*, mail::*, marks::*, mercenary::*, notices::*, party::*, pets::*};
 pub(in crate::web) use {player_menu::*, pvp::*, quests::*, scripted::*, settings::*, shops::*, skills::*, status::*};
+pub(in crate::web) use navigation::*;
 pub(in crate::web) use {statuses::*, storage::*, talk::*, tips::*, unread::*, vending::*, viewequip::*, whispers::*};
 pub(in crate::web) use worldmap::*;
+pub(in crate::web) use cashshop::*;
+pub(in crate::web) use {achievements::*, probability::*, reputation::*};
+pub(in crate::web) use attendance::*;
+pub(in crate::web) use bank::*;
+pub(in crate::web) use battleground::*;
+pub(in crate::web) use agency::*;
+pub(in crate::web) use replay::*;
 pub(in crate::web) use books::{Aloud as BookAloud, BOOK_SAID, BookButton, BookNews, Books, OpenBook, Reading};
 
 pub(in crate::web) struct Game {

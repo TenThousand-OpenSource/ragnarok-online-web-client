@@ -51,12 +51,18 @@ fn built() -> Vec<(&'static str, Vec<u8>)> {
     dealings(&mut lines);
     people(&mut lines);
     guild_and_mail(&mut lines);
+    achievements(&mut lines);
+    battleground(&mut lines);
+    bank(&mut lines);
+    attendance(&mut lines);
+    agency(&mut lines);
+    cashshop(&mut lines);
     lines
 }
 
 /// The login, the characters, entering the map and what keeps the connection.
 fn way_in(lines: &mut Vec<(&'static str, Vec<u8>)>) {
-    let account = packets::LoginAccepted { login_id1: 0x1122_3344, account_id: 2_000_001, login_id2: 0x5566_7788, sex: 1, char_servers: Vec::new() };
+    let account = packets::LoginAccepted { login_id1: 0x1122_3344, account_id: 2_000_001, login_id2: 0x5566_7788, sex: 1, token: String::new(), char_servers: Vec::new() };
     for text in [SHORT, LONG] {
         built!(lines; packets::login; text, text);
         built!(lines; packets::make_char; text, 3, 5, 7, 4218, 1);
@@ -291,6 +297,55 @@ fn guild_and_mail(lines: &mut Vec<(&'static str, Vec<u8>)>) {
     built!(lines; mail::attach; 3, 20);
     built!(lines; mail::detach; 3, 20);
     built!(lines; mail::send; &mail::Receiver { character: 150_002, job: 0, level: 1, name: SHORT.to_owned() }, SHORT, 0, "", "");
+}
+
+/// The achievements: the reward asked for, and a title put on and taken off.
+fn achievements(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    built!(lines; achievements::ask_reward; 200_005);
+    built!(lines; achievements::wear_title; 1013);
+    built!(lines; achievements::wear_title; 0);
+}
+
+/// The battlegrounds: applying, leaving the queue, asking for the place in it, the answer whether to enter.
+fn battleground(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    for text in [SHORT, LONG] {
+        built!(lines; battleground::apply; 4, text);
+        built!(lines; battleground::cancel; text);
+        built!(lines; battleground::ask_place; text);
+        built!(lines; battleground::admit; true, text, text);
+        built!(lines; battleground::admit; false, text, text);
+    }
+}
+
+/// The bank: the balance asked for, a deposit and a withdrawal.
+fn bank(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    built!(lines; bank::check; 2_000_001);
+    built!(lines; bank::deposit; 2_000_001, 123_456_789);
+    built!(lines; bank::withdraw; 2_000_001, 1);
+}
+
+/// The attendance check: its window asked for, and today's reward claimed.
+fn attendance(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    built!(lines; attendance::open;);
+    built!(lines; attendance::claim;);
+}
+
+/// The Adventurer's Agency: asking a leader to be let in, and the leader's answer.
+fn agency(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    built!(lines; agency::ask_to_join; 150_007, 2_000_007);
+    built!(lines; agency::answer_join; 150_007, 2_000_007, true);
+    built!(lines; agency::answer_join; 150_007, 2_000_007, false);
+}
+
+/// The cash shop: its window asked for and closed, its lists asked for, a purchase.
+fn cashshop(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    built!(lines; cashshop::open; 0);
+    built!(lines; cashshop::open; 9);
+    built!(lines; cashshop::close;);
+    built!(lines; cashshop::ask_lists;);
+    built!(lines; cashshop::ask_limited;);
+    built!(lines; cashshop::buy; 0, &[(501, 1, 6)]);
+    built!(lines; cashshop::buy; 250, &[(12210, 100, 0), (2357, 3, 0xFFFF)]);
 }
 
 /// The lines of `golden.txt` as the builders write them now.

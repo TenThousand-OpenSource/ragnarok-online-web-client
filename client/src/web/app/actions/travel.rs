@@ -27,6 +27,8 @@ impl App {
                 }
             }
         }
+        // The navigation follows the character too: its way, and its map of it.
+        self.navigation_stepped();
     }
 
     /// The map is drawn, or could not be.
@@ -40,8 +42,12 @@ impl App {
             self.map_sign();
             // The Tipbox opens as the game is first entered, unless the player has it not.
             self.tips_at_start();
+            // The cash shop's lists are asked for while the client has none.
+            self.cashshop_lists_wanted();
             // The effects of the states the character is in begin anew on the map it has come to.
             world::own_states_again(self.statuses.on.iter().map(|active| active.state));
+            // A navigation under way goes on from here (`ResumeRoute`).
+            self.navigation_entered();
         }
         if let Err(error) = outcome {
             web_sys::console::error_1(&format!("world: {error}").into());
@@ -58,7 +64,7 @@ impl App {
     }
 
     /// The server put the character somewhere, on this map or on another.
-    pub(super) fn arrived(&mut self, map: String, x: u16, y: u16) {
+    pub(in crate::web::app) fn arrived(&mut self, map: String, x: u16, y: u16) {
         if !matches!(self.screen, Screen::Game) {
             return fade(false);
         }
@@ -87,18 +93,22 @@ impl App {
             // The map is already drawn: the character is only put elsewhere on it.
             world::jump((x, y));
             world::own_states_again(self.statuses.on.iter().map(|active| active.state));
+            self.navigation_entered();
             // (While the map is read, its loading screen stays; the dark goes when it shows.)
             if !reading {
                 fade(false);
             }
         } else {
+            self.navigation_left_map();
             self.enter_world();
         }
         self.send(&packets::map_loaded());
     }
 
     pub(in crate::web::app) fn entered_map(&mut self, packet: &[u8]) {
-        let (Some(accepted), Some(zone), Some(socket)) = (packets::map_accepted(packet), &self.zone, &self.socket) else {
+        // (A recording being played has no server behind it: the game is entered all the same.)
+        let playing = self.replay.playing.is_some();
+        let (Some(accepted), Some(zone), true) = (packets::map_accepted(packet), &self.zone, self.socket.is_some() || playing) else {
             return self.leave(Some(Key::Rejected.text(self.lang).to_owned()));
         };
         let name = self.characters.iter().find(|character| character.char_id == zone.char_id).map(|character| character.name.clone()).unwrap_or_default();
@@ -106,7 +116,7 @@ impl App {
         // The clock the world shows everyone's walk by is set from the server's time (`CSession::SetServerTime`).
         world::clock_set(accepted.server_tick);
         // The map counts as loaded: the server now puts the character into the world, where other players see it.
-        socket.send(&packets::map_loaded());
+        self.send(&packets::map_loaded());
         // Until the map server sends the character's values, the ones of the character list stand in.
         let character = self.characters.iter().find(|character| character.char_id == zone.char_id);
         let job = character.map_or(0, |character| character.job);

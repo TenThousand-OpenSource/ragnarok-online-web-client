@@ -87,6 +87,36 @@ pub(crate) fn stage_scale() -> f64 {
     (wide / 1024.0).min(tall / 768.0).max(1.0)
 }
 
+/// What tells how wide a piece of text is as the page writes the client's usual text (`crate::font`: family
+/// 0, height 12, in the page's own face). The client adds up the widths its own font has; the page's letters
+/// are not to the pixel as wide, so a long line may be cut a letter sooner or later than in the client.
+pub(crate) fn text_widths() -> impl FnMut(&str) -> f64 {
+    let context = document()
+        .and_then(|document| document.create_element("canvas").ok())
+        .and_then(|canvas| canvas.dyn_into::<web_sys::HtmlCanvasElement>().ok())
+        .and_then(|canvas| canvas.get_context("2d").ok().flatten())
+        .map(|context| context.unchecked_into::<web_sys::CanvasRenderingContext2d>());
+    let face = document()
+        .and_then(|document| document.document_element())
+        .and_then(|root| web_sys::window()?.get_computed_style(&root).ok().flatten())
+        .and_then(|style| style.get_property_value("--face").ok())
+        .filter(|face| !face.trim().is_empty())
+        .unwrap_or_else(|| "Arial, sans-serif".to_owned());
+    if let Some(context) = &context {
+        context.set_font(&format!("{}px {face}", crate::font::pixels(0, 12)));
+    }
+    let mut known: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+    move |text: &str| {
+        if let Some(width) = known.get(text) {
+            return *width;
+        }
+        // Where the page cannot measure, a letter is taken as half as wide as it is tall.
+        let width = context.as_ref().and_then(|context| context.measure_text(text).ok()).map_or(text.chars().count() as f64 * 6.5, |measured| measured.width());
+        known.insert(text.to_owned(), width);
+        width
+    }
+}
+
 fn js_error(value: impl Into<JsValue>) -> String {
     format!("{:?}", value.into())
 }

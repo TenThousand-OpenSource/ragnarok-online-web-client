@@ -74,7 +74,7 @@ fn named(state: &mut State, view: &View, over: Option<(u32, (f32, f32))>, (width
     let own = || {
         let feet = touched(gpu, scene, view, &scene.player, state.pointer.filter(|_| over.is_none())?)?;
         let (id, name) = state.guilds.own_label()?;
-        Some((id, name, crate::names::PLAIN, (feet.0, feet.1 + below), None))
+        Some((id, names::titled(state, id, name), crate::names::PLAIN, (feet.0, feet.1 + below), None))
     };
     // Whoever the pointer is on; else the player's own character; else the thing on the ground it is on; else
     // the monster being fought.

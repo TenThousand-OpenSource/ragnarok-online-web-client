@@ -7,6 +7,7 @@
 //! - `GET /bgm/<file>`: the client's loose BGM folder.
 //! - `GET /ws/<port>`: a WebSocket bridged to a TCP connection to the game server (see `bridge`).
 //! - `POST /api/register`, `/api/recover`, `/api/reset`: accounts and lost passwords (see `accounts`).
+//! - `POST /party/<request>`: the Adventurer's Agency, handed on to the game's web service (see `agency`).
 //! - everything else: the built web client (static files).
 //!
 //! Reached from outside (a tunnel, a proxy), it asks for an invitation word and counts visitors by their own
@@ -15,7 +16,7 @@
 //! Here: the start-up, and what is done instead of serving when the command line asks for it (`told`). The
 //! options and the commands of the command line are in `config.rs`.
 
-use roweb_gateway::{accounts, bridge, grf, mapcache, public, tables};
+use roweb_gateway::{accounts, agency, bridge, grf, mapcache, public, tables};
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -145,6 +146,7 @@ async fn main() {
             lag: config.lag
         }))
         .merge(accounts)
+        .merge(agency::router(config.web_server))
         .nest_service("/bgm", ServeDir::new(config.client_dir.join("BGM")))
         .merge(client);
     let router = guarded(router, config.invite.as_deref(), config.behind_proxy, config.compress);

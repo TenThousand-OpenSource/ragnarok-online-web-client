@@ -103,6 +103,7 @@ fn drawn(state: &mut State, view: &View, own: ((f32, f32), SpriteKey), time: f64
     skill_units::drawn(state, view, &mut quads);
     effects::files(state, view, time, &mut quads);
     scope::drawn(state, view, time, &mut quads);
+    navigation::drawn(state, time, &mut quads);
     let casts = effects::casts(state, time, &mut quads);
     let asked = effects::bursts(state, view, time, &mut quads);
     // What the effects do to the bodies of those they are on, and the shakes of the screen they ask for.
@@ -124,6 +125,11 @@ fn drawn(state: &mut State, view: &View, own: ((f32, f32), SpriteKey), time: f64
 
 /// The page is told what the frame found: in the order the client's loop acts on them.
 fn tell(moved: Moved, Pursuit { follow, strike, take, used, once }: Pursuit) {
+    // A walk goes first: the server calls off a blow asked for before a walk (rAthena's `unit_walktoxy`:
+    // `unit_stop_attack`), and an order that ends a walk asks for both at once (`crate::map::order`).
+    if let Some((walk_to, goal)) = follow {
+        walk_to(goal.0 as u16, goal.1 as u16);
+    }
     if let Some((strike_once, id)) = once {
         strike_once(id);
     }
@@ -138,9 +144,6 @@ fn tell(moved: Moved, Pursuit { follow, strike, take, used, once }: Pursuit) {
     }
     if let Some((moved, cell)) = moved {
         moved(cell.0.max(0) as u16, cell.1.max(0) as u16);
-    }
-    if let Some((walk_to, goal)) = follow {
-        walk_to(goal.0 as u16, goal.1 as u16);
     }
 }
 

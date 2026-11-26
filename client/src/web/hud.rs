@@ -16,7 +16,7 @@ use crate::numbers::grouped;
 use crate::i18n::tr;
 use super::app::{App, Shop, escape};
 use super::data;
-use super::parts::{at, dragged, dropped, picture, pressed, sent, stepped, used};
+use super::parts::{at, dragged, dropped, picture, pressed, pressed_at, sent, stepped, used};
 use crate::press::things::{Drag, Drop, Form, Leveled, Use};
 use crate::net::inventory::{Hotkey, Item};
 use crate::inventory::Tab;
@@ -68,7 +68,17 @@ mod lists;
 mod emotions;
 mod tips;
 mod worldmap;
+mod navigation;
 mod books;
+mod cashshop;
+mod achievements;
+mod reputation;
+mod probability;
+mod attendance;
+mod bank;
+mod battleground;
+mod agency;
+mod replay;
 pub(super) mod windows;
 
 // What the windows share, each kind of piece in its file.
@@ -99,6 +109,8 @@ pub(super) use texts::{BOLD, Font, SMALL};
 
 /// How many chat lines are kept.
 pub const CHAT_KEPT: usize = 240;
+/// The field a tab of the chat has its name typed anew in.
+pub(in crate::web) const CHAT_TAB_NAME: &str = "chat-tab-name";
 
 /// How many columns of items the inventory shows (its rows are as many as fit beside its tabs:
 /// `App::inventory_body`).

@@ -11,6 +11,8 @@ pub fn start() -> Result<(), String> {
     dragging::wire(&window, &ui)?;
     // The windows themselves are dragged by their title bars.
     drag_windows(&document)?;
+    // The chat's tabs are pulled out of the window, and their own windows made larger by their corners.
+    chat::drag_chat_tabs(&document)?;
     wire_tooltip()?;
     wire_presses(&ui)?;
     wire_wheel(&ui)?;
@@ -141,7 +143,18 @@ fn wire_presses(ui: &Element) -> Result<(), String> {
         // What the press is on is read before the press is handled: handling it may draw the thing anew.
         let used = pressed(&event, "data-use").and_then(|pressed| pressed.get_attribute("data-use"));
         if let Some(pressed) = pressed(&event, "data-click") {
-            dispatch(Action::Click(pressed.get_attribute("data-click").unwrap_or_default(), pressed.get_attribute("data-arg").unwrap_or_default()));
+            // A thing that asks where on it the press was (`parts::pressed_at`) is told that in the place of
+            // what it was drawn with: the place in its own measure, however large the page draws it.
+            let place = event.dyn_ref::<web_sys::MouseEvent>().filter(|_| pressed.has_attribute("data-place")).map(|mouse| {
+                let on = pressed.get_bounding_client_rect();
+                let scale = pressed.clone().dyn_into::<web_sys::HtmlElement>().map_or(1.0, |thing| on.width() / f64::from(thing.offset_width().max(1)));
+                let scale = if scale > 0.0 { scale } else { 1.0 };
+                format!("{},{}", ((f64::from(mouse.client_x()) - on.left()) / scale) as i32, ((f64::from(mouse.client_y()) - on.top()) / scale) as i32)
+            });
+            dispatch(Action::Click(
+                pressed.get_attribute("data-click").unwrap_or_default(),
+                place.unwrap_or_else(|| pressed.get_attribute("data-arg").unwrap_or_default())
+            ));
         }
         // A double click on a thing (`things::doubled`): the second press on it, counted here, for the page
         // sends no double click to a thing its first press drew anew (a line of a menu, a row of a list).

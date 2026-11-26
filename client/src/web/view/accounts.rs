@@ -62,7 +62,31 @@ impl App {
             login = at(192, 32, 84, 84),
             login_pictures = states_of("login_interface/bt_start"),
         );
-        window(view, (301, 132), login_place(view), "", "login_interface/bg_login.tga", &inner)
+        // (The list of recordings stands in the login window's place, as in the client's replay mode.)
+        if self.replay.list {
+            return self.replays_view(view);
+        }
+        let login = window(view, (301, 132), login_place(view), "", "login_interface/bg_login.tga", &inner);
+        format!("{login}{}", self.replays_view(view))
+    }
+
+    /// The way to the recordings from the login screen. The Windows client is started for them apart (its
+    /// replay mode, which shows `UISelectReplayDataWnd` in the login's place); a page has one way in, so here
+    /// its button `replay_interface\\btn_replay.bmp` stands under the login window and opens the list over it,
+    /// 140 left of the middle of the screen and 160 over it, as the client puts it.
+    fn replays_view(&self, view: (f64, f64)) -> String {
+        use crate::press::replay::Press;
+        if self.replay.list {
+            let place = format!("left:{}px;top:{}px;width:280px;height:311px", view.0 as i32 / 2 - 140, (view.1 as i32 / 2 - 160).max(0));
+            return format!(r#"<div id="replay-list" class="a hud" style="{place};z-index:5">{}</div>"#, self.replay_list());
+        }
+        let (x, y) = login_place(view);
+        button(
+            &at(x as i32 + 247, y as i32 + 136, 54, 20),
+            &states_ab("replay_interface/btn_replay"),
+            &format!(r#"{} title="{}""#, pressed(Press::List), escape(&Self::words(2350, "Replay"))),
+            ""
+        )
     }
 
     /// A window for a form the original client does not have, in the look of its newer windows. Its texts are

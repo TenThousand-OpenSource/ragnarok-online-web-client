@@ -126,6 +126,9 @@ pub struct LoginAccepted {
     pub account_id: u32,
     pub login_id2: u32,
     pub sex: u8,
+    /// The token the login server gives for the game's web service (`web_auth_token`; the client's
+    /// `m_webAuthToken`): the Adventurer's Agency is asked with it.
+    pub token: String,
     pub char_servers: Vec<CharServer>,
 }
 
@@ -146,7 +149,7 @@ pub fn login_accepted(packet: &[u8]) -> Option<LoginAccepted> {
             users: u16_at(server, 26),
         })
         .collect();
-    Some(LoginAccepted { login_id1: u32_at(packet, 4), account_id: u32_at(packet, 8), login_id2: u32_at(packet, 12), sex: packet[46], char_servers })
+    Some(LoginAccepted { login_id1: u32_at(packet, 4), account_id: u32_at(packet, 8), login_id2: u32_at(packet, 12), sex: packet[46], token: name_at(packet, 47, 17), char_servers })
 }
 
 /// AC_REFUSE_LOGIN (0x083e): `u32 error, char[20] unblock_time`. Error 0 is an unknown ID, 1 a wrong password,

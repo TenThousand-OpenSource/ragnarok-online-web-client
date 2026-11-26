@@ -16,6 +16,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use super::js_error;
 
+mod achievements;
 mod ai;
 mod aura;
 mod books;
@@ -31,16 +32,23 @@ mod jobs;
 mod manner;
 mod maps;
 mod monster_skills;
+mod navigation;
 mod pets;
+mod probability;
 mod quests;
+mod reputation;
 mod scenery;
 mod skill_needs;
 mod skills;
 mod song_talk;
 mod statuses;
 mod tips;
+mod attendance;
+mod cashshop;
+mod battleground;
 mod worldmap;
 
+pub use achievements::{achievements, title_name};
 pub use ai::ai_scripts;
 pub use aura::aura_table;
 pub use books::{book_text, is_book};
@@ -56,14 +64,20 @@ pub use jobs::*;
 pub use manner::{foul, starred};
 pub use maps::*;
 pub use monster_skills::monster_skill;
+pub use navigation::{atlas, want_atlas};
 pub use pets::*;
+pub use probability::*;
 pub use quests::*;
+pub use reputation::reputation;
 pub use scenery::{Sky, sky};
 pub use skill_needs::{skill_asks, skill_sp};
 pub use skills::*;
 pub use song_talk::song_line;
 pub use statuses::*;
 pub use tips::*;
+pub use attendance::*;
+pub use cashshop::*;
+pub use battleground::*;
 pub use worldmap::*;
 
 /// Whether the game speaks Russian now: the items' and skills' texts are then asked for in Russian.
@@ -157,7 +171,7 @@ pub fn map_name(map: &str) -> String {
 /// built-in names and nobody wears headgear.
 pub async fn load() -> Result<(), String> {
     // The number changes when the tables gain something, so a browser's older copy is not used in their place.
-    let tables = fetch_json("/tables.json?v=31").await?;
+    let tables = fetch_json("/tables.json?v=34").await?;
     jobs::read(&tables);
     skills::read(&tables);
     pets::read(&tables);
@@ -169,6 +183,9 @@ pub async fn load() -> Result<(), String> {
     commands::read(&tables);
     worldmap::read(&tables);
     tips::read(&tables);
+    attendance::read(&tables);
+    cashshop::read(&tables);
+    battleground::read(&tables);
     figures::read(&tables);
     cards::read(&tables);
     scenery::read(&tables);
@@ -177,6 +194,9 @@ pub async fn load() -> Result<(), String> {
     monster_skills::read(&tables);
     castles::read(&tables);
     skill_needs::read(&tables);
+    achievements::read(&tables);
+    reputation::read(&tables);
+    probability::read(&tables);
     // (Not of the gateway's tables: two files of the client's data, read as they are.)
     song_talk::fetch();
     books::fetch();

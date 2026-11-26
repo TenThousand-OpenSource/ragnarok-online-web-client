@@ -3,7 +3,7 @@ use crate::net::bytes::testing::assert_lengths;
 use crate::net::packet_length;
 
 fn account() -> LoginAccepted {
-    LoginAccepted { login_id1: 0x1111_2222, account_id: 2_000_000, login_id2: 0x3333_4444, sex: 1, char_servers: Vec::new() }
+    LoginAccepted { login_id1: 0x1111_2222, account_id: 2_000_000, login_id2: 0x3333_4444, sex: 1, token: String::new(), char_servers: Vec::new() }
 }
 
 /// Every request is as long as the server's table says, or the server would wait for more or misread the next.

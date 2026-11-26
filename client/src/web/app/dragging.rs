@@ -84,6 +84,14 @@ fn let_go(event: web_sys::MouseEvent) {
     place(&event, false);
     let under = crate::web::document().and_then(|document| document.element_from_point(event.client_x() as f32, event.client_y() as f32));
     let Some(under) = under else { return };
+    // A member of the party taken out of the party window and let go anywhere but over that window gets a
+    // small window (`UIDragMiniPartyWnd::OnLBtnUp`, `UIMessengerGroupWnd::DropMember`).
+    if let Drag::Member(_) = dragged {
+        if under.closest(&format!("#{}", wnd::PARTY.id)).ok().flatten().is_none() {
+            dispatch(Action::Thrown(dragged));
+        }
+        return;
+    }
     let slot = under.closest("[data-slot]").ok().flatten().and_then(|slot| slot.get_attribute("data-slot")).and_then(|slot| slot.parse().ok());
     // A window that takes things says so itself (`data-drop`: a shop's list and basket, the storage).
     let onto = under.closest("[data-drop]").ok().flatten().and_then(|onto| onto.get_attribute("data-drop")).and_then(|onto| things::read::<Drop>(&onto));

@@ -41,7 +41,7 @@ impl App {
                 if let Some((account, left, most)) = party::life(packet) {
                     self.party.life.insert(account, (left, most));
                     world::unit_life(account, left, most);
-                    self.redraw(&[&wnd::PARTY]);
+                    self.party_shown();
                 }
             }
             party::ZC_GROUP_ISALIVE => {
@@ -51,7 +51,7 @@ impl App {
                     } else {
                         self.party.dead.remove(&account);
                     }
-                    self.redraw(&[&wnd::PARTY]);
+                    self.party_shown();
                 }
             }
             party::ZC_NOTIFY_MEMBERINFO_TO_GROUPM => {
@@ -59,7 +59,7 @@ impl App {
                     if let Some(member) = self.party.members.iter_mut().find(|member| member.account == account && !member.offline) {
                         (member.job, member.level) = (job, level);
                     }
-                    self.redraw(&[&wnd::PARTY]);
+                    self.party_shown();
                 }
             }
             // The party has another leader. (What the client says of it in the chat was not found in its
@@ -114,6 +114,15 @@ impl App {
         self.party.members.iter().any(|member| member.account == own && member.leader && !member.offline)
     }
 
+    /// Something of a member changed that the party's windows show (its life, its death, its job): the party
+    /// window and the members' small windows are drawn anew.
+    pub(in crate::web) fn party_shown(&self) {
+        self.redraw(&[&wnd::PARTY]);
+        if !self.party.mini.0.is_empty() {
+            self.redraw(&wnd::PARTY_MINI);
+        }
+    }
+
     /// The list of members changed: its window, the window beside it and the marks on the minimap follow.
     pub(in crate::web::app) fn party_changed(&mut self) {
         let members = &self.party.members;
@@ -124,6 +133,7 @@ impl App {
             self.party.side = None;
         }
         self.redraw(&[&wnd::PARTY, &wnd::PARTY_SIDE, &wnd::PARTY_MENU]);
+        self.party_mini_follows();
         self.party_marks();
         // Whom a press fights on a PVP map goes by the party (`incoming/pvp.rs`).
         self.sides_told();
@@ -187,7 +197,8 @@ impl App {
         }
         if self.game.as_ref().is_some_and(|game| game.name == name) {
             let (open, small) = (self.party.open, self.party.small);
-            self.party = Party { open, small, ..Party::default() };
+            self.party = Party { open, small, mini_of: name.clone(), ..Party::default() };
+            self.party_mini_cleared();
             self.chat_line(Self::words(84, "You left the party."), CYAN);
             self.redraw(&[&wnd::PARTY_ASKS]);
         }

@@ -95,6 +95,13 @@ impl Gat {
         self.looked(from, to, usize::MAX, |(x, y)| (west..=east).contains(&x) && (south..=north).contains(&y))
     }
 
+    /// The way across the whole map, for the client's navigation (its `CNavigationManager` keeps a
+    /// `CPathFinder` with `useNodePool`, whose `FindOrCreateNode` then has a node for every cell of the map):
+    /// the client's search with no count of cells.
+    pub fn whole_path(&self, from: (i32, i32), to: (i32, i32)) -> Vec<(i32, i32)> {
+        self.looked(from, to, usize::MAX, |_| true)
+    }
+
     /// The client's search (`client_path`), over the cells `allowed` and no more than `most` of them.
     fn looked(&self, from: (i32, i32), to: (i32, i32), most: usize, allowed: impl Fn((i32, i32)) -> bool) -> Vec<(i32, i32)> {
         if from == to || !self.walkable(to.0, to.1) {

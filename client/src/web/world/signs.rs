@@ -14,6 +14,9 @@ pub enum Board {
     Room,
     /// A shop's, which stands 17 higher (`CGameActor::UpdateGaugePositions`).
     Shop,
+    /// The mark over one of another team on a battleground (`UIWordDisplayWnd`): 24 square, its corner 5 of a
+    /// screen 640 wide left of the feet and 100 of 480 over them, nearer when the camera is; not pressed.
+    Foe,
 }
 
 /// The signs standing now.
@@ -80,6 +83,11 @@ pub(super) fn shown(state: &mut State, view: &View, (width, height): (f32, f32))
         next = shown.next_element_sibling();
         let feet = scene.place_of(*owner).and_then(|at| view.project(on_ground(&scene.gat, at)));
         let style = match feet {
+            Some(feet) if *board == Board::Foe => format!(
+                "left:{:.0}px;top:{:.0}px;width:24px;height:24px;pointer-events:none",
+                (feet.0 * width - crate::bars::over(5.0, width * 480.0 / 640.0, scene.camera.distance)) / scale,
+                (feet.1 * height - crate::bars::over(100.0, height, scene.camera.distance)) / scale
+            ),
             Some(feet) => {
                 let higher = if *board == Board::Shop { 34.0 } else { 17.0 };
                 format!(

@@ -66,6 +66,7 @@ mod written;
 mod launch;
 mod state_effects;
 mod scope;
+mod navigation;
 mod skill_units;
 mod signs;
 mod scripted;
@@ -99,14 +100,15 @@ pub use quests::quest_mark;
 pub use cart::carted;
 pub use falcon::{Prey, falcon_sent};
 pub use quests::visit;
-pub use pvp::{sides, zone};
+pub use pvp::{own_team, sides, team, teams_left, zone};
 pub use guild::{emblem_known, emblem_pixels, guild_changed, guild_gone, own_guild, player_card, player_guild, player_position};
 pub use combat::*;
 pub use written::spot_says;
-pub use names::{own_level, unit_titled};
+pub use names::{own_level, player_titled, unit_titled};
 pub use launch::*;
 pub use state_effects::{own_states_again, state_effects, third_option_told};
 pub use scope::{area_warned, scope_shown};
+pub use navigation::{Marked, way_marked, with_ground};
 pub use skill_units::{
     cell_retyped, ground_skill, skill_unit_becomes, skill_unit_gone, skill_unit_seen, skill_unit_shown, skill_unit_stands,
     skill_unit_strikes, skill_unit_used

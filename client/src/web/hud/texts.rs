@@ -113,9 +113,10 @@ pub(in crate::web) fn coloured(line: &str) -> String {
 /// written into it (`crate::links`) as the viewer shows one, its words underlined in the colour of links
 /// (`CreateLinkWindow`). A link to an item opens what is known of the item when pressed
 /// (`ShowTextButtonItem`), one to a tip opens the Tipbox on it (`ShowTextButtonTip`); a line of the message
-/// table named in the text is written out. A place for the navigation (`OpenTextButtonNavigation`), a quest
-/// and an address of the web (`OpenTextButtonLink`, which hands it to Windows) show their words and are not
-/// pressed: this client has no navigation, and it opens no address a text names.
+/// table named in the text is written out; a place for the navigation starts a navigation there
+/// (`OpenTextButtonNavigation`: `crate::navigation::texts::linked`). A quest and an address of the web
+/// (`OpenTextButtonLink`, which hands it to Windows) show their words and are not pressed: this client opens
+/// no address a text names.
 pub(in crate::web) fn linked_with(line: &str, between: impl Fn(&str) -> String) -> String {
     use crate::links::{self, Kind};
     let (marked, found) = links::parted(line);
@@ -127,6 +128,7 @@ pub(in crate::web) fn linked_with(line: &str, between: impl Fn(&str) -> String) 
             (Kind::Message, number) => return escape(&number.and_then(|line| data::message(line as usize)).unwrap_or_default()),
             (Kind::Item, Some(item)) => format!(" {}", pressed(crate::press::talk::Press::Item(item))),
             (Kind::Tip, Some(tip)) => format!(" {}", pressed(crate::press::tips::Press::Tip(tip))),
+            (Kind::Navi, _) if !link.info.is_empty() => format!(" {}", pressed(crate::press::navigation::Press::Go(link.info.join(",")))),
             _ => String::new(),
         };
         let colour = if link.kind == Kind::Url { links::URL_COLOUR } else { links::LINK_COLOUR };

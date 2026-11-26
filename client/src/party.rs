@@ -1,5 +1,7 @@
 //! The party as rules: what the client decides of its members that no packet says.
 
+pub mod mini;
+
 /// The map a member is on without what the server writes after its name (`prontera.gat`): two members are on
 /// one map when these are the same (the client's `UpdatePartyMemberInfo` cuts the same off both).
 pub fn map_name(map: &str) -> &str {

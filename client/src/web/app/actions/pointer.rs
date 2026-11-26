@@ -29,5 +29,7 @@ impl App {
         // (While the character's own blow is in motion the world asks for no walk: `world/pursuit.rs`,
         // `world/input/press.rs`.)
         self.send_on_map(&packets::walk_to(x, y));
+        // (`UIWindowMgr::UpdateNavigationList`: the navigation's window may fold as the ground is pressed.)
+        self.navigation_walk_asked();
     }
 }

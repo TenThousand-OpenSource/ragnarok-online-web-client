@@ -29,6 +29,8 @@ presses! {
         Identify(usize) = "identify",
         /// A friend in the list of friends, by its place: a window opens for a talk with that friend alone.
         Friend(usize) = "friend",
+        /// A recording in the list of them, by its place: it is played.
+        Replay(usize) = "replay-file",
         /// A row of a list a skill or a card opened: it is picked and confirmed.
         Choice(usize) = "choice",
         /// A line of the menu an NPC offers: it is picked and confirmed.
@@ -39,6 +41,11 @@ presses! {
         Emotion(u16) = "emotion",
         /// The sign over a vendor's head, by the vendor's account: what the shop sells is asked for.
         Sign(u32) = "sign",
+        /// A tab of the chat, in the window or in one of its own, by its place among the tabs: its name is
+        /// typed anew.
+        ChatTab(usize) = "chat-tab",
+        /// A line of the list of titles in the Equipment window: the title is put on, or with 0 taken off.
+        Title(u32) = "title",
     }
 }
 
@@ -93,6 +100,9 @@ presses! {
         Vended(usize) = "vended",
         /// A row of a vendor's list that is in the basket: taken out of the basket.
         Wanted(usize) = "wanted",
+        /// A member of the party, by its place in the party window's list: taken out of the window, to have
+        /// a small window of its own.
+        Member(usize) = "member",
     }
 }
 
@@ -101,6 +111,8 @@ presses! {
     Menu {
         /// A member of the party, by its place in the party window's list.
         Member(usize) = "member",
+        /// The small window of a member of the party, by the member's place in that list.
+        MiniMember(usize) = "mini-member",
         /// A member of the guild, by its place in the guild window's list.
         GuildMember(usize) = "guild-member",
         /// A row of the lists of the guilds allied to the player's and opposed, as `crate::guild::related_slot`
@@ -186,10 +198,21 @@ presses! {
         Shortcuts = "shortcuts",
         /// What is looked for in the Tipbox.
         TipSearch = "tip-search",
+        /// The name a recording is to be kept under, typed into the recorder.
+        ReplayName = "replay-name",
+        /// What is searched for in the navigation's window, and in the World Map's line.
+        NavigationSearch = "navigation-search",
+        WorldSearch = "world-search",
+        /// What is searched for in the cash shop.
+        CashShopSearch = "cashshop-search-line",
+        /// What is looked for in the reputation's window.
+        ReputeSearch = "repute-search",
         /// The words of a Talkie Box or of Graffiti, sent with Enter.
         SkillWords = "skill-words",
         /// The away message, sent with Enter.
         AwayWords = "away-words",
+        /// The name of a tab of the chat typed anew, sent with Enter.
+        ChatTabName = "chat-tab-name",
     }
 }
 

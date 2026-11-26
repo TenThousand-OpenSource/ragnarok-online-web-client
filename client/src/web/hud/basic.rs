@@ -67,25 +67,27 @@ impl App {
             ("skill", Some(skills::Press::Window.into()), 283, "Skill Tree", Some(key::SKILLS)),
             ("party", Some(crate::press::party::Press::Window.into()), 103, "Party", Some(key::PARTY)),
             ("guild", Some(crate::press::guild::Press::Window.into()), 3134, "Guild", Some(key::GUILD)),
-            ("battle", None, 2003, "Battleground", None),
+            ("battle", Some(crate::press::battleground::Press::Window.into()), 2003, "Battleground", None),
             ("quest", Some(crate::press::quests::Press::Window.into()), 1317, "Quest List", Some(key::QUESTS)),
             ("map", Some(crate::press::worldmap::Press::Window.into()), 2859, "World Map", Some(key::WORLD_MAP)),
-            ("navigation", None, 2353, "Navigation", None),
+            ("navigation", Some(crate::press::navigation::Press::Window.into()), 2353, "Navigation", Some(key::NAVIGATION)),
             ("option", Some(general::Press::Options.into()), 265, "Option", None),
-            ("bank", None, 3135, "Bank", None),
-            ("rec", None, 2350, "Replay", None),
+            ("bank", Some(crate::press::bank::Press::Window.into()), 3135, "Bank", Some(key::BANK)),
+            ("rec", Some(crate::press::replay::Press::Window.into()), 2350, "Replay", None),
             ("mail", Some(crate::press::mail::Press::Window.into()), 3136, "Mail", Some(key::MAIL)),
-            ("achievement", None, 2646, "Achievements", None),
+            ("achievement", Some(crate::press::achievements::Press::Window.into()), 2646, "Achievements", Some(key::ACHIEVEMENTS)),
             ("tip", Some(crate::press::tips::Press::Window.into()), 3239, "Tipbox", Some(key::TIPS)),
-            ("shop", None, 3137, "Cash Shop", None),
+            ("shop", Some(crate::press::cashshop::Press::Window.into()), 3137, "Cash Shop", Some(key::CASH_SHOP)),
             // The guide to the keys, a picture of a keyboard (`ID_OPEN_HOTKEY`: `WID_HOTKEYGUIDEWND`). The
             // Shortcut Settings are opened from the guide and from the game's options.
             ("keyboard", Some(crate::press::hotkeys::Press::Guide.into()), 3128, "Hotkey Guide", None),
-            ("attendance", None, 3473, "Attendance check", None),
-            ("adventurerAgency", None, 3514, "Adventurer's Agency", None),
-            ("repute", None, 3827, "Reputation Status", None),
+            ("attendance", Some(crate::press::attendance::Press::Window.into()), 3473, "Attendance check", None),
+            ("adventurerAgency", Some(crate::press::agency::Press::Window.into()), 3514, "Adventurer's Agency", None),
+            ("repute", Some(crate::press::reputation::Press::Window.into()), 3827, "Reputation Status", Some(key::REPUTATION)),
             ("adventureguide", Some(guide::Press::Open.into()), 4053, "Adventure guide", None),
-            ("probability", None, 4119, "Probabilities", None),
+            // (Its line, 4119, lies past the end of `msgstringtable.txt`: the gateway gives it by itself,
+            // `data/probability.rs`.)
+            ("probability", Some(crate::press::probability::Press::Ask.into()), 4119, "Probablity", None),
         ];
         let bar = |name: &str, y: i32, height: i32| {
             pictured(
@@ -104,7 +106,7 @@ impl App {
         if self.menu_closed {
             // Folded away while an icon wears a mark (mail not read, a level gained), the bar is the one that
             // tells of it, at the window's top and 13 high (`UIMenuIconWnd::Paint`, `notificationOpenButton`).
-            let told = self.mail.marked || self.hero.level_told || self.skills.level_told;
+            let told = self.mail.marked || self.hero.level_told || self.skills.level_told || self.achievements.told;
             return if told { bar("new_", 0, 13) } else { bar("", 4, 9) };
         }
         let mut strip = bar("close_", 4, 9);
@@ -119,6 +121,8 @@ impl App {
                 "mail" => self.mail.marked,
                 "status" | "status_doram" => self.hero.level_told,
                 "skill" => self.skills.level_told,
+                // …and the achievements' after one was completed (`CGameMode::ReceiveAchievementUpdate`).
+                "achievement" => self.achievements.told,
                 _ => false,
             };
             let (name, y, size) = if marked { (format!("{name}_new"), y - 6, (35, 40)) } else { (name.to_owned(), y, (32, 34)) };
@@ -129,7 +133,9 @@ impl App {
                 (_, Some(place)) => crate::hotkeys::written(self.bound(crate::hotkeys::table::INTERFACE, place), self.keys.mac, data::key_name),
                 _ => String::new(),
             };
-            let tells = if keys.is_empty() { Self::words(line, otherwise) } else { format!("{} ({keys})", Self::words(line, otherwise)) };
+            let own = Some(data::probability_title()).filter(|title| name == "probability" && !title.is_empty());
+            let words = own.unwrap_or_else(|| Self::words(line, otherwise));
+            let tells = if keys.is_empty() { words } else { format!("{words} ({keys})") };
             let (dim, click) = match press {
                 Some(press) => ("", pressed(press)),
                 None => (" dim", String::new()),

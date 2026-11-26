@@ -6,6 +6,11 @@ use crate::chat_tabs::{self, Tab};
 use crate::links::items::Piece;
 use crate::press::chat::Press;
 
+/// The grey of the lines at the right and the bottom of the chat's windows (`0x8E8E8E`).
+const GREY: &str = "#8e8e8e";
+/// The least width of the line a name is typed in, in a tab's own window.
+const TAB_FIELD: i32 = 71;
+
 /// The colour of a link to an item in a line (`UIChatHisBox::RenderItemLinks`: `0x82F2E1` as the client
 /// writes colours, blue first).
 const LINK: &str = "#e1f282";
@@ -18,6 +23,13 @@ impl App {
     /// The chat's tabs as they are now: the player's, or the client's own until the player changes one.
     pub(in crate::web) fn chat_tabs(&self) -> Vec<Tab> {
         if self.chat.tabs.is_empty() { data::chat_tabs_start() } else { self.chat.tabs.clone() }
+    }
+
+    /// How wide each tab is in the window's line of tabs (`chat_tabs::tab_wide`), by how wide the page
+    /// writes the names.
+    pub(in crate::web) fn chat_tab_wide(tabs: &[Tab]) -> i32 {
+        let mut wide = crate::web::text_widths();
+        chat_tabs::tab_wide(tabs.iter().filter(|tab| tab.own.is_none()).map(|tab| wide(tr(&tab.name)).ceil() as i32))
     }
 
     /// The tab that is open among those in the window: the one chosen, or the first of them if that one was
@@ -64,10 +76,7 @@ impl App {
         crate::links::items::pieces(row)
             .into_iter()
             .map(|piece| match piece {
-                Piece::Words(words) => crate::chat::held(words)
-                    .into_iter()
-                    .map(|(together, words)| if together { format!(r#"<span class="kept">{}</span>"#, escape(words)) } else { escape(words) })
-                    .collect(),
+                Piece::Words(words) => crate::navigation::texts::chat_parts(words).into_iter().map(Self::chat_words).collect(),
                 Piece::Item(link) => {
                     let name = data::item_as(link.item, true).map_or_else(|| format!("#{}", link.item), |(name, _)| name);
                     let refined = if link.refine > 0 { format!("+{} ", link.refine) } else { String::new() };
@@ -81,28 +90,56 @@ impl App {
             .collect()
     }
 
+    /// The words of a row between its links to items: what stands in brackets kept together, and a link to
+    /// a place (`<NAVIL>…</NAVIL>`) as the client shows one, the map and the cell between `<` and `>`
+    /// (`NavigationLinkParser::DisplayNavigationLink`), pressed to look at that place in the navigation's
+    /// window (`UINaviLinkButton::OnLBtnDown`).
+    fn chat_words(part: Result<&str, &str>) -> String {
+        use crate::navigation::texts;
+        match part {
+            Ok(words) => crate::chat::held(words)
+                .into_iter()
+                .map(|(together, words)| if together { format!(r#"<span class="kept">{}</span>"#, escape(words)) } else { escape(words) })
+                .collect(),
+            Err(link) => match texts::chat_linked(link) {
+                Some((map, x, y)) => format!(
+                    r#"<span style="color:{LINK};cursor:pointer" {}>{}</span>"#,
+                    pressed(crate::press::navigation::Press::Chat(link.to_owned())),
+                    escape(&texts::chat_link_words(map, x, y))
+                ),
+                None => escape(link),
+            },
+        }
+    }
+
     /// One of the small buttons of the tabs' line, or of a tab's own window: its two pictures
     /// (`basic_interface\<name>_a.bmp` as it stands, `_b.bmp` under the pointer and pressed).
     fn chat_button(x: i32, name: &str, (width, height): (i32, i32), press: Press, title: &str) -> String {
         pictured_by(Convention::AThenB, x, 4, (width, height), &format!("basic_interface/{name}"), press, &format!(r#" title="{}""#, escape(tr(title))))
     }
 
-    /// The tabs' line of the chat (`UINewChatWnd`): the tabs that are in the window, 71 wide and 16 high, the
-    /// open one lighter; at the right the lock, and from it leftwards, each 2 from the next
+    /// The tabs' line of the chat (`UINewChatWnd`): the tabs that are in the window, each as wide as the
+    /// widest of their names and 10 more (`chat_tab_wide`) and 16 high, the open one lighter; at the right the lock, and from it leftwards, each 2 from the next
     /// (`ApplyHeaderLayout`), the buttons that take the open tab away, add a tab, take the open tab out into
     /// a window of its own and set what it lists. Locked, only the last of them is there.
     fn chat_header(&self, tabs: &[Tab], open: usize) -> String {
-        const TAB: i32 = 71;
+        let wide = Self::chat_tab_wide(tabs);
         let mut header = String::new();
         for (place, (index, tab)) in tabs.iter().enumerate().filter(|(_, tab)| tab.own.is_none()).enumerate() {
             let lit = index == open;
+            // A press on a tab opens it, a double click has its name typed anew, and the pointer pulls it out
+            // of the window (`app/chat.rs`).
             header.push_str(&format!(
-                r#"<button type="button" class="a chat-tab" style="{};background:rgba(0,0,0,{})" {}>{}</button>"#,
-                at(4 + TAB * place as i32, if lit { 1 } else { 2 }, TAB - 1, if lit { 16 } else { 15 }),
+                r#"<button type="button" class="a chat-tab" style="{};background:rgba(0,0,0,{})" {} {}>{}</button>"#,
+                at(4 + wide * place as i32, if lit { 1 } else { 2 }, wide - 1, if lit { 16 } else { 15 }),
                 if lit { ".4" } else { ".6" },
                 pressed(Press::Tab(index)),
+                used(Use::ChatTab(index)),
                 escape(tr(&tab.name)),
             ));
+            if self.chat.renaming == Some(index) {
+                header.push_str(&Self::chat_name_field(4 + wide * place as i32 + 2, 2, wide - 4, &tab.name));
+            }
         }
         let lock = if self.chat.locked { ("lock_dragwnd", 9) } else { ("unlock_dragwnd", 15) };
         header.push_str(&pictured(
@@ -115,12 +152,12 @@ impl App {
                 &format!("basic_interface/{}.bmp", lock.0)
             ],
             Press::Lock,
-            r#" title="Lock the window in place""#
+            &format!(r#" title="{}""#, escape(tr(if self.chat.locked { "Unlock the chat windows" } else { "Lock the chat windows in place" })))
         ));
         let buttons = [
             ("wnd_mini", (8, 8), Press::Remove, "Remove the tab"),
             ("battle_option", (8, 8), Press::Add, "Add a tab"),
-            ("stickoff", (14, 9), Press::Detach, "Detach"),
+            ("stickoff", (14, 9), Press::Detach, "Take the tab out into a window of its own"),
             ("battle_option2", (9, 9), Press::Options, "Options")
         ];
         let mut right = 600 - 20;
@@ -129,6 +166,19 @@ impl App {
             header.push_str(&Self::chat_button(right, name, size, press, title));
         }
         header
+    }
+
+    /// The line a tab's name is typed anew in, over the tab (`UITabControl::OnLBtnDblClk`: the tab's width
+    /// less 4, at 2, 2 of it): Enter sends it.
+    fn chat_name_field(x: i32, y: i32, width: i32, name: &str) -> String {
+        format!(
+            r#"<form {} class="a" style="{}"><input class="a in" id="{}" maxlength="23" autocomplete="off" value="{}" style="{}"></form>"#,
+            sent(Form::ChatTabName),
+            at(x, y, width, 14),
+            CHAT_TAB_NAME,
+            escape(name),
+            at(0, 0, width, 14)
+        )
     }
 
     /// The chat's height: the client's own sum (`UINewChatWnd::ResizeRows`), the input line, the rows and three
@@ -141,13 +191,12 @@ impl App {
     /// see-through list between its white and grey lines; and the input line with the box for whom to whisper
     /// to, the two edits and the round buttons. With no rows only the input line is left.
     pub(in crate::web) fn chat_window(&self, lines: usize, height: i32) -> String {
-        const TAB: i32 = 71;
         let base = height - 24;
         let mut window = String::new();
         if lines > 0 {
             let all = self.chat_tabs();
             let open = self.chat_tab_open(&all);
-            let tabs = all.iter().filter(|tab| tab.own.is_none()).count() as i32 * TAB;
+            let tabs = chat_tabs::inside(&all) as i32 * Self::chat_tab_wide(&all);
             window.push_str(&self.chat_header(&all, open));
             // How many play on the server, at the right of the tabs' line, before its small buttons. The client
             // has no such thing (it answers `/who` in the chat): this is this client's own.
@@ -200,24 +249,51 @@ impl App {
         self.chat.tabs.get(index).and_then(|tab| tab.own)
     }
 
-    /// A tab's own window (the client's `UISubChatHisWnd`): the tab's name in white at (4, 3) in a tab 16
-    /// high and as wide as the name and 10 more; at the right, from 2 inside the edge leftwards, the buttons
-    /// that take the tab away, put it back among the tabs (`stickon`) and set what it lists; the see-through
-    /// back from 16 down and the lines in a box at (5, 20), 8 narrower and 35 lower than the window. (The
-    /// client's window is made larger and smaller by its corner; this one keeps the size it opens with.)
+    /// A tab's own window (the client's `UISubChatHisWnd`, `Paint` and `OnCreate`): the tab's name in white
+    /// at (4, 3) in a tab 16 high and as wide as the name and 10 more (25 at least), with a white line over
+    /// it and at its left and a grey one at its right; from the tab's foot a white line to the right side,
+    /// and grey lines down that side and along the bottom; at the right, from 2 inside the edge leftwards
+    /// (`ApplyButtonLayout`), the buttons that take the tab away, put it back among the tabs (`stickon`) and
+    /// set what it lists, of which only the last is there while the chat is locked; the see-through back
+    /// from 16 down and the lines in a box at (5, 20), 8 narrower and 35 lower than the window; and in the
+    /// corner the handle that makes the window larger and smaller (`btn_resize.bmp`, 14 by 14, 15 in from
+    /// the right and the bottom). A double click on the name has it typed anew (not while locked).
     pub(in crate::web) fn chat_own_window(&self, index: usize) -> String {
-        let (Some(tab), Some((_, _, width, height))) = (self.chat.tabs.get(index), self.chat_own(index)) else { return String::new() };
+        let (Some(tab), Some(own)) = (self.chat.tabs.get(index), self.chat_own(index)) else { return String::new() };
+        // (As large as it is shown: a size that cannot be is the client's own, `chat_tabs::own_shown`.)
+        let (_, _, width, height) = chat_tabs::own_shown(own, (i32::MAX, i32::MAX));
+        let name = (crate::web::text_widths()(tr(&tab.name)) as i32 + 10).max(25);
         let mut window = [
             format!(r#"<div class="a" style="{};background:rgba(0,0,0,.4)"></div>"#, at(0, 16, width, height - 16)),
-            format!(r#"<div class="a chat-tab" style="left:0;top:0;height:16px;padding:0 5px;background:rgba(0,0,0,.4);"#),
-            format!(r#"border:1px solid #fff;border-bottom:0;box-sizing:border-box">{}</div>"#, escape(tr(&tab.name)))
+            format!(
+                r#"<div class="a chat-tab" style="{};background:rgba(0,0,0,.4);text-align:left;text-indent:4px" {}>{}</div>"#,
+                at(0, 0, name, 16),
+                used(Use::ChatTab(index)),
+                escape(tr(&tab.name))
+            ),
+            fill(2, 0, name - 5, 1, WHITE),
+            fill(1, 1, 1, 1, WHITE),
+            fill(0, 2, 1, height - 4, WHITE),
+            fill(name, 16, width - name - 3, 1, WHITE),
+            fill(name - 3, 0, 1, 1, GREY),
+            fill(name - 2, 1, 1, 1, GREY),
+            fill(name - 1, 2, 1, 15, GREY),
+            fill(width - 3, 16, 1, 1, GREY),
+            fill(width - 2, 17, 1, 1, GREY),
+            fill(width - 1, 18, 1, height - 20, GREY),
+            fill(1, height - 2, 1, 1, GREY),
+            fill(width - 2, height - 2, 1, 1, GREY),
+            fill(2, height - 1, width - 4, 1, GREY),
         ].concat();
+        if self.chat.renaming == Some(index) {
+            window.push_str(&Self::chat_name_field(5, 2, name.max(TAB_FIELD) - 10, ""));
+        }
         let buttons = [
             ("wnd_mini", (8, 8), Press::OwnRemove(index), "Remove the tab"),
-            ("stickon", (14, 9), Press::Attach(index), "Attach"),
+            ("stickon", (14, 9), Press::Attach(index), "Put the tab back into the chat window"),
             ("battle_option2", (9, 9), Press::OwnOptions(index), "Options")
         ];
-        let mut right = width - 2;
+        let mut right = width;
         for (name, size, press, title) in buttons.into_iter().filter(|(name, ..)| !self.chat.locked || *name == "battle_option2") {
             right -= size.0 + 2;
             window.push_str(&Self::chat_button(right, name, size, press, title));
@@ -226,6 +302,11 @@ impl App {
             r#"<div class="a chat-log" style="{}"><div>{}</div></div>"#,
             at(5, 20, width - 8, height - 35),
             self.chat_lines(Some(tab), width - 8)
+        ));
+        window.push_str(&format!(
+            r#"<button type="button" class="a" data-resize="{index}" style="{};padding:0;border:0;background:url('{}') no-repeat;cursor:nwse-resize"></button>"#,
+            at(width - 15, height - 15, 14, 14),
+            picture("btn_resize.bmp")
         ));
         window
     }

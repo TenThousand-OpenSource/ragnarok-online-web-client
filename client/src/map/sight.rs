@@ -120,5 +120,39 @@ pub fn stretch(way: &[(i32, i32)]) -> Option<(i32, i32)> {
     way.get(way.len().min(MAX_ASKED_ROUND).wrapping_sub(1)).copied()
 }
 
+/// What a character sent after something does about it now: an order to strike, to use a skill or to pick up.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Order {
+    /// Ask the server for it.
+    Ask,
+    /// Ask the server to walk to the cell the character is on, and then, at once, for it.
+    Halt,
+    /// Walk on: the walk under way ends where it is in reach.
+    Wait,
+    /// Ask for the walk into reach, which takes the place of any walk under way.
+    Go,
+}
+
+/// What an order asks for now: `here`, whether its target is in reach from the cell the character is on;
+/// `walking`, whether the character walks; `bound`, whether the walk under way ends on a cell from which the
+/// target is in reach.
+///
+/// An order takes the place of whatever the character walked for, at once, as the client's does
+/// (`AM_PROCEEDATTACK` and the like of `CPlayer::SendMsg` set the pending action, and
+/// `CPlayer::UpdatePendingAction` asks for the blow in the same frame, walking or not). A walk that leads
+/// elsewhere is ended first (`Halt`), which the client does not do and this server needs: rAthena keeps a
+/// blow or a skill asked of one who walks and is not a cell nearer than the reach needs (`unit_attack`,
+/// `unit_skilluse_id2`: `stepaction`), tries it again at each cell, and so only when the walk is over, where
+/// the target may be out of reach; and a walk asked for after the blow calls the blow off (`unit_walktoxy`:
+/// `unit_stop_attack`), so the walk is always asked for first.
+pub fn order(here: bool, walking: bool, bound: bool) -> Order {
+    match (here, walking, bound) {
+        (true, false, _) | (true, true, true) => Order::Ask,
+        (true, true, false) => Order::Halt,
+        (false, true, true) => Order::Wait,
+        (false, _, _) => Order::Go,
+    }
+}
+
 #[cfg(test)]
 mod tests;

@@ -232,6 +232,26 @@ systems! {
     Vending = vending,
     /// The books that are read: the buttons of a book's window, and those an item that is a book has.
     Books = books,
+    /// The navigation: its windows, and the links and maps that start one.
+    Navigation = navigation,
+    /// The achievements and the titles.
+    Achievements = achievements,
+    /// The reputation.
+    Reputation = reputation,
+    /// The probabilities: the question of the menu's icon.
+    Probability = probability,
+    /// The battlegrounds: their list, the queue, the question whether to enter.
+    Battleground = battleground,
+    /// The Adventurer's Agency: the board of notices, a notice written and read, the question to a leader.
+    Agency = agency,
+    /// The replays: recording a session, the list of recordings, the player.
+    Replay = replay,
+    /// The bank.
+    Bank = bank,
+    /// The attendance check.
+    Attendance = attendance,
+    /// The cash shop.
+    CashShop = cashshop,
 }
 
 #[cfg(test)]

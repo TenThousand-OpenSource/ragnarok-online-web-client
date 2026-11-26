@@ -8,9 +8,13 @@
 //! which names the sprite by the job. A character's arrow is another rule (`CPc::SetState`: the weapon is asked
 //! whether it uses arrows).
 //!
-//! Only the jobs of the classic game are here. Those of later content in the same two switches, and the two
-//! other things the first switch launches (`SpawnMandraAttack` for Mandragora, Hydra, Drosera and their like,
-//! `LaunchBulletSpriteEffect` for the Disguiser), are not.
+//! The same switch has two other launches. `SpawnMandraAttack` (`CGameMode::SpawnMandraAttack`,
+//! `Contents/World/WorldObjects.cpp`; `CMandraAttackEffect`, `Contents/Effects/Skills/MandraAttackEffect.cpp`)
+//! is for Mandragora, Hydra and their like: nothing flies, a sprite plays once where the one struck stands
+//! (`root`, `root_picture`). `LaunchBulletSpriteEffect` (`CSprArrowEffect`) is for the Disguiser and other
+//! monsters of later content only: none of its jobs is in the classic game, and it is not made (`BACKLOG.md`).
+//!
+//! Only the jobs of the classic game are here; those of later content in the same switches are not.
 
 /// The arrow's sprite, among the client's sprites (`몬스터\skel_archer_arrow`): what `CArrowEffect` shows for
 /// every job it has no other sprite for, and for a character.
@@ -45,6 +49,44 @@ pub fn shot(job: u16) -> Option<&'static str> {
     })
 }
 
+/// The sprite that comes up where the one struck stands as a monster of that job strikes, among the client's
+/// sprites (`CMandraAttackEffect::SendMsg`: the root of a Mandragora for every job of `SpawnMandraAttack` it
+/// names no other for); nothing for a job that has none. It is made as the monster's attack begins
+/// (`CNpc::SetState`, `ST_ATTACK`, with a start frame of nought), where the one struck stands then, and does
+/// not follow it; the client plays no sound with it.
+pub fn root(job: u16) -> Option<&'static str> {
+    Some(match job {
+        // JT_MANDRAGORA.
+        1020 => "몬스터/mandragora_atk",
+        // JT_HYDRA.
+        1068 => "몬스터/hydra_atk",
+        // JT_THA_ODIUM, JT_G_THA_ODIUM.
+        1704 | 1709 => "몬스터/tha_odium_ef",
+        // JT_DROSERA.
+        1781 => "몬스터/drosera_bullet",
+        // JT_MAVKA, JT_G_MAVKA.
+        1884 | 1886 => "몬스터/MAVKA_BULLET",
+        // JT_ENTWEIHEN and its four thorns.
+        1957..=1961 => "몬스터/ENTWEIHEN_BULLET",
+        // JT_NEPENTHES.
+        1988 => "몬스터/NEPENTHES_BULLET",
+        _ => return None,
+    })
+}
+
+/// Which picture of its first action such a sprite shows `elapsed` milliseconds after it was made, of
+/// `pictures`; none once it has played through and is taken away (`CMandraAttackEffect::OnProcess`: the
+/// client's frames of 24 milliseconds gone by, over the sprite's speed). The speed is what the sprite's file
+/// has for its first action (`speed`), but 2 for the Hydra.
+pub fn root_picture(job: u16, elapsed: f64, speed: f32, pictures: usize) -> Option<usize> {
+    let speed = if job == 1068 { 2.0 } else { speed };
+    if pictures == 0 || speed <= 0.0 || elapsed < 0.0 {
+        return None;
+    }
+    let gone = (elapsed / 24.0) as f32 / speed;
+    (gone < pictures as f32).then_some(gone as usize % pictures)
+}
+
 /// How long after a monster's blow is told of its shot leaves (milliseconds), the blow landing after `lands`:
 /// the shot leaves on the frame of the swing the blow is on, which is when the blow lands but for the few
 /// jobs the client lands later (`super::lands_later`: the Archer Skeleton by the 8 frames its arrow flies).
@@ -63,6 +105,21 @@ pub fn flies(distance: f32) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_root_comes_up_once_where_the_one_struck_stands() {
+        assert_eq!((root(1020), root(1068)), (Some("몬스터/mandragora_atk"), Some("몬스터/hydra_atk")));
+        assert_eq!((root(1781), root(1988)), (Some("몬스터/drosera_bullet"), Some("몬스터/NEPENTHES_BULLET")));
+        assert_eq!((root(1704), root(1709)), (Some("몬스터/tha_odium_ef"), Some("몬스터/tha_odium_ef")));
+        assert_eq!((root(1884), root(1961)), (Some("몬스터/MAVKA_BULLET"), Some("몬스터/ENTWEIHEN_BULLET")));
+        // An archer shoots and has no root; a root is no shot; the Disguiser is of later content.
+        assert_eq!((root(1016), shot(1020), root(20936), shot(20936)), (None, None, None, None));
+        // Six pictures at the speed 4: each for 96 milliseconds, gone after 576.
+        assert_eq!([0.0, 95.0, 96.0, 575.0, 576.0].map(|elapsed| root_picture(1020, elapsed, 4.0, 6)), [Some(0), Some(0), Some(1), Some(5), None]);
+        // The Hydra's at the speed 2, whatever its file says.
+        assert_eq!([47.0, 48.0, 287.0, 288.0].map(|elapsed| root_picture(1068, elapsed, 4.0, 6)), [Some(0), Some(1), Some(5), None]);
+        assert_eq!((root_picture(1020, 10.0, 4.0, 0), root_picture(1020, 10.0, 0.0, 6), root_picture(1020, -1.0, 4.0, 6)), (None, None, None));
+    }
 
     #[test]
     fn a_shot_from_near_is_there_sooner() {

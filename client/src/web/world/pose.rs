@@ -103,6 +103,14 @@ impl Scene {
     }
 }
 
+/// Someone puffs smoke where it stands without hiding (the client's `AM_MAKE_SMOKE_FFECT` sent by itself: for
+/// one who uses Chase Walk, `ReceiveSkillUse`, and for the summoner at tick 35 of `EF_SUMMONSLAVE`,
+/// `CRagEffect::AlphaCenterRise`). None named: the player's own character.
+pub fn puffed(id: Option<u32>) {
+    let time = now();
+    on(id, |mover| mover.pose.smoke = Some((time, mover.at)));
+}
+
 /// Another player who lay dead stands up again (ZC_RESURRECTION).
 pub fn risen(id: u32) {
     on(Some(id), Mover::rises);

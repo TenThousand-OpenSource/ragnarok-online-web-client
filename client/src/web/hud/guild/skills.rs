@@ -24,8 +24,9 @@ impl App {
         let rows: String = self.guild_skills_listed().iter().enumerate().map(|(row, skill)| self.guild_skill_row(row, skill)).collect();
         [
             format!(
-                r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{rows}</div></div>"#,
+                r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{rows}</div></div>"#,
                 at(0, 43, WIDTH - 6, 7 * 34),
+                rows_stepped(34, 7),
                 self.guild_skills_listed().len() * 34
             ),
             picture_press(46, HEIGHT - 24, "btn_use", Press::UseSkill),

@@ -41,9 +41,6 @@ pub fn struck(strike: Strike) -> f64 {
         let mut lands = flinch.clamp(0.0, 1500.0);
         if source == own {
             state.own_struck = time;
-            // The blow's own motion (the server's `amotion`, sent with the blow): until it is over the character
-            // does not walk (see `striking`).
-            state.own_striking_until = time + lasts.max(0.0);
         }
         if let Some(striker) = scene.one_mut(source, own) {
             // Characters have two attacks, and which one shows depends on the job and on what is held (see
@@ -52,8 +49,16 @@ pub fn struck(strike: Strike) -> f64 {
                 Look::Character(figure) => attack_action(figure),
                 Look::Creature(_) | Look::Model(_) | Look::Unseen => 16,
             };
-            striker.motion = Some((action, time, lasts.clamp(250.0, 2000.0)));
-            lands = lands_after(striker, action, lasts, flinch);
+            // The swing is shown, and the blow lands in it, as the striker's sprite and the speed sent with
+            // the blow have it (`swing`); until the sprite is read, by the server's figures alone.
+            let swing = swing(striker, action, lasts);
+            striker.motion = Some((action, time, swing.map_or(lasts.clamp(250.0, 2000.0), |(lasts, _)| lasts.max(1.0))));
+            lands = swing.map_or(lands, |(_, lands)| lands.clamp(0.0, 1500.0));
+            if source == own {
+                // Until its body is out of the blow the character neither walks nor uses a skill (the
+                // client's `ST_ATTACK`; see `pursuit.rs` and `crate::skills::aim::asked_now`).
+                state.own_striking_until = time + swing.map_or(lasts.max(0.0), |(lasts, _)| lasts);
+            }
             // A monk's combos and fists pose a character in frames of their own, some for as long as the
             // window of the combo the server told last (`CGameActor::ProcessSkillMessage`).
             if let (Look::Character(figure), Some(sequence)) = (&striker.look, skill.and_then(|skill| crate::pose::strikes_with(skill, striker.pose.combo))) {
@@ -132,16 +137,25 @@ pub fn two_handed(who: u32, own: u32) -> bool {
     })
 }
 
-/// How long into a swing its blow lands (milliseconds), as the client has it (`crate::blow`): by the frame of
-/// the striker's sprite that the blow is on and the speed the server sent with the blow. Until the sprite is
-/// read that frame is not known: then it is `otherwise`.
-fn lands_after(striker: &Mover, action: usize, speed: f64, otherwise: f64) -> f64 {
-    let frame = match &striker.look {
-        Look::Character(figure) => figure::body_strike_frame(figure.job, figure.sex, action),
-        Look::Creature(path) => figure::strike_frame(path, action),
-        Look::Model(_) | Look::Unseen => None,
+/// How long a striker's swing is shown and how long into it its blow lands (milliseconds), as the client has
+/// them (`crate::blow`): by the pictures of the action in the striker's sprite and the speed the sprite gives
+/// it, the speed the server sent with the blow, and the striker's `attackMotion`: a monster's the frame of
+/// its sprite the blow is on, a character's the figure of its job. One who shoots an arrow lands its blow
+/// later by the arrow's flight. Nothing until the sprite is read.
+fn swing(striker: &Mover, action: usize, speed: f64) -> Option<(f64, f64)> {
+    use crate::blow::{ARROW_LATER, attack_motion, lands_after, pace, swing_lasts};
+    let ((frames, each), motion, bow) = match &striker.look {
+        Look::Character(figure) => {
+            let kind = weapon_kind(figure);
+            let motion = attack_motion(striker.job, figure.sex == 1, kind == "Katar", action == 88);
+            (figure::body_timing(figure.job, figure.sex, action)?, motion, kind == "Bow")
+        }
+        Look::Creature(path) => (figure::timing(path, action)?, figure::strike_frame(path, action)? as f64, false),
+        Look::Model(_) | Look::Unseen => return None,
     };
-    frame.map_or(otherwise, |frame| crate::blow::lands_after(frame, speed, striker.job)).clamp(0.0, 1500.0)
+    // (The speed of an action is kept in milliseconds, 25 to one of the file's units.)
+    let pace = pace(each / 25.0, speed, bow);
+    Some((swing_lasts(frames, pace), lands_after(motion, pace, striker.job) + if bow { ARROW_LATER } else { 0.0 }))
 }
 
 /// The action of a character bending down for a thing on the ground (the client's `ST_PICKUP`).
@@ -235,7 +249,14 @@ pub fn arrow(source: u32, target: u32, own: u32, delay: f64) {
             }
             _ => match crate::blow::shots::shot(archer.job) {
                 Some(sprite) => (crate::blow::shots::leaves_after(delay, archer.job), sprite),
-                None => return,
+                None => {
+                    // A Mandragora and its like send nothing flying: their root comes up at once where the
+                    // one struck stands (`SpawnMandraAttack`).
+                    if let (Some(sprite), Some(at)) = (crate::blow::shots::root(archer.job), scene.place_of((target != own).then_some(target))) {
+                        state.roots.push((now(), on_ground(&scene.gat, at), archer.job, sprite));
+                    }
+                    return;
+                }
             },
         };
         let from = along(on_ground(&scene.gat, archer.at), [0.0, 1.0, 0.0], 10.0);
@@ -346,13 +367,6 @@ pub fn uses_skill(who: u32, own: u32, body: u8) {
             }
         }
     });
-}
-
-/// Whether the player's own character is in the motion of a blow it deals. The original client asks for no walk
-/// during it (rAthena's `attack_walk_delay` is off for players because, as its comment says, "the client already
-/// blocks sending movement requests during this time"): one cannot strike and walk on at once.
-pub fn striking() -> bool {
-    STATE.with_borrow(|state| now() < state.own_striking_until)
 }
 
 /// Whether the player's own character is walking now.

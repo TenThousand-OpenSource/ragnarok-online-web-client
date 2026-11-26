@@ -131,7 +131,8 @@ impl App {
     }
 
     /// One's own shop while it is open (`UIMerchantItemMyShopWnd`, 280 by 120; its title the client's line
-    /// 3237): what is left of each thing, which says its name and its price when pointed at, and "close" on
+    /// 3237 and the shop's own after it, `crate::vending::own_title`, cut short with dots where the bar ends
+    /// as `UIStaticText::SetTextFitted` cuts it): what is left of each thing, which says its name and its price when pointed at, and "close" on
     /// the bar, 61 from the right and 24 from the bottom. Left out: the client's box "Notify when item sells
     /// out" (2642), which has a sale heard, and the list of what was sold that it opens as the shop closes.
     pub(in crate::web) fn vending_mine_window(&self) -> String {
@@ -150,7 +151,7 @@ impl App {
             .collect();
         format!(
             "{}{}{}",
-            list_frame(280, 120, &Self::words(3237, "My Shop")),
+            list_frame(280, 120, &crate::vending::own_title(&Self::words(3237, "My Shop"), &self.vending.title)),
             grid_of(7, 2, &cells),
             picture_press(280 - 61, 120 - 24, "btn_close", Press::MineClose)
         )
@@ -160,9 +161,8 @@ impl App {
     /// line 604).
     pub(in crate::web) fn vending_question(&self) -> String {
         match self.vending.asks {
-            Some(VendingAsk::Free) => message_box(
-                Asked::Sure,
-                &escape(&Self::words(604, "At least one item has its price set to 0 Zeny exists. Do you wish to continue?")),
+            Some(VendingAsk::Free) => confirm_box(
+                &Self::words(604, "At least one item has its price set to 0 Zeny exists. Do you wish to continue?"),
                 Press::Yes,
                 Press::No
             ),

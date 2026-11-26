@@ -5,32 +5,9 @@ use super::*;
 use crate::press::talk::Press;
 use crate::web::app::Dialog;
 
-/// A line an NPC says, as HTML: its colours (`coloured`), and each link written into it (`crate::links`) as
-/// the client's viewer shows one, its words underlined in the colour of links (`CreateLinkWindow`). A link to
-/// an item opens what is known of the item when pressed, one to a tip opens the Tipbox on it; a line of the
-/// message table named in the text is written out. A place for the navigation, a quest and an address of the
-/// web show their words and are not pressed: this client has no navigation, and it opens no address a
-/// server names.
+/// A line an NPC says, as HTML: its colours and its links (`linked_with`).
 fn linked(line: &str) -> String {
-    use crate::links::{self, Kind};
-    let (marked, found) = links::parted(line);
-    if found.is_empty() {
-        return coloured(line);
-    }
-    links::put_back(&coloured(&marked), &found, |link| {
-        let does = match (link.kind, link.number()) {
-            (Kind::Message, number) => return escape(&number.and_then(|line| data::message(line as usize)).unwrap_or_default()),
-            (Kind::Item, Some(item)) => format!(" {}", pressed(Press::Item(item))),
-            (Kind::Tip, Some(tip)) => format!(" {}", pressed(crate::press::tips::Press::Tip(tip))),
-            _ => String::new(),
-        };
-        let colour = if link.kind == Kind::Url { links::URL_COLOUR } else { links::LINK_COLOUR };
-        format!(
-            r#"<span style="color:{colour};text-decoration:underline;cursor:{}"{does}>{}</span>"#,
-            if does.is_empty() { "default" } else { "pointer" },
-            escape(&link.words)
-        )
-    })
+    linked_with(line, coloured)
 }
 
 impl App {
@@ -64,17 +41,25 @@ impl App {
         window
     }
 
-    /// What the NPC says, and "next" or "close" under it.
+    /// What the NPC says, and "next" or "close" under it. A text taller than its 140 is not made to fit and the
+    /// window does not grow: it stays at its top (`UITagTextViewer::AddText` leaves `m_scrollPos` alone) with
+    /// the client's bar at the viewer's right edge (`TagTextViewer::UIScroll::OnCreate`, `UpdateScroll`), and
+    /// the wheel and the arrows move it 30 (`crate::scrolling::TEXT_STEP`). In the client's own font of the
+    /// English service a line is 15 and 6 (`ArrangeLines`), so the seventh line of a talk ends 145 down and
+    /// is cut there too. The lines keep their width of 215 beside the bar.
     fn said_box(dialog: &Dialog) -> String {
         let said: String = dialog.lines.iter().map(|line| format!("<div>{}</div>", linked(line))).collect();
         let mut window = [
             format!(
-                r#"{}<div class="a t said scroll" style="{};background:#f2f2f2;padding:1px 42px 0 3px;line-height:{}px;"#,
+                r#"{}<div class="a t said bar" style="{};background:#f2f2f2;padding:1px 0 0 3px;line-height:{}px;"#,
                 system_box(0, 280, 180),
                 at(10, 10, 260, 140),
                 crate::font::cell(0, 12) + 6
             ),
-            format!(r#"box-sizing:border-box;white-space:normal;user-select:text">{said}</div>"#)
+            format!(
+                r#"box-sizing:border-box;white-space:normal;user-select:text" {}><div style="width:215px">{said}</div></div>"#,
+                stepped(crate::scrolling::TEXT_STEP, 1)
+            )
         ].concat();
         match dialog.button {
             Some(true) => window.push_str(&picture_press(232, 156, "btn_next", Press::Next)),
@@ -101,9 +86,11 @@ impl App {
             })
             .collect();
         let mut window = format!(
-            r#"{}<div class="a t scroll" style="{};background:#f0f0f0;white-space:normal">{choices}</div>"#,
+            r#"{}<div class="a t scroll" style="{};background:#f0f0f0;white-space:normal" {}>{choices}</div>"#,
             system_box(top, 280, 120),
-            at(12, top + 12, 256, 78)
+            at(12, top + 12, 256, 78),
+            // A line of the menu is 17 here; the wheel moves the client's list three lines (`UIListBox::OnWheel`).
+            lines_stepped(17)
         );
         window.push_str(&picture_press(188, top + 96, "btn_ok", Press::Ok));
         window.push_str(&picture_press(233, top + 96, "btn_cancel", Press::Cancel));

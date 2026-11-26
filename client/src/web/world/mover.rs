@@ -90,12 +90,18 @@ pub(super) struct Mover {
     pub(super) pose: mover::Pose,
 }
 
+/// The kind of weapon a character holds, as the item table names it ("Bow", "Katar", "1hSword"…); nothing
+/// for bare hands, or until the gateway has told of the item.
+pub(super) fn weapon_kind(figure: &Figure) -> String {
+    data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).map(|(_, kind)| kind).unwrap_or_default()
+}
+
 /// Which of a character's two attacks shows when it strikes: the action at 88 for the weapons its job handles
 /// in that way, the one at 80 for everything else (the client's `IsJobWeaponAllowed`). An Archer shoots with
 /// the action at 80 and strikes with the other when it holds no bow; a Swordsman thrusts a spear with the one
 /// at 88, a Mage and a Merchant stab with a dagger so.
 pub(super) fn attack_action(figure: &Figure) -> usize {
-    let kind = data::about(figure.weapon).and_then(|(_, facts)| facts.into_iter().find(|(key, _)| key == "SubType")).map(|(_, kind)| kind).unwrap_or_default();
+    let kind = weapon_kind(figure);
     let kind = kind.as_str();
     // The reborn and the baby jobs fight as the ones they come from.
     let job = match figure.job {

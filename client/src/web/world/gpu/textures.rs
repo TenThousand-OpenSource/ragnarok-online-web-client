@@ -104,7 +104,9 @@ impl Gpu {
         let view = self.texture(canvas.width as u32, canvas.height as u32, &canvas.rgba);
         let bind = self.textured(&self.sprite_pipeline.get_bind_group_layout(1), &view, &self.pixel_sampler);
         let adding = self.textured(&self.sprite_adding_pipeline.get_bind_group_layout(1), &view, &self.pixel_sampler);
-        self.sprite_textures.insert(key.clone(), SpriteTexture { bind, adding, size: (canvas.width as f32, canvas.height as f32), feet: picture.feet });
+        let size = (canvas.width as f32, canvas.height as f32);
+        let drawn = canvas.drawn().map_or(((0.0, 0.0), size), |(left, top, right, bottom)| ((left as f32, top as f32), (right as f32, bottom as f32)));
+        self.sprite_textures.insert(key.clone(), SpriteTexture { bind, adding, size, feet: picture.feet, drawn });
         true
     }
 

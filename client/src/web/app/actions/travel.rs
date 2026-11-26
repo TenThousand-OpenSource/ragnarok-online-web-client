@@ -80,6 +80,7 @@ impl App {
         self.scripted_moved(same);
         self.chat_rooms_moved();
         self.guild_castles_moved(same);
+        self.storage_moved();
         self.refresh_values();
         self.esc_redrawn();
         if same {

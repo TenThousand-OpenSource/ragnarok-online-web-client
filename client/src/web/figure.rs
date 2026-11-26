@@ -234,12 +234,6 @@ pub fn strike_frame(path: &str, action: usize) -> Option<usize> {
     })
 }
 
-/// The frame of an action of a character's body at which its blow lands, once a figure of that job and sex has
-/// been put together.
-pub fn body_strike_frame(job: u16, sex: u8, action: usize) -> Option<usize> {
-    BODY_STRIKES.with_borrow(|strikes| strikes.get(&(job, sex))?.get(action).copied())
-}
-
 /// The sound file a frame of an action of a character's body starts (the swing of a weapon, the rustle of
 /// clothes: the names of the body's `.act` that end in `.wav`, as `CRenderObject::PlayFrameSounds` asks),
 /// once a figure of that job and sex has been put together.
@@ -287,9 +281,9 @@ thread_local! {
     static TIMES: RefCell<HashMap<String, Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
     /// By job and sex: how many frames each action of the body has, and how long each shows.
     static BODIES: RefCell<HashMap<(u16, u8), Vec<(usize, f64)>>> = RefCell::new(HashMap::new());
-    /// By sprite path, and by job and sex: for each action, the frame at which its blow lands.
+    /// By sprite path: for each action, the frame at which its blow lands (a character's blow lands by its
+    /// job, not by its sprite: `crate::blow::attack_motion`).
     static STRIKES: RefCell<HashMap<String, Vec<usize>>> = RefCell::new(HashMap::new());
-    static BODY_STRIKES: RefCell<HashMap<(u16, u8), Vec<usize>>> = RefCell::new(HashMap::new());
     /// By job and sex: for each action of the body, the sound file each of its frames starts.
     static BODY_VOICES: RefCell<HashMap<(u16, u8), Vec<Vec<Option<String>>>>> = RefCell::new(HashMap::new());
     /// By sprite path: for each action, the sound each of its frames starts.

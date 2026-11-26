@@ -137,7 +137,7 @@ impl App {
             Some(MailAsk::Stranger(..)) => Self::words(3867, "The sender of this RODEX is not a friend or guild member. Please be careful."),
             None => return String::new(),
         };
-        message_box(Asked::Sure, &escape(&words), Press::Yes, Press::No)
+        confirm_box(&words, Press::Yes, Press::No)
     }
 
     /// How many of a thing go into the letter: the window that asks how many to drop, asking this (the

@@ -70,7 +70,7 @@ fn shadow() -> SpriteKey {
 /// The shadow under someone or something at `feet` (`CRenderObject::DrawShadow`): the one picture of
 /// `shadow.spr` on the ground, `scale` times its size (the job's `shadowScale` and what shrinks or swells the
 /// body; four tenths under a thing on the ground).
-fn shadowed(gpu: &mut Gpu, feet: Vector, scale: f32, sprites: &mut Vec<Stood>) {
+pub(in crate::web::world) fn shadowed(gpu: &mut Gpu, feet: Vector, scale: f32, sprites: &mut Vec<Stood>) {
     let key = shadow();
     if scale > 0.0 && gpu.has_sprite(&key) {
         sprites.push((key, feet, 1.0, crate::body::Quad { scale, under: true, ..crate::body::Quad::PLAIN }));
@@ -210,6 +210,7 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         }
         emoting(gpu, mover, feet, time, &mut sprites);
     }
+    roots(&mut state.roots, gpu, time, &mut sprites);
     // The copies of someone that effects left standing.
     ailments::copies(&mut state.copies, gpu, time, &mut sprites);
     lying(gpu, scene, time, &mut sprites);
@@ -222,4 +223,25 @@ pub(super) fn standing(state: &mut State, own: ((f32, f32), SpriteKey), time: f6
         }
     }
     sprites
+}
+
+/// The roots that come up under those a Mandragora or its like strikes (`CMandraAttackEffect`): each the first
+/// action of its sprite played once where the one struck stood, drawn as any sprite standing there
+/// (`CRenderObject::Render`, with no shadow). Until the sprite is read its length is not known: it is given
+/// four seconds to come.
+fn roots(roots: &mut Vec<(f64, Vector, u16, &'static str)>, gpu: &mut Gpu, time: f64, sprites: &mut Vec<Stood>) {
+    roots.retain(|&(began, at, job, sprite)| {
+        let Some((pictures, each)) = figure::timing(sprite, 0) else {
+            // (Asking for its first picture has the sprite read.)
+            gpu.has_sprite(&SpriteKey::Creature(sprite.to_owned(), 0, 0));
+            return time - began <= 4000.0;
+        };
+        // (`figure::timing` has a picture's time as 25 milliseconds to each of the file's speed.)
+        let Some(picture) = crate::blow::shots::root_picture(job, time - began, (each / 25.0) as f32, pictures) else { return false };
+        let key = SpriteKey::Creature(sprite.to_owned(), 0, picture);
+        if gpu.has_sprite(&key) {
+            sprites.push((key, at, 1.0, crate::body::Quad::PLAIN));
+        }
+        true
+    });
 }

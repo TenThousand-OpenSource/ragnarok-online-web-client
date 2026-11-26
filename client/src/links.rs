@@ -34,9 +34,13 @@ pub struct Link {
 }
 
 impl Link {
-    /// The number a link leads to: an item's, a tip's, a quest's.
+    /// The number a link leads to: an item's, a tip's, a quest's. It is read as the client reads it
+    /// (`ShowTextButtonItem`, `ShowTextButtonTip`: `atoi`), the digits it begins with: the Tipbox names its
+    /// items by a number and the name after it (`<INFO>611 Magnifier</INFO>`).
     pub fn number(&self) -> Option<u32> {
-        self.info.first()?.trim().parse().ok()
+        let info = self.info.first()?.trim_start();
+        let digits = info.find(|letter: char| !letter.is_ascii_digit()).unwrap_or(info.len());
+        info[..digits].parse().ok()
     }
 }
 
@@ -123,6 +127,12 @@ pub fn put_back(marked: &str, links: &[Link], written: impl Fn(&Link) -> String)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_links_number_is_the_digits_it_begins_with() {
+        let (_, links) = parted("<ITEM>Magnifier<INFO>611 Magnifier</INFO></ITEM> <TIPBOX>Stats<INFO> 7</INFO></TIPBOX> <ITEM>x<INFO>none</INFO></ITEM>");
+        assert_eq!(links.iter().map(Link::number).collect::<Vec<_>>(), vec![Some(611), Some(7), None]);
+    }
 
     #[test]
     fn takes_the_links_out_of_a_text() {

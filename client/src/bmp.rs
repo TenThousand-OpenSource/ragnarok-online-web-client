@@ -75,8 +75,45 @@ pub fn decode(bytes: &[u8]) -> Result<Image, String> {
     Ok(Image { width: width as u32, height: height as u32, rgba })
 }
 
+impl Image {
+    /// The picture as the client keeps one read from a BMP on the GPU: 5 bits to a colour and one of alpha
+    /// (`CTextureDX9::UploadSurface` for `D3DFMT_A1R5G5B5`, `Render/DX9/TextureDX9.cpp`, which
+    /// `CTextureCache::Load` asks for whenever the picture has no alpha of its own). Each colour loses its
+    /// three low bits; a pixel that is magenta then (31, 0, 31) is nothing at all, black and not seen, and so
+    /// is one that is black then, if the picture is read with black as transparent (`black_unseen`: the
+    /// pictures of an effect's `.str` file are, `g_texMgr.Load(path, 1, …)` in `EZeffectResource.cpp`).
+    /// So the dim rim of a picture of light, under 8 of 255, adds nothing to what is behind it, and the rim of
+    /// a keyed picture is dark, not pink, where the pixels are blended.
+    pub fn as_the_client_keeps(&mut self, black_unseen: bool) {
+        for pixel in self.rgba.chunks_exact_mut(4) {
+            let five = [pixel[0] >> 3, pixel[1] >> 3, pixel[2] >> 3];
+            if five == [31, 0, 31] || (black_unseen && five == [0, 0, 0]) {
+                pixel.copy_from_slice(&[0, 0, 0, 0]);
+            } else {
+                // (Five bits shown as eight: the high bits again below, as a GPU widens them.)
+                let wide = five.map(|colour| colour << 3 | colour >> 2);
+                pixel.copy_from_slice(&[wide[0], wide[1], wide[2], 255]);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_picture_is_kept_in_five_bits_a_colour() {
+        let mut image = super::Image { width: 5, height: 1, rgba: vec![255, 255, 255, 255, 7, 7, 7, 255, 100, 8, 0, 255, 255, 0, 255, 0, 250, 5, 249, 255] };
+        let mut plain = super::Image { width: 5, height: 1, rgba: image.rgba.clone() };
+        image.as_the_client_keeps(true);
+        // White stays white; what is under 8 is black and unseen; a colour loses its low bits; magenta, and what
+        // is magenta in five bits, is nothing.
+        assert_eq!(image.rgba, [255, 255, 255, 255, 0, 0, 0, 0, 99, 8, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0]);
+        // Read without black as transparent, the black stays to be seen.
+        plain.as_the_client_keeps(false);
+        assert_eq!(plain.rgba[4..8], [0, 0, 0, 255]);
+    }
+
+
     /// A 2x2 24-bit image, stored bottom-up with row padding: red, magenta / green, blue.
     #[test]
     fn decodes_24_bit_bottom_up() {

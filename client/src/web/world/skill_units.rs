@@ -103,6 +103,12 @@ pub fn cell_retyped(cell: (u16, u16), kind: u16) {
     });
 }
 
+/// Whether a unit of that ID stands on the map (the client's `GetSkillByAID`): the server names one as the
+/// striker of what a skill on the ground does.
+pub fn skill_unit_stands(id: u32) -> bool {
+    STATE.with_borrow(|state| state.grounds.units.contains_key(&id))
+}
+
 /// A unit is gone (ZC_SKILL_DISAPPEAR): its effects go with it.
 pub fn skill_unit_gone(id: u32) {
     STATE.with_borrow_mut(|state| {
@@ -171,6 +177,13 @@ pub(super) fn spot(state: &mut State, cell: (f32, f32), ticks: i32, time: f64) -
         scene.spots.insert(id, cell);
     }
     id
+}
+
+/// One of the client's effects launched on a place of the map by itself for so many ticks (the client's
+/// `LaunchDummyEffect`), as the place one teleported away from has.
+pub(super) fn dummy(state: &mut State, cell: (f32, f32), effect: u32, ticks: i32, time: f64) {
+    let on = spot(state, cell, ticks, time);
+    launch(state, effect, on, None, time);
 }
 
 /// Launches one of the client's effects on a unit or a place: its files, if it is played from files

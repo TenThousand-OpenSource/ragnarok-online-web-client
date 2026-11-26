@@ -102,16 +102,16 @@ impl App {
     /// (`^ff0000`) are written as the client writes them.
     pub(in crate::web) fn homunculus_question(&self) -> String {
         let words = match &self.homunculus.asks {
-            Some(HomunculusAsk::Feed) => coloured(&Self::words(601, "Are you sure that you want to feed your pet?")),
-            Some(HomunculusAsk::Rename(name)) => coloured(
-                &Self::words(2977, "Are you sure you want to change your Homunculus's name to ^0000ff%s^000000?").replace("%s", name)
-            ),
-            Some(HomunculusAsk::Delete) => coloured(&Self::words(955, "You have decided to delete this Homunculus. \
+            Some(HomunculusAsk::Feed) => Self::words(601, "Are you sure that you want to feed your pet?"),
+            Some(HomunculusAsk::Rename(name)) => {
+                Self::words(2977, "Are you sure you want to change your Homunculus's name to ^0000ff%s^000000?").replace("%s", name)
+            }
+            Some(HomunculusAsk::Delete) => Self::words(955, "You have decided to delete this Homunculus. \
                 When deleted, the homunculus and its history will be deleted and they cannot be restored in the \
-                future. Would you like to continue?")),
+                future. Would you like to continue?"),
             None => return String::new(),
         };
-        message_box(Asked::Sure, &words, Press::Yes, Press::No)
+        confirm_box(&words, Press::Yes, Press::No)
     }
 
     /// The list of its skills (`UISkillListWnd`, its `skillTab` 0), with the points it has to spend.

@@ -73,6 +73,7 @@ pub fn leave() {
         state.held = None;
         state.chase = None;
         state.fetch = None;
+        state.walk_waits = None;
         state.forget_fights();
     });
     // What the game drew over the page goes with it: the bars, the names, the numbers of blows.
@@ -156,6 +157,7 @@ pub fn own_dead(dead: bool) {
         }
         state.chase = None;
         state.fetch = None;
+        state.walk_waits = None;
         state.held = None;
     });
 }
@@ -192,6 +194,7 @@ pub fn jump(cell: (u16, u16)) {
         scene.portals.clear();
         state.chase = None;
         state.fetch = None;
+        state.walk_waits = None;
         state.reach = None;
         state.held = None;
         state.target_at = [None; 2];

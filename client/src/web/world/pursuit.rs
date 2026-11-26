@@ -24,11 +24,19 @@ pub(super) struct Pursuit {
 /// camera and the page's size, for the place the pointer is held on. A later step's walk replaces an earlier one's.
 pub(super) fn pursue(state: &mut State, view: &View, size: (f32, f32), time: f64) -> Pursuit {
     let mut pursuit = Pursuit::default();
+    let waited = after_blow(state, time, &mut pursuit);
     journey(state, time, &mut pursuit);
     walk_on(state, view, size, time, &mut pursuit);
     fetch(state, time, &mut pursuit);
     chase(state, time, &mut pursuit);
     reach(state, time, &mut pursuit);
+    // In the motion of a blow of its own the character asks for no walk: the client's player is sent on to
+    // what it fights only out of `ST_ATTACK`, to a thing or a place for a skill only standing
+    // (`CPlayer::UpdatePendingAction`), and a press on the ground waits (`after_blow`). Only the walk that
+    // waited for a blow to end goes although the next blow has begun: the client asks for it as the first ends.
+    if time < state.own_striking_until && pursuit.follow.map(|(_, goal)| goal) != waited {
+        pursuit.follow = None;
+    }
     // Whatever asks for the walk, it goes only if none went a moment ago.
     if pursuit.follow.is_some_and(|(_, goal)| !state.asks_walk(goal, time)) {
         pursuit.follow = None;
@@ -47,6 +55,21 @@ impl State {
         }
         may
     }
+}
+
+/// A place pressed while the character's body was in a blow it deals is walked to as that blow ends, whether
+/// or not the next has begun by then. The client keeps the cell (`AM_REQ_MOVE` of `CPlayer::SendMsg`,
+/// `Source/Contents/Actors/Player.cpp:3896`: `isPreengageStateOfMove` while `IsSpecialState`, which `ST_ATTACK`
+/// is) and asks for the walk as its body leaves that state (`CPlayer::SetState`, `:5579`). Gives the cell asked
+/// for now, if any.
+fn after_blow(state: &mut State, time: f64, pursuit: &mut Pursuit) -> Option<(i32, i32)> {
+    let (goal, over) = state.walk_waits?;
+    if time < over || !crate::route::may_ask(time, state.walk_asked) {
+        return None;
+    }
+    state.walk_waits = None;
+    pursuit.follow = state.hooks.as_ref().map(|hooks| (hooks.walk_to, goal));
+    Some(goal)
 }
 
 /// How long a journey waits, in milliseconds, for the server to set the character walking after a stretch
@@ -139,6 +162,9 @@ fn chase(state: &mut State, time: f64, pursuit: &mut Pursuit) {
     let Some((id, looked, told)) = state.chase else { return };
     match scene.units.get(&id) {
         None => state.chase = None,
+        // One struck down is asked nothing of, and left alone until it is gone from the map: then the fight
+        // is over (`UpdatePendingAction`: `target->render.state == ST_DEAD` returns before anything is asked).
+        Some(unit) if unit.dying.is_some() => {}
         Some(unit) if time - looked > crate::route::CHASE_APART => {
             let cell = scene.player.cell;
             // Near enough is what the server said the weapon reaches (it says on entering the map, when

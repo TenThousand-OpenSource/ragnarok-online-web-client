@@ -88,6 +88,11 @@ What the classic game has and this client lacks is not here: that is a debt, and
   2343), animated emitters, magic floors, the evil's paw, `ez2strInfo`, and the first version's `_map_Effect`.
 - `EF_M01` (583): only skills of the third jobs launch it.
 
+- What the monsters of later content send at the one they strike: `LaunchBulletSpriteEffect` (`CSprArrowEffect`,
+  effect 2404: the Disguiser, the Rigels, the spirits of Illusion and episode 21, with a sprite by job from
+  `SetBulletSprite`) and the later jobs of `SpawnMandraAttack` and `SpawnArrowEffect`
+  (`CGameActor::LaunchAttackProjectile`, `client/src/blow/shots.rs` has the classic ones).
+
 ## Of the years before Renewal, put off with the rest
 These were in the original game before Renewal, so by this file's own rule they may belong in
 `docs/DEBTS.md` instead; they stand here until the owner decides, because they were put here on purpose.
@@ -98,6 +103,10 @@ models, guardians, flags, the Emperium and treasure boxes, are drawn (`docs/DONE
 - Battlegrounds queue and status.
 - The instances window (memorial dungeons).
 - Buying stores.
+
+## Packets of later content the classic server still sends
+- ZC_ACH_UPDATE (0x0a24, achievements) and ZC_REPUTE_INFO (0x0b8d, reputation), once at the way in: no reader
+  takes them (`/packets`).
 
 ## Two servers
 - Classic and Renewal as two separate servers on separate databases, chosen at login (asked for on 2026-11-18).

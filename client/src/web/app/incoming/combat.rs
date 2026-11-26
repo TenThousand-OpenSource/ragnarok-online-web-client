@@ -229,6 +229,7 @@ impl App {
             .filter(|(_, blows)| !blows.is_empty())
         {
             let own = self.own_account();
+            let from_unit = world::skill_unit_stands(landed.source);
             world::cast_over(landed.source, own, false);
             // The hits as the client counts them, and when each lands after the first.
             let hits = blows.len() as i32;
@@ -244,8 +245,20 @@ impl App {
                 ring: false,
                 guarded: false,
                 skill: Some(landed.skill),
-                follow: effect_tables::skill_follow(landed.skill)
+                follow: effect_tables::skill_follow(landed.skill).filter(|_| !from_unit)
             });
+            // A unit on the ground strikes (`CSkill::SendMsg`, `AM_SKILL`): the hits show the unit's own effect
+            // on the one struck, and nothing of what a striker launches or what follows it.
+            if from_unit {
+                let struck = (landed.target != own).then_some(landed.target);
+                let told = world::Blow { striker: struck, place_of: struck, hits: 0 };
+                for after in later.iter().filter(|_| each > 0) {
+                    if let Some(effect) = crate::skill_units::struck_by_unit(landed.skill) {
+                        self.effect_shown(effect, landed.target, own, lands + after, Some(told));
+                    }
+                }
+                return;
+            }
             // What the skill looks and sounds like on the one struck (the client's `PlaySkillEffect`
             // for the bolts themselves, and the effect of each hit by the skill's element).
             let on = (landed.target != own).then_some(landed.target);
@@ -308,8 +321,13 @@ impl App {
     }
 
     fn skill_used(&mut self, packet: &[u8]) {
-        if let Some(skills::Used { skill, level, target, who, .. }) = skills::used(packet) {
+        if let Some(skills::Used { skill, level, target, who, worked }) = skills::used(packet) {
             let own = self.own_account();
+            // Chase Walk (`ST_CHASEWALK`, `GameModePackets.cpp:18990`): the one who used it puffs smoke, as one
+            // that hides does; the client does so only for a skill that worked.
+            if skill == 389 && worked {
+                world::puffed((who != own).then_some(who));
+            }
             world::cast_over(who, own, false);
             // The one who used it goes through the motion the client has for that skill.
             world::uses_skill(who, own, effect_tables::skill_state(skill));

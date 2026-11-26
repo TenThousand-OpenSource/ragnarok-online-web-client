@@ -161,6 +161,9 @@ mod tests {
         assert_eq!(effect_sounds(84), [(60, "effect/priest_impositio.wav")]);
         assert_eq!(effect_sounds(112), [(15, "effect/priest_kyrie_eleison_a.wav"), (0, "effect/priest_kyrie_eleison_b.wav")]);
         assert_eq!(effect_sounds(104).len(), 4);
+        // A sound written in both branches of an option is one sound (`Detoxication`); one started at five ticks, five.
+        assert_eq!(effect_sounds(21), [(0, "effect/EF_Detoxication.wav")]);
+        assert_eq!(effect_sounds(87).iter().map(|(tick, _)| *tick).collect::<Vec<_>>(), [0, 20, 35, 60, 70]);
         assert_eq!(effect_sounds(255), [(10, "_enemy_hit_wind1.wav")]);
         assert!(effect_sounds(95).is_empty() && effect_sounds(0).is_empty());
         // An effect that is nothing but its file: the event at its first frame.

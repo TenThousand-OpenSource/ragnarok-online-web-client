@@ -302,6 +302,8 @@ impl App {
         let things: Vec<(u16, u16, u32)> =
             making.rows.iter().zip(prices.unwrap_or_default()).map(|(stalled, price)| (stalled.index, stalled.amount, price)).collect();
         let packet = vending::open(making.title.trim(), true, &things);
+        let title = making.title.trim().to_owned();
         self.send_on_map(&packet);
+        self.vending.title = title;
     }
 }

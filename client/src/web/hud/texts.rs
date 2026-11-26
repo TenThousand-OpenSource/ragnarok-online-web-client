@@ -108,6 +108,36 @@ pub(in crate::web) fn coloured(line: &str) -> String {
     if html.is_empty() { "&nbsp;".to_owned() } else { html }
 }
 
+/// A text of the client's viewer of marked texts (`UITagTextViewer`: what an NPC says, a page of a tip) as
+/// HTML: what stands between its links written by `between` (its colours, its pictures), and each link
+/// written into it (`crate::links`) as the viewer shows one, its words underlined in the colour of links
+/// (`CreateLinkWindow`). A link to an item opens what is known of the item when pressed
+/// (`ShowTextButtonItem`), one to a tip opens the Tipbox on it (`ShowTextButtonTip`); a line of the message
+/// table named in the text is written out. A place for the navigation (`OpenTextButtonNavigation`), a quest
+/// and an address of the web (`OpenTextButtonLink`, which hands it to Windows) show their words and are not
+/// pressed: this client has no navigation, and it opens no address a text names.
+pub(in crate::web) fn linked_with(line: &str, between: impl Fn(&str) -> String) -> String {
+    use crate::links::{self, Kind};
+    let (marked, found) = links::parted(line);
+    if found.is_empty() {
+        return between(line);
+    }
+    links::put_back(&between(&marked), &found, |link| {
+        let does = match (link.kind, link.number()) {
+            (Kind::Message, number) => return escape(&number.and_then(|line| data::message(line as usize)).unwrap_or_default()),
+            (Kind::Item, Some(item)) => format!(" {}", pressed(crate::press::talk::Press::Item(item))),
+            (Kind::Tip, Some(tip)) => format!(" {}", pressed(crate::press::tips::Press::Tip(tip))),
+            _ => String::new(),
+        };
+        let colour = if link.kind == Kind::Url { links::URL_COLOUR } else { links::LINK_COLOUR };
+        format!(
+            r#"<span style="color:{colour};text-decoration:underline;cursor:{}"{does}>{}</span>"#,
+            if does.is_empty() { "default" } else { "pointer" },
+            escape(&link.words)
+        )
+    })
+}
+
 /// How many of a thing there are, written in the corner of its cell: the client's smaller text
 /// (`DrawItemWithQuantity`, `CUIGameItemWithNum::Paint` and the hotkey bar's `DrawRightOutlinedText`: (0, 11)).
 pub(in crate::web) fn count(amount: impl std::fmt::Display) -> String {

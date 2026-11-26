@@ -183,6 +183,9 @@ for labels, body in switch(process[process.index('    switch (this->state.type) 
             if start in effect_code:
                 timed_sounds(function(effect_code, start).split('\n'), labels[-1], found)
     timed_sounds(own, labels[-1], found)
+    # A function may start the sound in both branches of an option (`Detoxication`: with fewer effects and without),
+    # of which only one is gone through: a sound at a tick is one line, however often it is written.
+    found = list(dict.fromkeys(found))
     for label in labels:
         if found and label in effects and label.startswith('EF_') and effects[label] not in sounds:
             more[effects[label]] = found

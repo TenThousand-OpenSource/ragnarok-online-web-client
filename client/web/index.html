@@ -147,6 +147,9 @@
   .b:active > .held { display: block; }
   .check { padding: 0; border: 0; background: no-repeat 0 0; cursor: pointer; }
   .in { padding: 0 3px; border: 0; outline: 0; background: transparent; font: 13px var(--face); color: #000; user-select: text; }
+  /* A line a number is typed into has no arrows of the page's own at its end: the client's has none. */
+  .in[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  .in[type=number]::-webkit-inner-spin-button, .in[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   .in::placeholder { color: #9c9c9c; }
   .combo { padding: 0 5px; line-height: 22px; }
   .small { font-size: 12px; }
@@ -162,10 +165,23 @@
   .opt:hover { background: #c6d6f7; }
   /* A text of a window, and a window's title. */
   .t { white-space: nowrap; line-height: 15px; }
-  .t.titled { color: #000; text-shadow: 1px 1px 0 #fff; }
+  /* A title too long for its bar is cut short with dots (`UIStaticText::SetTextFitted`). */
+  .t.titled { color: #000; text-shadow: 1px 1px 0 #fff; max-width: calc(100% - 34px); overflow: hidden; text-overflow: ellipsis; }
   /* What scrolls without a bar. */
   .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
   .scroll::-webkit-scrollbar { display: none; }
+  /* What scrolls with the client's own bar (`UIScrollBar::Paint`, upright): 13 wide, scroll0mid.bmp down it, an
+     arrow of 13 at each end (scroll0up.bmp, scroll0down.bmp), the handle of scroll0bar_up, _mid and _down.bmp.
+     It shows only while there is more than fits, as the client's does. */
+  .bar { overflow-y: auto; overflow-x: hidden; }
+  .bar::-webkit-scrollbar { width: 13px; }
+  .bar::-webkit-scrollbar-track { background: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0mid.bmp') 0 0 repeat-y; }
+  .bar::-webkit-scrollbar-thumb { background: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0bar_up.bmp') 0 0 no-repeat, url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0bar_down.bmp') 0 100% no-repeat,
+                                             url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0bar_mid.bmp') 0 0 repeat-y; }
+  .bar::-webkit-scrollbar-button:single-button { height: 13px; background: no-repeat 0 0; }
+  .bar::-webkit-scrollbar-button:single-button:vertical:decrement { background-image: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0up.bmp'); }
+  .bar::-webkit-scrollbar-button:single-button:vertical:increment { background-image: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0down.bmp'); }
+  @supports not selector(::-webkit-scrollbar) { .bar { scrollbar-width: thin; scrollbar-color: #b5bdd6 #e7e7e7; } }
   /* A text or a list of the quest windows that scrolls, with the bar the client draws for them (`CUIVScrollBar`
      of Renew_QuestUI): 7 wide, its handle the colour of bt_scrollBar_mid.bmp with rounded ends, an arrow of 3 at
      each end. Where the browser draws no such bar (Firefox) its own thin one is shown in the same colours. */
@@ -261,7 +277,10 @@
   /* The chat: its lines, its tabs, and the line typed into. */
   .chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: thin; scrollbar-color: #9aa3c8 transparent;
               color: #fff; font: 13px var(--face); user-select: text; }
-  .chat-log div { line-height: 14px; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
+  /* A row too wide for the list is cut by its width between any two letters (UIWindow::WrapPixelText), but
+     not inside what stands in brackets (hud/chat.rs, crate::chat::held). */
+  .chat-log div { line-height: 14px; white-space: pre-wrap; line-break: anywhere; text-shadow: 1px 1px 0 #000; }
+  .chat-log div .kept { white-space: pre; }
   .chat-tab { padding: 0; border: 0; color: #fff; font: 13px var(--face); line-height: 15px; text-align: center; white-space: nowrap; overflow: hidden; cursor: var(--press, pointer); }
   #chat-input { background: #f0f0f0; }
   /* How many play, by the chat's tabs: a green light that breathes, the number, and the word. */

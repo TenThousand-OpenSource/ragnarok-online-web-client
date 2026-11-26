@@ -306,6 +306,19 @@ pub fn bashed_hiding(state: u32, job: u16) -> bool {
     state & HIDES != 0 && !matches!(job, 25 | 4222)
 }
 
+/// The effect left on the place of one the server takes away, and for how many ticks, by how
+/// ZC_NOTIFY_VANISH says it went (`CGameMode::ReceiveActorDisappear`, `LaunchDummyEffect`): `EF_EXIT2` (314)
+/// for 600 ticks where one logged out (2), `EF_TELEPORTATION2` (304) for 300 where one teleported away (3),
+/// a monster as well as a player, unless it was invisible (the bit 0x40 of its state, `StateFlag06`); nothing
+/// for one out of sight or dead.
+pub fn left_behind(how: u8, state: u32) -> Option<(u32, i32)> {
+    match how {
+        2 => Some((314, 600)),
+        3 if state & UNSEEN_BIT == 0 => Some((304, 300)),
+        _ => None,
+    }
+}
+
 /// How long one falls dead before it lies in the last picture of its fall, in milliseconds (`ST_DEAD`): the
 /// pictures of the fall, each for as long as the sprite says (`timing`: how many and how long each), no
 /// shorter than a quarter of a second; 700 for one whose sprite's timing is not known.
@@ -436,6 +449,13 @@ mod tests {
         assert!(!shadowed(false, false, false, UNSEEN_BIT));
         assert!(shadowed(false, false, true, HIDES) && !shadowed(false, false, true, CLOAKS));
         assert!(!shadowed(false, false, true, UNSEEN_BIT) && !shadowed(false, false, true, HIDES | CLOAKS));
+    }
+
+    #[test]
+    fn one_who_logs_out_or_teleports_leaves_an_effect_on_its_place() {
+        assert_eq!((left_behind(2, 0), left_behind(3, 0), left_behind(3, HIDES)), (Some((314, 600)), Some((304, 300)), Some((304, 300))));
+        assert_eq!((left_behind(3, UNSEEN_BIT), left_behind(2, UNSEEN_BIT)), (None, Some((314, 600))));
+        assert_eq!((left_behind(0, 0), left_behind(1, 0), left_behind(4, 0)), (None, None, None));
     }
 
     #[test]

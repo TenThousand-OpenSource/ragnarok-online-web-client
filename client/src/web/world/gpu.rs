@@ -26,6 +26,9 @@ pub(super) struct SpriteTexture {
     pub(super) adding: wgpu::BindGroup,
     pub(super) size: (f32, f32),
     pub(super) feet: (f32, f32),
+    /// The box around what is drawn in the picture, its two corners in the picture's pixels: the pointer picks
+    /// by it (`pick.rs`).
+    pub(super) drawn: ((f32, f32), (f32, f32)),
 }
 
 pub(super) struct Ground {

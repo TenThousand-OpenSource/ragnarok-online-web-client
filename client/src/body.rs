@@ -114,6 +114,8 @@ pub struct Touch {
     pub held: Option<(u8, u8)>,
     /// The colour it writes, and locks, on a character whose health state says it is poisoned (the bit 1).
     pub if_poisoned: Option<[u8; 3]>,
+    /// It has its parent puff smoke where it stands (`AM_MAKE_SMOKE_FFECT`, as one that hides does).
+    pub smoke: bool,
 }
 
 impl Touch {

@@ -26,9 +26,10 @@ pub(in crate::web) fn grid_cell(place: usize, columns: i32, item: &Item, amount:
 pub(in crate::web) fn grid_of(columns: i32, rows: i32, cells: &[String]) -> String {
     let filled = (cells.len().div_ceil(columns.max(1) as usize) as i32).max(rows);
     format!(
-        r#"<div class="a scroll" style="{};background:url('{}')"><div style="position:relative;height:{}px">{}</div></div>"#,
+        r#"<div class="a scroll" style="{};background:url('{}')" {}><div style="position:relative;height:{}px">{}</div></div>"#,
         at(40, 17, 32 * columns, 32 * rows),
         picture("basic_interface/itemwin_mid.bmp"),
+        rows_stepped(32, rows),
         filled * 32,
         cells.concat()
     )

@@ -57,7 +57,11 @@ impl App {
         let mut window = title_bar(width, &if self.party.name.is_empty() { party.clone() } else { format!("{party}({})", self.party.name) });
         window.push_str(&self.messenger_frame(width, height));
         let rows: String = self.party.members.iter().enumerate().map(|(row, member)| self.party_row(layout, row, member)).collect();
-        window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-x:hidden">{rows}</div>"#, at(1, 17, width - 2, layout.rows * layout.row)));
+        window.push_str(&format!(
+            r#"<div class="a scroll" style="{};overflow-x:hidden" {}>{rows}</div>"#,
+            at(1, 17, width - 2, layout.rows * layout.row),
+            rows_stepped(layout.row, layout.rows)
+        ));
         window.push_str(&self.party_bar(layout));
         // The tabs: the Friend one turns the window to the list of friends (`hud/friends.rs`).
         window.push_str(&radio(4, height - 16, false, true, &Self::words(102, "Friend"), Some(Press::Friends.into())));
@@ -191,7 +195,7 @@ impl App {
             Some(PartyAsk::HandOver(_)) => Self::words(1533, "Switch Party Leader?"),
             None => return String::new(),
         };
-        message_box(Asked::Offer, &escape(&words), Press::Yes, Press::No)
+        message_box(&escape(&words), Press::Yes, Press::No)
     }
 
     /// The members' marks on the minimap (`CGameMode::DrawMiniMapMembers`): for each other member on this map

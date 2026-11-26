@@ -45,6 +45,26 @@ pub(super) fn moved(event: &MouseEvent) {
     });
 }
 
+/// The pointer left the page: it is over nothing of the world any more, so the name under it, the mark of
+/// its cell and the words of the skill aimed go (the client's `CGameMode::UpdateHoverNameBalloon` asks every
+/// frame where the pointer is; a page is told nothing more of a pointer that left it).
+pub(super) fn left() {
+    STATE.with_borrow_mut(|state| (state.pointer, state.mouse) = (None, None));
+    aim_shown();
+}
+
+/// Whether the pointer, standing still, is over the world now: a window that opened under it (by a key, by
+/// what the server said) takes it from the world without the mouse telling of it, and whoever stood there
+/// would keep their name over the window; a window that closed under it gives it back. Asked every frame, as
+/// the client asks its windows first (`UIWindowMgr` takes the pointer before `CGameMode::HandleActorPick`
+/// does). While a button is held on the ground or turns the camera, the pointer stays off the world as
+/// `moved` left it.
+pub(in crate::web::world) fn still_over_world(state: &mut State) {
+    let Some((x, y)) = state.mouse.filter(|_| state.held.is_none() && state.turning.is_none()) else { return };
+    let over = crate::web::document().and_then(|document| document.element_from_point(x, y)).is_some_and(|under| under.id() == "game");
+    state.pointer = over.then_some((x, y));
+}
+
 pub(super) fn released(event: &MouseEvent) {
     if event.button() == 0 {
         // The button let go while a monster is fought only as long as it is held: the fight is called

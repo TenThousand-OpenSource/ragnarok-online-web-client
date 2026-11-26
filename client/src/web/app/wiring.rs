@@ -11,8 +11,9 @@ pub fn start() -> Result<(), String> {
     dragging::wire(&window, &ui)?;
     // The windows themselves are dragged by their title bars.
     drag_windows(&document)?;
-    wire_tooltip(&ui)?;
+    wire_tooltip()?;
     wire_presses(&ui)?;
+    wire_wheel(&ui)?;
     wire_keys(&document)?;
     wire_page(&window, &document)?;
     restore(&window);
@@ -30,27 +31,91 @@ fn pressed(event: &Event, attribute: &str) -> Option<Element> {
 
 /// The game's own tooltip (the client's `CMode::ShowTooltip`): white words on a see-through black box, shown
 /// at once over whatever has one (`data-tip`), 16 above its top left corner, and gone when the pointer leaves.
-fn wire_tooltip(ui: &Element) -> Result<(), String> {
-    let on_over = Closure::<dyn FnMut(Event)>::new(|event: Event| {
-        let Some(tip) = element("tip") else { return };
-        let tipped = pressed(&event, "data-tip").and_then(|tipped| tipped.dyn_into::<web_sys::HtmlElement>().ok());
-        let style = match tipped {
-            Some(tipped) => {
-                let words = tipped.get_attribute("data-tip").unwrap_or_default();
-                if tip.text_content().as_deref() != Some(words.as_str()) {
-                    tip.set_text_content(Some(&words));
-                }
-                // The windows may be drawn larger than their own measures: the tooltip is as much larger.
-                let place = tipped.get_bounding_client_rect();
-                let scale = if tipped.offset_width() > 0 { place.width() / f64::from(tipped.offset_width()) } else { 1.0 };
-                format!("display:block;left:{:.0}px;top:{:.0}px;font-size:{:.1}px", place.left().max(0.0), (place.top() - 16.0 * scale).max(0.0), 12.0 * scale)
-            }
-            None => "display:none".to_owned(),
-        };
-        let _ = tip.set_attribute("style", &style);
+///
+/// (It was listened for in the windows only, so a tooltip stayed when the pointer went from its thing straight
+/// onto the world.) The pointer leaves a thing also when it stands still and a window opens under it, or the thing is drawn
+/// away: a page tells of neither until the pointer moves. So while a tooltip shows, what is under the pointer
+/// is looked at again five times a second, and the tooltip goes, or changes, with it (the client draws its
+/// tooltip anew each frame for the window under the pointer).
+fn wire_tooltip() -> Result<(), String> {
+    thread_local! {
+        /// Where the pointer was last, on the page.
+        static POINTER: std::cell::Cell<(f32, f32)> = const { std::cell::Cell::new((0.0, 0.0)) };
+    }
+    let on_over = Closure::<dyn FnMut(Event)>::new(|event: Event| tip_over(pressed(&event, "data-tip")));
+    let on_move = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(|event: web_sys::MouseEvent| {
+        POINTER.set((event.client_x() as f32, event.client_y() as f32));
     });
-    ui.add_event_listener_with_callback("mouseover", on_over.as_ref().unchecked_ref()).map_err(js_error)?;
+    let on_look = Closure::<dyn FnMut()>::new(|| {
+        if element("tip").is_some_and(|tip| tip.get_attribute("style").is_some_and(|style| style.starts_with("display:block"))) {
+            let (x, y) = POINTER.get();
+            let under = crate::web::document().and_then(|document| document.element_from_point(x, y));
+            tip_over(under.and_then(|under| under.closest("[data-tip]").ok().flatten()));
+        }
+    });
+    // The whole page is listened to, not the windows alone: the pointer leaves a thing for the world too,
+    // which is no part of them, and for nowhere at all when it goes off the page.
+    let page = crate::web::document().ok_or("no document")?;
+    let on_out = Closure::<dyn FnMut()>::new(|| tip_over(None));
+    page.add_event_listener_with_callback("mouseover", on_over.as_ref().unchecked_ref()).map_err(js_error)?;
+    page.add_event_listener_with_callback("mousemove", on_move.as_ref().unchecked_ref()).map_err(js_error)?;
+    page.add_event_listener_with_callback("mouseleave", on_out.as_ref().unchecked_ref()).map_err(js_error)?;
+    on_out.forget();
+    if let Some(window) = web_sys::window() {
+        window.set_interval_with_callback_and_timeout_and_arguments_0(on_look.as_ref().unchecked_ref(), 200).map_err(js_error)?;
+    }
     on_over.forget();
+    on_move.forget();
+    on_look.forget();
+    Ok(())
+}
+
+/// Shows the tooltip of the thing under the pointer (`tipped`), or takes it away when there is none.
+fn tip_over(tipped: Option<Element>) {
+    let Some(tip) = element("tip") else { return };
+    let style = match tipped.and_then(|tipped| tipped.dyn_into::<web_sys::HtmlElement>().ok()) {
+        Some(tipped) => {
+            let words = tipped.get_attribute("data-tip").unwrap_or_default();
+            if tip.text_content().as_deref() != Some(words.as_str()) {
+                tip.set_text_content(Some(&words));
+            }
+            // The windows may be drawn larger than their own measures: the tooltip is as much larger.
+            let place = tipped.get_bounding_client_rect();
+            let scale = if tipped.offset_width() > 0 { place.width() / f64::from(tipped.offset_width()) } else { 1.0 };
+            format!("display:block;left:{:.0}px;top:{:.0}px;font-size:{:.1}px", place.left().max(0.0), (place.top() - 16.0 * scale).max(0.0), 12.0 * scale)
+        }
+        None => "display:none".to_owned(),
+    };
+    if tip.get_attribute("style").as_deref() != Some(style.as_str()) {
+        let _ = tip.set_attribute("style", &style);
+    }
+}
+
+/// The wheel over a list or a text that moves by steps (`parts::stepped`): it is moved as the client moves
+/// its own, by whole rows or lines and so many a notch (`crate::scrolling`), and the page does not scroll it
+/// by pixels.
+fn wire_wheel(ui: &Element) -> Result<(), String> {
+    thread_local! {
+        /// What is left of the wheel's turns that were less than a notch (a touchpad's).
+        static TURNED: std::cell::Cell<f64> = const { std::cell::Cell::new(0.0) };
+    }
+    let on_wheel = Closure::<dyn FnMut(web_sys::WheelEvent)>::new(|event: web_sys::WheelEvent| {
+        let Some(list) = pressed(&event, "data-step") else { return };
+        event.prevent_default();
+        let number = |name: &str| list.get_attribute(name).and_then(|number| number.parse::<i32>().ok()).unwrap_or(0);
+        // A wheel that counts in lines or pages gives a notch a turn.
+        let turned = if event.delta_mode() == 0 { event.delta_y() } else { event.delta_y().signum() * 100.0 };
+        let (whole, left) = crate::scrolling::notches(TURNED.get(), turned);
+        TURNED.set(left);
+        if whole != 0 {
+            let most = list.scroll_height() - list.client_height();
+            list.set_scroll_top(crate::scrolling::moved(list.scroll_top(), number("data-step"), whole * number("data-notch"), most));
+        }
+    });
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    ui.add_event_listener_with_callback_and_add_event_listener_options("wheel", on_wheel.as_ref().unchecked_ref(), &options).map_err(js_error)?;
+    on_wheel.forget();
     Ok(())
 }
 
@@ -63,10 +128,25 @@ fn wire_presses(ui: &Element) -> Result<(), String> {
             dispatch(Action::Submit(form));
         }
     });
+    thread_local! {
+        /// The thing the last press was on that a double click does something with, as it is written.
+        static USED: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
+    }
     let on_click = Closure::<dyn FnMut(Event)>::new(|event: Event| {
         glance(App::tune);
+        // What the press is on is read before the press is handled: handling it may draw the thing anew.
+        let used = pressed(&event, "data-use").and_then(|pressed| pressed.get_attribute("data-use"));
         if let Some(pressed) = pressed(&event, "data-click") {
             dispatch(Action::Click(pressed.get_attribute("data-click").unwrap_or_default(), pressed.get_attribute("data-arg").unwrap_or_default()));
+        }
+        // A double click on a thing (`things::doubled`): the second press on it, counted here, for the page
+        // sends no double click to a thing its first press drew anew (a line of a menu, a row of a list).
+        let presses = event.dyn_ref::<web_sys::MouseEvent>().map_or(0, |event| event.detail());
+        let before = USED.replace(used.clone());
+        if things::doubled(presses, before.as_deref(), used.as_deref()) {
+            if let Some(what) = used.as_deref().and_then(things::read) {
+                dispatch(Action::Use(what));
+            }
         }
     });
     let on_double_click = Closure::<dyn FnMut(Event)>::new(|event: Event| {
@@ -76,9 +156,6 @@ fn wire_presses(ui: &Element) -> Result<(), String> {
         }
         if let Some(slot) = pressed(&event, "data-open").and_then(|pressed| pressed.get_attribute("data-open")).and_then(|slot| slot.parse().ok()) {
             dispatch(Action::Open(slot));
-        }
-        if let Some(what) = pressed(&event, "data-use").and_then(|pressed| pressed.get_attribute("data-use")).and_then(|what| things::read(&what)) {
-            dispatch(Action::Use(what));
         }
     });
     // A slider moved (`data-slide`): its name and where it stands.

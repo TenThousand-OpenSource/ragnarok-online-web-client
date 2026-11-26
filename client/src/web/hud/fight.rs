@@ -54,6 +54,6 @@ impl App {
         if self.fight.star.is_none() {
             return String::new();
         }
-        message_box(Asked::Offer, &escape(&Self::words(1028, "Do you want to designate this map?")), Press::StarYes, Press::StarNo)
+        message_box(&escape(&Self::words(1028, "Do you want to designate this map?")), Press::StarYes, Press::StarNo)
     }
 }

@@ -11,7 +11,7 @@ mod effects;
 mod marks;
 mod sprites;
 
-pub(super) use sprites::left_of;
+pub(super) use sprites::{left_of, shadowed};
 
 /// Draws one frame, and asks for the next while there is a world to draw: a list of steps and nothing else.
 pub(super) fn frame() {

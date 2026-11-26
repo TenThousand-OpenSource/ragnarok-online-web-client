@@ -62,6 +62,6 @@ impl App {
     pub(super) fn esc_question(&self) -> Option<String> {
         use crate::press::general::Press;
         let words = Self::words(1548, "Do you really want to go back to your savepoint?");
-        (self.esc == 2).then(|| message_box(Asked::Sure, &words, Press::EscYes, Press::EscNo))
+        (self.esc == 2).then(|| confirm_box(&words, Press::EscYes, Press::EscNo))
     }
 }

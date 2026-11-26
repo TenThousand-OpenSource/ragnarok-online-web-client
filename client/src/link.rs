@@ -6,11 +6,17 @@
 pub const WATCH_EVERY: i32 = 5_000;
 const SILENT_TOO_LONG: f64 = 60_000.0;
 const SAY_SOMETHING: f64 = 10_000.0;
+/// How long an answer to what was last sent is waited for before a silent connection is closed. This is the
+/// browser's need and not the client's: a page that is not shown has its timers held back by the browser, to
+/// one beat a second and, after some minutes, one a minute, so the watch may wake a whole minute after the
+/// last answer came, with nothing asked since. It then asks first and closes only when that goes unanswered.
+const ANSWER_WAIT: f64 = 4_000.0;
 
 /// What the watch does when it looks.
 #[derive(Debug, PartialEq)]
 pub enum Watch {
-    /// Nothing came for more than a minute: the connection is closed and the player told.
+    /// Nothing came for more than a minute, nor to what was sent since: the connection is closed and the
+    /// player told.
     Close,
     /// Nothing was sent for more than ten seconds: CZ_PING_LIVE is.
     Ping,
@@ -19,7 +25,8 @@ pub enum Watch {
 
 /// The watch at a moment, by when something last came and was last sent (all in milliseconds).
 pub fn watch(now: f64, heard_at: f64, sent_at: f64) -> Watch {
-    if heard_at + SILENT_TOO_LONG < now {
+    // Silent for a minute, and silent to something sent since: not merely a watch that woke late.
+    if heard_at + SILENT_TOO_LONG < now && sent_at > heard_at && sent_at + ANSWER_WAIT < now {
         Watch::Close
     } else if sent_at + SAY_SOMETHING < now {
         Watch::Ping
@@ -79,11 +86,16 @@ mod tests {
 
     #[test]
     fn the_watch_closes_a_silent_connection_and_speaks_on_a_quiet_one() {
-        assert_eq!(watch(100_000.0, 39_999.0, 99_000.0), Watch::Close);
+        assert_eq!(watch(100_000.0, 39_999.0, 95_000.0), Watch::Close);
         assert_eq!(watch(100_000.0, 40_000.0, 89_999.0), Watch::Ping);
         assert_eq!(watch(100_000.0, 40_000.0, 90_000.0), Watch::Wait);
-        // A silent connection is closed whatever was sent.
-        assert_eq!(watch(100_000.0, 0.0, 0.0), Watch::Close);
+        // A watch that woke late (a page not shown: its timers are held back) asks first: nothing was sent
+        // since the last answer, or what was sent has had no time to be answered.
+        assert_eq!(watch(100_000.0, 0.0, 0.0), Watch::Ping);
+        assert_eq!(watch(100_000.0, 39_990.0, 39_900.0), Watch::Ping);
+        assert_eq!(watch(100_000.0, 39_990.0, 99_990.0), Watch::Wait);
+        // Asked since and not answered: closed.
+        assert_eq!(watch(100_000.0, 30_000.0, 95_000.0), Watch::Close);
     }
 
     #[test]

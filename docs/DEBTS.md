@@ -160,12 +160,14 @@ classic game not made yet.
   `BACKLOG.md` and is not made, and holds the player (`sd->state.refineui_open`, `pc_cant_act`): no walking,
   no NPC, until the map is changed, since this client never answers CZ_CLOSE_REFINING_UI. Seen so before the
   restart; nothing was built for it.
-- The last line of what a smith says before a risky refining ("Do you still want to refine?", the sixth) is
-  cut by the lower edge of the talk's window until it is scrolled; how the client's `UISayDialogWnd` shows a
-  sixth line was not compared.
-- A refining's effect is begun twice at a smith NPC, as in the client: once by ZC_ACK_ITEMREFINING
-  (`CGameMode::ReceiveRefineResult`) and once by the ZC_NOTIFY_EFFECT the script sends after it (kind 3 or 2).
-  Whether the Windows client shows the two as one was not found (`EffectLists::Spawn` was not read through).
+- What an NPC says that is taller than its window (a smith's warning before a risky refining: seven lines, the
+  last "Do you still want to refine?") is cut by the window's lower edge until it is moved, as in the client
+  with the English service's font: a line is 15 and 6 there (`CCreateLineInfo::ArrangeLines`, Arial of 15 for
+  the family 0 at 12, `TextContext::SetFont`), so seven lines end 145 down in a viewer of 140, and
+  `UITagTextViewer::AddText` does not move the text to its end. Since 2026-11: the viewer has the client's bar
+  and the wheel and the arrows move it 30 (`scrolling.rs`; seen in the game). The bar is the page's own,
+  drawn with the client's pictures (`.bar` of `index.html`): its handle is not sized or dragged to the pixel
+  as `UIScrollBar` does, and a browser without `::-webkit-scrollbar` draws a thin plain one.
 - The storage stands where this client has always had it, not at the client's 360, 200
   (`web/hud/windows/storage.rs`).
 - Opening a stall: what is wrong is said in the chat in red, not in message boxes
@@ -185,6 +187,19 @@ classic game not made yet.
 - The whisper window is of one size; the client's can be made larger (`web/hud/whispers.rs`).
 - A coloured broadcast with a letter height of nought is drawn at 12; the client would draw nothing
   (`net/broadcast.rs coloured`).
+- The rows of the chat's list (`chat.rs rows`, `web/hud/chat.rs chat_lines`): a row is 94 LETTERS where the
+  client counts the bytes of the server's writing (a Korean letter is two); a line with a link to an item is
+  not cut at the 94 letters (the client cuts through the link's own letters there); a row is cut by its width
+  at the box less 16 whenever it is wider than that (the client asks whether it is wider than the box less
+  20, and then cuts it at the box less 16); what
+  stands in brackets is kept whole up to 40 letters, where the client asks whether it is narrower than the
+  box; the letters' widths are the browser's. The `^RRGGBB` marks the client takes out of a line of the chat
+  (`RemoveTextColors`) are left in it.
+- "Allow all party invitations." and "Equipment information not open to the public." are said at every
+  change of map, as the Windows client says them: its `CGameMode::ReceiveToggleNotice` (ZC_PARTY_CONFIG) and
+  `ReceiveEquipmentViewState` (ZC_CONFIG_NOTIFY) write the line whenever the packet comes, and rAthena sends
+  both after every map change (`clif_parse_LoadEndAck`, `if( sd->state.changemap )`). The owner found the
+  repeating pair a bug (2026-11-26); it is left as the client has it until he decides otherwise.
 - The words that are not let be written (`manner.rs`, the client's `manner.txt`) are asked in the places
   `docs/DONE.md` lists under Chat. Left of what the client does with them: what is typed for an NPC is not
   turned red in its line (`UINpcTextEditDialogWnd::SendMsg`); the guild's own name, the names of its
@@ -377,6 +392,10 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   the Windows client; an action that goes round ends here when the monster walks or begins a motion, where
   the client ends it at the monster's next state whatever that is.
 
+- The blue word that goes with the total of a kick (`web/world/combat/landing.rs`, `Sign::Word`) is the words'
+  sprite tinted blue; the client draws `이팩트\bluemsg.spr` by `msg.act` (`MAKETYPE_BLUE_EFFECT`), tinted the
+  same. Not seen in the game.
+
 ### Items
 - Making: forge, mend, identify, warps list (`choosing.rs`, `net/choosing/**`, `web/hud/choosing.rs`;
   setting a card was seen); viewing another's equipment (`net/viewequip.rs`, `web/hud/viewequip.rs`).
@@ -411,10 +430,15 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   mercenary used from its list or the hotkey bar, a homunculus's own level and evolution, a pet's accessory
   and talk, renaming any of them, a user's own AI script (`ai.rs`, `ai/**`, `web/app/ai.rs`,
   `web/world/ai.rs`).
-- In the three windows the client's places are kept for words that are longer in English than in Korean:
-  "Name" runs into a mercenary's name and "Expiration" into its date (`web/hud/mercenary.rs`), "Intimacy"
-  into a pet's (`web/hud/pets.rs`) and a homunculus's (`web/hud/homunculus.rs`). Whether the Windows client
-  with the English table shows the same was not compared.
+- In the three windows, and in Monster Info, words of the English table run into what stands after them
+  ("NameMina", "Expiration11/21", "IntimacyShy", "Element" into its value): compared 2026-11 and left, for it
+  is the client's own. The places are fixed in its code, none follows the word (`UIMerInfoWnd::Paint`: words
+  at 100, the name at 135, the date at 155; `UIHomunInfoWnd::Paint`: "Intimacy" at 100, ":" at 140, the value
+  at 150; `UIPetInfoWnd::Paint`: values at 145; `UIMonsterInfoWnd::Paint`: words at 260, values at 300), and
+  the words are as wide here as there: the client writes them in Arial of 13 pixels (`TextContext::SetFont`,
+  language 1: family 1, height 12 + 3; `FontEntry::CreateSystemFont`), whose widths by the font's own table
+  for that size (`hdmx`) are Name 34, Expiration 58, Intimacy 49, Element 48, against 34.7, 57.8, 48.4 and
+  47.7 measured on the page. The places were made for the Korean words, which are two or three letters.
 - A pet's emotion stands 20 over its feet as anyone's (`web/world/frame/sprites.rs emoting`), which for a
   Poring is well over it; not compared with the Windows client.
 
@@ -567,11 +591,11 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   is never tried after that, because the first file there is the one taken.
 
 ### Found in the game by the owner and the lead, not explained or not compared
-- A box of the client's messages does not grow with a text of four lines: the homunculus's "You have decided
-  to delete this Homunculus…" (asked by `del` in its window) runs over the rule above OK and Cancel
-  (`web/hud/boxes.rs message_box`). How high the client makes such a box was not read.
-- The list of an NPC's shop scrolls by pixels, so a row can be cut at the top; the client scrolls by rows
-  (`web/hud/shops.rs`).
+- The message box of a question (`hud/boxes.rs confirm_box`) is the client's `UIMessageBox` since 2026-11
+  (title bar "Message", three lines of 18 cut at 37 letters, its bar and the wheel for more: `message_box.rs`;
+  seen in the game with the homunculus's question of six lines). Left: the lines are cut by letters where the
+  client cuts by bytes of its code page (the same for Latin and Cyrillic, not for Korean); the boxes of
+  `message_box` (questions others ask, `win_msgbox.bmp`) still let the page break their words.
 - A guild's castles in the game: only the empty list was seen ("Castles Owned :" with nothing under it, on a
   new guild); a castle cannot be given to a guild without the server's owner.
 - The readied arrow's picture and name lie over the figure's head in the Equipment window. Read once more in
@@ -587,10 +611,23 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   screen a Skid Trap, a Sandman and a Claymore Trap are about 2 cells wide. Not compared by eye with the
   Windows client, and the models' own sizes were not read out of the files as numbers.
 - A Talkie Box was not seen sprung: no monster was brought onto its one cell.
+- Storm Gust and Magnus Exorcismus on a light floor: a single `StormGust.str` still whitens light sand at its
+  height (seen 2026-11-26 in the Sograt Desert), as light added to a light floor must; what made it brighter
+  than the client's is taken away (the file played again for every hit of every unit; the pictures kept in
+  8 bits a colour). Not compared with the Windows client side by side. Still different from the client: Storm
+  Gust's ten spikes of ice (`CRagEffect::StormGust`, `PP_3DQUADHORN` with `ice.tga`) are not drawn; an effect's
+  file draws its layer 0, which the client skips (empty in both files); the last key of a layer is applied a
+  frame late (`effect/transform.rs`). Magnus Exorcismus was not looked at in the game after the change.
+- A character's own level-up shows whenever ZC_PAR_CHANGE tells its level, also when a GM lowers it
+  (`@blvl -1`): the client does not ask whether it went up either. `EF_ANGEL2` (338) and `EF_ANGEL3` (582),
+  the Super Novice's and the Taekwon's, are not shown here (`effect_tables/effects_missing.txt`).
+- A cart that stands behind its owner (as after every change of map, the owner looking at the camera) is all
+  but covered by the body, as the client makes it a rope's length behind (`AM_SET_MASTER_POINTER`); its shadow
+  shows. Whether the Windows client's cart shows more of itself there was not compared on a screen.
 - What monsters shoot (`blow/shots.rs`): the monsters of later content in `CGameActor::LaunchAttackProjectile`
   and `CArrowEffect::SendMsg` are left out (Phylla, Petal, Corruption Root, Nyailo, Limacina and the rest), as
-  are its two other launches: `SpawnMandraAttack` (the root of Mandragora, Hydra, Drosera, Nepenthes) and
-  `LaunchBulletSpriteEffect` (the Disguiser). A shot is one picture turned along its way; the client picks
+  are the later jobs of `SpawnMandraAttack` and all of `LaunchBulletSpriteEffect` (the Disguiser and others,
+  none of the classic game: `BACKLOG.md`). A shot is one picture turned along its way; the client picks
   the sprite's action by the direction faced (`GetDir`) and steps its pictures after 8 frames. When the shot
   leaves was read as the frame handed to `SpawnArrowEffect` (`speed × attackMotion`); the decompiled call
   hands that number in a place `CArrowEffect::SendMsg` does not read it from, so this is the likely reading,
@@ -598,15 +635,28 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - Skills cast by monsters, looked at in the game only in part: seen in the packets and on the screen from a
   Marduk, a Marc, an Elder Willow — Fire Bolt (cast and bolts), NPC_FIREATTACK (its hit and number),
   NPC_WATERATTACK, NPC_MAGICALATTACK, NPC_STUNATTACK, NPC_BLINDATTACK (numbers; their hits' effects not told
-  apart in the crowd), NPC_EMOTION (the server sends it as a cast of no time with an emotion). Not looked at:
-  Fire Wall and Heaven's Drive by a monster, Teleport, the poses of `monster_skills.rs`, summoning,
-  NPC_METAMORPHOSIS, an MVP's skills, the sounds. `world::cast` and the handlers of a skill's packets do not
-  ask whether the source is a character, but for the casting pose, which only characters have.
-- Seen in the playtest of the Hunter, not looked into (they are the fight's): a hit that lands just as a walk
-  begins leaves the character walking on here while the server holds it where it was struck (seen twice:
-  monsters then strike it from afar until the next walk); the attack is asked for again every 1.8 seconds on
-  a monster that is already dead; the Insert key was not seen to sit the character down through the test
-  tool (`/sit` does).
+  apart in the crowd), NPC_EMOTION (the server sends it as a cast of no time with an emotion); on 2026-11-26
+  Teleport of Creamies (the effect left on the place and its sound), NPC_METAMORPHOSIS of Pupas (the cast is
+  heard, no packet is left unread), an Osiris (its slaves called at its coming, Meteor Assault, Quagmire under
+  the crowd), an Anubis (a cast on a place with its circle, Sonic Blow with its sound and numbers), the
+  Mandragora's NPC_GROUNDATTACK (heard as a skill's hit). Not looked at: Fire Wall and Heaven's Drive by a
+  monster (the Anubis did not cast its Fire Wall while it was watched), the poses of `monster_skills.rs`
+  (of the classic monsters the table has almost only skills whose packets the client does not ask it for),
+  the smoke at tick 35 of `EF_SUMMONSLAVE` (made, not caught on a picture), Baphomet. `world::cast` and the
+  handlers of a skill's packets do not ask whether the source is a character, but for the casting pose, which
+  only characters have.
+- One struck while it walks may stand a cell away from where the server has it (seen after the fix of the
+  moment a blow lands, 2026-11-26: none in 26 stops among a few Orc Warriors, 4 of 8 in a crowd of eight of
+  them on a Peco Peco, each by one cell): the client shows every walk 72 milliseconds behind the server's
+  clock and more (`server_time.rs`, its `GetServerTime`), while the blow lands in real time, and the stop is
+  seen a frame late. This is the client's own; rAthena sends the walk anew for a while after a blow, and the
+  next walk sets out from the server's cell.
+- The attack is asked for again when nothing came of it for 1.5 seconds (`web/world/pursuit.rs chase`): the
+  client asks once for each press (`isAttackRequest`, `CPlayer::UpdatePendingAction`) and again only when the
+  server says the blow was asked from too far (`AM_RESUMEPROCEEDATTACK`). So after a skill used on the
+  character itself in a fight (Endure, a potion is no skill) the fight goes on here about a second later,
+  where the client stands idle until the monster is pressed again (the server ends the fight with any skill).
+- On a Mac the key to sit is Alt+X, not Insert (`hotkeys.rs mac_instead`, this project's own).
 - A monster's life bar empties before the arrow lands (the server tells life when damage is counted).
 - "White washed-out figure right after being struck": seen once, cause not found.
 - Shadows and a character hidden behind a tree: not compared by eye.
@@ -780,6 +830,14 @@ the code has no note on them: whether they arrive was not checked.
 - Nothing plays before the first press on the page: the music starts with it, and is asked for again twice a
   second until then (`web/sound.rs`, `web/app/wiring.rs`).
 - A tab in the background falls silent (`web/app/screen.rs tune`).
+- A page that is not shown has its timers held back by the browser (one beat a second, and after some
+  minutes one a minute), so the watch on the connection (`link.rs watch`) may wake a minute after the last
+  answer came. It closed the connection then ("Disconnected from server.", seen in the two-player playtest
+  of 2026-11-21: a tab left in the background for some minutes). Against the client's
+  `CPingLiveSchedule::Process`, it now asks first and closes only when what it sent stays unanswered
+  (`ANSWER_WAIT`): tests only, not waited out in the game. Left: the keep-alive itself is held back the same
+  way, and the server's own `stall_time` (60 seconds, `conf/packet_athena.conf`) may still end a page kept
+  hidden for long; a timer in a worker would not be held back.
 
 ### Companions, files
 - A page reads no file of the player's disk: AI scripts and their notes go through the gateway and memory
@@ -834,8 +892,7 @@ the decompiled client.
   (586), `EFST_WIDEWEB` (404) — `client/src/state_effects.rs`.
 - `EF_BURNING`, `EF_BOTTOM_BASILICA2`, the Angelus effect, the `ST_SLEEP` state, `EF_BLACKBODY` —
   `client/src/ailments.rs`; body flags 0x80000 and 0x100000 — `client/src/body.rs`.
-- The sparks of `AlphaDownRipples` (`client/src/web/world/effects.rs`); the smoke of `AlphaCenterRise`
-  (`client/src/web/world/prims/bursts.rs`).
+- The sparks of `AlphaDownRipples` (`client/src/web/world/effects.rs`).
 - `CSkillInfo::UsesLevel` tables are not read: every used skill has the level arrows —
   `client/src/web/hud/skill_list.rs`.
 - Aiming a skill at someone (`skills/aim.rs`, `web/world/input/press.rs aimed`): the rule of Shift is the
@@ -845,24 +902,21 @@ the decompiled client.
   client asks, and the server refuses it). The player's own character is picked when nobody else is under the
   pointer, and before a monster while players come first, not ranked among the other players by how near it
   is. Seen with a monster only: a second player was not tried.
-- A skill waits 70 ms past the end of the character's own blow before it is asked of the server
-  (`skills/aim.rs AFTER_BLOW`): the client waits for its picture of the blow to run out, whose length was not
-  ported; the figure is rAthena's (`amotion` and 50 ms) and a frame. A skill aimed at the player's own
-  character is asked at once, not held so (`web/app/clicks/skills.rs own_aimed`). Whether the client goes on
-  fighting after the skill was not found; here the fight ends with it, as the server ends it.
+- A skill aimed at the player's own character with the pointer is asked at once, not held until the
+  character's own blow is over as the client holds it (`web/app/clicks/skills.rs own_aimed`; the client's
+  `AM_PROCEEDSKILL` with its own ID).
+- A character's swing and the moment its blow lands (`blow.rs attack_motion`, `web/world/combat.rs swing`):
+  one who holds a weapon in each hand is taken as the client takes one with any other weapon (6 pictures in),
+  where the client's `AttackMotionLength` gives it 3 as with a katar: which of its two attacks such a
+  character shows was not ported (`attack_action`).
 - Found in the playtest of the merchant, acolyte and thief lines and left:
-  - the cart is sometimes not drawn after entering the game with one (seen once on a Blacksmith: no cart in
-    two looks, the cart window working) — `web/world/cart.rs`;
-  - the window of the player's own stall is titled "My Shop" where the client writes "My Shop : <its name>"
-    (`UIMerchantItemMyShopWnd::SendMsg`, `UM_SETTITLE`) — `web/hud/vending.rs`; no sign stands over the
-    vendor's own head (the server tells the others only; the client was not found to make one for itself);
+  - no sign stands over the vendor's own head (the server tells the others only; the client was not found to
+    make one for itself). The window of one's own stall is titled "My Shop : <its name>" since 2026-11
+    (`vending::own_title`), by a test and by reading only: not seen in the game;
   - an NPC's shop shows a Merchant the discounted price alone ("38 Z"): whether the client writes both was
     not compared — `web/hud/shops.rs`;
   - the picture of a state without a time (Maximize Power, told 9999) looked washed out, as if its shade
     lay whole over it — `web/hud/statuses.rs`, `cooldowns::turns`;
-  - a katar's blow sounds `_hit_mace.wav` (`blow/signs.rs weapon_sound`, what it falls back to): not
-    compared with the client's table of weapons;
-  - Hiding shows no smoke (`AM_MAKE_SMOKE_FFECT`, `RenderObject.cpp:4781`) — not found drawn;
   - "Random" of Teleport: the client itself would not know rAthena's "Random.gat" and would write its line
     for no map; here it is read as Random (`web/hud/choosing.rs`).
 - Monster Info (`web/hud/fight.rs sense_window`): in English "Element" runs under what it names, the client's
@@ -904,11 +958,18 @@ the decompiled client.
 - World Map search and the Kafra's arrows; the large map's boxes for the marks of quests, towns and the guild,
   and its notes — `client/src/web/hud/worldmap.rs`.
 - The Tipbox: a tip's picture and the button that links a tip into the chat — `client/src/web/hud/tips.rs`.
-  Of the marks of `CCreateLineInfo` its texts are drawn with the colours, the `<TIPBOX>` links and the items'
-  pictures (`^i[number]`); `<ITEM>`, `<NAVI>` and `<URL>` are written as their names and are not pressed; the
+  Its links to tips and to items are pressed (`hud/texts.rs linked_with`, seen in the game); `<NAVI>` is shown
+  and not pressed, for the client starts its navigation there (`OpenTextButtonNavigation`,
+  `g_navigationManager`) and this client has none; `<URL>` is shown and not pressed (the client hands the
+  address to Windows, `OpenTextButtonLink`; every address of this `tipbox.lub` is `http://127.0.0.1/`). The
   other marks (`^nItemID^`, `^e[..]`, `<FONT>`, `<B>`, `<I>`) no text of this client's `tipbox.lub` has, and
   they are not read. A line with a picture stands 25 high with its words on the line's foot by the browser's
   own rule, not placed to the pixel as `ArrangeLines` does.
+- Fifteen tips of `SystemEN/tipbox.lub` have words left in Korean, which show as signs (the file is in the
+  Western code page with these parts in the Korean one, and the client's English service writes all of it in
+  the Western one, so they are unreadable there too): all of the text in 4479 and 8242; names of links in
+  2003, 4169, 4170, 4171, 4173, 4335, 9015, 10058; search words after `#` in 6214, 6221, 6236, 9170 (not
+  shown). Left as the file is.
 - A talk with an NPC by the keyboard (`client/src/talk.rs`, `web/app/clicks/talk.rs`): a menu always has a
   line picked (the client's list has none after a press on its empty ground, and its OK then does nothing);
   the list follows the picked line by the line's own height, not by a line of 16; a press of the mouse on a
@@ -919,3 +980,36 @@ the decompiled client.
   not looked at, nor a map of `isEventPVPMode`, which this client does not keep; a menu dragged stays where
   it was dragged to, where the client opens a new one at its own place each time.
 - Fireworks weather (`pokjuk` of `etcinfo.txt`) — `client/src/web/world/scenery.rs`.
+
+### Two players, found in the playtest of 2026-11-21/26 and left
+- Not looked at with two players, for want of time: a pet and a homunculus following as the other sees them
+  walk, Devotion and Providence, Warp Portal entered by the other, Sanctuary, Ice Wall, Safety Wall and
+  Pneuma on the other, Strip and Steal Coin, a guild between the two accounts (inviting, positions, the
+  notice, expelling: seen earlier with other accounts, `DONE.md` 11), a stall sold out, a deal refused for
+  weight or a full inventory, marriage, adoption, mail.
+- A chat room's wrong password and throwing a member out could not be seen: both test accounts are game
+  masters, whom rAthena lets into any room (`PC_PERM_JOIN_ALL_CHAT`) and does not let be thrown out
+  (`PC_PERM_NO_CHAT_KICK`). It needs an account of no group.
+- A game master sees the HP bar of every player (rAthena's `disp_hpmeter`), so the bar under a party member
+  could not be told from that.
+- Packets no reader takes, each time a map is entered: ZC_CONFIG 0x02d9 (10 bytes) of the kinds the readers
+  of `incoming/homunculus.rs` and `incoming/viewequip.rs` do not take; ZC_ACH_UPDATE 0x0a24 and
+  ZC_REPUTE_INFO 0x0b8d once at the way in (achievements and reputation: later content, `BACKLOG.md`).
+- A press, a double press and a drag made by a script of the page (not by the mouse) are not always taken
+  since the build of 2026-11-26 (a skill of the tree, a stall's sign, a thing dragged into a basket): only
+  whoever drives the page by script meets it; the mouse works.
+
+### Windows, found in the playtest of 2026-11 and left
+- The lists of rows move by whole rows under the wheel as the client's (`scrolling.rs`, `hud/lists.rs
+  rows_stepped`): the shop, storage, cart, inventory, vending, the lists to pick from, friends, party, guild
+  members, the guild's table and skills, an NPC's menu, the Tipbox's list. Not so yet: the emotions, the
+  options' rows, the chat tab's list of kinds, the World Map's list (how the client steps them was not read).
+  None of these lists has the client's bar: they are moved by the wheel alone.
+- A thing's own tooltip in the inventory, the hotkey bar, the skill lists and the states' icons is the
+  browser's (`title`), which comes late and in the system's look; only the menu's icons and the like have the
+  client's (`data-tip`).
+- The question of an NPC's shop (buy, sell, cancel) has no words in it; the shop's list and the guild window
+  open over Basic Information; the pet, homunculus and mercenary stand on the character after a warp.
+- Enter in an NPC's menu was not seen to fail in any case tried (Kafra, smith, metal seller; the chat's line
+  with and without the keyboard; the pointer on the window and off it); what the owner saw fail was not found
+  beyond the double click and the boxes that ask, which are mended.

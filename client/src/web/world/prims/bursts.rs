@@ -12,8 +12,8 @@
 //! - `EF_CHEMICALPROTECTION` (300): the rays of light of Chemical Protection and Full Protection
 //!   (`ShockwaveRing`, twice).
 //!
-//! Not done here, as it is not drawn by primitives: the smoke `AlphaCenterRise` has its parent make at its
-//! 35th tick (`AM_MAKE_SMOKE_FFECT`). What bursts out over the ground is in `blasts.rs`.
+//! The smoke `AlphaCenterRise` has its parent make at its 35th tick (`AM_MAKE_SMOKE_FFECT`) is asked of the
+//! parent (`Touch::smoke`). What bursts out over the ground is in `blasts.rs`.
 
 use super::launched::{PARTICLE1, glowing};
 use super::*;
@@ -66,6 +66,8 @@ fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
             prims.push(widening_ring(40));
         }
         215 if tick == 0 => prims.extend((0..20).map(|_| rising_wedge(40, 20.0))),
+        // (`AlphaCenterRise` at its 35th tick: `AM_MAKE_SMOKE_FFECT` to its parent.)
+        215 if tick == 35 => course.touch.smoke = true,
         300 if tick == 0 => prims.extend([30, 60].into_iter().flat_map(|turned| [false, true].map(|wide| rays(turned, wide, course)))),
         _ => {}
     }

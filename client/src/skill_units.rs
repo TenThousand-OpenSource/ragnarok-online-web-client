@@ -240,9 +240,38 @@ pub fn on_caster(skill: u16) -> Option<u32> {
     (skill == 491).then_some(58)
 }
 
+/// The effect on one a unit on the ground strikes, for each hit of the skill that hurts (`CSkill::SendMsg`,
+/// `AM_SKILL`, `Contents/Actors/Skill.cpp:352`: the `hitEffect` of the damage it hands the one struck): the
+/// hit of fire for Fire Wall (49), of cold for Storm Gust (51), of lightning for Lord of Vermilion (52), the
+/// light of Magnus Exorcismus (152), `EF_SUN_WARM`'s (583) for the three Warmths, the ring of a plain blow
+/// (0) for any other skill under 493, none above. When the server names a unit as the striker
+/// (`GetSkillByAID`), this is all the client shows beside the numbers: the effects the striker of a skill
+/// launches and what follows on the one struck (`CGameActor::ProcessSkillMessage`) are an actor's, so Storm
+/// Gust's file (`EF_STORMGUST`, 89) plays once, from the place the skill was used on, not once more for every
+/// hit of every unit.
+pub fn struck_by_unit(skill: u16) -> Option<u32> {
+    match skill {
+        18 => Some(49),
+        79 => Some(152),
+        85 => Some(52),
+        89 => Some(51),
+        428..=430 => Some(583),
+        ..493 => Some(0),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_unit_that_strikes_shows_its_own_hit_and_nothing_of_a_striker() {
+        assert_eq!([18, 79, 85, 89].map(struck_by_unit), [Some(49), Some(152), Some(52), Some(51)]);
+        assert_eq!([428, 429, 430].map(struck_by_unit), [Some(583); 3]);
+        // Meteor Storm, Thunderstorm, a trap: the ring of a plain blow; a skill past 492, nothing.
+        assert_eq!([83, 21, 116, 492, 493, 2001].map(struck_by_unit), [Some(0), Some(0), Some(0), Some(0), None, None]);
+    }
 
     #[test]
     fn each_kind_shows_its_effect() {

@@ -144,6 +144,9 @@ pub(super) fn bodies(state: &mut State, touches: &[(Option<u32>, crate::body::To
             continue;
         };
         mover.ail.body.touch(touch, *fresh);
+        if touch.smoke && *fresh {
+            mover.pose.smoke = Some((time, mover.at));
+        }
         // (`map::direction` numbers the ways as the body counts its eighths: from the south round by the west.)
         mover.facing = (i32::from(mover.facing) + mover.ail.body.turned()).rem_euclid(8) as u8;
         // A colour for a character that is poisoned, which is locked as a state's is (`EF_BLACKBODY`).

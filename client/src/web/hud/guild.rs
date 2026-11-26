@@ -64,8 +64,9 @@ fn table(widths: &[i32], headers: &[String], rows: &[String]) -> String {
         ))
         .collect();
     table.push_str(&format!(
-        r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{inside}</div></div>"#,
+        r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{inside}</div></div>"#,
         at(0, 65, WIDTH - 6, 11 * 19),
+        rows_stepped(19, 11),
         rows.len() * 19
     ));
     table
@@ -259,7 +260,7 @@ impl App {
             return castles;
         }
         let (width, height) = self.guild_ask_size();
-        let boxed = |words: String| message_box(Asked::Offer, &escape(&words), Press::Yes, Press::No);
+        let boxed = |words: String| message_box(&escape(&words), Press::Yes, Press::No);
         let words = match &self.guild.asks {
             // (The guild's name with stars for a word that is not let be written: `UIJoinGuildAcceptWnd`.)
             Some(GuildAsk::Invited(_, name)) => return boxed(

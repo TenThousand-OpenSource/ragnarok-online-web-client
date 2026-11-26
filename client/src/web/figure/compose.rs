@@ -41,7 +41,7 @@ async fn head_under(figure: &Figure) -> bool {
 }
 
 /// What a body's sprite tells of every figure of its job and sex is kept the first time one is made: how long
-/// each action is, the sounds of its frames, and where its blows land.
+/// each action is and the sounds of its frames.
 fn body_known(figure: &Figure, body_act: &Act) {
     BODIES.with_borrow_mut(|bodies| {
         bodies.entry((figure.job, figure.sex)).or_insert_with(
@@ -64,9 +64,6 @@ fn body_known(figure: &Figure, body_act: &Act) {
                 )
                 .collect()
         );
-    });
-    BODY_STRIKES.with_borrow_mut(|strikes| {
-        strikes.entry((figure.job, figure.sex)).or_insert_with(|| lands_at(body_act));
     });
 }
 

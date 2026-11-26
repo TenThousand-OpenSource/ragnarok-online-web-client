@@ -14,6 +14,9 @@ pub(in crate::web) struct Vending {
     pub making: Option<Stall>,
     /// One's own shop while it is open (`UIMerchantItemMyShopWnd`): what is left to sell.
     pub mine: Option<Vec<Sold>>,
+    /// The title one's own shop was last opened with (`g_session.storeTitle`, kept as the opening is sent):
+    /// its window is titled with it.
+    pub title: String,
     /// The vendor whose list is open (`UIMerchantItemShopWnd`, `UIMerchantItemPurchaseWnd`).
     pub visit: Option<Visit>,
     /// What the box that asks how many is open for, and how many there are.

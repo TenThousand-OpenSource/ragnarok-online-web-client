@@ -321,6 +321,18 @@ pub fn plays_dead(id: u32, own: u32, down: bool) {
 /// How long one that goes out of sight takes to fade (`AM_OUTOFSIGHT`).
 pub(super) const VANISH_MS: f64 = 510.0;
 
+/// Someone is taken away by the server in a way that leaves an effect where it stood (ZC_NOTIFY_VANISH of
+/// one that logged out or teleported away, `crate::pose::left_behind`); told before it is gone (`unit_gone`).
+pub fn unit_leaves(id: u32, how: u8) {
+    STATE.with_borrow_mut(|state| {
+        let Some(unit) = state.scene.as_ref().and_then(|scene| scene.units.get(&id)) else { return };
+        if let Some((effect, ticks)) = crate::pose::left_behind(how, unit.state) {
+            let at = unit.at;
+            skill_units::dummy(state, at, effect, ticks, now());
+        }
+    });
+}
+
 /// Someone is out of sight, or gone.
 pub fn unit_gone(id: u32, died: bool) {
     STATE.with_borrow_mut(|state| {

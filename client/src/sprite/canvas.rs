@@ -61,6 +61,19 @@ impl Canvas {
         Self { width, height, rgba: vec![0; width * height * 4] }
     }
 
+    /// The box around what is drawn in it: its left and top, and one past its right and bottom, in pixels;
+    /// nothing for a picture with nothing in it. The client keeps such a box of what it draws of someone, the
+    /// rectangles of its layers put together, and picks with the pointer by it (the `bounds` that
+    /// `CRenderObject::DrawQuad` widens and `CGameActor::SetRenderInfo` takes).
+    pub fn drawn(&self) -> Option<(usize, usize, usize, usize)> {
+        let mut found: Option<(usize, usize, usize, usize)> = None;
+        for (index, _) in self.rgba.chunks_exact(4).enumerate().filter(|(_, pixel)| pixel[3] != 0) {
+            let (x, y) = (index % self.width, index / self.width);
+            found = Some(found.map_or((x, y, x + 1, y + 1), |(left, top, right, bottom)| (left.min(x), top.min(y), right.max(x + 1), bottom.max(y + 1))));
+        }
+        found
+    }
+
     /// Draws one frame with its origin (the feet) at `origin`. `palette` replaces the sprite's own (hair and
     /// cloth colours).
     pub fn draw(&mut self, origin: (i32, i32), sprite: &Sprite, palette: Option<&Palette>, frame: &Frame) {
@@ -149,6 +162,14 @@ mod tests {
             assert_eq!((red(1, y), red(2, y)), ((20, 255), (10, 255)));
             assert_eq!((red(0, y).1, red(3, y).1), (0, 0));
         }
+    }
+
+    #[test]
+    fn the_box_around_what_is_drawn_leaves_the_empty_margins_out() {
+        let mut canvas = Canvas::new(10, 8);
+        assert_eq!(canvas.drawn(), None);
+        canvas.draw((5, 4), &bar(), None, &Frame { layers: vec![layer(0)], anchor: None, sound: None });
+        assert_eq!(canvas.drawn(), Some((3, 3, 7, 5)));
     }
 
     #[test]

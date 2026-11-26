@@ -88,7 +88,11 @@ impl App {
     /// `이팩트\RankFont`, read the first time there is something to write.
     pub(in crate::web::app) fn rank_shown(&mut self) {
         let line = self.rank_line();
-        if !line.is_empty() && self.pvp.digits.is_empty() && !self.pvp.reading {
+        // Whether there is a standing to write is asked of the rule, not of the line: the line is made of the
+        // pictures, and has none until they are read (asking the line never read them: seen in the game,
+        // 2026-11-26, a PVP map with no standing in its corner).
+        let due = self.pvp.zone.ranked() && !crate::pvp::rank_line(self.pvp.rank, self.pvp.total).is_empty();
+        if due && self.pvp.digits.is_empty() && !self.pvp.reading {
             self.pvp.reading = true;
             wasm_bindgen_futures::spawn_local(async {
                 let mut digits = Vec::new();

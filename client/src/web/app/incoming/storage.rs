@@ -4,6 +4,19 @@ use super::*;
 use crate::net::storage;
 
 impl App {
+    /// The character was moved to another place: an open storage is closed. The server closes its side
+    /// without a word (rAthena's `unit_remove_map`: "Force close it when being warped", no ZC_CLOSE_STORE),
+    /// and its close button, which waits for that packet, would never take the window away. (The Windows
+    /// client makes its game anew at every move, and the storage's window is not among those it puts back.)
+    pub(in crate::web::app) fn storage_moved(&mut self) {
+        if self.storage.open.take().is_some() {
+            self.storage.counting = None;
+            self.storage.found = None;
+            self.storage.sorting = false;
+            self.render();
+        }
+    }
+
     /// Reads a packet of this kind from the map server; `false` for any other.
     pub(super) fn storage_packet(&mut self, id: u16, packet: &[u8]) -> bool {
         match id {

@@ -162,6 +162,8 @@ impl App {
                     self.refresh_values();
                 }
             } else {
+                // One that logged out or teleported away leaves an effect on its place.
+                world::unit_leaves(id, net::actors::vanished_how(packet).unwrap_or(0));
                 world::unit_gone(id, died);
                 // The player's pet is out of sight (not teleported with its master: type 0): it is back
                 // in its egg, or it ran away. The server (rAthena) tells it no other way: its word of

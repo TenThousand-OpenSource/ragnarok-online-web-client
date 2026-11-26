@@ -98,7 +98,7 @@ impl App {
     /// level, whose making was not found: it is left out.)
     pub(in crate::web) fn exchange_question(&self) -> String {
         let Some((name, level)) = &self.exchange.asked else { return String::new() };
-        message_box(Asked::Offer, &format!("({}){}<br>Lv.{level}", escape(name), escape(&Self::words(93, " requests a deal."))), Press::Accept, Press::Refuse)
+        message_box(&format!("({}){}<br>Lv.{level}", escape(name), escape(&Self::words(93, " requests a deal."))), Press::Accept, Press::Refuse)
     }
 
     /// How many of a thing go into the deal: the window that asks how many to drop, asking this (the client's

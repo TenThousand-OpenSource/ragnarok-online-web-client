@@ -50,8 +50,9 @@ impl App {
         let mut rows: String = members.iter().enumerate().map(|(row, member)| self.guild_member_row(row, member)).collect();
         rows.push_str(&self.guild_position_combo());
         tab.push_str(&format!(
-            r#"<div class="a scroll" style="{};overflow-x:hidden"><div style="position:relative;height:{}px">{rows}</div></div>"#,
+            r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{rows}</div></div>"#,
             at(6, 67, WIDTH - 12, 5 * MEMBER_ROW),
+            rows_stepped(MEMBER_ROW, 5),
             members.len() as i32 * MEMBER_ROW
         ));
         tab.push_str(&check_words(12, HEIGHT - 18, self.guild.online_first, &Self::words(2864, "Show guild member login status"), Press::OnlineFirst));

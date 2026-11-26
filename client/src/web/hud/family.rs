@@ -15,6 +15,6 @@ impl App {
         } else {
             escape(&format!("({}){}", parent.name, Self::words(794, " wishes to adopt you. Do you accept?")))
         };
-        message_box(Asked::Offer, &words, Press::Yes, Press::No)
+        message_box(&words, Press::Yes, Press::No)
     }
 }

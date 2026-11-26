@@ -40,8 +40,15 @@ pub enum Under {
     /// An NPC, a homunculus or a mercenary's kind of creature that is no monster.
     Npc,
     Player,
-    /// A pet (the client's object of the kind 7).
+    /// A pet (the client's object of the kind 7), and a mercenary (its `NPC_MERSOL_TYPE`).
     Pet,
+    /// A homunculus (a job of 6001 to 6052, the client's `CSession::IsCompanionJob`).
+    Homunculus,
+}
+
+/// Whether a job is a homunculus's (the client's `CSession::IsCompanionJob`: 6001 to 6052).
+pub fn homunculus(job: u16) -> bool {
+    (6001..=6052).contains(&job)
 }
 
 /// Whether players are picked before monsters: with a skill of help aimed and Shift up, or with Shift held
@@ -55,6 +62,8 @@ pub fn players_first(support_aimed: bool, shift: bool) -> bool {
 pub fn rank(under: Under, players_first: bool) -> u32 {
     match (under, players_first) {
         (Under::Pet, _) => 50,
+        // (A homunculus is 200 whichever way round: before a player, or before an NPC.)
+        (Under::Homunculus, _) => 200,
         (Under::Monster, false) | (Under::Player, true) => 400,
         (Under::Npc, false) | (Under::Monster, true) => 200,
         (Under::Player, false) | (Under::Npc, true) => 100,
@@ -73,26 +82,22 @@ pub fn goes_on_player(support: bool, shift: bool, no_shift: bool, fought: bool) 
     no_shift || fought || support != shift
 }
 
-/// Whether a skill that waits to be used is asked of the server now: not while the character is in the motion
-/// of a blow it deals. The client holds the skill it was told to use (`AM_PROCEEDSKILL`, the pending action 3,
-/// which takes the place of a pending attack) from frame to frame until its body stands, walks or flinches
-/// (`CPlayer::UpdatePendingAction`, `PT_SKILL` and `PT_GROUNDSKILL`, `Source/Contents/Actors/Player.cpp:2973,
-/// 3019`: `state != ST_MOVE && state != ST_STAND && state != ST_DAMAGE && state < 16` returns), and only then
-/// looks whether it is near enough. A server refuses a skill asked for during the blow (rAthena's
-/// `canact_tick`, "Cannot use the skill due to the delay"). `now` and `striking_until` are moments of one
-/// clock, in milliseconds: the blow's motion lasts until the second.
+/// Whether a skill that waits to be used is asked of the server now: not while the character's body is in a
+/// blow it deals. The client holds the skill it was told to use (`AM_PROCEEDSKILL`, `AM_PROCEEDGROUNDSKILL`: the
+/// pending actions 3 and 4, which take the place of a pending attack) from frame to frame until its body
+/// stands, walks or flinches (`CPlayer::UpdatePendingAction`, `PT_SKILL` and `PT_GROUNDSKILL`,
+/// `Source/Contents/Actors/Player.cpp:2973, 3019`: `state != ST_MOVE && state != ST_STAND && state != ST_DAMAGE
+/// && state < 16` returns), and only then looks whether it is near enough. `now` and `striking_until` are
+/// moments of one clock, in milliseconds: the body is in its blow until the second, which is when the
+/// pictures of its swing have run out (`crate::blow::swing_lasts`, the client's `ST_ATTACK` ended by
+/// `ProcessMotion`).
 ///
-/// Not the client's: `AFTER_BLOW`. The client's attack state ends when its picture of the blow has run out,
-/// which is not the server's `amotion` to the millisecond; here the motion is taken as `amotion` whole, and
-/// rAthena lets a player act again `amotion` and half the fastest blow's motion after a blow
-/// (`unit_set_attackdelay`: `status_get_amotion + pc_maxaspd / AMOTION_DIVIDER_PC`, 50 ms with `max_aspd`
-/// 190), so a skill asked for as the motion ends was refused every time. The wait is that and a frame more.
+/// That is later than the server lets a player act again after a blow (rAthena's `unit_set_attackdelay`:
+/// `amotion` and 50 ms with `max_aspd` 190; a character's swing is 4/3 of `amotion` and more), so a skill
+/// asked for as the swing ends is not refused.
 pub fn asked_now(now: f64, striking_until: f64) -> bool {
-    now >= striking_until + AFTER_BLOW
+    now >= striking_until
 }
-
-/// See `asked_now`.
-const AFTER_BLOW: f64 = 70.0;
 
 #[cfg(test)]
 mod tests {
@@ -109,8 +114,8 @@ mod tests {
 
     #[test]
     fn a_skill_waits_for_the_blow_under_way_to_end() {
-        assert!(!asked_now(1000.0, 1300.0) && !asked_now(1300.0, 1300.0));
-        assert!(asked_now(1370.0, 1300.0) && asked_now(1000.0, 0.0));
+        assert!(!asked_now(1000.0, 1300.0) && !asked_now(1299.0, 1300.0));
+        assert!(asked_now(1300.0, 1300.0) && asked_now(1000.0, 0.0));
     }
 
     #[test]
@@ -138,5 +143,11 @@ mod tests {
         assert_eq!(first(false, true), Under::Player);
         assert_eq!(rank(Under::Monster, true), 200);
         assert_eq!(rank(Under::Npc, true), 100);
+        // A homunculus is picked before the player beside it, and before an NPC while players come first; a
+        // monster before it; a pet and a mercenary after everyone.
+        assert!(rank(Under::Homunculus, false) > rank(Under::Player, false) && rank(Under::Homunculus, false) < rank(Under::Monster, false));
+        assert!(rank(Under::Homunculus, true) > rank(Under::Npc, true) && rank(Under::Homunculus, true) < rank(Under::Player, true));
+        assert!(rank(Under::Pet, false) < rank(Under::Player, false) && rank(Under::Pet, true) < rank(Under::Npc, true));
+        assert!(homunculus(6001) && homunculus(6052) && !homunculus(6053) && !homunculus(6017 + 100) && !homunculus(1002));
     }
 }

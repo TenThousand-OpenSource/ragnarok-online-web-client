@@ -144,6 +144,7 @@ fn looks(event: &MouseEvent, at: (f32, f32)) -> bool {
 
 /// The left button on the world: on someone, on a thing lying there, or on the ground.
 fn left(event: &MouseEvent, at: (f32, f32)) {
+    STATE.with_borrow_mut(|state| state.walk_waits = None);
     if on_someone(event) || on_a_thing(event) {
         return;
     }
@@ -237,6 +238,12 @@ fn walk_towards(at: (f32, f32)) {
         // A press that comes too soon after the last walk asked for asks for none, as in the client
         // (`State::asks_walk`); the button held asks again by itself.
         let asks = STATE.with_borrow_mut(|state| {
+            // In the motion of a blow of its own the character does not walk; the place is kept and walked
+            // to as the blow ends (`pursuit::after_blow`).
+            if now() < state.own_striking_until {
+                state.walk_waits = Some((goal, state.own_striking_until));
+                return false;
+            }
             let asks = state.asks_walk(goal, now());
             // With the project's far walk switched on, a place farther than the server walks in one go
             // is walked to in stretches (`pursuit::journey`).

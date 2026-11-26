@@ -125,14 +125,21 @@ pub fn struck_sound(job: u16) -> &'static str {
     }
 }
 
-/// The sound of a weapon's blow landing on a monster. `kind` is the client's number for the kind of weapon
-/// the striker holds (0: bare hands; none: the hit of a skill), `named` what the client's weapon table has for
-/// a kind (`ReqWeaponHitWaveName`), and `lot` a number under 4 drawn for the sounds the client has four of.
-pub fn weapon_sound(kind: Option<u16>, named: impl Fn(u16) -> Option<String>, lot: u32) -> String {
+/// The sound of a weapon's blow landing on a monster (`CSession::GetWeaponHitWaveName`, `HitSounds.cpp:65`).
+/// `kind` is the client's number for the kind of weapon the striker holds (0: bare hands; none: the hit of a
+/// skill, or a striker that is no character), `named` what the client's weapon table has for a kind
+/// (`ReqWeaponHitWaveName`, the `WeaponHitWaveNameTable` of `weapontable.lub`), and `lot` a number under 4
+/// drawn for the sounds the client has four of. The table is the whole rule: it names the sword's sound for a
+/// dagger, a sword and a two-handed sword, the spear's and the axe's for both their kinds, the rod's, the
+/// arrow's for a bow, the guns' own, and `_hit_mace.wav` for a mace, a knuckle, an instrument, a whip, a book,
+/// a katar and a huuma shuriken alike; a kind it does not name sounds so too (what the client fills its list
+/// with, `InitWeaponHitWaveNames`). Bare hands are one of four fists, unless the player's own character is
+/// drawn as a Taekwon (4046, 4225; `own_taekwon`: the client asks its own job, whoever strikes): then they
+/// are what the table has for no weapon.
+pub fn weapon_sound(kind: Option<u16>, named: impl Fn(u16) -> Option<String>, lot: u32, own_taekwon: bool) -> String {
     match kind {
         None => format!("_enemy_hit_normal{}.wav", 1 + lot % 4),
-        Some(0) => format!("_hit_fist{}.wav", 1 + lot % 4),
-        // A kind the table does not name sounds as a mace does (what the client fills its list with).
+        Some(0) if !own_taekwon => format!("_hit_fist{}.wav", 1 + lot % 4),
         Some(kind) => named(kind).filter(|name| !name.is_empty()).unwrap_or_else(|| "_hit_mace.wav".to_owned()),
     }
 }
@@ -202,10 +209,15 @@ mod tests {
     #[test]
     fn what_a_weapon_sounds_like() {
         let table = |kind: u16| (kind == 2).then(|| "_hit_sword.wav".to_owned());
-        assert_eq!(weapon_sound(Some(2), table, 0), "_hit_sword.wav");
-        assert_eq!(weapon_sound(Some(30), table, 0), "_hit_mace.wav");
-        assert_eq!(weapon_sound(Some(0), table, 6), "_hit_fist3.wav");
-        assert_eq!(weapon_sound(None, table, 3), "_enemy_hit_normal4.wav");
+        assert_eq!(weapon_sound(Some(2), table, 0, false), "_hit_sword.wav");
+        // A katar (16) is not named apart in the client's table either: it sounds as a mace does.
+        assert_eq!(weapon_sound(Some(16), table, 0, false), "_hit_mace.wav");
+        assert_eq!(weapon_sound(Some(30), table, 0, false), "_hit_mace.wav");
+        assert_eq!(weapon_sound(Some(0), table, 6, false), "_hit_fist3.wav");
+        assert_eq!(weapon_sound(None, table, 3, false), "_enemy_hit_normal4.wav");
+        // The player's own Taekwon: bare hands are the table's, and a skill's hit stays what it is.
+        assert_eq!(weapon_sound(Some(0), table, 6, true), "_hit_mace.wav");
+        assert_eq!(weapon_sound(None, table, 3, true), "_enemy_hit_normal4.wav");
         assert!(two_handed(1002, false) && two_handed(12, true) && two_handed(4013, true) && !two_handed(7, true));
     }
 }

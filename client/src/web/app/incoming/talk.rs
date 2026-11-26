@@ -61,7 +61,18 @@ impl App {
             }
             asks => dialog.asks = Some(asks == net::talk::ZC_OPEN_EDITDLGSTR),
         }
+        let asked = matches!(id, net::talk::ZC_OPEN_EDITDLG | net::talk::ZC_OPEN_EDITDLGSTR);
         self.redraw(&[&wnd::DIALOG]);
+        // The box that asks has the keyboard as it opens (`UINpcEditDialogWnd::OnCreate` and
+        // `UINpcTextEditDialogWnd::OnCreate`: `g_windowMgr.SetFocus(edit)`), so what is typed goes into it and
+        // Enter sends it; the 0 a number begins with is typed over. (A page gives no line drawn after it was
+        // opened the keyboard by itself.)
+        if asked {
+            if let Some(line) = element("dialog-input").and_then(|line| line.dyn_into::<web_sys::HtmlInputElement>().ok()) {
+                let _ = line.focus();
+                line.select();
+            }
+        }
     }
 
     /// What the character says comes back from the server in green; what others say is white. (The

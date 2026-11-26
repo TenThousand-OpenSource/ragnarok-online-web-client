@@ -6,6 +6,8 @@ mod pointer;
 mod press;
 mod wheel;
 
+pub(super) use pointer::still_over_world;
+
 /// The mouse on the canvas: a left press walks, the right button turns the camera, the wheel moves it.
 pub(super) fn listen() {
     if STATE.with_borrow_mut(|state| std::mem::replace(&mut state.listening, true)) {
@@ -19,6 +21,7 @@ pub(super) fn listen() {
     };
     let moved = Closure::<dyn FnMut(MouseEvent)>::new(|event: MouseEvent| pointer::moved(&event));
     let released = Closure::<dyn FnMut(MouseEvent)>::new(|event: MouseEvent| pointer::released(&event));
+    let left = Closure::<dyn FnMut(MouseEvent)>::new(|_: MouseEvent| pointer::left());
     let side = Closure::<dyn FnMut(MouseEvent)>::new(|event: MouseEvent| {
         if event.button() != 0 && event.button() != 2 && STATE.with_borrow(|state| state.scene.is_some()) {
             event.prevent_default();
@@ -53,7 +56,12 @@ pub(super) fn listen() {
         let _ = window.add_event_listener_with_callback("auxclick", side.as_ref().unchecked_ref());
         let _ = window.add_event_listener_with_callback_and_add_event_listener_options("wheel", page_zoom.as_ref().unchecked_ref(), &options);
     }
+    // The pointer leaving the page is told to the page's root alone.
+    if let Some(root) = crate::web::document().and_then(|document| document.document_element()) {
+        let _ = root.add_event_listener_with_callback("mouseleave", left.as_ref().unchecked_ref());
+    }
     // These live as long as the page.
+    left.forget();
     pressed.forget();
     side.forget();
     page_zoom.forget();

@@ -6,7 +6,7 @@ use super::*;
 /// SetRenderInfo`, `CActorPickNode::Pick`): each one drawn has the rectangle of its picture on the screen, made
 /// at least 40 pixels each way (of a screen 480 high, as the rest of the client's measures here), so that a
 /// small monster is not a small thing to hit; and of those the point is in, a monster comes before an NPC or a
-/// companion, those before a player, and a pet last; with `players_first` (a skill of help aimed and Shift
+/// homunculus, those before a player, and a pet or a mercenary last; with `players_first` (a skill of help aimed and Shift
 /// up, or Shift held and none aimed: `State::players_first`) a player comes before a monster and an NPC last
 /// (`crate::skills::aim::rank`). Among the same kind it is the nearest.
 pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f32), players_first: bool) -> Option<(u32, (f32, f32))> {
@@ -21,6 +21,7 @@ pub(super) fn pointed_at(gpu: &Gpu, scene: &Scene, view: &View, pointer: (f32, f
             }
             let feet = touched(gpu, scene, view, unit, pointer)?;
             let under = match (&unit.look, unit.lively, unit.companion) {
+                (_, _, true) if crate::skills::aim::homunculus(unit.job) => Under::Homunculus,
                 (_, _, true) => Under::Pet,
                 (_, true, _) => Under::Monster,
                 (Look::Creature(_) | Look::Model(_) | Look::Unseen, ..) => Under::Npc,
@@ -52,13 +53,16 @@ pub(super) fn touched(gpu: &Gpu, scene: &Scene, view: &View, unit: &Mover, point
     inside.then_some((under.0 * width, under.1 * height))
 }
 
-/// Two opposite corners of a picture standing with its feet at a place, as the view shows them (parts of the
-/// screen); nothing for one behind the camera.
+/// Two opposite corners of what is drawn of a picture standing with its feet at a place, as the view shows
+/// them (parts of the screen); nothing for one behind the camera. The box is that of what the picture shows,
+/// not of the whole picture: a character's is put together on a sheet much larger than itself, and the
+/// client's box is the rectangles of the layers it draws (`SpriteTexture::drawn`).
 fn corners(view: &View, feet: Vector, texture: &gpu::SpriteTexture) -> Option<((f32, f32), (f32, f32))> {
     let corner = |x: f32, y: f32| view.project(
         along(along(feet, view.right, (x - texture.feet.0) * SPRITE_SCALE), view.up, (texture.feet.1 - y) * SPRITE_SCALE)
     );
-    Some((corner(0.0, 0.0)?, corner(texture.size.0, texture.size.1)?))
+    let (low, high) = texture.drawn;
+    Some((corner(low.0, low.1)?, corner(high.0, high.1)?))
 }
 
 /// Whether a point of the page is in the rectangle between two such corners, the page being so wide and

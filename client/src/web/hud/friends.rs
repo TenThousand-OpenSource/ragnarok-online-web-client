@@ -52,7 +52,11 @@ impl App {
             window.push_str(&art("renewalparty/img_friend2.bmp", 99, 193, 172, 74));
         }
         let rows: String = self.friends.list.iter().enumerate().map(|(row, friend)| self.friend_row(row, friend)).collect();
-        window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-x:hidden">{rows}</div>"#, at(1, 17, width - 2, self.friends_rows() * ROW)));
+        window.push_str(&format!(
+            r#"<div class="a scroll" style="{};overflow-x:hidden" {}>{rows}</div>"#,
+            at(1, 17, width - 2, self.friends_rows() * ROW),
+            rows_stepped(ROW, self.friends_rows())
+        ));
         window.push_str(&Self::friends_bar(width, height - 40));
         window.push_str(&radio_marked(4, height - 16, true, true, &friend, ""));
         window.push_str(&radio_marked(64, height - 16, false, true, &Self::words(103, "Party"), &pressed(Press::Party)));
@@ -140,6 +144,6 @@ impl App {
             Some(FriendAsk::Remove(..)) => Self::words(356, "Are you sure that you want to delete it?"),
             None => return String::new(),
         };
-        message_box(Asked::Offer, &escape(&words), Press::Yes, Press::No)
+        message_box(&escape(&words), Press::Yes, Press::No)
     }
 }

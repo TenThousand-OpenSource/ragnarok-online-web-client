@@ -44,7 +44,9 @@ pub fn carted(owner: Option<u32>, kind: Option<u8>) {
 /// drawn before it, one in front after). Each is pulled along by where its owner is now, looks at its owner,
 /// and shows the picture its roll has come to. The client takes the cart away while its owner hides (the
 /// bits 2, 4 and 0x40 of the effect state), and so does this; a cart whose owner went out of sight goes with
-/// it.
+/// it. A cart is made a rope's length behind its owner (`Pulled::behind`): behind one who looks at the camera,
+/// as after every change of map, it is all but covered by the body until the owner walks (looked at in the
+/// game: this, not a race, is the cart "not drawn" after coming in).
 pub(super) fn drawn(state: &mut State, pictures: &mut Vec<Stood>) {
     let (Some(gpu), Some(scene)) = (&mut state.gpu, &state.scene) else { return };
     let carts = &mut state.carts;
@@ -74,7 +76,12 @@ pub(super) fn drawn(state: &mut State, pictures: &mut Vec<Stood>) {
         let picture = figure::timing(&sprite, action).map_or(0, |(count, _)| cart.picture(count));
         let key = SpriteKey::Creature(sprite, action, picture);
         if gpu.has_sprite(&key) {
-            pictures.push((key, on_ground(&scene.gat, cart.at), 1.0, crate::body::Quad::PLAIN));
+            // Its own shadow lies under it, whole size (`CMsgEffect::SendMsg`, `AM_SETMASTERGID` for `MET_CART`:
+            // `shadowVisible = 1`, `shadowScale = 1.0`): of a cart that stands behind its owner, hidden by the
+            // body, the shadow is what shows.
+            let feet = on_ground(&scene.gat, cart.at);
+            frame::shadowed(gpu, feet, 1.0, pictures);
+            pictures.push((key, feet, 1.0, crate::body::Quad::PLAIN));
         }
     }
 }

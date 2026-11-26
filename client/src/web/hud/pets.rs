@@ -102,6 +102,6 @@ impl App {
             2 => tr("Pet name will be changed to {}, do you want to continue?").replace("{}", &self.pets.named),
             _ => return String::new(),
         };
-        message_box(Asked::Sure, &escape(&words), Press::Yes, Press::No)
+        confirm_box(&words, Press::Yes, Press::No)
     }
 }

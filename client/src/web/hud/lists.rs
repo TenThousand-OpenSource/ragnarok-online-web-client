@@ -19,10 +19,28 @@ pub(super) fn list_frame(width: i32, height: i32, title: &str) -> String {
     )
 }
 
+/// What marks a list of rows, each `row` high and `shown` of them showing, as one the wheel moves by whole
+/// rows, as the client moves all of its own (`crate::scrolling::rows_a_notch`): a row is never cut at the
+/// list's top. Every list of rows of the windows has it.
+pub(in crate::web) fn rows_stepped(row: i32, shown: i32) -> String {
+    stepped(row, crate::scrolling::rows_a_notch(shown))
+}
+
+/// What marks a list of lines of the client's `UIListBox`, each `line` high: the wheel moves it three lines.
+pub(in crate::web) fn lines_stepped(line: i32) -> String {
+    stepped(line, crate::scrolling::LINES_A_NOTCH)
+}
+
 /// The list of such a window: `rows` rows of 32 from the title down, from `x` to `width`, scrolled when it
-/// has more. The client scrolls it by a bar at the right, 15 wide; here the list itself is scrolled.
+/// has more, by whole rows (`rows_stepped`). The client scrolls it by a bar at the right, 15 wide, too; here
+/// the list itself is scrolled.
 pub(super) fn list_of(x: i32, width: i32, rows: i32, lines: &str, marks: &str) -> String {
-    format!(r#"<div class="a scroll" style="{}" {marks}><div style="min-height:{}px">{lines}</div></div>"#, at(x, 17, width, rows * 32), rows * 32)
+    format!(
+        r#"<div class="a scroll" style="{}" {} {marks}><div style="min-height:{}px">{lines}</div></div>"#,
+        at(x, 17, width, rows * 32),
+        rows_stepped(32, rows),
+        rows * 32
+    )
 }
 
 /// What a row of a list shows of its thing.

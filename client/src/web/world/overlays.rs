@@ -30,6 +30,7 @@ pub(super) fn overlays(state: &mut State, view: &View, time: f64, feet: Vector, 
 /// (`CGameMode::UpdateHoverNameBalloon`). Here, by this project's owner's wish, the monster being fought keeps
 /// its mark while the pointer is on another, which gets a second for as long as the pointer is there.
 fn pointed(state: &mut State, view: &View) -> Option<Option<(u32, (f32, f32))>> {
+    still_over_world(state);
     let (Some(gpu), Some(scene)) = (&state.gpu, &state.scene) else { return None };
     let over = state.pointer.and_then(|pointer| pointed_at(gpu, scene, view, pointer, state.players_first())).filter(|(id, _)| scene.units.contains_key(id));
     let unit = over.and_then(|(id, _)| Some((id, scene.units.get(&id)?)));

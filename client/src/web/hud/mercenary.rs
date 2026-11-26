@@ -55,12 +55,11 @@ impl App {
         if !self.mercenary.asks {
             return String::new();
         }
-        message_box(
-            Asked::Sure,
-            &coloured(&Self::words(
+        confirm_box(
+            &Self::words(
                 1370,
                 "^ff0000Deleting a Mercenary Soldier^000000 will also delete his growth history. Do you really want to proceed with the deletion?"
-            )),
+            ),
             Press::Yes,
             Press::No
         )

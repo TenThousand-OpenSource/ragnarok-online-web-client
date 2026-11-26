@@ -11,7 +11,7 @@ pub enum Flight {
     /// The number of a critical blow (`MET_NUMBER_CRITICAL`): yellow, and it stays a little larger.
     Critical,
     /// The mark that goes with a critical blow (`MET_CRITICAL_EFFECT`): the pictures of an action of the
-    /// numbers' sprite, one after another, greyed.
+    /// words' sprite (its red burst, shaking), one after another, greyed.
     Mark,
     /// The word for a blow that missed (`MET_MISS`), over the one who struck.
     Miss,
@@ -20,7 +20,7 @@ pub enum Flight {
     Total,
     /// The client's blue word that goes with the total of a kick (`MET_BLUE_EFFECT`).
     Word,
-    /// The word for a blow dodged by luck (`MET_LUCKY_EFFECT`): an action of the numbers' sprite played once.
+    /// The word for a blow dodged by luck (`MET_LUCKY_EFFECT`): an action of the words' sprite played once.
     Lucky,
     /// Life or spirit recovered (the client's kind 114): it rises straight up, shrinking to its size.
     Recovery,

@@ -26,7 +26,7 @@ fn line_list(x: i32, y: i32, width: i32, height: i32, lines: &[String], picked: 
             )
         })
         .collect();
-    format!(r#"<div class="a scroll" style="{};background:#f0f0f0">{rows}</div>"#, at(x, y, width, height))
+    format!(r#"<div class="a scroll" style="{};background:#f0f0f0" {}>{rows}</div>"#, at(x, y, width, height), lines_stepped(16))
 }
 
 impl App {

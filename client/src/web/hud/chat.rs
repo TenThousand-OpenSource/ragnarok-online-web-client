@@ -29,7 +29,7 @@ impl App {
     pub(in crate::web) fn refresh_chat(&self) {
         let tabs = self.chat_tabs();
         if let Some(log) = crate::web::by_id("chat-lines") {
-            log.set_inner_html(&self.chat_lines(tabs.get(self.chat_tab_open(&tabs))));
+            log.set_inner_html(&self.chat_lines(tabs.get(self.chat_tab_open(&tabs)), 600 - 8));
         }
         if tabs.iter().any(|tab| tab.own.is_some()) {
             self.redraw(&windows::CHAT_OWN);
@@ -37,29 +37,42 @@ impl App {
     }
 
     /// Every line kept that a tab lists (`Tab::lists`): the window shows the last, and scrolls back through
-    /// the others. A link to an item in a line is the item's name between `<` and `>`, in the links' colour,
-    /// and a press on it shows what is known of the item (`UIChatHisBox::RenderItemLinks`, `UM_TEXT_LBTN_UP`).
-    pub(in crate::web) fn chat_lines(&self, tab: Option<&Tab>) -> String {
+    /// the others. A line is cut into rows as the client's list has them (`crate::chat::rows`), and a row
+    /// wider than the list, which is `wide`, is cut again by its width at the room of the scroll bar
+    /// (`UIChatHisBox::AddTextWrapped`; the client asks whether a row is wider than the box less 20, and
+    /// then cuts it at the box less 16: here it is cut at the box less 16 in both). A link to an item in a
+    /// line is the item's name between `<` and `>`, in the links' colour, and a press on it shows what is
+    /// known of the item (`UIChatHisBox::RenderItemLinks`, `UM_TEXT_LBTN_UP`).
+    pub(in crate::web) fn chat_lines(&self, tab: Option<&Tab>, wide: i32) -> String {
         let Some(tab) = tab else { return String::new() };
-        self.chat
+        let rows: String = self
+            .chat
             .listed(tab)
-            .map(|said| {
-                let line: String = crate::links::items::pieces(&said.words)
+            .flat_map(|said| crate::chat::rows(&said.words).into_iter().map(|row| log_line(&said.colour, &Self::chat_row(&row))))
+            .collect();
+        // (Two of the box's width are the room at the left of its letters.)
+        format!(r#"<div style="width:{}px">{rows}</div>"#, wide - crate::chat::BAR - 2)
+    }
+
+    /// A row of the chat's list as the page writes it: its words, what stands in brackets kept together
+    /// (`crate::chat::held`), and its links to items.
+    fn chat_row(row: &str) -> String {
+        crate::links::items::pieces(row)
+            .into_iter()
+            .map(|piece| match piece {
+                Piece::Words(words) => crate::chat::held(words)
                     .into_iter()
-                    .map(|piece| match piece {
-                        Piece::Words(words) => escape(words),
-                        Piece::Item(link) => {
-                            let name = data::item_as(link.item, true).map_or_else(|| format!("#{}", link.item), |(name, _)| name);
-                            let refined = if link.refine > 0 { format!("+{} ", link.refine) } else { String::new() };
-                            format!(
-                                r#"<span style="color:{LINK};cursor:pointer" {}>&lt;{refined}{}&gt;</span>"#,
-                                pressed(Press::Link(link.item)),
-                                escape(&name)
-                            )
-                        }
-                    })
-                    .collect();
-                log_line(&said.colour, &line)
+                    .map(|(together, words)| if together { format!(r#"<span class="kept">{}</span>"#, escape(words)) } else { escape(words) })
+                    .collect(),
+                Piece::Item(link) => {
+                    let name = data::item_as(link.item, true).map_or_else(|| format!("#{}", link.item), |(name, _)| name);
+                    let refined = if link.refine > 0 { format!("+{} ", link.refine) } else { String::new() };
+                    format!(
+                        r#"<span style="color:{LINK};cursor:pointer" {}>&lt;{refined}{}&gt;</span>"#,
+                        pressed(Press::Link(link.item)),
+                        escape(&name)
+                    )
+                }
             })
             .collect()
     }
@@ -150,7 +163,7 @@ impl App {
             window.push_str(&format!(
                 r#"<div id="chat-log" class="a chat-log" style="{}"><div id="chat-lines">{}</div></div>"#,
                 at(5, 18, 600 - 8, height - 16 - 24 - 4),
-                self.chat_lines(all.get(open))
+                self.chat_lines(all.get(open), 600 - 8)
             ));
         }
         window.push_str(&fill(4, base, 600 - 8, 1, "#8e8e8e"));
@@ -205,7 +218,7 @@ impl App {
             right -= size.0 + 2;
             window.push_str(&Self::chat_button(right, name, size, press, title));
         }
-        window.push_str(&format!(r#"<div class="a chat-log" style="{}"><div>{}</div></div>"#, at(5, 20, width - 8, height - 35), self.chat_lines(Some(tab))));
+        window.push_str(&format!(r#"<div class="a chat-log" style="{}"><div>{}</div></div>"#, at(5, 20, width - 8, height - 35), self.chat_lines(Some(tab), width - 8)));
         window
     }
 

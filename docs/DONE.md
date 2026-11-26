@@ -166,9 +166,83 @@ Blows, the numbers and words that fly, flinching, death, the name under the poin
   game: the arrows of an Orc Archer and of a Kobold Archer at the player's character. The other sprites
   (Peach Tree, Evil Cloud Hermit, Stone Shooter, Wootan Shooter, Parasite, the Poton Canons, Lady Tanee, Ragged
   Zombie): the files are there; not seen in the game.
-- When a blow lands, how many hits it is made of, what each shows and sounds like, how the numbers fly, the
+- What comes up under one a Mandragora or its like strikes (`blow/shots.rs root`, `root_picture` with their
+  tests, `world::arrow`, `web/world/frame/sprites.rs roots`; `CGameMode::SpawnMandraAttack`,
+  `CMandraAttackEffect::SendMsg` and `OnProcess`): the first action of the job's sprite played once where the
+  one struck stands, from the moment the attack begins. Seen in the game, 2026-11-26: the root of a Mandragora
+  and the tentacles of a Hydra at the player's character. Drosera, Nepenthes, Thanatos Odium, Mavka and
+  Entweihen: by the table only.
+- The playtest of 2026-11-26 (effects, sounds, sprites of the world), seen and heard in the game unless said:
+  a smith's refining shows and sounds one effect, not two (ZC_NOTIFY_EFFECT does nothing for the player's own
+  character, `ReceivePartyMemberEffect` with `GetGameActorByAID`); the player's own level-up is ZC_PAR_CHANGE's
+  (`status.rs level_effect`, `job_level_effect`, `CGameMode::ReceiveParChange`: the angel and `levelup.wav`
+  once, the job level's light); `effect_sounds.txt` has one line for a sound written in both branches of an
+  option (`tools/client-tables/skill_effects.py`; Detoxification was heard once before and after, Lex Divina
+  five times, as the client plays it); Hiding and coming out of it puff smoke (seen slowed down), Cloaking
+  does not, as in the client; Chase Walk and the summoner of `EF_SUMMONSLAVE` puff it too (by reading; not
+  seen); a weapon's hit sounds by the client's own table, in which a katar is `_hit_mace.wav` (heard: knife
+  `_hit_sword.wav`, Jur `_hit_mace.wav`; the Taekwon's bare hands by test only); the cart is drawn after
+  relogging and after changes of map and of its kind, with its shadow; a unit on the ground that strikes
+  shows its own hit only (`skill_units.rs struck_by_unit`, `CSkill::SendMsg`), so Storm Gust's file plays
+  once (heard once where it was three times); the pictures of an effect's file are kept as the client keeps
+  them (`bmp.rs as_the_client_keeps`; test only); one who teleports away or logs out leaves the client's
+  effect on its place (`pose.rs left_behind`, `CGameMode::ReceiveActorDisappear`; seen and heard of Creamies).
+- When a blow lands and how long its swing is shown (`blow.rs pace`, `lands_after`, `swing_lasts`,
+  `attack_motion`; `web/world/combat.rs swing`): `attackMotion × render.speed × 24` milliseconds, the speed
+  being the one the sprite gives the action times the blow's over 432 (`CGameActor::ProcessHitMessage`,
+  `CRenderObject::SetAction`, `ProcessMotion`); a character's `attackMotion` is the figure of its job
+  (`CSession::AttackMotionLength`), not a frame of its sprite. What was wrong: the speed the sprite gives the
+  action was left out, so an Orc Warrior's blow landed 168 ms into its swing where the client and the server
+  (`ClientAttackMotion`, with `synchronize_damage`) have 672, and its swing was shown in half its time: the
+  character was stopped, or not stopped, half a second apart from the server, and walked on while the server
+  held it. Tests; seen in the game (2026-11-26, a Knight among Orc Warriors, with the packets and `@where`
+  beside the client's cell): before, 7 stops of 10 a cell or three away from the server; after, none in 26
+  (see DEBTS for the cell that is still left in a crowd).
+- The fight as the player's character keeps it (`web/world/pursuit.rs`; `CPlayer::UpdatePendingAction`,
+  `CPlayer::SendMsg` in `Source/Contents/Actors/Player.cpp`): a monster struck down is asked nothing more of
+  (it was asked for every 1.8 s until its corpse was gone); a place pressed during the character's own blow
+  is walked to as the blow ends (`isPreengageStateOfMove`; the press was lost before), and no other walk is
+  asked for during a blow; a skill waits until the swing is over (`skills::aim::asked_now`, no figure of this
+  project's in it now). After a skill aimed at someone or at a place the client does not go on fighting
+  (every way out of `UpdatePendingAction` ends in `AM_CANCELATTACK`): the same here. Seen in the game with
+  the packets: no request after the death; Bash asked for 544 ms after a blow of `amotion` 271 and not
+  refused; a press on the ground 115 ms into a blow walked 437 ms later, as the swing ended; a Red Potion
+  and Endure from the hotkey bar in a fight went at once.
+- How many hits a blow is made of, what each shows and sounds like, how the numbers fly, the
   colour of a name, who is fought on a PVP map, the packets: tests only.
-- Death, the bars over heads, the two windows, the standing on a PVP map: by reading only.
+- The burst of a critical blow and the word of luck (`web/world/combat/landing.rs shown`): they are the
+  third and the fourth action of the WORDS' sprite (`이팩트\msg`: its red spiky burst, shaking from side to
+  side over 15 pictures, and the balloon with "LUCKY!!"), not of the digits' (`이팩트\숫자`, which has one
+  action: nothing was drawn, so a critical blow was a yellow number alone). `CGameMode::SpawnMsgEffect`
+  (`Source/Contents/World/WorldObjects.cpp:1037`, `MAKETYPE_CRITICAL_EFFECT` and `MAKETYPE_LUCKY_EFFECT`)
+  names them by `GetDamageSpriteName`, which `CSession::LoadDamageSkinSettings`
+  (`Source/Contents/Time/ClientTiming.cpp:803`) fills with the second name of `GetDamageResourceName`:
+  `BaseMsg` of `damageskin\damageskinlist.lub`. The rest of a critical blow was as the client has it
+  already: the mark greyed (`0xFFAAAAAA`) from three times its size, the number yellow whoever is struck
+  (`CGameActor::SendMsg`, message 93), from five times to 1.3, both drifting for 70 frames, `EF_HIT2` on the
+  one struck with its sound, the striker's motion that of any blow (`ProcessHitMessage`). Seen in the game
+  (2026-11-26, a Hunter with 100 LUK on a Ghoul, frames taken off the canvas): the red burst behind the
+  yellow number, shrinking and drifting with it. The word of luck and a monster's critical blow on the
+  player: by reading only.
+- Whom the pointer picks (`skills/aim.rs rank`, `sprite/canvas.rs drawn`, `web/world/pick.rs`;
+  `CGameActor::SetRenderInfo`): a homunculus comes before a player and after a monster (it was ranked as a
+  pet, after everyone, so its owner beside it took the pointer), and the rectangle of one drawn is that of
+  what its picture shows, as the client's is that of the layers it draws (a character's was the whole sheet
+  it is put together on, 157 by 195, about four times its body). Tests; seen in the game: a Lif standing
+  half behind its owner is named over all of its 40-pixel box, the owner's box went from 168×204 to 84×96
+  pixels of a page 1080 high.
+- What the pointer shows over the world when it is there no more (`web/world/input/pointer.rs left`,
+  `still_over_world`, asked from `overlays.rs pointed`): the name under it, the mark of its cell and the
+  pointer's picture all go by where the pointer is over the world, which was only told by the mouse moving.
+  Now the pointer leaving the page takes it off the world (and the words of a skill aimed with it), and every
+  frame asks whether the page has the world under the pointer: a window that opens under a still mouse takes
+  the name away, and gives it back when it closes (the client asks its windows before
+  `CGameMode::HandleActorPick` every frame). Someone walking away or vanishing under a still mouse was
+  right already (asked every frame). Seen in the game (2026-11-26): the name of an NPC under the pointer
+  went as the Skill Tree and Equipment opened over it by their keys and came back as they closed; the
+  pointer leaving the page was tried with the page's own `mouseleave` sent by hand, not with a hand's mouse.
+- Death, the bars over heads, the two windows: by reading only. The standing on a PVP map: seen in the game
+  (2026-11-26, "1 / 1" in the corner).
 
 ## 4. Skills and effects
 
@@ -539,8 +613,8 @@ windows of making, forging, repairing and refining are by reading only.
   "Upgrade failed!!", the name with its "+N" in the Equipment window and in the notice ("+5 Stiletto [2] - 1
   obtained."), ATK and DEF in the Status window, the thing gone from what is worn when it breaks; the
   refusals (no ore, a thing that cannot be refined, +10); the purifier Dietrich (5 rough ores for one).
-  Nothing of it is left in `/packets` (ZC_ACH_UPDATE, of the achievements, is). Not heard: the sounds (they
-  are the files and ticks of the client's table). Not told apart at that size: the weapon's and the shield's
+  Nothing of it is left in `/packets` (ZC_ACH_UPDATE, of the achievements, is). Heard on 2026-11-26:
+  `bs_refinesuccess.wav`, once a refining. Not told apart at that size: the weapon's and the shield's
   picture on the character after a break. Not looked at: a level 4 weapon, the "+N" in the description
   window, on the ground, in a deal and in a shop's list.
 
@@ -655,6 +729,24 @@ The chat window and its tabs, whispers, the server's announcements, emotions, ch
 
 **State**: tests only (tabs, the kinds of line, marks in a text, whispers, rooms, commands, and the packets);
 every window is by reading only. Nothing of this system is on the seen list.
+
+**A line too long for the chat's list is cut into rows** (2026-11-26)
+- Files: `chat.rs` (`rows`, `held`, `ROW`, `BAR`, with tests), `web/hud/chat.rs` (`chat_lines`, `chat_row`),
+  the page's `.chat-log div` (`client/web/index.html`).
+- Taken from: `UINewChatWnd::SendMsg`, its `UM_ADDCHAT` (`Source/UI/Chat/UINewChatWnd.cpp:290`: the colours
+  taken out, `WrapPlainText(.., 0x5E)`, then for each row `AddText` when it is no wider than the tab less 20
+  and `AddTextWrapped` when it is); `WrapPlainText` (`Source/UI/Text/TextWrapping.cpp`); `UIChatHisBox::
+  AddTextWrapped` (`Source/UI/Lists/UIListBox.cpp:138`: the box less 16) and `UIWindow::WrapPixelText`
+  (`Source/UI/Window/UIWindow.cpp:1647`: cut by width between any two letters, what stands in `[...]` kept
+  whole). Every row is a line of its own to the list (14 high, scrolled by rows). The announcement across
+  the top of the screen was cut already (`WrapPlainText(.., 0x48)`, `net/broadcast.rs`).
+- What was wrong: a line was written in one row whatever its length and ran out of the window.
+- State: tests (the 94 letters, the brackets); seen in the game (2026-11-26): `@kami` and
+  `@localbroadcast` of 180 letters and a long line said aloud are two rows in the chat at its first and
+  second size, in the Battle tab, and more rows in a tab's own window 300 wide; a row of wide letters is
+  cut by its width, a `[...]` goes to the next row whole; the list scrolls and stays at its end. The
+  banner of each is three lines. Whisper, party and guild lines go the same way and were not said in the
+  game.
 
 **The away message, `/am` and `/automsg`** (added with the classic gaps)
 - Files: `whispers.rs` (`away_reply` and the lines of the message table), `web/app/clicks/whispers.rs`
@@ -1272,6 +1364,66 @@ server's packets that are not read yet (`/packets`).
 
 **State**: tests only (the watch, the reasons a session ends, counting unread packets, cutting the stream,
 the golden packets); the `/packets` window is by reading only.
+
+### Windows: steps of the wheel, the message box, tooltips (2026-11)
+- Files: `scrolling.rs` (a notch of the wheel as rows, lines or 30 pixels: `UIItemBaseWnd::OnWheel` and its
+  like, `UIListBox::OnWheel`, `UITagTextViewer::SendMsg`), `message_box.rs` (`UIMessageBox::Configure`,
+  `WrapRichText`), `web/parts.rs stepped`, `web/app/wiring.rs` (`wire_wheel`, `wire_tooltip`, the double
+  click counted on the second press: `press/things.rs doubled`), `web/hud/lists.rs` (`rows_stepped`,
+  `lines_stepped`), `web/hud/boxes.rs confirm_box`, `web/hud/texts.rs linked_with`, `.bar` of `index.html`.
+- Seen in the game: what a smith says with its bar, moved by the wheel and the arrows; the homunculus's
+  question of six lines in the message box, three lines a notch; an NPC's shop moved three whole rows a notch;
+  a double click on a line of an NPC's menu answering it (it did nothing before: the first press drew the line
+  anew, and a page sends no double click then); the box that asks for a number taking the keyboard as it opens
+  and Enter sending what was typed (it sent 0 before: the box had no keyboard); a tooltip of a menu icon gone
+  when the pointer goes onto the world, and when its thing is taken away under a still pointer; an item's link
+  in a tip opening the item, a tip's link the tip; the storage closed by a warp (it stayed, and could not be
+  closed).
+- Tests only: `vending::own_title` (one's own stall titled with its name), `links::Link::number`.
+
+## Two players at once (playtest of 2026-11-21 and 2026-11-26)
+
+Two accounts (`play6` a Crusader, `play7`) in two tabs through two copies of the gateway, each thing looked
+at on both screens. **Seen in the game**, as the one who does it and as the other sees it:
+- Coming into sight, walking (the same cells on both screens), sitting and standing, turning (`/bingbing`),
+  an emotion, a line over the head and in both chats (wrapped over the head), a job changed, hair colour,
+  headgear put on and taken off, lying dead and rising, hidden and cloaked (gone from the other's screen),
+  a cart (`@cart`, the state of new clients: the old option bit draws none, as in the client), a falcon, a
+  homunculus, the aura of level 99, the name with the party's under the pointer.
+- On a Peco Peco, as the other sees it: standing, walking, turning, sitting (the bird crouches: the sprite's
+  own sitting), striking with the sword, lying dead, getting off. No shield shows on a rider: the client's
+  table names the folder `방패\신페코크루세이더` for it, of which the client's files have nothing.
+- What is worn on the head and the shield (the owner's report of 2026-11-21, "glasses and shield not
+  drawn"): nothing was lost on the way. The three places are drawn in the order of `TB_Layer_Priority.lub`
+  (middle 100, top 200, low 300), so a Flu Mask lies over the lower rims of Glasses and little of them is
+  left to see; alone or under a hat they show, on the own character, on the other's screen, and on one who
+  comes into sight wearing them. A shield (and the weapon) is drawn only standing ready and striking, as the
+  client's `IsReadyOrAttackAction` has it.
+- Whispers: the window on both sides, the answer from it, `/ex` and `/in` with a name, `/ex` alone (the
+  list), `/exall`, `/inall`, a name that is not there, `/am` with its automatic answer. The word filter
+  ("this is ****" on both screens).
+- Party: `/organize` with its setup, `/invite`, the question, refused and accepted, the list with levels,
+  maps and HP on both, `%` chat, the mark on the minimap, EXP shared evenly and refused for the gap of
+  levels, the leader handed over, a member expelled, `/leave`.
+- Friends (by another hand on the same tabs): asked, accepted, removed, the list with its menu; "has logged
+  out / in" told to the friend.
+- A deal: asked from the menu on the player, refused, accepted, a thing and zeny from both sides, locked,
+  traded, the sums right on both; called off after one side locked (what was put in comes back).
+- Looking at the other's equipment from the menu.
+- A chat room: made with a password (under four letters refused), its sign over the owner on the other's
+  screen with the lock, entered, a line said in it, left; the room passing to who stays.
+- A stall: the Vending skill, a thing from the cart with its price, the title; the sign over the seller on
+  the other's screen, the stall opened by a press on it, two bought, "sold" and the buyer's name told to the
+  seller, the zeny right on both.
+- Skills on the other (a Priest on the Crusader): Heal, Blessing, Increase Agility, Kyrie Eleison, Aspersio
+  (their effects on the caster's screen, the states with their times on the target's), Resurrection on the
+  dead one; Lex Aeterna pressed on the friend without Shift goes nowhere.
+- PVP (`pvp_y_1-2`): a member of the party is not fought, anyone else is with a plain press; the numbers of
+  blows on both screens; death there with "Return to last save point"; the standing in the corner
+  ("1 / 1") — it was never written (see below). `@duel`: invited, accepted, the opponent fought with a plain
+  press on an ordinary map.
+- Found and put right: the standing on a PVP map was never shown, the line being asked whether there was
+  anything to write before the pictures it is written in were read (`web/app/incoming/pvp.rs rank_shown`).
 
 ## Between the systems
 

@@ -4,7 +4,6 @@
 13	effect/EF_GlassWall.wav
 14	_heal_effect.wav
 21	effect/EF_Detoxication.wav
-21	effect/EF_Detoxication.wav
 30	effect/magician_thunderstorm.wav
 32	effect/EF_NapalmBeat.wav
 34	effect/EF_Teleportation.wav

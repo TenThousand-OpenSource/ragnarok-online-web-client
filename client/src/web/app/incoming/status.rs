@@ -74,42 +74,51 @@ impl App {
         true
     }
 
-    /// ZC_NOTIFY_EFFECT (0x019b): `u32 who, u32 kind`: something to show on someone, as the client's
+    /// ZC_NOTIFY_EFFECT (0x019b): `u32 who, u32 kind`: something to show on someone else, as the client's
     /// `ReceivePartyMemberEffect` shows it: the angel of a base level gained (0: `EF_ANGEL`, `angel.str`), the
     /// light of a job level (1: `EF_JOBLVUP`, `JobLvUP.str`), a refining that failed (2: `EF_REFINEFAIL`) or
     /// went well (3: `EF_REFINEOK`), a potion brewed (5: `EF_PHARMACY_OK`) or spoilt (6:
     /// `EF_PHARMACY_FAIL`), the level of a super novice (7: `EF_ANGEL2`; 8: `EF_JOBLVUP50` for its job
     /// level) and of a taekwon (9: `EF_ANGEL3`). Kind 4 (the game is over) only sets a switch in the client.
+    /// For the player's own character the client does nothing: it looks the actor up with
+    /// `GetGameActorByAID`, which does not know the player. Its own level is shown by ZC_PAR_CHANGE
+    /// (`level_changed`), its own refining by ZC_ACK_ITEMREFINING, its own brewing by ZC_ACK_REQMAKINGITEM:
+    /// so a smith's refining shows one effect, not two.
     fn level_gained(&mut self, packet: &[u8]) {
-        let own = self.account.as_ref().map(|account| account.account_id);
         let (who, kind) = packets::effect_on(packet);
-        let on = who.filter(|who| Some(*who) != own);
+        let Some(on) = who.filter(|who| *who != self.own_account()) else { return };
         match kind {
-            0 => world::effect("angel.str", on),
-            1 => world::effect("joblvup.str", on),
+            0 => world::effect("angel.str", Some(on)),
+            1 => world::effect("joblvup.str", Some(on)),
             _ => {
-                if let (Some(shown), Some(_)) = (crate::skills::notified_effect(kind), who) {
-                    world::burst(shown, on, None, 0.0);
+                if let Some(shown) = crate::skills::notified_effect(kind) {
+                    world::burst(shown, Some(on), None, 0.0);
                 }
             }
-        }
-        // A level gained by the player's own character is heard, and the pet may tell of it.
-        if who == own && who.is_some() && matches!(kind, 0 | 1 | 7 | 8 | 9) {
-            sound::effect("levelup.wav", 1.0);
-            self.pet_feels(crate::pets::moment::LEVEL_UP, None);
         }
     }
 
     /// ZC_PAR_CHANGE with the base level or the job level (`CGameMode::ReceiveParChange`, `SP_BASELEVEL` and
-    /// `SP_JOBLEVEL`): the button that tells of a level gained shows, in the lower right corner of the screen
-    /// for the base level and in the lower left for the job level, and the menu's icon of the Status window
-    /// or of the skills wears its mark (`ID_NOTICE`), until that window is opened. The client asks nothing
-    /// more: not whether the level went up, nor whether the window is open already, nor whether there are
-    /// points to give. (rAthena sends the packet when a level is gained or set, not on coming in.)
+    /// `SP_JOBLEVEL`): the character shows the effect of a level gained (`crate::status::level_effect`, with
+    /// `levelup.wav` for the base level, and the pet told of it; `job_level_effect`); the button that tells of
+    /// a level gained shows, in the lower right corner of the screen for the base level and in the lower left
+    /// for the job level, and the menu's icon of the Status window or of the skills wears its mark
+    /// (`ID_NOTICE`), until that window is opened. The client asks nothing more: not whether the level went
+    /// up, nor whether the window is open already, nor whether there are points to give. (rAthena sends the
+    /// packet when a level is gained or set, not on coming in.)
     fn level_changed(&mut self, packet: &[u8]) {
         match packets::parameter(packet) {
-            Some((packets::parameter::BASE_LEVEL, _)) => self.hero.level_told = true,
-            Some((packets::parameter::JOB_LEVEL, _)) => self.skills.level_told = true,
+            Some((packets::parameter::BASE_LEVEL, _)) => {
+                self.hero.level_told = true;
+                sound::effect("levelup.wav", 1.0);
+                let job = self.game.as_ref().map_or(0, |game| game.job);
+                world::burst(crate::status::level_effect(job), None, None, 0.0);
+                self.pet_feels(crate::pets::moment::LEVEL_UP, None);
+            }
+            Some((packets::parameter::JOB_LEVEL, level)) => {
+                self.skills.level_told = true;
+                world::burst(crate::status::job_level_effect(level), None, None, 0.0);
+            }
             _ => return,
         }
         self.redraw(&[&wnd::LEVEL_TOLD, &wnd::JOB_LEVEL_TOLD, &wnd::MENU]);

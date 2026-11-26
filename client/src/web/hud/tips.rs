@@ -25,40 +25,13 @@ fn lettered(words: &str) -> String {
         .collect()
 }
 
-/// A page of a tip as HTML: its colours (`^rrggbb`) kept, a link to another tip (`<TIPBOX>name<INFO>number
-/// </INFO></TIPBOX>`) made a press on its name, the other links of the client (`<NAVI>`, `<ITEM>`, `<URL>`)
-/// left as their names, an item's picture drawn where its mark stands (`lettered`), and the sign the lines
-/// begin with, which is one of the client's own font, a dot.
+/// A page of a tip as HTML (`UITipboxWnd` shows it in a `UITagTextViewer`): its colours kept, its links
+/// written as the viewer writes them (`linked_with`: one to another tip and one to an item are pressed), an
+/// item's picture drawn where its mark stands (`lettered`), and the sign the lines begin with, which is one
+/// of the client's own font, a dot.
 fn page_html(page: &str) -> String {
     let dotted: String = page.chars().map(|letter| if letter.is_ascii() || letter.is_alphanumeric() { letter } else { '·' }).collect();
-    let mut html = String::new();
-    let mut rest = dotted.as_str();
-    while let Some(start) = rest.find('<') {
-        html.push_str(&lettered(&rest[..start]));
-        let Some(end) = rest[start..].find('>').map(|end| start + end) else {
-            rest = &rest[start + 1..];
-            continue;
-        };
-        let tag = &rest[start + 1..end];
-        let closing = format!("</{tag}>");
-        let Some(close) = rest[end..].find(&closing).map(|close| end + close) else {
-            rest = &rest[end + 1..];
-            continue;
-        };
-        let inside = &rest[end + 1..close];
-        let (name, info) = inside.split_once("<INFO>").map_or((inside, ""), |(name, info)| (name, info.trim_end_matches("</INFO>")));
-        match (tag, info.trim().parse::<u32>()) {
-            ("TIPBOX", Ok(tip)) => html.push_str(&format!(
-                r#"<span style="color:#3b488c;text-decoration:underline;cursor:pointer" {}>{}</span>"#,
-                pressed(Press::Tip(tip)),
-                escape(name)
-            )),
-            _ => html.push_str(&escape(name)),
-        }
-        rest = &rest[close + closing.len()..];
-    }
-    html.push_str(&lettered(rest));
-    html.replace('\n', "<br>")
+    linked_with(&dotted, lettered).replace('\n', "<br>")
 }
 
 impl App {
@@ -105,7 +78,11 @@ impl App {
                     escape(tip.title.split('#').next().unwrap_or_default())
                 ))
                 .collect();
-            window.push_str(&format!(r#"<div class="a scroll" style="{};overflow-y:auto;background:#f0f0f0">{rows}</div>"#, at(250, 50, 216, 266)));
+            window.push_str(&format!(
+                r#"<div class="a scroll" style="{};overflow-y:auto;background:#f0f0f0" {}>{rows}</div>"#,
+                at(250, 50, 216, 266),
+                lines_stepped(16)
+            ));
         } else if let Some(tip) = tips.iter().find(|tip| tip.id == self.tips.tip) {
             let pages = tip.pages.len().max(1);
             let page = self.tips.page.min(pages - 1);
@@ -120,8 +97,10 @@ impl App {
                 title.iter().take(2).map(|line| escape(line)).collect::<Vec<_>>().join("<br>")
             ));
             window.push_str(&format!(
-                r#"<div class="a t scroll" style="{};overflow-y:auto;white-space:normal;line-height:15px;color:{BLACK}">{}</div>"#,
+                // The viewer's own bar and its step of 30 (`UITagTextViewer`; `crate::scrolling`).
+                r#"<div class="a t bar" style="{};white-space:normal;line-height:15px;color:{BLACK}" {}>{}</div>"#,
                 at(250, top, 226, height),
+                stepped(crate::scrolling::TEXT_STEP, 1),
                 tip.pages.get(page).map(|page| page_html(page)).unwrap_or_default()
             ));
             window.push_str(&pictured(

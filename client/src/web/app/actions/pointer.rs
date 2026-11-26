@@ -26,11 +26,8 @@ impl App {
         if self.world_shut() {
             return;
         }
-        // No walk is asked for while the character's own blow is in motion, as in the original client; a
-        // button held on the ground asks again once it is over.
-        if world::striking() {
-            return;
-        }
+        // (While the character's own blow is in motion the world asks for no walk: `world/pursuit.rs`,
+        // `world/input/press.rs`.)
         self.send_on_map(&packets::walk_to(x, y));
     }
 }

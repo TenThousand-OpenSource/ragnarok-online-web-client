@@ -208,8 +208,32 @@ pub fn read<Thing: Named>(text: &str) -> Option<Thing> {
     Thing::parse(name, with)
 }
 
+/// Whether a press is the second of a double click on a thing: the page counted it as the second, fourth…
+/// press in one place (`presses`), and the thing under it is the one the press before it was on (both as
+/// they are written on the page). The page's own double click is not asked: it never comes for a thing that
+/// the first press drew anew, as a line of a menu or a row of a list is when it is picked, and that is where
+/// the client's `OnLBtnDblClk` answers.
+pub fn doubled(presses: i32, before: Option<&str>, on: Option<&str>) -> bool {
+    presses > 0 && presses % 2 == 0 && on.is_some() && before == on
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_double_click_is_two_presses_on_one_thing() {
+        use super::doubled;
+        // A line of an NPC's menu, picked by the first press (and drawn anew) and answered by the second.
+        assert!(doubled(2, Some("answer:2"), Some("answer:2")));
+        assert!(!doubled(1, None, Some("answer:2")));
+        // The first press moved something else under the pointer: no double click on that.
+        assert!(!doubled(2, Some("answer:2"), Some("item:7")));
+        assert!(!doubled(2, None, Some("item:7")));
+        // The third press is the first of the next pair, the fourth its second.
+        assert!(!doubled(3, Some("answer:2"), Some("answer:2")));
+        assert!(doubled(4, Some("answer:2"), Some("answer:2")));
+        assert!(!doubled(2, None, None));
+    }
+
     use super::*;
 
     /// One thing of every name of a kind, made from the kind's own list of names: with nothing beside it, or

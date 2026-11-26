@@ -16,7 +16,7 @@ use crate::numbers::grouped;
 use crate::i18n::tr;
 use super::app::{App, Shop, escape};
 use super::data;
-use super::parts::{at, dragged, dropped, picture, pressed, sent, used};
+use super::parts::{at, dragged, dropped, picture, pressed, sent, stepped, used};
 use crate::press::things::{Drag, Drop, Form, Leveled, Use};
 use crate::net::inventory::{Hotkey, Item};
 use crate::inventory::Tab;

@@ -50,7 +50,12 @@ pub(in crate::web::world) struct Struck {
     pub flash: Option<[u8; 3]>,
 }
 
-/// The sprite of the numbers (the client's damage sprite), and of its words.
+/// The sprite of the numbers and that of the words, as the client's table of the looks of damage names them
+/// for the first look (`damageskin\damageskinlist.lub`, `BaseNumber` and `BaseMsg` of `DT_Default`; the
+/// other looks are a later client's choice, see `BACKLOG.md`). `CSession::LoadDamageSkinSettings` keeps the
+/// first as `m_damageResourceName`, which the digits are drawn from, and the second as `damageSpriteName`
+/// (`GetDamageSpriteName`), which the words are: the miss, the guard, the burst of a critical blow and the
+/// word of luck are actions of that one (`CGameMode::SpawnMsgEffect`).
 const NUMBERS: &str = "이팩트/숫자";
 const WORDS: &str = "이팩트/msg";
 /// The colour of the mark of a critical blow (`SpawnMsgEffect` of `MAKETYPE_CRITICAL_EFFECT`: 0xFFAAAAAA), and
@@ -109,12 +114,13 @@ fn land(state: &mut State, time: f64, target: u32, landing: &Landing) -> Option<
     // client's four plain blows, a character by what its job wears, a monster by the weapon that struck it.
     if hurts && landing.striker != target {
         let four = lot(4);
+        let own_taekwon = scene.one(own, own).is_some_and(|me| matches!(me.job, 4046 | 4225));
         let sound = if hit.how.of_skill() {
-            signs::weapon_sound(None, data::weapon_hit, four)
+            signs::weapon_sound(None, data::weapon_hit, four, own_taekwon)
         } else if between.struck_is_character {
             signs::struck_sound(hurt.job).to_owned()
         } else {
-            signs::weapon_sound(weapon, data::weapon_hit, four)
+            signs::weapon_sound(weapon, data::weapon_hit, four, own_taekwon)
         };
         earshot::heard(scene, &sound, on);
     }
@@ -176,12 +182,14 @@ fn shown(state: &mut State, time: f64, on: Option<u32>, base: Vector, drift: (f3
             let pictures = value.clamp(0, 999_999).to_string().bytes().map(|digit| SpriteKey::Creature(sprite.clone(), 0, usize::from(digit - b'0'))).collect();
             Flying { began: time, on, base, drift, pictures, flight }
         }
-        // The third action of the numbers' sprite, greyed.
-        Sign::CriticalMark => word(tinted(NUMBERS, MARK_GREY), 2, Flight::Mark),
+        // The third action of the words' sprite, greyed (`MAKETYPE_CRITICAL_EFFECT`: `GetDamageSpriteName`,
+        // animation 2): the red burst behind the number, which shakes from side to side as it shrinks.
+        Sign::CriticalMark => word(tinted(WORDS, MARK_GREY), 2, Flight::Mark),
         // The third action of the words' sprite (`MAKETYPE_BLUE_EFFECT`).
         Sign::Word => word(tinted(WORDS, WORD_BLUE), 2, Flight::Word),
-        // The fourth action of the numbers' sprite (`MAKETYPE_LUCKY_EFFECT`).
-        Sign::Lucky => word(NUMBERS.to_owned(), 3, Flight::Lucky),
+        // The fourth action of the words' sprite (`MAKETYPE_LUCKY_EFFECT`: `GetDamageSpriteName`, animation
+        // 3): the balloon with "LUCKY!!" in it.
+        Sign::Lucky => word(WORDS.to_owned(), 3, Flight::Lucky),
         Sign::Miss { .. } | Sign::Guard => return,
     };
     state.flying.push(flying);

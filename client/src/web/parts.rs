@@ -47,3 +47,10 @@ pub(super) fn menued(thing: Menu) -> String {
 pub(super) fn sent(form: Form) -> String {
     format!(r#"data-submit="{}""#, things::written(&form))
 }
+
+/// What marks a list or a text as one the wheel moves by steps, as the client's are moved, and not by pixels
+/// as a page moves its own: each step so many pixels, and so many steps a notch (`crate::scrolling`; the
+/// page's wheel is read in `app/wiring.rs`).
+pub(super) fn stepped(step: i32, a_notch: i32) -> String {
+    format!(r#"data-step="{step}" data-notch="{a_notch}""#)
+}

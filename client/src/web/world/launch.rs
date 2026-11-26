@@ -162,7 +162,14 @@ pub(super) fn effect_carried(name: &str, on: Option<u32>, carried: Option<Carryi
         // (Each is in the folder of the effect's file: `crate::effect::texture_path`.)
         let folder = name.as_str();
         let read: HashMap<&str, Option<bmp::Image>> = futures_util::future::join_all(names.iter().map(
-            |name| async move { (*name, picture(&format!("effect\\{}", crate::effect::texture_path(folder, name))).await.ok()) }
+            |name| async move {
+                let mut read = picture(&format!("effect\\{}", crate::effect::texture_path(folder, name))).await.ok();
+                // A BMP is kept as the client keeps it, black unseen (`bmp::Image::as_the_client_keeps`).
+                if let Some(image) = read.as_mut().filter(|_| name.to_ascii_lowercase().ends_with(".bmp")) {
+                    image.as_the_client_keeps(true);
+                }
+                (*name, read)
+            }
         )).await
             .into_iter()
             .collect();

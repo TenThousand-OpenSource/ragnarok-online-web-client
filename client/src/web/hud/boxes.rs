@@ -6,30 +6,51 @@
 use super::*;
 use crate::press::Press;
 
-/// How the client lays out its message box (`win_msgbox.bmp`, 280 by 120) for a question.
-#[derive(Clone, Copy)]
-pub(super) enum Asked {
-    /// A question someone else asks, to accept or refuse (`UIExchangeAcceptWnd::OnCreate` lays out the boxes
-    /// of this kind): the words 10,22 in 260 by 65, OK 189,96 and Cancel 234,96.
-    Offer,
-    /// Whether the player means what was just pressed (`UIWindowMgr::Confirm`): the words 12,30 in 256 by 56,
-    /// OK 189,96 and Cancel 235,96.
-    Sure,
+/// A question someone else asks, to accept or refuse, in the client's box for those (`win_msgbox.bmp`, 280 by
+/// 120; `UIExchangeAcceptWnd::OnCreate` lays out the boxes of this kind): the words 10,22 in 260 by 65, OK
+/// 189,96 and Cancel 234,96. `words` are written as they are: what is not the client's own text is escaped
+/// by whoever asks.
+pub(super) fn message_box(words: &str, yes: impl Into<Press>, no: impl Into<Press>) -> String {
+    format!(
+        r#"{}<div class="a t" style="{};white-space:normal">{words}</div>{}{}"#,
+        art("win_msgbox.bmp", 0, 0, 280, 120),
+        at(10, 22, 260, 65),
+        picture_press(189, 96, "btn_ok", yes),
+        picture_press(234, 96, "btn_cancel", no)
+    )
 }
 
-/// A question in the client's message box. `words` are written as they are: what is not the client's own
-/// text is escaped by whoever asks.
-pub(super) fn message_box(asked: Asked, words: &str, yes: impl Into<Press>, no: impl Into<Press>) -> String {
-    let (place, cancel) = match asked {
-        Asked::Offer => (at(10, 22, 260, 65), 234),
-        Asked::Sure => (at(12, 30, 256, 56), 235),
-    };
-    format!(
-        r#"{}<div class="a t" style="{place};white-space:normal">{words}</div>{}{}"#,
-        art("win_msgbox.bmp", 0, 0, 280, 120),
+/// Whether the player means what was just pressed, in the client's message box (`UIWindowMgr::Confirm`, which
+/// makes a `UIMessageBox` 280 by 120 with the caption "Message"; `UIMessageBox::Configure` and `Paint`): the
+/// title bar with its caption and the plain panel under it, the words in a list of lines 10,22 in 260 by 65,
+/// OK 189,96 and Cancel 234,96. The box does not grow with its words: they are cut into lines of 37 letters,
+/// each 18 high from 3 in and 4 down, three show, and more are reached by the client's bar at the list's
+/// right and by the wheel, three lines a notch (`crate::message_box`, `crate::scrolling`). `words` are the
+/// client's own markup (`^RRGGBB`), written here.
+pub(super) fn confirm_box(words: &str, yes: impl Into<Press>, no: impl Into<Press>) -> String {
+    use crate::message_box::{LINE, SHOWN, letters, lines};
+    let lines = lines(words, letters(280)).join("\n");
+    // A line's letters stand 4 under its top; the line here is 18 with its 15 in the middle of it.
+    let above = 4 - (LINE - i32::from(crate::font::cell(0, 12))) / 2;
+    // What is left of the list's 65 under its three lines: no part of a fourth line is drawn there
+    // (`UITextViewer::Paint` draws whole lines only), and the list ends on a whole line when scrolled.
+    let under = 65 - above - SHOWN * LINE;
+    [
+        title_bar(280, "Message"),
+        base_button(3, 3),
+        panel_ground_round(0, 17, 280, 103),
+        format!(
+            r#"<div class="a t bar" style="{};line-height:{LINE}px;white-space:pre" {}><div style="padding:{above}px 0 {under}px 3px">{}</div></div>"#,
+            at(10, 22, 260, 65),
+            stepped(LINE, crate::scrolling::LINES_A_NOTCH),
+            coloured(&lines)
+        ),
+        // (Begun a pixel higher, under the third line's letters: a page drawn larger than its measures lets
+        // a hair of the fourth line show otherwise.)
+        fill(10, 22 + 65 - under - 1, 260 - 13, under + 1, WHITE),
         picture_press(189, 96, "btn_ok", yes),
-        picture_press(cancel, 96, "btn_cancel", no)
-    )
+        picture_press(234, 96, "btn_cancel", no)
+    ].concat()
 }
 
 /// A row of a menu opened with the right button, 16 high (`UM_MAKEMENU`).
@@ -76,7 +97,7 @@ pub(super) fn pick_list(title: &str, rows: &[(String, String)], picked: Option<u
             ].concat()
         })
         .collect();
-    window.push_str(&format!(r#"<div class="a scroll" style="{}">{rows}</div>"#, at(1, 31, 198, 128)));
+    window.push_str(&format!(r#"<div class="a scroll" style="{}" {}>{rows}</div>"#, at(1, 31, 198, 128), rows_stepped(32, 4)));
     window.push_str(&button_bar(200, 200));
     window.push_str(&picture_press(108, 176, "btn_ok", does.ok));
     window.push_str(&picture_press(154, 176, "btn_cancel", does.cancel));

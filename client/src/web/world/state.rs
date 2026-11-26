@@ -33,6 +33,9 @@ pub(super) struct State {
     /// player is bound for).
     pub(super) walk_asked: f64,
     pub(super) asked: (i32, i32),
+    /// A cell pressed while the character's body was in a blow it deals, and when that blow is over: it is
+    /// walked to then (the client's `isPreengageStateOfMove`; `input/press.rs`, `pursuit.rs`).
+    pub(super) walk_waits: Option<((i32, i32), f64)>,
     /// Counts the maps entered: a map that finishes loading after the next was asked for is dropped.
     pub(super) entered: u32,
     /// The right button is held: where the pointer was last.
@@ -143,6 +146,9 @@ pub(super) struct State {
     pub(super) written: written::Words,
     /// Arrows in flight, and what monsters shoot: when each leaves, from where, at whom, and its sprite.
     pub(super) arrows: Vec<(f64, Vector, u32, &'static str)>,
+    /// What comes up under those a Mandragora or its like strikes (`crate::blow::shots::root`): since when,
+    /// where, the striker's job and the sprite.
+    pub(super) roots: Vec<(f64, Vector, u16, &'static str)>,
     /// The effects playing, and the effect files read so far, by name.
     pub(super) effects: Vec<Playing>,
     pub(super) effect_files: HashMap<String, Rc<Shown>>,
@@ -208,6 +214,7 @@ impl State {
     pub(super) fn forget_fights(&mut self) {
         self.flying.clear();
         self.arrows.clear();
+        self.roots.clear();
         self.effects_due.clear();
         self.sounds_due.clear();
         self.heard.clear();

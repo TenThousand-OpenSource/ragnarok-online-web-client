@@ -55,10 +55,22 @@ pub fn rows_shown(things: usize) -> i32 {
     things.clamp(4, 8) as i32
 }
 
+/// What the window of one's own open shop is titled: its words (the client's line 3237, "My Shop") and the
+/// shop's title after " : " (`UIMerchantItemMyShopWnd::SendMsg`, `UM_SETTITLE`: `"%s : %s"` of
+/// `MSI_ITEM_MY_STORE` and `g_session.storeTitle`).
+pub fn own_title(words: &str, title: &str) -> String {
+    format!("{words} : {title}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::numbers::price_colour;
+
+    #[test]
+    fn ones_own_shop_is_titled_with_its_name() {
+        assert_eq!(own_title("My Shop", "Cheap potions"), "My Shop : Cheap potions");
+    }
 
     #[test]
     fn a_purchase_that_failed_is_told_of() {

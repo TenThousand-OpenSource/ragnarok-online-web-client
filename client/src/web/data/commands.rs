@@ -7,6 +7,15 @@ thread_local! {
     static HELP: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
     /// By option of the Game Settings: the names of the messages said when it goes on and when it goes off.
     static SAYS: RefCell<HashMap<String, (String, String)>> = RefCell::new(HashMap::new());
+    /// By option: whether its row starts ticked, for those the client's `CmdOnOffList` has a command of.
+    static STARTS: RefCell<HashMap<&'static str, bool>> = RefCell::new(HashMap::new());
+}
+
+/// How an option's row starts by the client's list of its switches (`System\OptionInfo.lub`,
+/// `crate::commands::starts`); none for an option the list has no command of, and with a gateway that does
+/// not read the list.
+pub fn option_listed(option: &str) -> Option<bool> {
+    STARTS.with_borrow(|starts| starts.get(option).copied())
 }
 
 /// The lines the client prints for `/help`.
@@ -40,6 +49,12 @@ pub(super) fn read(tables: &wasm_bindgen::JsValue) {
                 let messages: js_sys::Array = messages.dyn_into().ok()?;
                 Some((option, (messages.get(0).as_string()?, messages.get(1).as_string()?)))
             })
+            .collect(),
+    );
+    STARTS.set(
+        entries::<String>(&field(&commands, "starts"))
+            .into_iter()
+            .filter_map(|(command, on)| crate::commands::starts(&command, on.as_bool()?))
             .collect(),
     );
 }

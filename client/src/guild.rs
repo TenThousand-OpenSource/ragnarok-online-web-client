@@ -90,6 +90,14 @@ pub fn castle_investment(line: &str, name: &str, economy: i32, defense: i32) -> 
     lined(&crate::numbers::filled(line, &[name, &defense.to_string(), &most, &economy.to_string(), &most]))
 }
 
+/// The part of the guild's experience a member gave, in hundredths, as the members' tab writes it
+/// (`GuildInfo::UpdateMemberExpRatios`, `Source/Contents/Guild/GuildInfo.cpp`): what the member gave against
+/// what all the members listed gave together, not against the guild's own experience; nothing while none gave.
+pub fn exp_ratio(given: u32, all: impl IntoIterator<Item = u32>) -> f32 {
+    let total: f64 = all.into_iter().map(f64::from).sum();
+    if total == 0.0 { 0.0 } else { given as f32 * 100.0 / total as f32 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,5 +166,14 @@ mod tests {
             castle_investment(line, "Bright Arbor", 35, 7),
             "\nManagement Territory: Bright Arbor\n\t\nDefense: 7 / 100\nCommercial: 35 / 100"
         );
+    }
+
+    /// `GuildInfo::UpdateMemberExpRatios`: against the sum of the members', and none of nothing.
+    #[test]
+    fn a_member_gave_its_part_of_what_all_members_gave() {
+        assert_eq!(exp_ratio(30, [30, 10, 0]), 75.0);
+        assert_eq!(exp_ratio(0, [30, 10, 0]), 0.0);
+        assert_eq!(exp_ratio(0, [0, 0]), 0.0);
+        assert_eq!(format!("{:3.0}%", exp_ratio(1, [1, 2])), " 33%");
     }
 }

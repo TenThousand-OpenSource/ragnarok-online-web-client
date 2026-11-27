@@ -28,6 +28,9 @@ server/                 a Docker setup of rAthena and MariaDB for development: d
                         conf/ (the server's settings, groups.yml, the test accounts of accounts.sql),
                         npc/ (the classic scripts put right for the client's maps: tools/client-tables/
                         classic_overlay.py writes them), mapcache/ and public/ (made locally, not committed)
+                        navigation.sh with navigation/Dockerfile (rAthena's generator of the navigation's
+                        tables, run once beside the game) and navigation/pre-re/ (the tables it writes of
+                        this server's world: made locally, not committed; the gateway's --navigation-dir)
 translations/           GLOSSARY.md (terms, so that translators agree); src/ (English sources of the
                         translated batches); ru/ (Russian: items-*.json, skills-*.json, and labels.json: the
                         words of an English item description, for the items not translated yet)

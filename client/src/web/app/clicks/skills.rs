@@ -28,15 +28,47 @@ impl App {
                 self.skills.writing = None;
                 self.redraw(&[&wnd::SKILL_WORDS]);
             }
-            // The plus by a skill: a level of it, and before that of what it asks for and lacks, as far as the
-            // points go (`crate::skills::raises`; the client's `IncreaseSkillLevel` and `ApplySkillPoints`,
-            // which plan the levels and send them on Apply: here each is sent at once).
+            // A skill pressed to be raised: a level of it is planned, and before that of what it asks for and
+            // lacks, as far as the points left go (`crate::skills::raises`; the client's `IncreaseSkillLevel`).
+            // Nothing is sent before Apply.
             Press::Raise(id) => {
+                if !self.skill_opens(id) {
+                    return;
+                }
                 let job = self.own_figure().job;
-                let points = crate::skills::points(self.hero.params.get(&packets::parameter::SKILL_POINTS).copied().unwrap_or(0));
-                for skill in crate::skills::raises(id, points, |skill| self.skill_level(skill), |skill| data::skill_asks(job, skill).1) {
+                let more = crate::skills::raises(id, self.skill_points_left(), |skill| self.skill_planned_level(skill), |skill| data::skill_asks(job, skill).1);
+                self.skills.plan.extend(more);
+                self.redraw(&[&wnd::SKILLS]);
+            }
+            // Apply asks first (`ID_APPLY`: the client's line 1377 in a box of Yes and No), and Yes sends a
+            // level for each one planned (`ApplySkillPoints`, `MM_UPGRADE_SKILLLEVEL`); Reset forgets them.
+            Press::Apply => {
+                self.skills.asks = !self.skills.plan.is_empty();
+                self.redraw(&[&wnd::SKILL_ASKS]);
+            }
+            Press::ApplyYes => {
+                for skill in std::mem::take(&mut self.skills.plan) {
                     self.send_on_map(&net::inventory::raise_skill(skill));
                 }
+                self.skills.asks = false;
+                self.redraw(&[&wnd::SKILL_ASKS, &wnd::SKILLS]);
+            }
+            Press::ApplyNo => {
+                self.skills.asks = false;
+                self.redraw(&[&wnd::SKILL_ASKS]);
+            }
+            Press::Reset => {
+                self.skills.plan.clear();
+                self.redraw(&[&wnd::SKILLS]);
+            }
+            // The small button turns the tree into the list of rows and back (`ID_MINI`).
+            Press::Mini => {
+                (self.skills.mini, self.skills.picked) = (!self.skills.mini, None);
+                self.render();
+            }
+            Press::Pick(row) => {
+                self.skills.picked = Some(row);
+                self.redraw(&[&wnd::SKILLS]);
             }
             Press::InfoClose => {
                 self.skills.info = None;
@@ -63,6 +95,32 @@ impl App {
                 self.refresh_items();
             }
         }
+    }
+
+    /// The skill points not planned away yet (the client's `m_skillPoints` beside the session's).
+    pub(in crate::web) fn skill_points_left(&self) -> u16 {
+        let all = crate::skills::points(self.hero.params.get(&packets::parameter::SKILL_POINTS).copied().unwrap_or(0));
+        all.saturating_sub(self.skills.plan.len() as u16)
+    }
+
+    /// The level a skill will be at once what is planned is sent.
+    pub(in crate::web) fn skill_planned_level(&self, id: u16) -> u16 {
+        self.skill_level(id) + crate::skills::planned(&self.skills.plan, id)
+    }
+
+    /// Whether a press on a skill plans a level of it: with points left, under its last level, one the server
+    /// lists as raisable, or one not known yet whose needs are lacking and can be planned with it
+    /// (`crate::skills::plus_by_table`).
+    pub(in crate::web) fn skill_opens(&self, id: u16) -> bool {
+        let left = i64::from(self.skill_points_left());
+        let learned = self.skills.known.iter().find(|skill| skill.id == id);
+        let level = learned.map_or(0, |skill| skill.level);
+        let most = data::skill(id).map_or(level, |(.., most)| most);
+        let raisable = learned.is_some_and(|skill| skill.raisable) && left > 0;
+        let (job_level, needs) = data::skill_asks(self.own_figure().job, id);
+        let job = self.hero.params.get(&packets::parameter::JOB_LEVEL).copied().unwrap_or(0);
+        let by_table = crate::skills::plus_by_table(raisable, left, level, job, (job_level, &needs), |skill| self.skill_level(skill));
+        (raisable || by_table) && self.skill_planned_level(id) < most
     }
 
     /// A skill is used, from its window, by a key or from the hotkey bar (then at the level it was put there

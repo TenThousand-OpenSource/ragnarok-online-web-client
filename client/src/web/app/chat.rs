@@ -65,13 +65,7 @@ pub(super) fn drag_chat_tabs(document: &web_sys::Document) -> Result<(), String>
         }
     });
     let on_up = Closure::<dyn FnMut()>::new(|| HELD.set(None));
-    document.add_event_listener_with_callback("mousedown", on_down.as_ref().unchecked_ref()).map_err(js_error)?;
-    document.add_event_listener_with_callback("mousemove", on_move.as_ref().unchecked_ref()).map_err(js_error)?;
-    document.add_event_listener_with_callback("mouseup", on_up.as_ref().unchecked_ref()).map_err(js_error)?;
-    on_down.forget();
-    on_move.forget();
-    on_up.forget();
-    Ok(())
+    wire_gesture(document, on_down, on_move, on_up)
 }
 
 impl App {

@@ -6,11 +6,21 @@ use std::path::PathBuf;
 
 use roweb_gateway::{accounts, bridge};
 
-/// The server's item database that goes with the rules it plays by: `server/.env`, written by `rules.sh`, says
-/// which (`ROWEB_PRERE=no` is Renewal); without it, the classic one.
+/// Whether the server plays by Renewal's rules: `server/.env`, written by `rules.sh`, says so
+/// (`ROWEB_PRERE=no`); without it, the classic ones.
+fn renewal() -> bool {
+    std::fs::read_to_string("server/.env").is_ok_and(|env| env.lines().any(|line| line.trim() == "ROWEB_PRERE=no"))
+}
+
+/// The server's item database that goes with the rules it plays by.
 fn rules_database() -> PathBuf {
-    let renewal = std::fs::read_to_string("server/.env").is_ok_and(|env| env.lines().any(|line| line.trim() == "ROWEB_PRERE=no"));
-    if renewal { "../rathena/db/re" } else { "../rathena/db/pre-re" }.into()
+    if renewal() { "../rathena/db/re" } else { "../rathena/db/pre-re" }.into()
+}
+
+/// Where the navigation's tables made for the server's own world are (`server/navigation.sh` writes them), by
+/// the rules it plays by.
+fn rules_navigation() -> PathBuf {
+    if renewal() { "server/navigation/re" } else { "server/navigation/pre-re" }.into()
 }
 
 pub struct Config {
@@ -42,6 +52,14 @@ pub struct Config {
     /// Where the game's web service is (`--web-server <host:port>`; rAthena's `web-server`, its `web_port`
     /// 8888): the Adventurer's Agency is asked of it (`agency.rs`).
     pub web_server: String,
+    /// The server's attendance database (`--attendance <file>`; `server/db/attendance.yml`, which the Docker
+    /// setup gives rAthena as `db/import/attendance.yml`): the window shows its days and rewards
+    /// (`tables/attendance.rs`).
+    pub attendance: PathBuf,
+    /// The folder of the navigation's tables made from the server's own scripts (`--navigation-dir <folder>`;
+    /// rAthena's `navi_*_krpri.lub`, written by `server/navigation.sh`). Where it holds none, the client's own
+    /// tables are given, which describe the Korean service's world.
+    pub navigation_dir: PathBuf,
 }
 
 impl Default for Config {
@@ -60,6 +78,8 @@ impl Default for Config {
             behind_proxy: false,
             lag: bridge::Lag::default(),
             web_server: "127.0.0.1:8888".into(),
+            navigation_dir: rules_navigation(),
+            attendance: "server/db/attendance.yml".into(),
             // The defaults are those of server/docker-compose.yml: its database, and its mailbox for development.
             accounts: accounts::Config {
                 database_url: "mysql://ragnarok:ragnarok@127.0.0.1:3306/ragnarok".into(),
@@ -105,11 +125,13 @@ pub fn config() -> Result<(Config, Option<Command>), String> {
             "--listen" => config.listen = value()?.parse().map_err(|error| format!("--listen: {error}"))?,
             "--server-host" => config.server_host = value()?,
             "--web-server" => config.web_server = value()?,
+            "--attendance" => config.attendance = value()?.into(),
             "--server-ports" => {
                 config.server_ports =
                     value()?.split(',').map(|port| port.trim().parse()).collect::<Result<_, _>>().map_err(|error| format!("--server-ports: {error}"))?;
             }
             "--item-database" => config.item_database = value()?.into(),
+            "--navigation-dir" => config.navigation_dir = value()?.into(),
             "--compress" => config.compress = switch(&arg, &value()?)?,
             "--cache-client" => config.cache_client = switch(&arg, &value()?)?,
             "--behind-proxy" => config.behind_proxy = switch(&arg, &value()?)?,

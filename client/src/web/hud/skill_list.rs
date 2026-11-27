@@ -52,7 +52,7 @@ impl App {
         ));
         window.push_str(&button_bar(width, height));
         for (row, skill) in skills.iter().take(7).enumerate() {
-            window.push_str(&self.skill_row(row, skill, picked == Some(row), points.unwrap_or(0) > 0, &does));
+            window.push_str(&self.skill_row(row, skill, picked == Some(row), points.unwrap_or(0) > 0, false, &does));
         }
         if let Some(points) = points {
             window.push_str(&text(16, height - 20, BLACK, &Self::words(284, "Skill Point : %d").replace("%d", &points.to_string())));
@@ -64,7 +64,9 @@ impl App {
 
     /// One skill of the list. The client lets the level be picked for the skills its tables mark so
     /// (`CSkillInfo::UsesLevel`); those tables are not read here, and every skill that is used has the arrows.
-    fn skill_row(&self, row: usize, skill: &Skill, picked: bool, points: bool, does: &Listed) -> String {
+    /// `locked` is the skill window's while levels are planned in it: nothing is taken up and no arrows show
+    /// (`UINewSkillListWnd::LayoutButtons`, `OnLBtnDown`).
+    pub(super) fn skill_row(&self, row: usize, skill: &Skill, picked: bool, points: bool, locked: bool, does: &Listed) -> String {
         let top = row as i32 * 32;
         let name = data::skill_name(skill.id, || format!("{} {}", tr("Skill"), skill.id));
         let usable = skill.level > 0 && !skill.passive();
@@ -75,18 +77,18 @@ impl App {
         if picked {
             line.push_str(&format!(r#"<div class="a" style="{};background:#c6d6f7;pointer-events:none"></div>"#, at(104, top + 19, 164, 28)));
         }
-        let handles = if usable {
+        let handles = if usable && !locked {
             format!("{} {}", dragged(Drag::Skill(Leveled { id: u32::from(skill.id), level: used })), super::used(Use::Skill(skill.id)))
         } else {
             String::new()
         };
         let icon = Self::skill_icon(skill.id);
         line.push_str(&format!(
-            r#"<div class="a" style="{}" {handles} {} data-skill="{}" title="{}">{icon}</div>"#,
+            r#"<div class="a" style="{}" {handles} {} data-skill="{}" {}>{icon}</div>"#,
             at(44, top + 21, 24, 24),
             pressed((does.pick)(row)),
             skill.id,
-            escape(&name)
+            tip(&name)
         ));
         // A skill not learned yet is named in grey (120) and says nothing more.
         line.push_str(&format!(
@@ -96,7 +98,7 @@ impl App {
             escape(&name)
         ));
         if skill.level > 0 {
-            if usable {
+            if usable && !locked {
                 line.push_str(&text(124, top + 34, BLACK, "Lv :"));
                 line.push_str(&format!(
                     r#"<div class="a t" style="left:149px;top:{}px;color:{};white-space:pre;pointer-events:none">{used:2}</div>"#,

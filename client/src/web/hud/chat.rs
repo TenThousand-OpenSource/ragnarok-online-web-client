@@ -46,6 +46,10 @@ impl App {
         let tabs = self.chat_tabs();
         if let Some(log) = crate::web::by_id("chat-lines") {
             log.set_inner_html(&self.chat_lines(tabs.get(self.chat_tab_open(&tabs)), LIST_WIDE));
+            // The list's bar follows what it holds now.
+            if let Some(window) = log.parent_element().and_then(|list| list.parent_element()) {
+                crate::web::app::fit_bars(&window);
+            }
         }
         if tabs.iter().any(|tab| tab.own.is_some()) {
             self.redraw(&windows::CHAT_OWN);
@@ -214,9 +218,11 @@ impl App {
             window.push_str(&fill(tabs + 3, 16, (600 - tabs - 10).max(0), 1, WHITE));
             window.push_str(&fill(600 - 4, 18, 1, height - 18, "#8e8e8e"));
             window.push_str(&format!(
-                r#"<div id="chat-log" class="a chat-log" style="{}"><div id="chat-lines">{}</div></div>"#,
+                r#"<div id="chat-log" class="a chat-log" style="{}"><div id="chat-lines">{}</div></div>{}"#,
                 at(5, 18, LIST_WIDE, height - 16 - 24 - 4),
-                self.chat_lines(all.get(open), LIST_WIDE)
+                self.chat_lines(all.get(open), LIST_WIDE),
+                // The list's own bar, at its right edge (`UIChatHisBox` is a `UIListBox`: `Move(width - 13, 0)`).
+                end_bar(5 + LIST_WIDE - 13, 18, height - 16 - 24 - 4, 14)
             ));
         }
         window.push_str(&fill(4, base, 600 - 8, 1, "#8e8e8e"));
@@ -299,9 +305,10 @@ impl App {
             window.push_str(&Self::chat_button(right, name, size, press, title));
         }
         window.push_str(&format!(
-            r#"<div class="a chat-log" style="{}"><div>{}</div></div>"#,
+            r#"<div class="a chat-log" style="{}"><div>{}</div></div>{}"#,
             at(5, 20, width - 8, height - 35),
-            self.chat_lines(Some(tab), width - 8)
+            self.chat_lines(Some(tab), width - 8),
+            end_bar(width - 16, 20, height - 35, 14)
         ));
         window.push_str(&format!(
             r#"<button type="button" class="a" data-resize="{index}" style="{};padding:0;border:0;background:url('{}') no-repeat;cursor:nwse-resize"></button>"#,

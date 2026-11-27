@@ -46,6 +46,8 @@ presses! {
         ChatTab(usize) = "chat-tab",
         /// A line of the list of titles in the Equipment window: the title is put on, or with 0 taken off.
         Title(u32) = "title",
+        /// A row of the old party booking's list, by the number of its ad: a talk with its leader opens.
+        Ad(u32) = "booking-ad",
     }
 }
 

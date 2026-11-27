@@ -124,9 +124,47 @@ pub fn put_back(marked: &str, links: &[Link], written: impl Fn(&Link) -> String)
     whole
 }
 
+/// A text with each `<MSG>…</MSG>` of it written out (`NavigationLinkParser::ExpandMessages` and
+/// `FormatMessageArguments` of `NavigationLink.cpp`, which the mailbox passes a letter's sender, title and text
+/// through: a server writes its own letters so, `<MSG>3456,1</MSG>`): the line of the message table of that
+/// number, and what follows the number after commas written into the line's blanks in turn, an argument
+/// `MsgStr(n)` being line `n` itself. A tag that is not closed leaves the text as it was, as in the client.
+/// Not made: a line named by its name in the client's code (`MSI_…`) instead of its number.
+pub fn expanded(text: &str, line: impl Fn(usize) -> Option<String>) -> String {
+    let mut whole = text.to_owned();
+    while let Some(begin) = whole.find("<MSG>") {
+        let inside = &whole[begin + 5..];
+        let Some(end) = inside.find("</MSG>") else { return text.to_owned() };
+        let mut given = inside[..end].split(',');
+        let of = |number: &str| number.trim().parse().ok().and_then(&line).unwrap_or_default();
+        let message = of(given.next().unwrap_or_default());
+        let arguments: Vec<String> =
+            given.map(|argument| argument.strip_prefix("MsgStr(").and_then(|rest| rest.strip_suffix(')')).map_or_else(|| argument.to_owned(), of)).collect();
+        let written = crate::numbers::filled(&message, &arguments.iter().map(String::as_str).collect::<Vec<_>>());
+        whole = format!("{}{written}{}", &whole[..begin], &inside[end + 6..]);
+    }
+    whole
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_line_of_the_message_table_is_written_out_with_what_is_given_it() {
+        let line = |number| match number {
+            3455 => Some("Attendance".to_owned()),
+            3456 => Some("Day %d reward".to_owned()),
+            7 => Some("%s and %s".to_owned()),
+            _ => None,
+        };
+        assert_eq!(expanded("<MSG>3455</MSG>", line), "Attendance");
+        assert_eq!(expanded("[<MSG>3456,12</MSG>] <MSG>3455</MSG>!", line), "[Day 12 reward] Attendance!");
+        assert_eq!(expanded("<MSG>7,MsgStr(3455),you</MSG>", line), "Attendance and you");
+        // Not closed: as it was written. No tag: untouched.
+        assert_eq!(expanded("<MSG>3455</MSG> <MSG>7", line), "<MSG>3455</MSG> <MSG>7");
+        assert_eq!(expanded("Hello", line), "Hello");
+    }
 
     #[test]
     fn a_links_number_is_the_digits_it_begins_with() {

@@ -65,6 +65,7 @@ impl App {
             Action::PetIdle => self.pet_idles(),
             Action::PvpRead(digits) => self.pvp_digits_read(digits),
             Action::BattlegroundTick => self.battleground_tick(),
+            Action::BookingTick => self.booking_tick(),
             Action::ReplayTick => self.replay_tick(),
             Action::ReplaysRead(files) => self.replays_read(files),
             Action::ReplayPicked(name, bytes) => self.replay_taken(name, bytes),

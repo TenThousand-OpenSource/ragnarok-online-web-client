@@ -66,6 +66,8 @@ pub mod interface {
     pub const CHAT_SIZE: usize = 19;
     /// A picture of the screen (Print Screen).
     pub const SCREENSHOT: usize = 21;
+    /// The window of the party's instance (`HK_MEMORIALWND_ONOFF`: Alt+B).
+    pub const INSTANCE: usize = 22;
     pub const PET: usize = 23;
     /// The windows of the homunculus and of the mercenary, and the two told to stand by (`HK_HOMUNWND_ONOFF`,
     /// `HK_MERWND_ONOFF`, `HK_HOMUN_FOLLOW`, `HK_MER_FOLLOW`: Alt+R, Ctrl+R, Alt+T and Ctrl+T in the client's

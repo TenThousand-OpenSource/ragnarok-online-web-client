@@ -84,7 +84,8 @@ impl App {
                 ].concat()
             })
             .collect();
-        format!(r#"<div class="a scroll" style="{};overflow-y:auto">{rows}</div>"#, at(1, 35, 398, 286))
+        // The list's bar stands 387 from its left (`GameSettingsUI.cpp`: `m_optionList->scrollBar->Move(387, 0)`).
+        format!(r#"<div class="a scroll" style="{};overflow-y:auto">{rows}</div>{}"#, at(1, 35, 398, 286), scroll_bar(388, 35, 286, 26))
     }
 
     /// What stands at the left of an option's row: its switch, or, for a thing done at a press (`run`), its

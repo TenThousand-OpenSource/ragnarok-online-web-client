@@ -9,6 +9,15 @@ pub(in crate::web) struct Skills {
     /// The Skill window is open, and which of its pages.
     pub open: bool,
     pub tab: usize,
+    /// The window shows its list of rows, not the tree (the client's `m_simplifiedSkillList`, its small
+    /// button), and the row of it that is marked.
+    pub mini: bool,
+    pub picked: Option<usize>,
+    /// The levels planned in the window and not sent yet, a skill for each level, in the order they are
+    /// sent in on Apply (the client's `m_plannedSkillLevels`; `crate::skills::raises`), and whether Apply
+    /// has asked its question.
+    pub plan: Vec<u16>,
+    pub asks: bool,
     /// The skill whose description is shown.
     pub info: Option<u16>,
     /// The skill being aimed with the pointer, and its level.

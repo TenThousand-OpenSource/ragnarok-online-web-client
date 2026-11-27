@@ -1,0 +1,84 @@
+# The cash shop of the local server (mounted as rAthena's db/import/item_cash.yml): a small classic assortment
+# on each tab. Prices are in cash points, which a GM gives with @cash; no real money is involved.
+
+Header:
+  Type: ITEM_CASH_DB
+  Version: 1
+
+Body:
+  - Tab: New
+    Items:
+      - Item: Old_Blue_Box
+        Price: 50
+      - Item: Old_Violet_Box
+        Price: 80
+      - Item: Old_Card_Album
+        Price: 300
+  - Tab: Hot
+    Items:
+      - Item: Battle_Manual
+        Price: 100
+      - Item: Bubble_Gum
+        Price: 150
+      - Item: Token_Of_Siegfried
+        Price: 60
+      - Item: Kafra_Card
+        Price: 20
+  - Tab: Limited
+    Items:
+      - Item: Bloody_Dead_Branch
+        Price: 200
+      - Item: Emperium
+        Price: 250
+  - Tab: Rental
+    Items:
+      - Item: Sunglasses
+        Price: 120
+      - Item: Flu_Mask
+        Price: 120
+  - Tab: Permanent
+    Items:
+      - Item: Poring_Hat
+        Price: 400
+      - Item: Cat_Hairband
+        Price: 350
+      - Item: Ribbon
+        Price: 100
+  - Tab: Scrolls
+    Items:
+      - Item: Earth_Scroll_1_3
+        Price: 15
+      - Item: Cold_Scroll_1_3
+        Price: 15
+      - Item: Fire_Scroll_1_3
+        Price: 15
+      - Item: Wind_Scroll_1_3
+        Price: 15
+      - Item: Holy_Scroll_1_3
+        Price: 20
+      - Item: Ghost_Scroll_1_3
+        Price: 20
+  - Tab: Consumables
+    Items:
+      - Item: Yggdrasilberry
+        Price: 30
+      - Item: Seed_Of_Yggdrasil
+        Price: 15
+      - Item: Giant_Fly_Wing
+        Price: 10
+      - Item: Royal_Jelly
+        Price: 5
+      - Item: Speed_Up_Potion
+        Price: 5
+      - Item: Insurance
+        Price: 40
+  - Tab: Other
+    Items:
+      - Item: Elunium
+        Price: 25
+      - Item: Oridecon
+        Price: 25
+      - Item: Branch_Of_Dead_Tree
+        Price: 10
+      - Item: Gift_Box
+        Price: 10

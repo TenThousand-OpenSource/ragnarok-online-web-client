@@ -58,6 +58,19 @@ impl App {
         true
     }
 
+    /// With the battleground's own chat switched on (`/battlechat`), a line that is no command goes to it,
+    /// whomever its mark was for (`CGameMode`'s `TT_NORMAL`: `MM_CHAT_BATTLEFIELD` before the party, the
+    /// guild and saying aloud). `false` when the chat is off or the line is a command.
+    fn battle_chat_said(&mut self, words: &str) -> bool {
+        if !self.option("TT_BATTLECHAT_ON_OFF") || words.starts_with('/') {
+            return false;
+        }
+        if let (Some(words), Some(name)) = (crate::battleground::chat_words(words), self.game.as_ref().map(|game| game.name.clone())) {
+            self.send_on_map(&crate::net::battleground::chat(&name, words));
+        }
+        true
+    }
+
     /// A press of this system (`crate::press::chat`).
     pub(super) fn chat_pressed(&mut self, press: crate::press::chat::Press) {
         use crate::press::chat::Press;
@@ -303,7 +316,7 @@ impl App {
         let words = words.as_str();
         // The client's own commands come first; everything else is said (the server reads its
         // @commands).
-        if !words.is_empty() && self.typed_command(words) {
+        if !words.is_empty() && (self.battle_chat_said(words) || self.typed_command(words)) {
             set_field("chat-input", "");
             return;
         }

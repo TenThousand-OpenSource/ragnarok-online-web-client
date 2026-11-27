@@ -137,6 +137,10 @@ cargo build --release -p roweb-gateway
 # 2. rAthena (PACKETVER 20260219, the classic pre-renewal rules) and MariaDB.
 docker compose -f server/docker-compose.yml up -d --build
 
+# 2a. (Optional.) The navigation's tables of this server's world, into server/navigation/pre-re: without
+#     them the Navigation window guides by the client's tables, which are the Korean service's Renewal world.
+server/navigation.sh
+
 # 3. The browser client, into client/dist.
 ./build-web.sh
 
@@ -159,6 +163,9 @@ All are optional (`gateway/src/config.rs`); an argument it does not know stops i
 | `--server-host <host>` | `127.0.0.1` | where rAthena runs |
 | `--server-ports <a,b,c>` | `6900,6121,5121` | the ports bridged; the first is the login server's |
 | `--item-database <folder>` | `../rathena/db/pre-re`, or `../rathena/db/re` when `server/.env` says Renewal | rAthena's item database, for the items' names |
+| `--navigation-dir <folder>` | `server/navigation/pre-re`, or `server/navigation/re` when `server/.env` says Renewal | the navigation's tables made from the server's own scripts (`server/navigation.sh`); where the folder holds none, the client's own tables are given |
+| `--web-server <host:port>` | `127.0.0.1:8888` | rAthena's web service (the `web` service of `server/docker-compose.yml`): the Adventurer's Agency is asked of it |
+| `--attendance <file>` | `server/db/attendance.yml` | the server's attendance database: the window shows its days and rewards |
 | `--compress on\|off` | `on` | gzip or Brotli, as the browser takes; `off` where a proxy or a CDN in front compresses |
 | `--cache-client on\|off` | `on` | whether the client's files, named by their build, may be kept by the browser |
 | `--invite-file <file>` | none | the file with the invitation word (at least 8 characters) a browser must give before anything is served |

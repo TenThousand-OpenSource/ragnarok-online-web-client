@@ -67,6 +67,8 @@ impl App {
     /// is worn is bought one at a time without the question.
     pub(in crate::web::app) fn shop_let_go(&mut self, dragged: Drag, onto: Drop) {
         let selling = matches!(self.shops.shop, Some(Shop::Sell(_)));
+        // (A recording that runs keeps the drop as the client's does: `UIWindow::RecordDrop`.)
+        self.replay_let_go(&dragged, crate::replay::told::shop_window(matches!(onto, Drop::Basket), selling));
         match (dragged, onto, &self.shops.shop) {
             (Drag::Offer(row), Drop::Basket, Some(Shop::Buy(offers))) => match offers.get(row) {
                 Some(offer) if crate::shops::bought_singly(offer.kind) => self.shop_in(row, 1),
@@ -109,6 +111,7 @@ impl App {
         let Some((across, _)) = self.shops.counting.take() else { return };
         let typed = field(&wnd::SHOP_COUNT.field());
         let buying = matches!(self.shops.shop, Some(Shop::Buy(_)));
+        self.replay_counted(crate::replay::told::shop_asked(matches!(across, Across::In(_)), buying), &typed);
         match across {
             Across::In(row) if buying => {
                 if let Some(amount) = crate::shops::count_asked(&typed, 0, Asked::Buying) {

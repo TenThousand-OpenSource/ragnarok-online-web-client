@@ -78,7 +78,9 @@ mod reputation;
 mod probability;
 mod attendance;
 mod bank;
+mod instances;
 mod battleground;
+mod booking;
 mod agency;
 mod replay;
 pub(in crate::web) use {exchange::*, friends::*, guide::*, guild::*, inventory::*, mail::*, party::*, pets::*, player_menu::*, quests::*};
@@ -95,7 +97,9 @@ pub(in crate::web) use cashshop::*;
 pub(in crate::web) use {achievements::*, probability::*, reputation::*};
 pub(in crate::web) use attendance::*;
 pub(in crate::web) use bank::*;
+pub(in crate::web) use instances::*;
 pub(in crate::web) use battleground::*;
+pub(in crate::web) use booking::*;
 pub(in crate::web) use agency::*;
 pub(in crate::web) use replay::*;
 pub(in crate::web) use {cart::*, vending::*};
@@ -215,6 +219,7 @@ pub(in crate::web) static ALL: &[&Window] = &[
         &STATUS,
         &INVENTORY,
         &SKILLS,
+        &SKILL_ASKS,
         &STORAGE,
         &STORAGE_APART_0,
         &STORAGE_APART_1,
@@ -325,9 +330,11 @@ pub(in crate::web) static ALL: &[&Window] = &[
     &BOOK, &BOOK_LINE,
     &ACHIEVEMENTS_TRACED, &ACHIEVEMENTS, &ACHIEVEMENT_TOLD, &REPUTATION, &PROBABILITY_ASKS,
     &BANK,
+    &INSTANCE,
     &ATTENDANCE,
     &CASH_SHOP, &CASH_SHOP_ASKS,
     &BATTLEGROUND, &BATTLEGROUND_HELP, &BATTLEGROUND_STANDBY, &BATTLEGROUND_ENTRY, &BATTLEGROUND_ASKS,
+    &BOOKING_LIST, &BOOKING_HELP, &BOOKING_REGISTER, &BOOKING_OWN, &BOOKING_JOBS,
     &AGENCY, &AGENCY_NOTICE, &AGENCY_READ, &AGENCY_ASKS,
     &REPLAY_RECORDER, &REPLAY_PLAYER,
 ];

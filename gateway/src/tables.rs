@@ -22,6 +22,7 @@ mod achievements;
 mod ai;
 mod aura;
 mod battleground;
+mod booking;
 mod cards;
 mod castles;
 mod emitters;
@@ -433,7 +434,7 @@ fn beside(client_dir: &std::path::Path, files: &[&str]) -> Option<Lua> {
 /// those that come from beside the archives and from the server's database added, each under its own name: what
 /// the client calls each map, who stands where in the towns, the Adventure Guide. What several of them are made
 /// of is read once, before them (`Sources::read`), and handed to each.
-pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std::path::Path) -> serde_json::Value {
+pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std::path::Path, attendance: &std::path::Path) -> serde_json::Value {
     let grf = read.grf;
     let mut tables = for_client(read);
     if let Some(tables) = tables.as_object_mut() {
@@ -442,20 +443,21 @@ pub fn for_browser(read: &Sources, client_dir: &std::path::Path, database: &std:
         tables.insert("towns".to_owned(), maps::towns(client_dir));
         tables.insert("guide".to_owned(), guide::guide(read, database));
         tables.insert("statuses".to_owned(), statuses::statuses(grf));
-        tables.insert("commands".to_owned(), commands::commands(grf, &read.settings));
+        tables.insert("commands".to_owned(), commands::commands(grf, &read.settings, client_dir));
         tables.insert("quests".to_owned(), quests::quests(client_dir, database));
         tables.insert("cards".to_owned(), cards::cards(grf));
         tables.insert("sky".to_owned(), scenery::sky(grf));
         tables.insert("figures".to_owned(), figures::figures(read));
         tables.insert("worldmap".to_owned(), worldmap::worldmap(grf));
         tables.insert("tips".to_owned(), tips::tips(&read.tips));
-        tables.insert("attendance".to_owned(), attendance::attendance(client_dir));
+        tables.insert("attendance".to_owned(), attendance::attendance(client_dir, attendance));
         tables.insert("cashshop".to_owned(), cashshop::cashshop(grf));
         tables.insert("aura".to_owned(), aura::aura(grf));
         tables.insert("manner".to_owned(), manner::manner(grf));
         tables.insert("monster_skills".to_owned(), monster_skills::monster_skills(grf));
         tables.insert("castles".to_owned(), castles::castles(grf));
         tables.insert("battleground".to_owned(), battleground::battleground(read));
+        tables.insert("booking".to_owned(), booking::booking(read));
         tables.insert("skill_needs".to_owned(), skill_needs::skill_needs(database));
         tables.insert("achievements".to_owned(), achievements::achievements(grf, client_dir));
         tables.insert("reputation".to_owned(), reputation::reputation(grf));

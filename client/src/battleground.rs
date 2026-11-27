@@ -162,6 +162,14 @@ pub fn admission_refused(result: u8) -> Option<usize> {
     }
 }
 
+/// What of a line typed goes to the battleground's own chat while that is switched on (`CGameMode`'s
+/// `TT_NORMAL`, which takes the mark of a line for the party, the guild or the clan off its front before it
+/// looks whether the battle chat is on): the words without such a mark; none when nothing is left.
+pub fn chat_words(typed: &str) -> Option<&str> {
+    let words = typed.strip_prefix(['%', '$', '#']).unwrap_or(typed);
+    (!words.is_empty()).then_some(words)
+}
+
 /// How long the window that asks whether to enter waits, in seconds (`UIEntryQueueRequestWnd::Paint`).
 pub const ENTRY_WAIT: i32 = 20;
 
@@ -268,6 +276,12 @@ mod tests {
         assert_eq!(entry_seconds(1000), 19);
         assert_eq!(entry_seconds(19_999), 1);
         assert_eq!(entry_seconds(20_000), 0);
+    }
+
+    #[test]
+    fn a_line_for_the_battle_chat_loses_the_mark_of_another_chat() {
+        assert_eq!([chat_words("go left"), chat_words("%go"), chat_words("$go"), chat_words("#go")], [Some("go left"), Some("go"), Some("go"), Some("go")]);
+        assert_eq!([chat_words("%"), chat_words(""), chat_words("%%go")], [None, None, Some("%go")]);
     }
 
     #[test]

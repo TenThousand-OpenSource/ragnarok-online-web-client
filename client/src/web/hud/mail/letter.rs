@@ -44,14 +44,15 @@ impl App {
     /// and Reply at the right for a letter a player sent. A letter of someone not known has the button that
     /// sends it back by the sender's name.
     ///
-    /// Not here: the client reads tags in the title and the text (links to places and items, lines of its
-    /// message table); they are shown as they are written.
+    /// The lines of the message table a server names in the sender, the title and the text are written out
+    /// (`UIRodexContentsWnd::SetMailContents`: `ExpandMessages`). Not here: the client's links to places and
+    /// items in the title and the text; they are shown as they are written.
     pub(in crate::web) fn mail_read_window(&self) -> String {
         let Some((kind, letter)) = self.mail.reading.and_then(|(kind, id)| Some((kind, self.mail.store.get(kind, id)?))) else { return String::new() };
         let mut window = frame(Press::ReadClose);
         window.push_str(&titled(17, 1, &Self::words(2727, "RODEX")));
-        window.push_str(&text_in(BOLD, 8, 29, "#0f3395", &letter.sender));
-        window.push_str(&text(9, 52, "#313131", &letter.title));
+        window.push_str(&text_in(BOLD, 8, 29, "#0f3395", &crate::links::expanded(&letter.sender, data::message)));
+        window.push_str(&text(9, 52, "#313131", &crate::links::expanded(&letter.title, data::message)));
         let from_player = kind == tab::NORMAL && letter.has & has::NPC == 0;
         if from_player && !letter.known {
             window.push_str(&basic_button(224, 29, 70, &Self::words(3548, "Return"), Some(Press::ReadGiveBack.into())));
@@ -59,7 +60,7 @@ impl App {
         window.push_str(&format!(
             r#"<div class="a t viewer" style="{};white-space:pre-wrap;overflow-wrap:anywhere;color:#313131;user-select:text">{}</div>"#,
             at(15, 81, 267, 192),
-            escape(&letter.body)
+            escape(&crate::links::expanded(&letter.body, data::message))
         ));
         window.push_str(&places());
         for (place, item) in letter.items.iter().take(crate::mail::MOST_ITEMS).enumerate() {

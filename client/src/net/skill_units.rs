@@ -26,6 +26,11 @@ pub const ZC_TALKBOX_CHATCONTENTS: u16 = 0x0191;
 /// ZC_SKILL_ENTRY2 (0x01c9): a unit on the ground that carries words: Graffiti (`written`).
 pub const ZC_SKILL_ENTRY2: u16 = 0x01c9;
 
+/// ZC_SKILL_ENTRY (0x011f, 16 bytes): `u32 id, u32 creator, i16 x, i16 y, u8 unit, u8 visible`: a unit stands
+/// on a cell, as the first of these packets told it. This server sends ZC_SKILL_ENTRY5; the Windows client
+/// keeps the units on the ground in a replay file as this one (`CGameMode::WriteReplaySkillState`).
+pub const ZC_SKILL_ENTRY: u16 = 0x011f;
+
 /// A unit on the ground.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Entry {
@@ -54,6 +59,21 @@ pub fn entry(packet: &[u8]) -> Option<Entry> {
         range: packet[20],
         visible: packet[21] != 0,
         level: packet[22]
+    })
+}
+
+/// Reads ZC_SKILL_ENTRY: the packet tells neither how far the unit covers nor the level of its skill, which
+/// are nought here.
+pub fn entry_of_old(packet: &[u8]) -> Option<Entry> {
+    let packet = packet.get(..16)?;
+    Some(Entry {
+        id: long(packet, 2)?,
+        creator: long(packet, 6)?,
+        cell: (word(packet, 10)?, word(packet, 12)?),
+        unit: packet[14].into(),
+        range: 0,
+        visible: packet[15] != 0,
+        level: 0
     })
 }
 
@@ -122,6 +142,23 @@ mod tests {
         assert_eq!(crate::net::packet_length(ZC_SKILL_ENTRY5), Some(23));
         assert_eq!(entry(&packet), Some(Entry { id: 1000, creator: 2000, cell: (150, 160), unit: 127, range: 1, visible: true, level: 10 }));
         assert_eq!(entry(&packet[..22]), None);
+    }
+
+    #[test]
+    fn reads_a_unit_as_the_first_packet_told_it() {
+        let mut packet = vec![0x1f, 0x01];
+        packet.extend(1000u32.to_le_bytes());
+        packet.extend(2000u32.to_le_bytes());
+        packet.extend(150i16.to_le_bytes());
+        packet.extend(160i16.to_le_bytes());
+        packet.extend([127, 1]);
+        assert_eq!(packet.len(), 16);
+        assert_eq!(entry_of_old(&packet), Some(Entry { id: 1000, creator: 2000, cell: (150, 160), unit: 127, range: 0, visible: true, level: 0 }));
+        assert_eq!(entry_of_old(&packet[..15]), None);
+        // What a replay file keeps of a unit (`replay::snapshot::ground::skill_entry`) is this packet.
+        use crate::replay::snapshot::ground::{skill_entry, GroundSkill};
+        let kept = skill_entry(&GroundSkill { id: 7, creator: 8, x: 20, y: 30, kind: 0x7e, visible: true });
+        assert_eq!(entry_of_old(&kept), Some(Entry { id: 7, creator: 8, cell: (20, 30), unit: 0x7e, range: 0, visible: true, level: 0 }));
     }
 
     #[test]

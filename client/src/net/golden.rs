@@ -54,9 +54,11 @@ fn built() -> Vec<(&'static str, Vec<u8>)> {
     achievements(&mut lines);
     battleground(&mut lines);
     bank(&mut lines);
+    built!(lines; instances::instance_command; 3);
     attendance(&mut lines);
     agency(&mut lines);
     cashshop(&mut lines);
+    booking(&mut lines);
     lines
 }
 
@@ -315,6 +317,9 @@ fn battleground(lines: &mut Vec<(&'static str, Vec<u8>)>) {
         built!(lines; battleground::admit; true, text, text);
         built!(lines; battleground::admit; false, text, text);
     }
+    for text in [SHORT, LONG] {
+        built!(lines; battleground::chat; text, text);
+    }
 }
 
 /// The bank: the balance asked for, a deposit and a withdrawal.
@@ -346,6 +351,15 @@ fn cashshop(lines: &mut Vec<(&'static str, Vec<u8>)>) {
     built!(lines; cashshop::ask_limited;);
     built!(lines; cashshop::buy; 0, &[(501, 1, 6)]);
     built!(lines; cashshop::buy; 250, &[(12210, 100, 0), (2357, 3, 0xFFFF)]);
+}
+
+/// The old party booking: an ad registered, a search, the ad taken away, its jobs changed.
+fn booking(lines: &mut Vec<(&'static str, Vec<u8>)>) {
+    built!(lines; booking::register; 85, 0x0102, &[2, 13, -1, -1, -1, -1]);
+    built!(lines; booking::search; 0, 0, -1, 0, 10);
+    built!(lines; booking::search; 70, 0x0201, 13, 12, 10);
+    built!(lines; booking::delete;);
+    built!(lines; booking::update; &[-1, 13, 30, -1, -1, -1]);
 }
 
 /// The lines of `golden.txt` as the builders write them now.

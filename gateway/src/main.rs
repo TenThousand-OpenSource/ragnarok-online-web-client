@@ -56,7 +56,7 @@ fn told(grf: &grf::Grf, config: &Config, command: Command) {
                 }
             }
         }
-        Command::Tables => println!("{}", tables::for_browser(&tables::Sources::read(grf, &config.client_dir), &config.client_dir, &config.item_database)),
+        Command::Tables => println!("{}", tables::for_browser(&tables::Sources::read(grf, &config.client_dir), &config.client_dir, &config.item_database, &config.attendance)),
         Command::ChatTabs => println!("{}", tables::chat_tabs(grf)),
         Command::Items(ids) => {
             let items = tables::Items::load(grf).with_server_names(&config.item_database).with_english(&config.client_dir);
@@ -137,7 +137,7 @@ async fn main() {
         std::process::exit(2);
     });
     let client = client(&config.web_dir, config.cache_client);
-    let router = routes::router(routes::App::new(grf, items, &config.client_dir, &config.item_database))
+    let router = routes::router(routes::App::new(grf, items, &config.client_dir, &config.item_database, &config.attendance).with_navigation(&config.navigation_dir))
         .merge(bridge::router(bridge::Bridge {
             host: config.server_host,
             ports: config.server_ports,

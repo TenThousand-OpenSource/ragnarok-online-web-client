@@ -161,6 +161,32 @@ pub fn raises(skill: u16, points: u16, level_of: impl Fn(u16) -> u16, needs_of: 
     order
 }
 
+/// How many levels of a skill are planned in the skill window and not sent yet (`plan`: a skill for each
+/// level, the client's `m_plannedSkillLevels`).
+pub fn planned(plan: &[u16], skill: u16) -> u16 {
+    plan.iter().filter(|planned| **planned == skill).count() as u16
+}
+
+/// What the skill tree writes of the points under it (`UINewSkillListWnd::Paint`): after the `label` (the
+/// client's line 2343, "Skill Points : ") all there are, or, with some planned, those left in blue, those
+/// planned in red between brackets, and all of them. With the client's colour marks (`crate::markup`).
+pub fn points_line(label: &str, all: u16, planned: u16) -> String {
+    match planned.min(all) {
+        0 => format!("{label}{all}"),
+        planned => format!("{label}^0000ff{}^000000(^ff0000{planned}^000000) / {all}", all - planned),
+    }
+}
+
+/// The skills of the window's last tab, the one after the jobs' ("Etc.", `MSI_ETC`: `UINewSkillListWnd::InitTabs`
+/// adds it always, and `SkillList` gives it `CPlayerSkillBundle::extra`): every skill the server told of that
+/// stands on none of the job's pages (`CSession`'s taking of a skill, `Contents/Skills/ClientSkills.cpp`:
+/// one `FindGrouped` does not find is put with `AddExtra`), a skill copied with Plagiarism, one a thing worn
+/// gives, a wedding's. They stand in the order they were told, cell after cell (`NumberExtra`).
+pub fn extra(pages: &[Vec<(u16, u16)>], known: impl IntoIterator<Item = u16>) -> Vec<(u16, u16)> {
+    let paged = |skill: &u16| pages.iter().flatten().any(|(_, on)| on == skill);
+    known.into_iter().filter(|skill| !paged(skill)).enumerate().map(|(place, skill)| (place as u16, skill)).collect()
+}
+
 /// The pages of a job's skill window, as the client lays them out (`skilltreeview.lub`): one for each job it
 /// grew through, the first with the Novice's skills among its own. `tree` has, by job, the job it grew out of
 /// and where its skills stand. Each page: the place of each skill (counting the cells row by row, seven to a
@@ -190,6 +216,18 @@ pub fn pages(job: u16, tree: &std::collections::HashMap<u16, (Option<u16>, Vec<(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_levels_planned_are_counted_and_written() {
+        let plan = [5, 7, 7, 5, 5];
+        assert_eq!(planned(&plan, 5), 3);
+        assert_eq!(planned(&plan, 7), 2);
+        assert_eq!(planned(&plan, 8), 0);
+        assert_eq!(points_line("Skill Points : ", 12, 0), "Skill Points : 12");
+        assert_eq!(points_line("Skill Points : ", 12, 5), "Skill Points : ^0000ff7^000000(^ff00005^000000) / 12");
+        // Never more planned than there are.
+        assert_eq!(points_line("", 3, 9), "^0000ff0^000000(^ff00003^000000) / 3");
+    }
 
     #[test]
     fn two_skills_ask_for_words_before_they_are_placed() {
@@ -244,6 +282,14 @@ mod tests {
         // Skills that ask for each other end.
         let round = |skill: u16| vec![(if skill == 1 { 2 } else { 1 }, 1)];
         assert!(raises(1, 50, |_| 0, round).len() <= 50);
+    }
+
+    #[test]
+    fn the_skills_of_no_page_stand_on_the_last_tab_in_the_order_told() {
+        let pages = vec![vec![(0, 1), (3, 50)], vec![(5, 211), (9, 225)]];
+        // A Rogue who copied Fire Bolt and wears a thing that gives Heal: both on the last tab, cell by cell.
+        assert_eq!(extra(&pages, [1, 50, 211, 19, 225, 28]), [(0, 19), (1, 28)]);
+        assert!(extra(&pages, [1, 50, 211, 225]).is_empty());
     }
 
     #[test]

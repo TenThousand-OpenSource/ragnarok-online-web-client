@@ -117,6 +117,8 @@ pub(in crate::web) enum Action {
     /// A moment has passed while the player has a homunculus or a mercenary: its script may be due.
     /// A second of the question whether to enter a battleground has passed.
     BattlegroundTick,
+    /// A second of one's own ad in the old party booking has passed.
+    BookingTick,
     /// The game's web service has answered a request of the Adventurer's Agency, or could not be asked.
     AgencyAnswered(crate::agency::Request, Option<String>),
     /// The clock of a recording being played goes on.

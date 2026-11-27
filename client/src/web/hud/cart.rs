@@ -42,7 +42,7 @@ impl App {
             dropped(Drop::Cart),
             list_frame(width, height, &Self::words(222, "Cart Items")),
             cross(width, Press::Window),
-            grid_of(7, 2, &cells),
+            grid_of(7, 2, 14, &cells),
             height - 22,
             picture("inventory/icon_num.bmp"),
             of(23, height - 19, u32::from(fill.kinds), u32::from(fill.most_kinds)),

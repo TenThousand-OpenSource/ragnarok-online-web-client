@@ -29,21 +29,17 @@ impl App {
         self.settings.set.get(id).copied().unwrap_or_else(|| Self::option_starts(id))
     }
 
-    /// How an option starts: as the client's table of the Game Settings has it, or, for one that has a
-    /// command and no row there, as `commands/beside.rs` has it.
+    /// How an option starts: as the client sets its switches when it starts, from `CmdOnOffList` of
+    /// `System\\OptionInfo.lub` (`CSession::LoadOptionInfo` calls the script's `SetCmdOnOffList`, whose
+    /// `SetOption` keeps each value as written: `data::option_listed`); one the list has no command of, as
+    /// `commands/beside.rs` has it or, with a row in the Game Settings, by the `Default` of their table
+    /// (which is also what "reset" gives in the client; here "reset" gives the start).
     ///
-    /// The row of the full aura starts unticked, against its `Default` of the table: the client sets its
-    /// switches as it starts from `CmdOnOffList` of `System\OptionInfo.lub` (`CSession::LoadOptionInfo` calls
-    /// the script's `SetCmdOnOffList`, whose `SetOption` keeps each value as written), which has `/aura` at 1
-    /// and `/aura2` at 0; the value kept for these two is the reverse of the row (`IsServiceOption`), so the
+    /// So the row of the full aura starts unticked, against its `Default`: the list has `/aura` at 1 and
+    /// `/aura2` at 0, and the value kept for these two is the reverse of the row (`IsServiceOption`): the
     /// aura is shown and is the full one, with its light on the ground and its rings, until `/aura` is typed.
-    /// (The table's `Default` is what "reset" gives. The other switches of that list are not read here yet:
-    /// `docs/DEBTS.md`.)
     fn option_starts(id: &str) -> bool {
-        if id == crate::aura::SIMPLE_OPTION {
-            return false;
-        }
-        Self::starts_beside(id).unwrap_or_else(|| data::option_starts(id))
+        data::option_listed(id).or_else(|| Self::starts_beside(id)).unwrap_or_else(|| data::option_starts(id))
     }
 
     /// Switches an option, keeps it, and has what it changes follow.

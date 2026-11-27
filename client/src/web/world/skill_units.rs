@@ -61,6 +61,15 @@ pub(super) struct Grounds {
     models: HashMap<&'static str, Option<Rc<land::Raisable>>>,
 }
 
+impl Grounds {
+    /// The units standing on the map of that visit: of each its ID, its cell, its kind and whether it is to
+    /// be seen (what a recording keeps of them: `replay.rs`).
+    pub(super) fn standing(&self, visit: u32) -> Vec<(u32, (u16, u16), u32, bool)> {
+        let here = self.units.iter().filter(|(_, standing)| standing.visit == visit);
+        here.map(|(id, standing)| (*id, (standing.cell.0 as u16, standing.cell.1 as u16), standing.unit, standing.seen)).collect()
+    }
+}
+
 /// The server shows a unit on the ground (ZC_SKILL_ENTRY5; the client's `AM_SKILLSTANDENTRY`): it stands there
 /// from now on, and sounds if its kind has a sound for that. One already there is told its kind anew. A trap
 /// shows its model if it is to be seen (`entry.visible`: by everyone, or by the player who laid it).

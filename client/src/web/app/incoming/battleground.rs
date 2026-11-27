@@ -57,6 +57,11 @@ impl App {
             battleground::ZC_ENTRY_QUEUE_INIT => {
                 (self.battleground.current, self.battleground.ready) = (None, false);
             }
+            battleground::ZC_BATTLEFIELD_CHAT => {
+                if let Some((speaker, words)) = battleground::chat_heard(packet) {
+                    self.battle_chat_heard(speaker, &words);
+                }
+            }
             _ => return self.battle_packet(id, packet),
         }
         true
@@ -93,6 +98,18 @@ impl App {
             _ => return false,
         }
         true
+    }
+
+    /// A line of the battleground's own chat (`CGameMode::ReceiveActorBroadcastText`): in the chat in the
+    /// client's `0x9B00FF`, unless what others say is kept out of it, and over the head of whoever said it.
+    /// (The colour the client gives the line of a speaker that is a monster by its number, `MonsterJobColor`,
+    /// is not made: a player speaks here.)
+    fn battle_chat_heard(&mut self, speaker: u32, words: &str) {
+        let words = data::starred(words);
+        if !self.option("TT_NOTALKMSG_ON_OFF") && !self.option("TT_NOTALKMSG2_ON_OFF") {
+            self.chat_line_of(said::CHAT, words.clone(), "#ff009b");
+        }
+        world::said(speaker, self.own_account(), &words);
     }
 
     /// The battleground picked, as the list has it.

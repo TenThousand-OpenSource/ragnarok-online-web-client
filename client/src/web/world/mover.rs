@@ -50,6 +50,8 @@ pub(super) struct Mover {
     pub(super) lively: bool,
     /// A pet (or a homunculus, a mercenary): someone's companion, neither fought nor talked to.
     pub(super) companion: bool,
+    /// What kind of thing the server called it when it showed it (a recording keeps it: `replay.rs`).
+    pub(super) kind: Kind,
     /// A player's guild (0 for none) and the version of its emblem, as the server showed them; a guild
     /// flag's too, whose emblem is drawn on it.
     pub(super) guild: (u32, u32),
@@ -198,6 +200,7 @@ impl Mover {
             name: String::new(),
             lively: false,
             companion: false,
+            kind: Kind::Npc,
             guild: (0, 0),
             cell,
             at: (cell.0 as f32, cell.1 as f32),

@@ -2,6 +2,8 @@
 //! made of primitives ported: each with the figures of its function of `CRagEffect`.
 //!
 //! - `EF_ICEWALL` (74): the ice of a cell of Ice Wall (`IceWall`);
+//! - `EF_STORMGUST` (89): the spikes of ice that come up over the place of a Storm Gust (`StormGust`; its
+//!   file, `StormGust.str`, is played as every effect of a file is);
 //! - `EF_FIREPILLARON` (138): the rings of a Fire Pillar that waits (`RingStack` with no flag);
 //! - `EF_VENOMDUST2` (171): the motes over a cell of Venom Dust (in `CRagEffect::OnProcess` itself);
 //! - `EF_GLASSWALL2` (315): the walls of light of a Safety Wall (`GlassWallRising`; the file that function
@@ -32,6 +34,8 @@ const PICTURES: [&str; 9] = [
 fn known(effect: u32) -> Option<(i32, &'static str)> {
     Some(match effect {
         74 => (9999, "effect/wizard_icewall.wav"),
+        // (Its sound is the file's, `effect_sounds.txt`; its last spike goes at the 215th tick.)
+        89 => (216, ""),
         138 => (8000, ""),
         171 => (9999, ""),
         239..=242 => (29999, ""),
@@ -46,6 +50,9 @@ fn known(effect: u32) -> Option<(i32, &'static str)> {
 fn run(effect: u32, course: &mut Course, prims: &mut Vec<Prim>) {
     match effect {
         74 if course.tick == 0 => prims.extend(ice_wall(course.lasts)),
+        // `StormGust`: two spikes at every 29th tick from the 31st to the 150th (the 58th, 87th, 116th and
+        // 145th), with the client's option for fewer effects off (`TT_MIN_EFFECT_ON_OFF`).
+        89 if course.tick % 29 == 0 && (31..=150).contains(&course.tick) => prims.extend(storm_gust(course.tick)),
         138 if course.tick == 0 => prims.extend(ring_stack(course.lasts)),
         171 if course.tick % 5 == 0 => prims.push(venom_mote()),
         239..=241 if course.tick == 0 => prims.push(flare(["ring_red.tga", "ring_blue.tga", "magic_green.tga"][effect as usize - 239], 0.0, course)),
@@ -90,6 +97,31 @@ fn ice_wall(lasts: i32) -> Vec<Prim> {
             spike.alpha = 200.0;
             spike.speed = 3.0;
             spike.accel = -(spike.speed / 40.0) * 2.0;
+            spike.fade_out = spike.duration - 10;
+            spike
+        })
+        .collect()
+}
+
+/// `CRagEffect::StormGust` at one of its ticks: two spikes of ice, each 4 to 5 wide and 20 long, 3 to 27
+/// from the middle any way round, turned any way and tipped 10 degrees past upright, from 20 under the
+/// ground: it comes up 1.5 a tick and stops at its third, and stands until the effect's 215th tick, fading
+/// over its last ten.
+fn storm_gust(tick: i32) -> Vec<Prim> {
+    (0..2)
+        .map(|_| {
+            // (In the client's order: the turn, how far out, then which way out.)
+            let (turn, radius, way) = (lot(360), lot(25) + 3.0, lot(360));
+            let mut spike = Prim::new(Shape::QuadHorn3d, "ice.tga");
+            spike.duration = 215 - tick;
+            spike.first_pattern = true;
+            (spike.put, spike.deep) = ((sine(way) * radius, 20.0), -radius * cosine(way));
+            spike.size = (lot(100) + 400.0) / 100.0;
+            spike.height = 20.0;
+            (spike.longitude, spike.latitude) = (turn, 100.0);
+            spike.settles_at = Some(3);
+            spike.alpha = 250.0;
+            (spike.speed, spike.accel) = (1.5, 0.0);
             spike.fade_out = spike.duration - 10;
             spike
         })

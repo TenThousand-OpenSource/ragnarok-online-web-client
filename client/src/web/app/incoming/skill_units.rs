@@ -16,6 +16,14 @@ impl App {
                     world::skill_unit_shown(&entry);
                 }
             }
+            // The same as the first of these packets told it: what a replay file of the Windows client keeps
+            // of the units on the ground (`ReadReplayGroundSkills`).
+            skill_units::ZC_SKILL_ENTRY => {
+                if let Some(mut entry) = skill_units::entry_of_old(packet) {
+                    entry.visible |= entry.creator == self.own_account();
+                    world::skill_unit_shown(&entry);
+                }
+            }
             // A skill strikes: if it is a unit's (a trap going off), the unit is told (the client's `AM_SKILL`
             // to its `CSkill`). Overheard only: the blow itself is the fight's to read.
             skills::ZC_NOTIFY_SKILL => {

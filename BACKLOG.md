@@ -15,8 +15,8 @@ What the classic game has and this client lacks is not here: that is a debt, and
   (`CUIProbabilityTable`, opened from an item's description; `probabilityinfo\packageitem.lub`). (Achievements
   and titles, the reputation and the menu's icon of the probabilities are made: `docs/DONE.md`, section 23.)
 - (The navigation is made: `docs/DONE.md`, "Navigation"; what is left of it: `docs/DEBTS.md`.)
-  (Replay and the Adventurer's Agency are made: `docs/DONE.md`, section 25; what is left of them, and the
-  older party booking: `docs/DEBTS.md`.)
+  (Replay and the Adventurer's Agency are made: `docs/DONE.md`, section 25, the
+  older party booking: section 26; what is left of them: `docs/DEBTS.md`.)
 - The menu icons of these are drawn faded and pressed for nothing (`client/src/web/hud/basic.rs`):
   Bank, Cash Shop, Attendance.
 - Clans.
@@ -31,6 +31,16 @@ What the classic game has and this client lacks is not here: that is a debt, and
 - Equip switch, inventory expansion, stack merging, item compare.
 - Shadow gear, second costume, trait stats of 4th jobs, the skill delay window.
 - Private airship; captcha and macro detector; OTP / second password windows; character slot move.
+  What the client of 2026 has against macros (`Source/UI/Macro/`, read 2026-11-27, nothing built):
+  `UIMacroDetectorWnd` (the picture a player is shown and must answer, with its countdown and tries left;
+  ZC_APPLY_MACRO_DETECTOR 0x0a58 and its picture 0x0a59, CZ_ACK_ANSWER_MACRO_DETECTOR 0x0a5c,
+  ZC_CLOSE_MACRO_DETECTOR 0x0a5d), `UIMacroReporterWnd` and `UIMacroUserInfoWnd` (a game master picks the
+  players about a place and sends them the detector: CZ_REQ_PLAYER_AID_IN_RANGE, CZ_REQ_APPLY_MACRO_DETECTOR
+  0x0a56), `UICaptchaRegisterWnd` and `UICaptchaPreviewWnd` (a game master registers a picture with its
+  answer and looks at one: 0x0a52, 0x0a54, CZ_REQ_PREVIEW_MACRO_DETECTOR), `UIMacroBlackListCheckWnd` (a
+  pad of digits, CZ 0x0bdc, which rAthena does not have). rAthena has the rest (`clif_parse_captcha_*`,
+  `clif_parse_macro_*`, `@macrochecker`), with `db/captcha_db.yml` empty as it comes: the local server has
+  no picture to show, so nothing of it could be played.
 - Pet evolution; elementals and ABR; champion monsters (`monster_size_effect`).
 - An NPC's pictures over the whole screen (`UIMultiIllustWnd`, the kinds from 10 on of ZC_SHOW_IMAGE:
   `client/src/net/scripted.rs`).

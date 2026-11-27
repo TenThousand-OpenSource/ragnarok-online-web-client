@@ -14,7 +14,17 @@ pub(in crate::web) static HOTKEYS: Window = Window {
 };
 
 pub(in crate::web) static SKILLS: Window =
-    Window::usual("skills", |app| app.skills.open, |_, _| framed(at(230, 60, 560, 400)), App::skill_window, switched_off!(skills.open));
+    Window::usual(
+    "skills",
+    |app| app.skills.open,
+    // The tree is 560 wide and the list of rows 330 (`UINewSkillListWnd::SendMsg`, `UM_RESIZE` from `ID_MINI`).
+    |app, _| framed(at(230, 60, if app.skills.mini { 330 } else { 560 }, 400)),
+    App::skill_window,
+    switched_off!(skills.open),
+);
+
+/// What Apply of the skill window asks before the levels planned are sent.
+pub(in crate::web) static SKILL_ASKS: Window = Window::question("skill-asks", |app| app.skills.asks, App::skill_question);
 
 pub(in crate::web) static SKILL_INFO: Window = Window::usual(
     "skillinfo",

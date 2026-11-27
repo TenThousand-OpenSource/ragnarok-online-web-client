@@ -60,9 +60,11 @@ impl App {
         window.push_str(&self.messenger_frame(width, height));
         let rows: String = self.party.members.iter().enumerate().map(|(row, member)| self.party_row(layout, row, member)).collect();
         window.push_str(&format!(
-            r#"<div class="a scroll" style="{};overflow-x:hidden" {}>{rows}</div>"#,
+            r#"<div class="a scroll" style="{};overflow-x:hidden" {}>{rows}</div>{}"#,
             at(1, 17, width - 2, layout.rows * layout.row),
-            rows_stepped(layout.row, layout.rows)
+            rows_stepped(layout.row, layout.rows),
+            // The window's bar (`UIMessengerGroupWnd::OnCreate`: `Configure(width - 15, 17, 1, height - 58)`).
+            scroll_bar(width - 15, 17, layout.rows * layout.row, layout.row)
         ));
         window.push_str(&self.party_bar(layout));
         // The tabs: the Friend one turns the window to the list of friends (`hud/friends.rs`).

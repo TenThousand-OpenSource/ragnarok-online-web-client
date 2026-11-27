@@ -242,12 +242,16 @@ systems! {
     Probability = probability,
     /// The battlegrounds: their list, the queue, the question whether to enter.
     Battleground = battleground,
+    /// The old party booking: the list of ads, registering one, one's own ad.
+    Booking = booking,
     /// The Adventurer's Agency: the board of notices, a notice written and read, the question to a leader.
     Agency = agency,
     /// The replays: recording a session, the list of recordings, the player.
     Replay = replay,
     /// The bank.
     Bank = bank,
+    /// The window of the party's instance.
+    Instances = instances,
     /// The attendance check.
     Attendance = attendance,
     /// The cash shop.

@@ -17,8 +17,10 @@ fn viewer((x, y, width, height): (i32, i32, i32, i32), texts: &[String]) -> Stri
     let cut = |text: &String| if text.is_empty() { vec![String::new()] } else { crate::message_box::lines(text, 38) };
     let lines: String = texts.iter().flat_map(cut).map(|line| format!(r#"<div style="height:18px;white-space:pre">{}</div>"#, escape(&line))).collect();
     format!(
-        r#"<div class="a t bar" style="{};line-height:18px;overflow:hidden auto"><div style="padding:0 0 0 3px">{lines}</div></div>"#,
-        at(x, y, width, height)
+        r#"<div class="a t scroll" style="{};line-height:18px" {}><div style="padding:0 0 0 3px">{lines}</div></div>{}"#,
+        at(x, y, width, height),
+        lines_stepped(18),
+        scroll_bar(x + width - 13, y, height, 18)
     )
 }
 
@@ -51,7 +53,12 @@ impl App {
                 )
             })
             .collect();
-        window.push_str(&format!(r#"<div class="a bar" style="{};background:{LIST_GROUND};overflow:hidden auto">{rows}</div>"#, at(10, 40, 130, 270)));
+        window.push_str(&format!(
+            r#"<div class="a scroll" style="{};background:{LIST_GROUND}" {}>{rows}</div>{}"#,
+            at(10, 40, 130, 270),
+            lines_stepped(16),
+            scroll_bar(127, 40, 270, 16)
+        ));
         if let Some(entry) = self.battleground.current.and_then(data::battleground) {
             window.push_str(&format!(
                 r#"<img class="a" alt="" draggable="false" src="{}" style="left:157px;top:25px">"#,

@@ -49,7 +49,9 @@ mod reputation;
 mod probability;
 mod attendance;
 mod bank;
+mod instances;
 mod battleground;
+mod booking;
 mod agency;
 mod replay;
 
@@ -65,7 +67,12 @@ impl App {
     /// A press, handed to its system: from the page, or from the app itself doing what a button does.
     pub(in crate::web) fn pressed(&mut self, press: impl Into<crate::press::Press>) {
         use crate::press::Press;
-        match press.into() {
+        let press = press.into();
+        // (A recording being played holds presses back, and one being made writes some down.)
+        if !self.replay_lets(&press) {
+            return;
+        }
+        match press {
             Press::General(press) => self.general_pressed(press),
             Press::Account(press) => self.account_pressed(press),
             Press::Talk(press) => self.talk_pressed(press),
@@ -109,7 +116,9 @@ impl App {
             Press::Probability(press) => self.probability_pressed(press),
             Press::Attendance(press) => self.attendance_pressed(press),
             Press::Bank(press) => self.bank_pressed(press),
+            Press::Instances(press) => self.instances_pressed(press),
             Press::Battleground(press) => self.battleground_pressed(press),
+            Press::Booking(press) => self.booking_pressed(press),
             Press::Agency(press) => self.agency_pressed(press),
             Press::Replay(press) => self.replay_pressed(press),
         }

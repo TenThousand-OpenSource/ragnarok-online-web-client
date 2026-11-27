@@ -115,6 +115,9 @@ impl App {
     /// inventory's window meanwhile; here the inventory shows it until the server takes it.
     pub(in crate::web::app) fn forge_dropped(&mut self, dragged: Drag) {
         let Drag::Item(item) = dragged else { return };
+        if matches!(self.choosing.open, Some(Choice::Forge(..))) {
+            self.replay_let_go(&dragged, crate::replay::told::window::MAKE_PROCESS);
+        }
         if let Some(Choice::Forge(make, put)) = &mut self.choosing.open {
             // No more of a thing goes in than is carried.
             let carried = self.bag.items

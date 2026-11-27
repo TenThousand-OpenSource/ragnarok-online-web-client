@@ -32,7 +32,10 @@ use crate::net::{Frame, Framer};
 mod action;
 mod state;
 mod wiring;
+mod beats;
 mod dragging;
+mod scrollbars;
+mod tooltip;
 mod page;
 mod account;
 mod connection;
@@ -48,9 +51,11 @@ mod chat;
 mod screen;
 mod screenshot;
 mod replay_files;
+mod replay_snapshot;
 mod windows;
 
 pub(in crate::web) use state::*;
+pub(in crate::web) use scrollbars::fit_within as fit_bars;
 
 pub use wiring::*;
 pub(super) use page::*;
@@ -170,7 +175,9 @@ pub(super) struct App {
     pub probability: Probability,
     pub attendance: Attendance,
     pub bank: Bank,
+    pub instances: Instances,
     pub battleground: Battleground,
+    pub booking: Booking,
     pub agency: Agency,
     pub replay: Replay,
     pub choosing: Choosing,

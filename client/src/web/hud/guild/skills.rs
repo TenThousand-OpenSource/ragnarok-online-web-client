@@ -24,10 +24,12 @@ impl App {
         let rows: String = self.guild_skills_listed().iter().enumerate().map(|(row, skill)| self.guild_skill_row(row, skill)).collect();
         [
             format!(
-                r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{rows}</div></div>"#,
+                r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{rows}</div></div>{}"#,
                 at(0, 43, WIDTH - 6, 7 * 34),
                 rows_stepped(34, 7),
-                self.guild_skills_listed().len() * 34
+                self.guild_skills_listed().len() * 34,
+                // The tab's bar (`UIGuildWnd.cpp`: `Configure(width - 16, 43, 1, m_rowSpacing + 241)`).
+                scroll_bar(WIDTH - 16, 43, 7 * 34, 34)
             ),
             picture_press(46, HEIGHT - 24, "btn_use", Press::UseSkill),
             picture_press(92, HEIGHT - 24, "btn_close", Press::Window),

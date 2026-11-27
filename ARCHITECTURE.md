@@ -43,13 +43,14 @@ The rules, as `client/src/lib.rs` declares them:
   `skills`, `pets`, `homunculus`, `mercenary`, `party`, `friends`, `guild`, `pvp`, `chat`, `chat_rooms`,
   `chat_tabs`, `talk`, `whispers`, `manner`, `family`, `guide`, `quests`, `books`, `links`, `commands`,
   `cooldowns`, `statuses`, `hotkeys`, `item_names`, `jobs`, `maps`, `said`, `song_talk`, `screenshot`, `ai`,
-  `status`, `basic`, `notices`, `broadcast`, `marks`, `link`, `unread`, `battleground`, `agency`, `replay`;
+  `status`, `basic`, `notices`, `broadcast`, `marks`, `link`, `unread`, `battleground`, `agency`, `replay`,
+  `booking`;
 - *how the world is drawn*: `pose`, `blow`, `body`, `route`, `server_time`, `prim`, `scenery`,
   `effect_tables`, `state_effects`, `skill_units`, `ailments`, `aura`, `spirits`, `scope`, `quake`, `earshot`,
   `names`, `cart`, `falcon`, `mounts`, `cursor`, `font`, `figures`, `creatures`, `dress`, `emitters`, `bars`,
   `monster_skills`;
 - *shared by all*: `bytes`, `vector`, `tables`, `markup`, `kept`, `numbers`, `minimap`, `press`, `stack`,
-  `snap`, `i18n`.
+  `snap`, `scrolling`, `tooltip`, `i18n`.
 
 The protocol and the rules are one layer: some rules take a type of `net/` and some readers of `net/` use a
 rule. Layers 1 and 2 are plain Rust with unit tests (`cargo test -p roweb-client`); everything that touches the
@@ -94,6 +95,9 @@ client/src/
   body.rs               What an effect makes of the body of the one it is on
     copies.rs             The copies of a character that an effect leaves standing
     drawn.rs              The drawings of a body's picture, as the flags and the counts that effects have set on…
+    tests.rs              tests
+  booking.rs            The old party booking as rules (the client's `PartyBookingMgr`, `UISeekPartyMBWnd`,…
+    own.rs                One's own ad in the old party booking: what the server answers to registering it and to…
     tests.rs              tests
   books.rs              The books that are read in a window of their own (the client's `UIBookWnd`)
   broadcast.rs          The server's announcements as the client shows them across the top of the screen…
@@ -147,6 +151,7 @@ client/src/
   i18n.rs               The client's own texts, in every language it speaks
     phrases.rs            The words and phrases of the game's windows in Russian, each by its English (`super::tr`)
     tests.rs              tests
+  instances.rs          The instances as rules: a copy of a dungeon made for one party (the client's "memorial…
   inventory.rs          The inventory as rules: its tabs and which a thing is under, what the window shows of…
     weight.rs             How heavy what is carried is, as the client tells of it
   item_names.rs         An item's name as the client composes it wherever it writes one…
@@ -217,6 +222,7 @@ client/src/
     attendance.rs         The presses of the attendance check (the client's `UICheckAttendanceWnd`)
     bank.rs               The presses of the bank (the client's `UIBank_NewWnd`)
     battleground.rs       The presses of the battlegrounds: the menu's icon, the window that lists them (the…
+    booking.rs            The presses of the old party booking: the list of ads (the client's…
     books.rs              The presses of the books: the four buttons of the window a book is read in (the…
     cart.rs               The presses of the merchant's cart: its window and the looks it may be given
     cashshop.rs           The presses of the cash shop (the client's `UICashShopWnd`)
@@ -233,6 +239,7 @@ client/src/
     guild.rs              The presses of the guild: its window with its tabs, the list of members and the menu on…
     homunculus.rs         The presses of the homunculus: its window (the name, feeding, deleting, feeding by…
     hotkeys.rs            The presses of the Shortcut Settings window (the client's `UIHotKeyWnd`)
+    instances.rs          The presses of the instances' window (the client's `UIMemorialDunWnd`)
     inventory.rs          The presses of what is carried: the inventory and its tabs, the Equipment window, an…
     mail.rs               The presses of the mail (the client's RODEX)
     mercenary.rs          The presses of the mercenary: its window (dismissing it), what the window asks, the…
@@ -357,7 +364,27 @@ client/src/
   quests.rs             The quest journal's rules that need no page
     tests.rs              tests
   replay.rs             Replays: the file a session is recorded into and played from, what of a session is…
+    playing.rs            What is held back while a recording plays, as the client holds it
+    recorded.txt          read by replay.rs
+    sections.rs           The sections of a replay file in which the Windows client keeps what its session held…
+    snapshot.rs           The sections of a replay file in which the Windows client keeps the rest of what its…
+      actors.rs             Section 15 of a replay file: those in sight when the recording began…
+      companions.rs         Section 9 of a replay file: the homunculus, the mercenary, the pet and the elemental…
+      ground.rs             The sections of a replay file about what is on the ground
+      items.rs              Section 8 of a replay file: the lists of items (`CSession::BuildItemReplayRecords`,…
+      people.rs             The sections of a replay file about other people
+      quests.rs             Section 6 of a replay file: the quests under way (`BuildRenewQuestReplayRecords`,…
+      rest.rs               The smaller sections of the session in a replay file
+      screen.rs             The sections of a replay file about what stands on the screen
+      session.rs            Between what this client keeps of a session, as its packets told it (`crate::net`),…
+        tests.rs              tests
+      skills.rs             What the client puts at the head of a recording's packets, at the tick 0…
+      tests.rs              tests
+      tests_map.rs          Tests of the map's and the windows' sections of a replay file (15 to 24)
     tests.rs              tests
+    told.rs               What the client's windows were told, as the Windows client writes it among the recorded…
+      read.rs               The records of the windows read back (`CGameMode::ProcessUiMessage`)
+      tests.rs              tests
   reputation.rs         The reputation as rules (the client's `CReputeMgr` and `UIReputeWnd`)
   route.rs              A walk as the client shows it: the way cell by cell with the server's time at which each…
     tests.rs              tests
@@ -401,6 +428,7 @@ client/src/
   storage.rs            The storage as rules, those of the client's window of it (`UIItemStoreWnd`)
   tables.rs             The shapes the client's tables of text come in, each read here once
   talk.rs               A talk with an NPC as rules: what the keyboard does to its windows, as the client's…
+  tooltip.rs            The client's tooltip as rules (`CMode::ShowTooltip`, a `UITransBalloonText`)
   unread.rs             The packets of the map server that this client does not read yet, counted
   vector.rs             Vectors of three, as far as the game needs them
   vending.rs            A player's shop as rules: what the client lets a shop have and a thing cost, what the…
@@ -416,6 +444,7 @@ client/src/
     attendance.rs         The attendance check: asking for its window, the server's opening of it, claiming…
     bank.rs               The bank: asking for the balance, which is how the client opens its window, putting…
     battleground.rs       The battlegrounds: applying for one, the queue, the question whether to enter, and what…
+    booking.rs            The old party booking: an ad that a party looks for members, the search through the ads…
     books.rs              A book an NPC's script has the player read (`readbook`)
     broadcast.rs          The server's announcements: ZC_BROADCAST and its coloured form, as the client reads…
     bytes.rs              Reading the numbers and the texts of a packet, and writing a name into one
@@ -448,6 +477,7 @@ client/src/
       tests.rs              tests
     homunculus.rs         The alchemist's homunculus: what the map server tells of it, and what its owner's…
       tests.rs              tests
+    instances.rs          The instances (the client's memorial dungeons)
     inventory.rs          The packets about what the character carries and knows
       favourites.rs         The inventory's fourth tab, "Fav": which of the things carried the player keeps under…
       hotkeys.rs            The hotkey bar as the server keeps it: its slots, and setting one
@@ -509,6 +539,7 @@ client/src/
         taming.rs             Taming a monster, and the menu on the player's own pet
         travel.rs             The character moving: over the cells of a map, and from map to map
       ai.rs                 The scripts of the homunculus and the mercenary at work (`crate::ai`)
+      beats.rs              The two beats the connection lives by, the timer that keeps it alive and the watch on…
       chat.rs               The chat window on the app's side: a line added to it, its next size, and what the…
       clicks.rs             What each thing on the page does when pressed
         account.rs            Before the game: the login, the servers, the characters and the making of one
@@ -517,6 +548,7 @@ client/src/
         attendance.rs         The attendance check: its window asked for and closed, today's reward claimed…
         bank.rs               The bank: its window asked for, zeny put in and taken out, the buttons that write a…
         battleground.rs       The battlegrounds: what the menu's icon, the list's window and the windows of the…
+        booking.rs            The old party booking: what its windows do when pressed (the client's…
         books.rs              The books that are read (`crate::books`, the client's `UIBookWnd`)
         cart.rs               The cart's window and what goes into the cart and out of it as the client moves it…
         cashshop.rs           The cash shop: its window asked for and closed, its tabs and pages, the list of…
@@ -535,6 +567,7 @@ client/src/
           manage.rs             The guild: what its master does in its window and on other players — the…
         homunculus.rs         The homunculus window, what it asks, the list of the homunculus's skills, and the…
         hotkeys.rs            The Shortcut Settings window and the Hotkey Guide
+        instances.rs          The instances' window: shown and put away, and the leader's button that destroys…
         inventory.rs          The windows of what is carried: the inventory, the equipment, an item's description
         mail.rs               The mail: opening the mailbox, its tabs, pages and search, reading a letter, taking…
           writing.rs            A letter being written: asking to write one, the receiver asked about, things…
@@ -575,6 +608,7 @@ client/src/
         attendance.rs         What the server says of the attendance check (`crate::net::attendance`), and of the…
         bank.rs               The bank's answers (`crate::net::bank`): the balance, which opens the window, and…
         battleground.rs       What the server says of the battlegrounds (`crate::net::battleground`)
+        booking.rs            What the server says of the old party booking (`crate::net::booking`)
         books.rs              A book an NPC's script has the player read (`crate::net::books`)
         broadcast.rs          The server's announcements (ZC_BROADCAST and its coloured form)
         cart.rs               The merchant's cart: what the map server tells of it
@@ -595,6 +629,7 @@ client/src/
           members.rs            The guild's lists as the server tells them
         homunculus.rs         What the server tells of the alchemist's homunculus
         hotkeys.rs            The hotkey bar as the server keeps it: its list, told on coming in
+        instances.rs          What the server tells of the party's instance (`crate::net::instances`,…
         inventory.rs          The inventory: what is carried, picked up, used, dropped, worn and taken off
         link.rs               What the servers say of the connection itself
         mail.rs               The mail: what the map server tells of it
@@ -624,8 +659,12 @@ client/src/
       keys.rs               The keyboard: on the windows before the game, and in the game
       page.rs               The page itself: its elements and form fields, what the browser keeps between visits,…
       replay_files.rs       Where recordings are kept, the browser having no `Replay` folder beside the client
+      replay_snapshot.rs    A replay's snapshot in the browser: what the session and the map hold as a recording…
+        given.rs              A replay begins from what its file keeps of the session and of the map, as the…
+        taken.rs              What a recording keeps of the session and of the map as it begins…
       screen.rs             Putting the app on the page: which screen shows, and the characters painted on it
       screenshot.rs         A picture of the screen, given to the player as a file (the client's `MM_SCREENSHOT`
+      scrollbars.rs         The client's scroll bar on the page (`UIScrollBar`), one for every list and text that…
       settings.rs           What the player has set in the Game Settings window, and its keeping
       state.rs              What the app keeps, in groups: one for each part of the game, each in a file of its…
         achievements.rs       What the app keeps of the achievements and the titles
@@ -634,6 +673,7 @@ client/src/
         attendance.rs         What the app keeps of the attendance check
         bank.rs               What the app keeps of the bank.
         battleground.rs       What the app keeps of the battlegrounds: the list's window, the queue one waits in,…
+        booking.rs            What the app keeps of the old party booking
         books.rs              What the app keeps of the books that are read (`crate::books`)
         broadcast.rs          What the app keeps of the server's announcements
         cart.rs               What the app keeps of the merchant's cart
@@ -651,6 +691,7 @@ client/src/
         guide.rs              What the app keeps of the Adventure Guide
         guild.rs              What the app keeps of the guild.
         homunculus.rs         What the app keeps of the alchemist's homunculus
+        instances.rs          What the app keeps of the instances (`crate::instances`)
         inventory.rs          What the app keeps of the inventory: what is carried, and the windows of it
         link.rs               What the app keeps of the connection for the watch on it
         mail.rs               What the app keeps of the mail.
@@ -680,6 +721,7 @@ client/src/
         viewequip.rs          What the app keeps of looking at another player's equipment
         whispers.rs           What the app keeps of the talks with one player each
         worldmap.rs           What the app keeps of the World Map and of the large window of the map one is on
+      tooltip.rs            The game's own tooltip on the page (the client's `CMode::ShowTooltip`)
       windows.rs            The order of the game's windows on the page (`crate::stack`)
       wiring.rs             Starting the client: the page's events (clicks, keys, drags, timers) are turned into…
     data.rs               The game's own tables, as the gateway gives them out of the client's files
@@ -688,6 +730,7 @@ client/src/
       attendance.rs         The attendance check: the days its event runs and what each day of attendance is…
       aura.rs               What the client's settings say of the aura of the highest level (the gateway's…
       battleground.rs       The battlegrounds one can queue for (the gateway's `tables/battleground.rs`, the…
+      booking.rs            The old party booking's list of places, its help and the game's highest level as its…
       books.rs              The books (`crate::books`): which items are books, out of the client's…
       cards.rs              What the client's item naming reads beside the item table (the gateway's…
       cashshop.rs           The cash shop: the banners of the strip under its title
@@ -728,6 +771,7 @@ client/src/
       bank.rs               The bank's window (the client's `UIBank_NewWnd`)
       basic.rs              The Basic Information window with its gauges, and the strip of menu icons under it
       battleground.rs       The battlegrounds on the page: the window that lists them (the client's…
+      booking.rs            The old party booking on the page: the list of ads (the client's…
       books.rs              The window a book is read in (the client's `UIBookWnd`), the line of a book read…
       boxes.rs              The boxes every system asks with, each written once
       broadcast.rs          The server's announcements across the top of the screen (the client's…
@@ -739,6 +783,7 @@ client/src/
       checks.rs             The client's small boxes that are ticked and its round buttons of which one is on,…
       choosing.rs           The windows of the lists a skill or a card opens to pick one thing of, in the…
       colours.rs            The colours the windows share, as the page takes them
+      combos.rs             The client's box that drops a list to pick one line of (`UIComboBoxDefWnd`), written…
       cooldowns.rs          The shade the client lays over a picture while a time runs (`Source/UI/Cooldowns`)
       emotions.rs           The window of emotions, and the Shortcut List
       equipment.rs          The Equipment window (the client's `UIEquipWnd`)
@@ -762,6 +807,7 @@ client/src/
       homunculus.rs         The homunculus window (the client's `UIHomunInfoWnd`), what it asks, the list of the…
       hotkeys.rs            The Shortcut Settings window: every key of the client, and the setting of another in…
         guide.rs              The Hotkey Guide (the client's `UIHotkeyGuideWnd`)
+      instances.rs          The window of the party's instance (the client's `UIMemorialDunWnd`, "Memorial…
       inventory.rs          The inventory and what belongs to its items
       items.rs              What the windows show of an item or a skill, written once
       lists.rs              The client's windows that list things a row to a thing (`UIItemBaseWnd` and those…
@@ -808,6 +854,7 @@ client/src/
         bank.rs               The entry of the list of windows for the bank
         basic.rs              The entries of the list of windows for what is always in the corner of the screen
         battleground.rs       The entries of the list of windows for the battlegrounds
+        booking.rs            The entries of the list of windows for the old party booking
         books.rs              The entries of the list of windows for the books
         broadcast.rs          The entry of the list of windows for the server's announcements across the top of…
         cart.rs               The cart's entries of the list of windows
@@ -824,6 +871,7 @@ client/src/
         guide.rs              The Adventure Guide's entry of the list of windows
         guild.rs              The guild's entries of the list of windows
         homunculus.rs         The homunculus's entries of the list of windows
+        instances.rs          The entry of the list of windows for the party's instance
         inventory.rs          The items' entries of the list of windows
         mail.rs               The mail's entries of the list of windows
         mercenary.rs          The mercenary's entries of the list of windows
@@ -956,6 +1004,7 @@ client/src/
       pvp.rs                Fighting other players: which map the character is on (`crate::pvp::Zone`) and who…
       quads.rs              The effects' quads of one frame, as the renderer takes them
       quests.rs             The marks over NPCs that have something for the character
+      replay.rs             What a recording keeps of the map as it begins
       scene.rs              The map being shown and who is on it (`Scene`), and what is asked of it everywhere
       scenery.rs            What surrounds the player on a map besides its ground and its models…
         emitters.rs           The particle emitters a map places (`crate::emitters` has the rules, the client's…
@@ -995,6 +1044,7 @@ gateway/src/
     attendance.rs         The attendance check: the days its event runs and what each day of attendance is…
     aura.rs               What the client's settings of its service say of the aura of the highest level
     battleground.rs       The battlegrounds one can queue for: the client's `Lua…
+    booking.rs            The old party booking's list of places and its help
     cards.rs              What the client's item naming reads beside the item table (`LoadItemNameTables`,…
     cashshop.rs           The cash shop: the banners of the strip under its title
     castles.rs            The castles guilds hold, as the client's own table has them
@@ -1037,6 +1087,9 @@ server/                 a Docker setup of rAthena and MariaDB for development: d
                         conf/ (the server's settings, groups.yml, the test accounts of accounts.sql),
                         npc/ (the classic scripts put right for the client's maps: tools/client-tables/
                         classic_overlay.py writes them), mapcache/ and public/ (made locally, not committed)
+                        navigation.sh with navigation/Dockerfile (rAthena's generator of the navigation's
+                        tables, run once beside the game) and navigation/pre-re/ (the tables it writes of
+                        this server's world: made locally, not committed; the gateway's --navigation-dir)
 translations/           GLOSSARY.md (terms, so that translators agree); src/ (English sources of the
                         translated batches); ru/ (Russian: items-*.json, skills-*.json, and labels.json: the
                         words of an English item description, for the items not translated yet)
@@ -1190,7 +1243,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
       `crate::bars::{below, over, left}` for where a bar or a name sits by the feet;
       `crate::scenery::views::{eased, followed, limits}` for the camera's easing and a map's limits;
       `crate::broadcast::wrapped` for words cut into lines of so many letters; `crate::scrolling` for how far
-      the wheel moves a list or a text; in `crate::press`, `worded!` for what goes with a press and is one of
+      the wheel moves a list or a text and for the scroll bar beside it (`Bar`); `crate::tooltip` for a
+      tooltip's lines and its place on the screen; in `crate::press`, `worded!` for what goes with a press and is one of
       a few words, and `press::testing::read_back` for the test every system's presses have.
     - *primitives* (`prim/`): for a kind of `prim/tei/`, `Part::waits`, `wander`, `fly_level`, `trail`
       (`tei/part.rs`), `Rect::band` and `Part::facing` (`tei/rect.rs`); `Slot::waits` for a kind of
@@ -1210,7 +1264,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
       sounds, `Touch::flagged` and `flashes` for what it does to its actor, `prims/launched.rs` for a
       primitive several effects launch alike, and `prims.rs`'s own `lot` (the same lot as a figure of a
       primitive); a part's own lot is `Part::lot`. `world::sign` puts a sign over someone.
-    - *what windows are made of*: `parts::{at, picture, pressed, used, dragged, dropped, menued, sent}`
+    - *what windows are made of*: `parts::{at, picture, pressed, used, dragged, dropped, menued, sent}`, and `parts::{tip, tip_in,
+      tip_at, tip_by_pointer}` for what a thing says in the client's tooltip when pointed at (never `title`)
       (`web/parts.rs`; its `stepped` only under `rows_stepped`, `lines_stepped` and `text_stepped` of
       `hud/lists.rs`, for a list or a text the wheel moves by steps); `hud::{text, text_in, Font}` for a text in
       the client's own size, `linked_with` (`hud/texts.rs`) for a text with the client's links in it; `pictured`
@@ -1218,7 +1273,8 @@ These hold for everyone who writes here, people and agents alike. A change that 
       and over them `picture_press`, `submit_press`, `press_button` (`hud/buttons.rs`); `title_bar`, `system_box`
       (`hud/frames.rs`); `App::item_icon`, `icon_of`, `skill_icon` (`hud/items.rs`); `message_box`, `confirm_box`,
       `menu_row`, `pick_list`, `App::count_box` and `count_box_of` (`hud/boxes.rs`); `list_frame`, `list_of`,
-      `item_row` (`hud/lists.rs`); `side_tabs` (`hud/tabs.rs`); the other pieces in `hud/{checks, gauges, fields,
+      `item_row`, and `scroll_bar`, `text_bar`, `end_bar` for the client's scroll bar, written right after
+      the list it moves (`hud/lists.rs`; the page's part is `app/scrollbars.rs`); `side_tabs` (`hud/tabs.rs`); the other pieces in `hud/{checks, gauges, fields,
       colours}.rs`; `escape` (`app/page.rs`) for a text put into HTML.
     - *windows as entries* (`hud/windows.rs`): `Window::usual`, `Window::pick`, `Window::question`,
       `Window::count`, `Window::menu` for the usual shapes of an entry, `Window::field` for the name of a

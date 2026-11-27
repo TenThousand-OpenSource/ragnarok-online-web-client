@@ -79,9 +79,10 @@ impl App {
                 ))
                 .collect();
             window.push_str(&format!(
-                r#"<div class="a scroll" style="{};overflow-y:auto;background:#f0f0f0" {}>{rows}</div>"#,
+                r#"<div class="a scroll" style="{};overflow-y:auto;background:#f0f0f0" {}>{rows}</div>{}"#,
                 at(250, 50, 216, 266),
-                lines_stepped(16)
+                lines_stepped(16),
+                scroll_bar(250 + 216 - 13, 50, 266, 16)
             ));
         } else if let Some(tip) = tips.iter().find(|tip| tip.id == self.tips.tip) {
             let pages = tip.pages.len().max(1);
@@ -98,10 +99,11 @@ impl App {
             ));
             window.push_str(&format!(
                 // The viewer's own bar and its step of 30 (`UITagTextViewer`; `crate::scrolling`).
-                r#"<div class="a t bar" style="{};white-space:normal;line-height:15px;color:{BLACK}" {}>{}</div>"#,
+                r#"<div class="a t scroll" style="{};white-space:normal;line-height:15px;color:{BLACK}" {}><div style="width:210px">{}</div></div>{}"#,
                 at(250, top, 226, height),
                 text_stepped(),
-                tip.pages.get(page).map(|page| page_html(page)).unwrap_or_default()
+                tip.pages.get(page).map(|page| page_html(page)).unwrap_or_default(),
+                text_bar(250 + 226 - 13, top, height)
             ));
             window.push_str(&pictured(
                 415,

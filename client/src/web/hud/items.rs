@@ -8,30 +8,34 @@ use crate::item_names::Named;
 
 /// A thing in a cell of a grid (`UIItemBaseWnd::Paint`): its picture with how many there are, in the cell at
 /// that `place` of a grid `columns` wide; `marks` is what the cell's tag says more (what it does when
-/// dragged), and `tip` what it says when pointed at.
-pub(in crate::web) fn grid_cell(place: usize, columns: i32, item: &Item, amount: u16, marks: &str, tip: &str) -> String {
+/// dragged), and `says` what it says when pointed at: in the client's tooltip, 16 above the cell
+/// (`UIItemWnd::OnMouseHover`: the cell's left, its top less 16), white, or grey for a thing not identified
+/// (`CSession::GetItemNameColor`).
+pub(in crate::web) fn grid_cell(place: usize, columns: i32, item: &Item, amount: u16, marks: &str, says: &str) -> String {
     format!(
-        r#"<div class="a cell" style="left:{}px;top:{}px" {marks} {} title="{}">{}{}</div>"#,
+        r#"<div class="a cell" style="left:{}px;top:{}px" {marks} {} {}>{}{}</div>"#,
         place as i32 % columns * 32,
         place as i32 / columns * 32,
         item_marks(item.id, item.identified),
-        escape(tip),
+        tip_in(says, if item.identified { "#fff" } else { crate::tooltip::UNKNOWN }),
         App::icon_of(item),
         count(amount)
     )
 }
 
 /// The grid of such a window: `columns` cells of 32 across from 40 in, `rows` of them showing under the
-/// title, scrolled when it has more (the client scrolls it by a bar at the right).
-pub(in crate::web) fn grid_of(columns: i32, rows: i32, cells: &[String]) -> String {
+/// title, scrolled when it has more, with the client's bar a pixel right of it from `bar` down (17 in the
+/// inventory, `UIItemWnd::OnCreate`: `Configure(width - 15, 17, …)`; 14 in the windows of `UIItemBaseWnd`).
+pub(in crate::web) fn grid_of(columns: i32, rows: i32, bar: i32, cells: &[String]) -> String {
     let filled = (cells.len().div_ceil(columns.max(1) as usize) as i32).max(rows);
     format!(
-        r#"<div class="a scroll" style="{};background:url('{}')" {}><div style="position:relative;height:{}px">{}</div></div>"#,
+        r#"<div class="a scroll" style="{};background:url('{}')" {}><div style="position:relative;height:{}px">{}</div></div>{}"#,
         at(40, 17, 32 * columns, 32 * rows),
         picture("basic_interface/itemwin_mid.bmp"),
         rows_stepped(32, rows),
         filled * 32,
-        cells.concat()
+        cells.concat(),
+        scroll_bar(41 + 32 * columns, bar, 32 * rows, 32)
     )
 }
 

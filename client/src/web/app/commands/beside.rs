@@ -7,10 +7,13 @@ use super::*;
 /// The options the client has a command for and no row of its Game Settings: the client's name for each, how
 /// it starts, and the messages said when it goes on and off (`MSI_…`, `crate::commands::message`). That the
 /// two first start on was not found in the client: it is how its players know them.
-const BESIDE: [(&str, bool, [&str; 2]); 3] = [
+const BESIDE: [(&str, bool, [&str; 2]); 4] = [
     ("TT_SKILLFAIL_ON_OFF", true, ["MSI_SKILLFAIL_ON", "MSI_SKILLFAIL_OFF"]),
     ("TT_LOGINOUT_ON_OFF", true, ["MSI_LOGINOUT_ON", "MSI_LOGINOUT_OFF"]),
     ("TT_BATTLE_ON_OFF", false, ["MSI_BATTLE_ON", "MSI_BATTLE_OFF"]),
+    // `/battlechat`: what is said goes to the battleground's own chat (the client's `g_session.battleChat`;
+    // `clicks/chat.rs`).
+    ("TT_BATTLECHAT_ON_OFF", false, ["MSI_BATTLECHAT_ON", "MSI_BATTLECHAT_OFF"]),
 ];
 
 /// What `/set1`, `/set2` and `/set3` switch, each as the client lists it (`ExecuteTalkType`: its options 113,

@@ -92,6 +92,11 @@ pub fn emblem_pixels(guild: u32, version: u32, pixels: bmp::Image) {
 }
 
 impl Guilds {
+    /// What the server told of a player's party and guild: their names (a recording keeps them: `replay.rs`).
+    pub(super) fn names(&self, id: u32) -> Option<(&str, &str)> {
+        self.cards.get(&id).map(|(party, guild, _)| (party.as_str(), guild.as_str()))
+    }
+
     /// A guild's emblem of a version as pixels, once it was read.
     pub(super) fn emblem(&self, guild: (u32, u32)) -> Option<&bmp::Image> {
         self.pixels.get(&guild).filter(|_| guild.0 != 0)

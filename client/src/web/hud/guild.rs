@@ -64,10 +64,12 @@ fn table(widths: &[i32], headers: &[String], rows: &[String]) -> String {
         ))
         .collect();
     table.push_str(&format!(
-        r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{inside}</div></div>"#,
+        r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{inside}</div></div>{}"#,
         at(0, 65, WIDTH - 6, 11 * 19),
         rows_stepped(19, 11),
-        rows.len() * 19
+        rows.len() * 19,
+        // The tab's bar (`UIGuildWnd.cpp`, the tabs' `OnCreate`: `Configure(width - 15, 63, 1, height - 87)`).
+        scroll_bar(WIDTH - 15, 63, 11 * 19, 19)
     ));
     table
 }

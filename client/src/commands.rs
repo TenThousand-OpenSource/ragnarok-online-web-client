@@ -16,6 +16,20 @@ pub fn asks(command: &str) -> Option<&'static str> {
     lines("command").find(|(named, _)| *named == command).map(|(_, asks)| asks)
 }
 
+/// The options the client keeps the other way round from the tick of their rows in the Game Settings
+/// (`IsServiceOption`, `Contents/Configuration/ServiceOptions.cpp`).
+const REVERSED: [&str; 5] =
+    ["TT_FULL_AURA_ON_OFF", "TT_HIDE_AURA_ON_OFF", "TT_BOLD_NAME_TYPE_ON_OFF", "TT_BLOCK_CALL_ON_OFF", "TT_HIDE_FOOTPRINT_ON_OFF"];
+
+/// The option a command of `CmdOnOffList` (`System\OptionInfo.lub`) switches and whether its row starts
+/// ticked, the list having the command at `on`: the client keeps the value as written (`SetCmdOnOffList`,
+/// `SetOption`), and the row's tick is that value, or its reverse for the five of `IsServiceOption`
+/// (`CUIListPage::BindOption`: `IsServiceOption(id) ^ value`). None for a command that switches nothing.
+pub fn starts(command: &str, on: bool) -> Option<(&'static str, bool)> {
+    let option = asks(command)?;
+    Some((option, on ^ REVERSED.contains(&option)))
+}
+
 /// Every command of the client's table, with what it asks for.
 pub fn all() -> impl Iterator<Item = (&'static str, &'static str)> {
     lines("command")
@@ -134,6 +148,16 @@ pub fn stat_dump(stats: [u8; 12], more: [i16; 14]) -> [(String, &'static str); 5
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_switch_starts_as_the_list_has_its_command() {
+        assert_eq!(starts("/noctrl", true), Some(("TT_NOCTRL_ON_OFF", true)));
+        assert_eq!(starts("/mineffect", false), Some(("TT_MIN_EFFECT_ON_OFF", false)));
+        // The five kept the other way round: `/aura` at 1 leaves the row of the full aura unticked.
+        assert_eq!(starts("/aura", true), Some(("TT_FULL_AURA_ON_OFF", false)));
+        assert_eq!(starts("/aura2", false), Some(("TT_HIDE_AURA_ON_OFF", true)));
+        assert_eq!(starts("/nosuchcommand", true), None);
+    }
 
     #[test]
     fn commands_ask_for_what_the_client_says() {

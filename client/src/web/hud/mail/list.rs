@@ -80,7 +80,8 @@ impl App {
             picture(&rodex(if self.mail.checked[row] { "checkbox_on" } else { "checkbox_off" })),
             pressed(Press::Check(row))
         ));
-        // The title and the sender are cut at 140 across (`ResizeToTextClipped`).
+        // The title and the sender are cut at 140 across (`ResizeToTextClipped`); the lines of the message table
+        // a server names in them are written out (`UIRodexInboxWnd`: `ExpandMessages`).
         let clipped = "max-width:140px;overflow:hidden;cursor:default";
         let colour = crate::mail::title_colour(kind, letter);
         if letter.gone {
@@ -94,7 +95,7 @@ impl App {
             r#"<div class="a t" style="left:69px;top:{y}px;width:140px;{clipped};cursor:pointer;color:{colour}" {} title="{}">{}</div>"#,
             pressed(Press::Title(row)),
             escape(&Self::words(2702, "Read mail")),
-            escape(&letter.title)
+            escape(&crate::links::expanded(&letter.title, data::message))
         ));
         html.push_str(&format!(
             r#"<div class="a t" style="left:71px;top:{}px;{clipped};color:#424a84;{}" {} title="{}">{}</div>"#,
@@ -102,7 +103,7 @@ impl App {
             SMALL_BOLD.style(),
             pressed(Press::Sender(row)),
             escape(&Self::words(2701, "Write reply")),
-            escape(&letter.sender)
+            escape(&crate::links::expanded(&letter.sender, data::message))
         ));
         if !letter.known {
             html.push_str(&picture_button(186, y + 10, (42, 20), "btn_return", Press::GiveBack(row), &Self::words(2848, "Return")));

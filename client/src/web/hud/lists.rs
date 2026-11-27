@@ -37,15 +37,46 @@ pub(in crate::web) fn text_stepped() -> String {
     stepped(crate::scrolling::TEXT_STEP, 1)
 }
 
+/// The client's scroll bar (`UIScrollBar`, upright: 13 wide, `scroll0mid.bmp` down it between an arrow at
+/// each end, the handle of `scroll0bar_up`, `_mid` and `_down.bmp`) for the list written RIGHT BEFORE it, each
+/// step of which is `unit` pixels: at `x`, `y` of the window, `length` long. It is the one bar of every
+/// list and text that has one; the page stands its handle and takes its presses (`app/scrollbars.rs`, by the
+/// rules of `crate::scrolling::Bar`), and it shows only while its list has more than fits.
+pub(in crate::web) fn scroll_bar(x: i32, y: i32, length: i32, unit: i32) -> String {
+    bar_of(x, y, length, unit, "")
+}
+
+/// The same for a text of the client's `UITagTextViewer`, which its bar counts in pixels: an arrow moves it
+/// one, a press above or below the handle 30 (`UITagTextViewer::SendMsg`).
+pub(in crate::web) fn text_bar(x: i32, y: i32, length: i32) -> String {
+    bar_of(x, y, length, 1, &format!(r#" data-page="{}""#, crate::scrolling::TEXT_STEP))
+}
+
+/// The same beside a list that begins at its end and is scrolled back from there, as the chat's lines are.
+pub(in crate::web) fn end_bar(x: i32, y: i32, length: i32, unit: i32) -> String {
+    bar_of(x, y, length, unit, " data-reversed")
+}
+
+fn bar_of(x: i32, y: i32, length: i32, unit: i32, more: &str) -> String {
+    // The arrow up, the way, the arrow down, and last the handle.
+    format!(
+        r#"<div class="a sbar" style="{};visibility:hidden" data-bar="{unit}"{more}>{}</div>"#,
+        at(x, y, crate::scrolling::ARROW, length),
+        r#"<i class="u"></i><i class="m"></i><i class="d"></i><i class="h"></i>"#
+    )
+}
+
 /// The list of such a window: `rows` rows of 32 from the title down, from `x` to `width`, scrolled when it
-/// has more, by whole rows (`rows_stepped`). The client scrolls it by a bar at the right, 15 wide, too; here
-/// the list itself is scrolled.
+/// has more, by whole rows (`rows_stepped`), with the client's bar at its right: 15 from the window's right
+/// edge, which is where the list ends, from 14 down and as long as the list (the windows made of
+/// `UIItemBaseWnd`: `Configure(width - 15, 14, 1, height - 38)`).
 pub(super) fn list_of(x: i32, width: i32, rows: i32, lines: &str, marks: &str) -> String {
     format!(
-        r#"<div class="a scroll" style="{}" {} {marks}><div style="min-height:{}px">{lines}</div></div>"#,
+        r#"<div class="a scroll" style="{}" {} {marks}><div style="min-height:{}px">{lines}</div></div>{}"#,
         at(x, 17, width, rows * 32),
         rows_stepped(32, rows),
-        rows * 32
+        rows * 32,
+        scroll_bar(x + width, 14, rows * 32, 32)
     )
 }
 

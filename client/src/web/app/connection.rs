@@ -28,6 +28,8 @@ impl App {
 
     /// Closes the connection and goes back to the login window, saying why if there is a reason.
     pub(super) fn leave(&mut self, error: Option<String>) {
+        // (A recording that runs ends with the connection.)
+        self.replay_recording_cut();
         self.socket = None;
         self.generation += 1;
         self.server = Server::None;

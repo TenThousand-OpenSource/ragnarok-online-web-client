@@ -40,6 +40,13 @@ impl Default for Ail {
     }
 }
 
+impl Ail {
+    /// The two states it was last told to be in.
+    pub(super) fn states(&self) -> Ailing {
+        self.states
+    }
+}
+
 /// The veils over the screen of the player's own character, each since when: poison's and blindness's
 /// (`EF_POISON`, `EF_BLIND`; each lasts until its state goes).
 #[derive(Default)]

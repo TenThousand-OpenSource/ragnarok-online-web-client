@@ -29,13 +29,13 @@ impl App {
             let (icon_x, name_x) = if column == 0 { (6, 33) } else { (251, 172) };
             places.push_str(&[
                 format!(
-                    r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" {} data-info="{}" title="{}">"#,
+                    r#"<div class="a cell" style="left:{icon_x}px;top:{}px;width:24px;height:24px" {} data-info="{}" {}>"#,
                     38 + row * 26,
                     // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
                     // begins the same drag); a double click takes it off.
                     if own { format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))) } else { String::new() },
                     item.id,
-                    escape(&Self::item_name(item))
+                    tip(&Self::item_name(item))
                 ),
                 format!(
                     r#"<div style="position:absolute;left:-4px;top:-4px">{}</div></div>
@@ -142,12 +142,12 @@ impl App {
         let Some(item) = self.bag.items.iter().find(|item| item.worn == crate::inventory::WORN_AS_AMMO) else { return String::new() };
         [
             format!(
-                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" title="{}">"#,
+                r#"<div class="a cell" style="left:115px;top:64px;width:24px;height:24px" {} data-info="{}" {}>"#,
                 // Pressed, it is taken up as a thing of the inventory is (the client's `UIEquipWnd::OnLBtnDown`
                 // begins the same drag); a double click takes it off.
                 format!("{} {}", dragged(Drag::Worn(item.index)), used(Use::Item(item.index))),
                 item.id,
-                escape(&amount_tip(&Self::item_name(item), item.amount))
+                tip(&amount_tip(&Self::item_name(item), item.amount))
             ),
             format!(
                 r#"<div style="position:absolute;left:-4px;top:-4px">{}</div></div>

@@ -50,10 +50,12 @@ impl App {
         let mut rows: String = members.iter().enumerate().map(|(row, member)| self.guild_member_row(row, member)).collect();
         rows.push_str(&self.guild_position_combo());
         tab.push_str(&format!(
-            r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{rows}</div></div>"#,
+            r#"<div class="a scroll" style="{};overflow-x:hidden" {}><div style="position:relative;height:{}px">{rows}</div></div>{}"#,
             at(6, 67, WIDTH - 12, 5 * MEMBER_ROW),
             rows_stepped(MEMBER_ROW, 5),
-            members.len() as i32 * MEMBER_ROW
+            members.len() as i32 * MEMBER_ROW,
+            // The tab's bar (`UIGuildWnd.cpp`, the tabs' `OnCreate`: `Configure(width - 15, 63, 1, height - 87)`).
+            scroll_bar(WIDTH - 15, 63, 5 * MEMBER_ROW, MEMBER_ROW)
         ));
         tab.push_str(&check_words(12, HEIGHT - 18, self.guild.online_first, &Self::words(2864, "Show guild member login status"), Press::OnlineFirst));
         if self.guild.master && !self.guild.member_moves.is_empty() {
@@ -72,8 +74,8 @@ impl App {
     /// was last in the game, 2, 33. That last line is not cut at the column, nor is it in the client: with the
     /// English words of line 3012 it runs past the first column.
     ///
-    /// The part given is counted against the guild's experience as the server last told it; how the client
-    /// counts its `expRatio` was not found. The head is the hair's sprite without its colour (the client takes
+    /// The part given is the member's of what all the members gave (`crate::guild::exp_ratio`, the client's
+    /// `GuildInfo::UpdateMemberExpRatios`). The head is the hair's sprite without its colour (the client takes
     /// the palette of the hair's colour).
     fn guild_member_row(&self, row: usize, member: &Member) -> String {
         let ground = match (self.guild.picked == Some(row), member.online) {
@@ -81,8 +83,7 @@ impl App {
             (false, true) => "#e2ffe4",
             (false, false) => "transparent",
         };
-        let whole = self.guild.info.as_ref().map_or(0, |info| info.exp);
-        let part = if whole > 0 { f64::from(member.given) * 100.0 / f64::from(whole) } else { 0.0 };
+        let part = crate::guild::exp_ratio(member.given, self.guild.members.iter().map(|member| member.given));
         let seen = if member.seen == 0 {
             String::new()
         } else {

@@ -56,6 +56,7 @@ impl App {
             if let (Some(scrolled), Ok(Some(list))) = (scrolled, element.query_selector(".scroll, .viewer")) {
                 list.set_scroll_top(scrolled);
             }
+            crate::web::app::fit_bars(&element);
             if let Some(drawn) = window.drawn {
                 drawn(&element);
             }

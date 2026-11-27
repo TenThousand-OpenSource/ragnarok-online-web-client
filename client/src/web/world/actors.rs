@@ -91,7 +91,7 @@ pub fn unit_shown(unit: &Unit) {
         if mover.lively {
             mover.life = unit.life;
         }
-        mover.companion = unit.kind == Kind::Companion;
+        (mover.companion, mover.kind) = (unit.kind == Kind::Companion, unit.kind);
         mover.guild = if unit.kind == Kind::Player || unit.job == granny::FLAG { (unit.guild, u32::from(unit.emblem)) } else { (0, 0) };
         // Its body and health states: one who comes into sight poisoned or frozen is seen so.
         ailments::seen(mover, unit.body, unit.health);

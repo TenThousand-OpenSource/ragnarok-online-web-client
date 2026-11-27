@@ -61,6 +61,7 @@ impl App {
                 set_field(id, &value);
             }
         }
+        scrollbars::fit_within(&ui);
         // `autofocus` only works on page load; here the topmost window's marked element is focused.
         if let Ok(marked) = ui.query_selector_all("[autofocus]") {
             if let Some(last) = marked.length().checked_sub(1).and_then(|index| marked.item(index)) {

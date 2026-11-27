@@ -27,15 +27,18 @@ pub struct App {
     client_dir: PathBuf,
     /// The navigation's tables as JSON (`tables/navigation.rs`): read when first asked for, then kept.
     navigation: std::sync::OnceLock<String>,
+    /// Where the server's own tables of the navigation are, if it has them (`--navigation-dir`).
+    navigation_dir: PathBuf,
 }
 
 impl App {
     /// Reads the tables out of the archives, the client's folder and the server's database; the items are
-    /// given read (the gateway says how many it has before anything else starts).
-    pub fn new(grf: grf::Grf, items: tables::Items, client_dir: &FilePath, item_database: &FilePath) -> Self {
+    /// given read (the gateway says how many it has before anything else starts). `attendance` is the server's
+    /// attendance database (`tables/attendance.rs`).
+    pub fn new(grf: grf::Grf, items: tables::Items, client_dir: &FilePath, item_database: &FilePath, attendance: &FilePath) -> Self {
         // What the tables and the skills' texts both read is read once (`tables::Sources`).
         let read = tables::Sources::read(&grf, client_dir);
-        let (tables, skill_texts) = (tables::for_browser(&read, client_dir, item_database).to_string(), tables::skill_texts(&read));
+        let (tables, skill_texts) = (tables::for_browser(&read, client_dir, item_database, attendance).to_string(), tables::skill_texts(&read));
         drop(read);
         Self {
             tables,
@@ -44,8 +47,15 @@ impl App {
             skills_russian: tables::translated(FilePath::new("translations/ru"), "skills"),
             client_dir: client_dir.to_owned(),
             navigation: std::sync::OnceLock::new(),
+            navigation_dir: PathBuf::new(),
             grf,
         }
+    }
+
+    /// With the folder of the server's own tables of the navigation (`Config::navigation_dir`).
+    pub fn with_navigation(mut self, folder: &FilePath) -> Self {
+        self.navigation_dir = folder.to_owned();
+        self
     }
 }
 
@@ -137,7 +147,7 @@ async fn client_emitters(State(app): State<Arc<App>>, Path(map): Path<String>) -
 /// `GET /tables/navigation.json`: the navigation's tables (`tables/navigation.rs`). They are large and only the
 /// navigation reads them, so they are not part of `/tables.json`; read once, when first asked for.
 async fn client_navigation(State(app): State<Arc<App>>) -> Response {
-    json(tokio::task::spawn_blocking(move || app.navigation.get_or_init(|| tables::navigation(&app.grf, &app.client_dir).to_string()).clone()).await.unwrap())
+    json(tokio::task::spawn_blocking(move || app.navigation.get_or_init(|| tables::navigation(&app.grf, &app.client_dir, &app.navigation_dir).to_string()).clone()).await.unwrap())
 }
 
 /// `GET /tables.json`: everything the browser is given at once (`tables::for_browser`).

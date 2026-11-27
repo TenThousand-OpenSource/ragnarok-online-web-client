@@ -61,3 +61,24 @@ pub(super) fn sent(form: Form) -> String {
 pub(super) fn stepped(step: i32, a_notch: i32) -> String {
     format!(r#"data-step="{step}" data-notch="{a_notch}""#)
 }
+
+/// What marks a thing as one that says something when pointed at, in the client's own tooltip
+/// (`CMode::ShowTooltip`; shown by `app/tooltip.rs`): white words 16 above the thing's top left corner.
+pub(super) fn tip(words: &str) -> String {
+    format!(r#"data-tip="{}""#, super::app::escape(words))
+}
+
+/// The same in a colour of the thing's own (an item's name: `CSession::GetItemNameColor`).
+pub(super) fn tip_in(words: &str, colour: &str) -> String {
+    format!(r#"{} data-tip-colour="{colour}""#, tip(words))
+}
+
+/// The same asked for at another place: so far right and down of the thing's top left corner.
+pub(super) fn tip_at(words: &str, (x, y): (i32, i32)) -> String {
+    format!(r#"{} data-tip-at="{x},{y}""#, tip(words))
+}
+
+/// The same going with the pointer (the skill window's: `UINewSkillListWnd::OnMouseHover`).
+pub(super) fn tip_by_pointer(words: &str) -> String {
+    format!(r#"{} data-tip-at="pointer""#, tip(words))
+}

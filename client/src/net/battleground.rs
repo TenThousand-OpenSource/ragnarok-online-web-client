@@ -4,7 +4,7 @@
 //! `clif_bg_updatescore`, `clif_bg_xy`, `clif_bg_hp` in `clif.cpp`) and the client's `EntryQueue*Packet` of
 //! `Source/Contents/EntryQueue/EntryQueueMgr.cpp`.
 
-use super::bytes::{int, long, short, text_at, word, Writer};
+use super::bytes::{body, int, long, short, text, text_at, word, Writer};
 
 /// ZC_ACK_ENTRY_QUEUE_APPLY (0x08d8, 27 bytes): the answer to applying.
 pub const ZC_ACK_ENTRY_QUEUE_APPLY: u16 = 0x08d8;
@@ -32,6 +32,23 @@ pub const ZC_BATTLEFIELD_NOTIFY_POSITION: u16 = 0x02df;
 pub const ZC_BATTLEFIELD_NOTIFY_HP: u16 = 0x02e0;
 /// ZC_BATTLEFIELD_NOTIFY_HP2 (0x0a0e, 14 bytes): the same, as rAthena says it to this client.
 pub const ZC_BATTLEFIELD_NOTIFY_HP2: u16 = 0x0a0e;
+
+/// ZC_BATTLEFIELD_CHAT (0x02dc): a line of the battleground's own chat.
+pub const ZC_BATTLEFIELD_CHAT: u16 = 0x02dc;
+
+/// ZC_BATTLEFIELD_CHAT: `u16 length, u32 account, char name[24], char text[]`: who said it and the line, which
+/// has the name in it already (`CGameMode::ReceiveActorBroadcastText`, which passes by a line of more than 256
+/// bytes or of none).
+pub fn chat_heard(packet: &[u8]) -> Option<(u32, String)> {
+    let words = body(packet, 32).filter(|words| !words.is_empty() && words.len() <= 256)?;
+    Some((long(packet, 4)?, text(words)))
+}
+
+/// CZ_BATTLEFIELD_CHAT (0x02db): `u16 length, char text[]`: a line for one's team, "name : words" with its
+/// zero (`CGameMode::SendMsg`, `MM_CHAT_BATTLEFIELD`).
+pub fn chat(name: &str, words: &str) -> Vec<u8> {
+    Writer::sized(0x02db).bytes(format!("{name} : {words}").as_bytes()).u8(0).done()
+}
 
 /// ZC_ACK_ENTRY_QUEUE_APPLY, ZC_ACK_ENTRY_QUEUE_CANCEL (27 bytes): `u8 result, char name[24]`: the result and
 /// the battleground's name.
@@ -141,6 +158,18 @@ mod tests {
         assert_eq!(life(ZC_BATTLEFIELD_NOTIFY_HP, &old), Some((2_000_007, 40, 100)));
         let new = packet(0x0a0e, &[&2_000_007u32.to_le_bytes(), &123_456i32.to_le_bytes(), &200_000i32.to_le_bytes()]);
         assert_eq!(life(ZC_BATTLEFIELD_NOTIFY_HP2, &new), Some((2_000_007, 123_456, 200_000)));
+    }
+
+    #[test]
+    fn the_battlegrounds_own_chat_is_written_and_read() {
+        assert_eq!(chat("Six", "go"), [&[0xdb, 0x02, 13, 0][..], b"Six : go\0"].concat());
+        let mut heard = packet(0x02dc, &[&[0, 0], &2_000_006u32.to_le_bytes(), &field("Six", 24), b"Six : go\0"]);
+        let length = heard.len() as u16;
+        heard[2..4].copy_from_slice(&length.to_le_bytes());
+        assert_eq!(chat_heard(&heard), Some((2_000_006, "Six : go".to_owned())));
+        // A line of nothing is passed by.
+        heard[2..4].copy_from_slice(&32u16.to_le_bytes());
+        assert_eq!(chat_heard(&heard), None);
     }
 
     #[test]

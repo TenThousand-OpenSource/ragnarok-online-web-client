@@ -6,12 +6,19 @@
 //! The file is laid out as the client's `.rrf` is: a text of 100 bytes, the signature and the two keys (the
 //! date and the time of the recording), the table of 26 sections at 112, then the sections, each ciphered by
 //! the keys: section 2 the header as tagged records (`Replay::BuildMetadata`), section 1 the packets as they
-//! came, each after `u32 frame, u32 tick, u16 bytes` (`Replay::Record`). Where it is this project's own: the
-//! Windows client keeps in sections 3 to 25 what its session held when the recording began, as copies of its
-//! own memory, which this client neither has nor can read. In their place this file has one section the
-//! Windows client does not know (`STATE`): who the character is, and every packet of the map server from
-//! entering the game to the beginning of the recording, from which this client is what it was then. So a
-//! file of one client does not play in the other.
+//! came, each after `u32 frame, u32 tick, u16 bytes` (`Replay::Record`). The Windows client keeps in sections
+//! 3 to 24 what its session held when the recording began: this client writes them as the client does and
+//! begins a replay from them (`sections` the character and its values, `snapshot` the rest, and what stands
+//! at the head of the packets). The files this client wrote before 2026-11-27 began from a section of its own
+//! instead (`STATE`), in the fifth place of the table, which the Windows client neither writes nor reads: who
+//! the character is, and every packet of the map server from entering the game to the beginning of the
+//! recording; such a file is still read and played from that. What is held back while a recording plays is
+//! `playing`.
+
+pub mod playing;
+pub mod sections;
+pub mod snapshot;
+pub mod told;
 
 /// The file's signature (`ReplayHeader::Reset`), and how its text begins (`g_replayHeaderText`, version 5).
 pub const SIGNATURE: u32 = 0x5241_4705;
@@ -20,12 +27,14 @@ const TEXT: &[u8] = b"<< Ragnarok Replay File Version 0.05 >>\r\n \xA1\xD8 Do no
 const KEYS_AT: usize = 100;
 const TABLE_AT: usize = 112;
 const DATA_AT: usize = TABLE_AT + 26 * 10;
-/// The sections: the packets, the header, and this project's own with the state the recording began in (in
-/// the 24th place of the table, under a number the Windows client has no section of).
+/// The sections: the packets, the header, and this project's own with the state the recording began in: in
+/// the fifth place of the table, the one number from 1 to 24 the Windows client has no section of (its
+/// reading of the table stops at a number over 26, so the place keeps its own number). The files this client
+/// wrote first had it in the 24th place under the number 124, and are still read.
 const PACKETS: usize = 1;
 const HEADER: usize = 2;
-const STATE: usize = 24;
-const STATE_ID: i16 = 124;
+const STATE: usize = 5;
+const STATE_BEFORE: (usize, i16) = (24, 124);
 
 /// The options of recording, by their places among the thirty the header keeps (`ReplayRecordOption`): the
 /// tenth is the box "ALL".
@@ -77,9 +86,21 @@ pub fn ticked(mut options: Options, place: usize, on: bool) -> Options {
 /// does not name.)
 const CHAT: [u16; 8] = [0x008d, 0x008e, 0x0097, 0x0109, 0x017f, 0x02dc, 0x0bde, 0x09de];
 
-/// Whether a packet of the map server goes into a recording made with those options.
+/// The packets the client writes into a recording at all: the mark of its table of packets
+/// (`PacketLengths::IsRecorded`), written out of `PacketRegistrations.inc`.
+fn in_table(id: u16) -> bool {
+    static TABLE: std::sync::OnceLock<Vec<u16>> = std::sync::OnceLock::new();
+    let table = TABLE.get_or_init(|| {
+        let lines = include_str!("replay/recorded.txt").lines().filter(|line| !line.starts_with('#'));
+        lines.flat_map(str::split_whitespace).filter_map(|id| u16::from_str_radix(id, 16).ok()).collect()
+    });
+    table.binary_search(&id).is_ok()
+}
+
+/// Whether a packet of the map server goes into a recording made with those options (`Replay::Record`): one
+/// the client's table marks, and somebody's words only with the chat's option. A record of the windows always.
 pub fn recorded(id: u16, options: &Options) -> bool {
-    options[option::CHATTING] != 0 || !CHAT.contains(&id)
+    id == sections::CC_REPLAYPACKET || in_table(id) && (options[option::CHATTING] != 0 || !CHAT.contains(&id))
 }
 
 /// The header of a file (`ReplayHeader`).
@@ -161,6 +182,9 @@ pub struct File {
     pub who: Who,
     pub before: Vec<Vec<u8>>,
     pub packets: Vec<(u32, Vec<u8>)>,
+    /// The sections of the Windows client's own (3 to 24, but this client's fifth), each its number and its
+    /// bytes with the cipher off.
+    pub client: Vec<(usize, Vec<u8>)>,
 }
 
 /// Ciphers bytes, or brings them back: each whole four of them with the two keys and its place
@@ -175,14 +199,14 @@ pub fn cipher(key0: u32, key1: u32, bytes: &mut [u8]) {
 }
 
 /// A tagged record: `u16 id, u32 bytes`, then the bytes (`BuildReplayTaggedRecord`).
-fn tagged(to: &mut Vec<u8>, id: u16, bytes: &[u8]) {
+pub(crate) fn tagged(to: &mut Vec<u8>, id: u16, bytes: &[u8]) {
     to.extend(id.to_le_bytes());
     to.extend((bytes.len() as u32).to_le_bytes());
     to.extend(bytes);
 }
 
 /// The tagged records of a section, each its number and its bytes.
-fn tags(mut section: &[u8]) -> Vec<(u16, &[u8])> {
+pub(crate) fn tags(mut section: &[u8]) -> Vec<(u16, &[u8])> {
     let mut found = Vec::new();
     while section.len() >= 6 {
         let (id, size) = (u16::from_le_bytes([section[0], section[1]]), u32::from_le_bytes([section[2], section[3], section[4], section[5]]) as usize);
@@ -233,17 +257,21 @@ fn metadata(header: &Header, records: u32, end: u32) -> Vec<u8> {
 /// Writes a file.
 pub fn written(file: &File) -> Vec<u8> {
     let (key0, key1) = file.header.keys();
+    // (This project's own section only for a file that has the packets it holds: a file that begins from
+    // the client's sections has none, as the client's has none.)
     let mut state = Vec::new();
-    tagged(&mut state, 9000, &[]);
-    tagged(&mut state, 9010, &file.who.character.to_le_bytes());
-    tagged(&mut state, 9011, &file.who.job.to_le_bytes());
-    tagged(&mut state, 9012, &file.who.level.to_le_bytes());
-    tagged(&mut state, 9013, &file.who.bytes());
-    for packet in &file.before {
-        tagged(&mut state, 9020, packet);
+    if !file.before.is_empty() {
+        tagged(&mut state, 9000, &[]);
+        tagged(&mut state, 9010, &file.who.character.to_le_bytes());
+        tagged(&mut state, 9011, &file.who.job.to_le_bytes());
+        tagged(&mut state, 9012, &file.who.level.to_le_bytes());
+        tagged(&mut state, 9013, &file.who.bytes());
+        for packet in &file.before {
+            tagged(&mut state, 9020, packet);
+        }
+        tagged(&mut state, 9001, &[]);
+        cipher(key0, key1, &mut state);
     }
-    tagged(&mut state, 9001, &[]);
-    cipher(key0, key1, &mut state);
     let mut packets = Vec::new();
     for (tick, packet) in &file.packets {
         packets.extend(0u32.to_le_bytes());
@@ -253,26 +281,34 @@ pub fn written(file: &File) -> Vec<u8> {
         cipher(key0, key1, &mut ciphered);
         packets.extend(ciphered);
     }
-    let state_at = DATA_AT;
+    let mut bytes = vec![0u8; DATA_AT];
+    // (The client's own sections first, as it writes them, each in the place of its number.)
+    let entry = |bytes: &mut Vec<u8>, place: usize, id: i16, size: usize, at: usize| {
+        let entry = &mut bytes[TABLE_AT + place * 10..TABLE_AT + place * 10 + 10];
+        entry[..2].copy_from_slice(&id.to_le_bytes());
+        entry[2..6].copy_from_slice(&(size as u32).to_le_bytes());
+        entry[6..10].copy_from_slice(&(at as u32).to_le_bytes());
+    };
+    for (place, section) in file.client.iter().filter(|(place, section)| (3..25).contains(place) && *place != STATE && !section.is_empty()) {
+        let mut section = section.clone();
+        cipher(key0, key1, &mut section);
+        let at = bytes.len();
+        entry(&mut bytes, *place, *place as i16, section.len(), at);
+        bytes.extend(section);
+    }
+    let state_at = bytes.len();
     let packets_at = state_at + state.len();
     let header_at = packets_at + packets.len();
     let mut header = metadata(&file.header, file.packets.len() as u32, header_at as u32);
     cipher(key0, key1, &mut header);
-    let mut bytes = vec![0u8; DATA_AT];
     bytes[..TEXT.len()].copy_from_slice(TEXT);
     bytes[95..97].copy_from_slice(b"\r\n");
     bytes[KEYS_AT..KEYS_AT + 4].copy_from_slice(&SIGNATURE.to_le_bytes());
     bytes[KEYS_AT + 4..KEYS_AT + 8].copy_from_slice(&key0.to_le_bytes());
     bytes[KEYS_AT + 8..KEYS_AT + 12].copy_from_slice(&key1.to_le_bytes());
-    for (place, id, size, at) in [
-        (PACKETS, PACKETS as i16, packets.len(), packets_at),
-        (HEADER, HEADER as i16, header.len(), header_at),
-        (STATE, STATE_ID, state.len(), state_at),
-    ] {
-        let entry = &mut bytes[TABLE_AT + place * 10..TABLE_AT + place * 10 + 10];
-        entry[..2].copy_from_slice(&id.to_le_bytes());
-        entry[2..6].copy_from_slice(&(size as u32).to_le_bytes());
-        entry[6..10].copy_from_slice(&(at as u32).to_le_bytes());
+    let sections = [(PACKETS, packets.len(), packets_at), (HEADER, header.len(), header_at), (STATE, state.len(), state_at)];
+    for (place, size, at) in sections.into_iter().filter(|(place, size, _)| *place != STATE || *size != 0) {
+        entry(&mut bytes, place, place as i16, size, at);
     }
     // (The last place of the table is marked as the client marks it: `sections[25].id = 111`.)
     bytes[TABLE_AT + 250..TABLE_AT + 252].copy_from_slice(&111i16.to_le_bytes());
@@ -323,17 +359,25 @@ pub fn header(bytes: &[u8]) -> Option<Header> {
     Some(header)
 }
 
-/// Reads a file of this client's; none for what is no replay, or is one of the Windows client's, which has
-/// no state this client can begin from.
+/// Reads a file. One of the Windows client's, or of this client's since it begins from the client's sections,
+/// has nothing in `before` nor in `who`: its character is in its third section (`snapshot::session::character`).
 pub fn read(bytes: &[u8]) -> Option<File> {
     let header = header(bytes)?;
     let keys = header.keys();
-    let entry = bytes.get(TABLE_AT + STATE * 10..TABLE_AT + STATE * 10 + 2)?;
-    if i16::from_le_bytes([entry[0], entry[1]]) != STATE_ID {
-        return None;
-    }
-    let state = section(bytes, STATE, keys, true)?;
+    let numbered = |place: usize| bytes.get(TABLE_AT + place * 10..TABLE_AT + place * 10 + 2).map(|id| i16::from_le_bytes([id[0], id[1]]));
+    let state = if numbered(STATE) == Some(STATE as i16) {
+        section(bytes, STATE, keys, true)?
+    } else if numbered(STATE_BEFORE.0) == Some(STATE_BEFORE.1) {
+        section(bytes, STATE_BEFORE.0, keys, true)?
+    } else {
+        Vec::new()
+    };
     let mut file = File { header, ..File::default() };
+    for place in (3..25).filter(|place| *place != STATE && numbered(*place) == Some(*place as i16)) {
+        if let Some(section) = section(bytes, place, keys, true).filter(|section| !section.is_empty()) {
+            file.client.push((place, section));
+        }
+    }
     let short = |bytes: &[u8]| bytes.get(..2).map_or(0, |word| u16::from_le_bytes([word[0], word[1]]));
     for (id, bytes) in tags(&state) {
         match id {
@@ -357,6 +401,24 @@ pub fn read(bytes: &[u8]) -> Option<File> {
         rest = &rest[10 + size..];
     }
     Some(file)
+}
+
+impl File {
+    /// Whether this client can play the file: it has the packets this client once began a recording from
+    /// (`begins_from_packets`), or the character as the Windows client keeps it (section 3).
+    pub fn begins(&self) -> bool {
+        self.begins_from_packets() || snapshot::session::character(self).is_some()
+    }
+
+    /// Whether the file is one this client wrote with its own section: it begins from the packets in it.
+    pub fn begins_from_packets(&self) -> bool {
+        !self.before.is_empty()
+    }
+
+    /// A section of the Windows client's own, by its number.
+    pub fn section(&self, number: usize) -> &[u8] {
+        self.client.iter().find(|(place, _)| *place == number).map_or(&[], |(_, section)| section)
+    }
 }
 
 /// The number of a packet kept in a file: its first two bytes.

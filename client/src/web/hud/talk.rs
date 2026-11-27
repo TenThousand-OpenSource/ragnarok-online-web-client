@@ -51,14 +51,15 @@ impl App {
         let said: String = dialog.lines.iter().map(|line| format!("<div>{}</div>", linked(line))).collect();
         let mut window = [
             format!(
-                r#"{}<div class="a t said bar" style="{};background:#f2f2f2;padding:1px 0 0 3px;line-height:{}px;"#,
+                r#"{}<div class="a t said scroll" style="{};background:#f2f2f2;padding:1px 0 0 3px;line-height:{}px;"#,
                 system_box(0, 280, 180),
                 at(10, 10, 260, 140),
                 crate::font::cell(0, 12) + 6
             ),
             format!(
-                r#"box-sizing:border-box;white-space:normal;user-select:text" {}><div style="width:215px">{said}</div></div>"#,
-                text_stepped()
+                r#"box-sizing:border-box;white-space:normal;user-select:text" {}><div style="width:215px">{said}</div></div>{}"#,
+                text_stepped(),
+                text_bar(257, 10, 140)
             )
         ].concat();
         match dialog.button {
@@ -86,11 +87,13 @@ impl App {
             })
             .collect();
         let mut window = format!(
-            r#"{}<div class="a t scroll" style="{};background:#f0f0f0;white-space:normal" {}>{choices}</div>"#,
+            r#"{}<div class="a t scroll" style="{};background:#f0f0f0;white-space:normal" {}>{choices}</div>{}"#,
             system_box(top, 280, 120),
             at(12, top + 12, 256, 78),
             // A line of the menu is 17 here; the wheel moves the client's list three lines (`UIListBox::OnWheel`).
-            lines_stepped(17)
+            lines_stepped(17),
+            // The list's own bar, at its right edge (`UIListBox::OnSize`: `Move(width - 13, 0)`).
+            scroll_bar(255, top + 12, 78, 17)
         );
         window.push_str(&picture_press(188, top + 96, "btn_ok", Press::Ok));
         window.push_str(&picture_press(233, top + 96, "btn_cancel", Press::Cancel));

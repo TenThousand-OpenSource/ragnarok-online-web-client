@@ -54,7 +54,9 @@ mod achievements;
 mod reputation;
 mod attendance;
 mod bank;
+mod instances;
 mod battleground;
+mod booking;
 mod agency;
 mod replay;
 
@@ -67,7 +69,7 @@ mod replay;
 ///
 /// | The packet | Overheard by (in this order) | Read by |
 /// |---|---|---|
-/// | `ZC_ACCEPT_ENTER` (the game is entered) | achievements, reputation, cart, vending, ai, mail, battleground: each forgets the character before | travel |
+/// | `ZC_ACCEPT_ENTER` (the game is entered) | achievements, reputation, cart, vending, ai, mail, battleground, booking, instances: each forgets the character before | travel |
 /// | `ZC_NPCACK_MAPMOVE` (another map) | vending, ai, battleground | travel |
 /// | `ZC_INVENTORY_START`, `ZC_INVENTORY_ITEMLIST_NORMAL`, `_EQUIP` | cart: the cart's list is one kind of these |
 /// inventory (which hands the storage's kind on) |
@@ -86,7 +88,7 @@ mod replay;
 /// it otherwise: chat rooms take `ZC_NOTIFY_CHAT` and `ZC_NOTIFY_PLAYERCHAT` while the character sits in a
 /// room, before talk; the homunculus takes `ZC_CONFIG` for its own setting, before viewequip. And choosing
 /// stands before notices: both name `ZC_ACK_REQNAME_BYGID`, and it is choosing that reads it.
-const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 49] = [
+const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 51] = [
     // Overhear the game entered (each forgets the character before) and, the achievements, a player's names
     // for the title told with them: before travel and the guild.
     App::achievements_packet,
@@ -115,6 +117,8 @@ const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 49] = [
     App::mail_packet,
     // Overhears the game entered and another map (the score and the team's marks are the map's): before travel.
     App::battleground_packet,
+    // Overhears the game entered (the ads and the windows are of the character before): before travel.
+    App::booking_packet,
     App::statuses_packet,
     App::cooldowns_packet,
     // Overhears how many play: before status.
@@ -154,6 +158,7 @@ const MAP_SERVER: [fn(&mut App, u16, &[u8]) -> bool; 49] = [
     App::cashshop_packet,
     App::attendance_packet,
     App::bank_packet,
+    App::instances_packet,
     App::agency_packet,
 ];
 

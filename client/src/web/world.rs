@@ -71,6 +71,7 @@ mod skill_units;
 mod signs;
 mod scripted;
 mod spirits;
+mod replay;
 mod frame;
 mod overlays;
 mod pursuit;
@@ -116,6 +117,7 @@ pub use skill_units::{
 pub use signs::{Board, SIGN, sign};
 pub use scripted::{gauge, sounded};
 pub use spirits::{spheres_gone, spheres_seen, spheres_told};
+pub use replay::{InSight, Snapshot, snapshot};
 use frame::*;
 use overlays::*;
 use pursuit::*;

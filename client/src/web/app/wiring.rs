@@ -13,9 +13,10 @@ pub fn start() -> Result<(), String> {
     drag_windows(&document)?;
     // The chat's tabs are pulled out of the window, and their own windows made larger by their corners.
     chat::drag_chat_tabs(&document)?;
-    wire_tooltip()?;
+    tooltip::wire()?;
     wire_presses(&ui)?;
     wire_wheel(&ui)?;
+    scrollbars::wire(&ui, &document)?;
     wire_keys(&document)?;
     wire_page(&window, &document)?;
     restore(&window);
@@ -31,70 +32,31 @@ fn pressed(event: &Event, attribute: &str) -> Option<Element> {
     target.closest(&selector).ok().flatten()
 }
 
-/// The game's own tooltip (the client's `CMode::ShowTooltip`): white words on a see-through black box, shown
-/// at once over whatever has one (`data-tip`), 16 above its top left corner, and gone when the pointer leaves.
-///
-/// The whole page is listened to, not the windows alone: the pointer leaves a thing for the world too, which
-/// is no part of them, and for nowhere at all when it goes off the page. It leaves a thing also when it
-/// stands still and a window opens under it, or the thing is drawn away: a page tells of neither until the
-/// pointer moves. So while a tooltip shows, what is under the pointer is looked at again every `TIP_LOOK_MS`,
-/// and the tooltip goes, or changes, with it (the client draws its tooltip anew each frame for the window
-/// under the pointer).
-fn wire_tooltip() -> Result<(), String> {
-    thread_local! {
-        /// Where the pointer was last, on the page.
-        static POINTER: std::cell::Cell<(f32, f32)> = const { std::cell::Cell::new((0.0, 0.0)) };
-    }
-    let on_over = Closure::<dyn FnMut(Event)>::new(|event: Event| tip_over(pressed(&event, "data-tip")));
-    let on_move = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(|event: web_sys::MouseEvent| {
-        POINTER.set((event.client_x() as f32, event.client_y() as f32));
-    });
-    let on_look = Closure::<dyn FnMut()>::new(|| {
-        if element("tip").is_some_and(|tip| tip.get_attribute("style").is_some_and(|style| style.starts_with("display:block"))) {
-            let (x, y) = POINTER.get();
-            let under = crate::web::document().and_then(|document| document.element_from_point(x, y));
-            tip_over(under.and_then(|under| under.closest("[data-tip]").ok().flatten()));
-        }
-    });
-    let on_out = Closure::<dyn FnMut()>::new(|| tip_over(None));
-    let page = crate::web::document().ok_or("no document")?;
-    page.add_event_listener_with_callback("mouseover", on_over.as_ref().unchecked_ref()).map_err(js_error)?;
-    page.add_event_listener_with_callback("mousemove", on_move.as_ref().unchecked_ref()).map_err(js_error)?;
-    page.add_event_listener_with_callback("mouseleave", on_out.as_ref().unchecked_ref()).map_err(js_error)?;
-    if let Some(window) = web_sys::window() {
-        window.set_interval_with_callback_and_timeout_and_arguments_0(on_look.as_ref().unchecked_ref(), TIP_LOOK_MS).map_err(js_error)?;
-    }
-    // These live as long as the page.
-    on_over.forget();
+/// A gesture of the pointer followed over the whole page, wherever it goes while it lasts: what is done when
+/// a button goes down, when the pointer moves and when a button comes up. The listeners live as long as the
+/// page.
+pub(super) fn wire_gesture(
+    document: &web_sys::Document,
+    on_down: Closure<dyn FnMut(web_sys::MouseEvent)>,
+    on_move: Closure<dyn FnMut(web_sys::MouseEvent)>,
+    on_up: Closure<dyn FnMut()>,
+) -> Result<(), String> {
+    document.add_event_listener_with_callback("mousedown", on_down.as_ref().unchecked_ref()).map_err(js_error)?;
+    document.add_event_listener_with_callback("mousemove", on_move.as_ref().unchecked_ref()).map_err(js_error)?;
+    document.add_event_listener_with_callback("mouseup", on_up.as_ref().unchecked_ref()).map_err(js_error)?;
+    on_down.forget();
     on_move.forget();
-    on_out.forget();
-    on_look.forget();
+    on_up.forget();
     Ok(())
 }
 
-/// How often what is under a pointer that stands still is looked at again while a tooltip shows, in
-/// milliseconds (this project's own: the client looks each frame).
-const TIP_LOOK_MS: i32 = 200;
-
-/// Shows the tooltip of the thing under the pointer (`tipped`), or takes it away when there is none.
-fn tip_over(tipped: Option<Element>) {
-    let Some(tip) = element("tip") else { return };
-    let style = match tipped.and_then(|tipped| tipped.dyn_into::<web_sys::HtmlElement>().ok()) {
-        Some(tipped) => {
-            let words = tipped.get_attribute("data-tip").unwrap_or_default();
-            if tip.text_content().as_deref() != Some(words.as_str()) {
-                tip.set_text_content(Some(&words));
-            }
-            // The windows may be drawn larger than their own measures: the tooltip is as much larger.
-            let place = tipped.get_bounding_client_rect();
-            let scale = if tipped.offset_width() > 0 { place.width() / f64::from(tipped.offset_width()) } else { 1.0 };
-            format!("display:block;left:{:.0}px;top:{:.0}px;font-size:{:.1}px", place.left().max(0.0), (place.top() - 16.0 * scale).max(0.0), 12.0 * scale)
-        }
-        None => "display:none".to_owned(),
-    };
-    if tip.get_attribute("style").as_deref() != Some(style.as_str()) {
-        let _ = tip.set_attribute("style", &style);
-    }
+/// Moves a list or a text that moves by steps (`parts::stepped`) so many notches, down for more than none:
+/// by its own step and so many steps a notch, never past its ends (`crate::scrolling::moved`). The wheel
+/// does it, and the arrows up and down for what an NPC said.
+pub(super) fn step_list(list: &Element, notches: i32) {
+    let number = |name: &str| list.get_attribute(name).and_then(|number| number.parse::<i32>().ok()).unwrap_or(0);
+    let most = list.scroll_height() - list.client_height();
+    list.set_scroll_top(crate::scrolling::moved(list.scroll_top(), number("data-step"), notches * number("data-notch"), most));
 }
 
 /// The wheel over a list or a text that moves by steps (`parts::stepped`): it is moved as the client moves
@@ -108,14 +70,12 @@ fn wire_wheel(ui: &Element) -> Result<(), String> {
     let on_wheel = Closure::<dyn FnMut(web_sys::WheelEvent)>::new(|event: web_sys::WheelEvent| {
         let Some(list) = pressed(&event, "data-step") else { return };
         event.prevent_default();
-        let number = |name: &str| list.get_attribute(name).and_then(|number| number.parse::<i32>().ok()).unwrap_or(0);
         // A wheel that counts in lines or pages gives a notch a turn.
         let turned = if event.delta_mode() == 0 { event.delta_y() } else { event.delta_y().signum() * crate::scrolling::NOTCH };
         let (whole, left) = crate::scrolling::notches(TURNED.get(), turned);
         TURNED.set(left);
         if whole != 0 {
-            let most = list.scroll_height() - list.client_height();
-            list.set_scroll_top(crate::scrolling::moved(list.scroll_top(), number("data-step"), whole * number("data-notch"), most));
+            step_list(&list, whole);
         }
     });
     let options = web_sys::AddEventListenerOptions::new();
@@ -270,24 +230,19 @@ fn wire_keys(document: &web_sys::Document) -> Result<(), String> {
     Ok(())
 }
 
-/// What the page itself tells: its size changed, it was hidden or shown, and the timer that keeps the
-/// connection alive.
+/// What the page itself tells: its size changed, it was hidden or shown; and the beats that keep the
+/// connection alive and watch it (`beats.rs`).
 fn wire_page(window: &web_sys::Window, document: &web_sys::Document) -> Result<(), String> {
     let on_resize = Closure::<dyn FnMut()>::new(|| dispatch(Action::Resized));
     let on_visibility = Closure::<dyn FnMut()>::new(|| {
         glance(App::tune);
     });
-    let on_timer = Closure::<dyn FnMut()>::new(|| dispatch(Action::KeepAlive));
-    let on_watch = Closure::<dyn FnMut()>::new(|| dispatch(Action::Watch));
     window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref()).map_err(js_error)?;
     document.add_event_listener_with_callback("visibilitychange", on_visibility.as_ref().unchecked_ref()).map_err(js_error)?;
-    window.set_interval_with_callback_and_timeout_and_arguments_0(on_timer.as_ref().unchecked_ref(), KEEP_ALIVE_MS).map_err(js_error)?;
-    window.set_interval_with_callback_and_timeout_and_arguments_0(on_watch.as_ref().unchecked_ref(), crate::link::WATCH_EVERY).map_err(js_error)?;
+    beats::wire(window)?;
     // These live as long as the page.
-    on_watch.forget();
     on_resize.forget();
     on_visibility.forget();
-    on_timer.forget();
     Ok(())
 }
 

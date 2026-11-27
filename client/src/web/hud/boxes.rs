@@ -51,10 +51,12 @@ fn message_frame(caption: &str, words: &str) -> String {
         base_button(3, 3),
         panel_ground_round(0, 17, 280, 103),
         format!(
-            r#"<div class="a t bar" style="{};line-height:{LINE}px;white-space:pre" {}><div style="padding:{above}px 0 {under}px 3px">{}</div></div>"#,
+            r#"<div class="a t scroll" style="{};line-height:{LINE}px;white-space:pre" {}><div style="padding:{above}px 0 {under}px 3px">{}</div></div>{}"#,
             at(10, 22, 260, 65),
             lines_stepped(LINE),
-            coloured(&lines)
+            coloured(&lines),
+            // The viewer's own bar, at its right edge (`UIListBox::OnSize`: `Move(width - 13, 0)`).
+            scroll_bar(257, 22, 65, LINE)
         ),
         // (Begun a pixel higher, under the third line's letters: a page drawn larger than its measures lets
         // a hair of the fourth line show otherwise.)
@@ -106,7 +108,7 @@ pub(super) fn pick_list(title: &str, rows: &[(String, String)], picked: Option<u
             ].concat()
         })
         .collect();
-    window.push_str(&format!(r#"<div class="a scroll" style="{}" {}>{rows}</div>"#, at(1, 31, 198, 128), rows_stepped(32, 4)));
+    window.push_str(&format!(r#"<div class="a scroll" style="{}" {}>{rows}</div>{}"#, at(1, 31, 198, 128), rows_stepped(32, 4), scroll_bar(185, 31, 128, 32)));
     window.push_str(&button_bar(200, 200));
     window.push_str(&picture_press(108, 176, "btn_ok", does.ok));
     window.push_str(&picture_press(154, 176, "btn_cancel", does.cancel));

@@ -8,11 +8,12 @@ ARG PRERE=yes
 COPY . /rathena
 WORKDIR /rathena
 # -j4: each map-server translation unit needs close to a gigabyte of RAM.
-RUN ./configure --enable-packetver=${PACKETVER} --enable-prere=${PRERE} && make -j4 server
+# `web` is the game's web service (`web-server`), which the Adventurer's Agency is asked of.
+RUN ./configure --enable-packetver=${PACKETVER} --enable-prere=${PRERE} && make -j4 server web
 
 FROM alpine:3.23
 RUN apk add --no-cache libstdc++ zlib mariadb-connector-c pcre netcat-openbsd
-COPY --from=build /rathena/login-server /rathena/char-server /rathena/map-server /rathena/
+COPY --from=build /rathena/login-server /rathena/char-server /rathena/map-server /rathena/web-server /rathena/
 COPY --from=build /rathena/conf /rathena/conf
 COPY --from=build /rathena/db /rathena/db
 COPY --from=build /rathena/npc /rathena/npc

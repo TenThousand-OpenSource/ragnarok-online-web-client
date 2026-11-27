@@ -10,12 +10,23 @@ impl App {
         if let Press::Item(item) = press {
             return self.handle(Action::Info(item, true));
         }
-        let (Some(dialog), Some(socket)) = (&mut self.dialog, &self.socket) else { return };
+        // (A press a recording was made with is done again as it plays: there is no server then, and nothing
+        // is sent.)
+        let told = self.replay.told;
+        let (Some(dialog), socket) = (&mut self.dialog, &self.socket) else { return };
+        if socket.is_none() && !told {
+            return;
+        }
+        let send = |packet: &[u8]| {
+            if let Some(socket) = socket {
+                socket.send(packet);
+            }
+        };
         let npc = dialog.npc;
         // "Next" and a menu's OK are not taken twice within a moment (`UISayDialogWnd::SendMsg` and
         // `UIChooseWnd::SendMsg` share `m_itemSendTick`), by the mouse or by Enter.
         if press == Press::Next || (press == Press::Ok && !dialog.menu.is_empty()) {
-            if crate::talk::too_soon(now(), dialog.answered) {
+            if !told && crate::talk::too_soon(now(), dialog.answered) {
                 return;
             }
             dialog.answered = now();
@@ -24,17 +35,18 @@ impl App {
             Press::Next => {
                 dialog.button = None;
                 dialog.stale = true;
-                socket.send(&net::talk::next(npc));
+                send(&net::talk::next(npc));
             }
             Press::Close => {
-                socket.send(&net::talk::close(npc));
+                send(&net::talk::close(npc));
                 self.dialog = None;
             }
-            Press::Pick(choice) => dialog.picked = choice,
+            // (A row there is none of is not picked: a recording may name any.)
+            Press::Pick(choice) => dialog.picked = choice.min(dialog.menu.len().saturating_sub(1)),
             Press::Item(_) => {}
             Press::Ok if !dialog.menu.is_empty() => {
                 // The choices are counted from 1.
-                socket.send(&net::talk::choose(npc, dialog.picked as u8 + 1));
+                send(&net::talk::choose(npc, dialog.picked as u8 + 1));
                 dialog.menu.clear();
                 dialog.stale = true;
             }
@@ -49,13 +61,13 @@ impl App {
                 if dialog.asks == Some(true) && data::foul(&typed) {
                     return self.chat_line(Self::words(14, "Foul Language Detected."), RED);
                 }
-                socket.send(&if dialog.asks == Some(true) { net::talk::words(npc, &typed) } else { net::talk::number(npc, typed.trim().parse().unwrap_or(0)) });
+                send(&if dialog.asks == Some(true) { net::talk::words(npc, &typed) } else { net::talk::number(npc, typed.trim().parse().unwrap_or(0)) });
                 dialog.asks = None;
                 dialog.stale = true;
             }
             Press::Cancel => {
                 // Turning a menu down ends the talk.
-                socket.send(&net::talk::choose(npc, 255));
+                send(&net::talk::choose(npc, 255));
                 self.dialog = None;
             }
         }
@@ -86,7 +98,8 @@ impl App {
             }
             "ArrowUp" | "ArrowDown" => {
                 if let Some(said) = element(wnd::DIALOG.id).and_then(|window| window.query_selector(".said").ok().flatten()) {
-                    said.set_scroll_top(said.scroll_top() + if key == "ArrowDown" { crate::scrolling::TEXT_STEP } else { -crate::scrolling::TEXT_STEP });
+                    // The same step as the wheel's, and as little past the text's ends (`UM_UPPUSH`, `UM_DOWNPUSH`).
+                    step_list(&said, if key == "ArrowDown" { 1 } else { -1 });
                 }
                 true
             }

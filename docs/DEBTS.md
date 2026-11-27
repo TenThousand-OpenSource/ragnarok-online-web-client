@@ -114,16 +114,15 @@ classic game not made yet.
   the value it keeps, which for the five options of `IsServiceOption` is the row's reverse
   (`NotifyServiceOption`, `GameSettings::ToggleOption`). By the code hiding auras would say "Aura effect is ON".
   Not settled without the client itself; left as it was.
-- How the client's switches start: the client sets them as it starts from `CmdOnOffList` of
-  `System\OptionInfo.lub` (`CSession::LoadOptionInfo`, the script's `SetCmdOnOffList`), not from the `Default`
-  of the Game Settings' table, which is what "reset" gives. Only the full aura's row is started that way here
-  (`web/app/settings.rs option_starts`, written into the code: `/aura` 1, so the aura is the full one); the
-  gateway does not read that file, and the other switches of the list start by the table's `Default`
-  (the list has `/noctrl` 1, `/skillsnap` 1, `/miss` 1, `/quake` 1, `/fog` 1, `/mineffect` 0, `/window` 0…:
-  to be compared one by one).
+- How the client's switches start is read from `CmdOnOffList` of `System\LuaFiles514\OptionInfo.lub` since
+  2026-11-27 (`commands.rs starts`, `web/app/settings.rs option_starts`). Left: "reset" in the Game Settings
+  gives that start too, where the client's gives the `Default` of its table; the rows were not compared one by
+  one in the game with the Windows client; the list's values that are no switches of a command (`Trilinear`,
+  `MouseExclusive`, the skin, `OptionInfoList`: the volumes, the camera's start) are not read.
 - Effect files the client draws primitives beside, which are played here as the file alone: Aspersio (86: the
-  drops that rise round one, `CRagEffect::Aspersio`), `EF_GLASSWALL` (13), Storm Gust (89, `StormGust`), Cart
-  Revolution (170), the berserk potion (220). Their sounds are played (`effect_sounds.txt`).
+  drops that rise round one, `CRagEffect::Aspersio`), `EF_GLASSWALL` (13), Cart Revolution (170), the berserk
+  potion (220). Their sounds are played (`effect_sounds.txt`). (Storm Gust's spikes are drawn since
+  2026-11-27, `web/world/prims/grounds.rs`.)
 - Water Screw's sprite (`EF_SPR_LIGHTPRINT3`, 941): the client writes no colour; drawn in the sprite's own
   (`web/world/prims/prints.rs`, `prim/fourfold.rs`).
 - Graffiti's words stand over the unit, not on the ground (`web/world/written.rs`).
@@ -146,18 +145,25 @@ classic game not made yet.
   is pointed at (`SkillTooltipFlat`), and in the tree the marks of what a skill asks for with the levels
   asked (`UINewSkillListWnd::UpdateRequiredSkills`, `DrawSkillTree`). With a gateway that finds no database
   the server's own figure for the level known is said and nothing is marked. This project's own in it:
-  - The plus by a skill raises at once (no Apply), so a press on a skill whose needs are lacking sends the
-    levels of what it asks for first and then its own, as far as the points go, and also of what those ask
-    for in turn (`crate::skills::raises`); the client's `IncreaseSkillLevel` plans the skill and only what it
-    asks for directly, in the order skill, needs. The plus on a skill the server has not listed is offered
-    from the table (points, the job level asked, needs lacking).
+  - A press on a skill plans a level and Apply sends what is planned (2026-11-27), but not in the client's
+    order: a press on a skill whose needs are lacking plans the levels of what it asks for first and then its
+    own, as far as the points go, and also of what those ask for in turn (`crate::skills::raises`); the
+    client's `IncreaseSkillLevel` plans the skill and only what it asks for directly, in the order skill,
+    needs, and sends them so. A skill the server has not listed is planned from the table (points, the job
+    level asked, needs lacking). The client's refusal of a skill that cannot be planned (`canPlanLevel`, its
+    line 3531 in the chat) is not said: such a press does nothing. Planned levels stay when the window is
+    closed. A double press on a skill that can be raised plans two levels and uses the skill, as two presses.
+  - The list of rows (`ID_MINI`): always 400 high, the corner that pulls it shorter (`m_btnDetail`, steps of
+    32) is not made, and whether it is the list or the tree is not kept between visits (the client's
+    `Simplicity_SkillList` of `OptionInfo.lua`); a planned level is written in the row's colour, not in red;
+    a name ends 148 from its start as in the companions' list, the window being wider. A tree of more than
+    six rows is not scrolled (`UpdateScrollBar` for the tree): no classic job was found with one.
   - The marks show while the skill's picture is pointed at (the page's style sheet) and stay while its
     description is open (the client's `m_showDetail` after the right button); the tab of another page that has
     a skill asked for is coloured only in the second case, not while pointing. The pink lies over the
     pictures; the client tints the picture (`DrawAuxiliary(2, …)`, not read).
-  - The tree writes no SP, as the client's does not; its list of rows (`DrawSkillList`, "Sp : n" by every
-    skill) is not built, nor is the " (Sp : n)" the description window adds to the skill's name
-    (`UISkillDescribeWnd`, `UM_SKILLDESCRIBE`; where that text is drawn was not found).
+  - The " (Sp : n)" the description window adds to the skill's name is not written (`UISkillDescribeWnd`,
+    `UM_SKILLDESCRIBE`; where that text is drawn was not found).
   - Not read: what `skillinfo_f.lub` (compiled) hands `c_AddNeedSkillList` for a job, so whether the client
     lists only the direct needs was taken from the C++ alone.
 
@@ -188,15 +194,22 @@ classic game not made yet.
   last "Do you still want to refine?") is cut by the window's lower edge until it is moved, as in the client
   with the English service's font: a line is 15 and 6 there (`CCreateLineInfo::ArrangeLines`, Arial of 15 for
   the family 0 at 12, `TextContext::SetFont`), so seven lines end 145 down in a viewer of 140, and
-  `UITagTextViewer::AddText` does not move the text to its end. Since 2026-11: the viewer has the client's bar
-  and the wheel and the arrows move it 30 (`scrolling.rs`; seen in the game). The bar is the page's own,
-  drawn with the client's pictures (`.bar` of `index.html`): its handle is not sized or dragged to the pixel
-  as `UIScrollBar` does, and a browser without `::-webkit-scrollbar` draws a thin plain one.
+  `UITagTextViewer::AddText` does not move the text to its end. The viewer has the client's bar and the wheel
+  and the arrows move it 30 (`scrolling.rs`).
 - The storage stands where this client has always had it, not at the client's 360, 200
   (`web/hud/windows/storage.rs`).
 - Opening a stall: what is wrong is said in the chat in red, not in message boxes
   (`web/app/clicks/vending.rs stall_opened`).
-- Long lists are scrolled themselves; the client has a 15-wide bar (`web/hud/lists.rs list_of`).
+- The scroll bar (`scrolling.rs Bar`, `web/app/scrollbars.rs`, 2026-11-27) is the client's in its pictures,
+  its handle's size and place, its arrows, its pages and the drag of its handle; the list beside it is still
+  scrolled by the page, so: a list of rows found between two rows is taken as on the nearer; the pointer over
+  the bar is not the client's (`SetCursorAction(2)`); a bar's length is its list's, where the client's window
+  gives its own (`height - 38`, `height - 58`, `height - 87`: the same wherever it was compared). Lists that
+  still have no bar, or the browser's: the emotions, the chat tab's list of kinds, the World Map's list, the
+  castles of a guild, a chat room's members, the quest windows and the Adventure Guide (`CUIVScrollBar`, 7
+  wide, `.viewer`), the achievements (`.achbar`), the mail, an item's and a skill's description, and the
+  windows of the replay, the party booking and the combos (`.bar`, the browser's bar in the client's
+  pictures). The chat's list is still moved by the wheel as a page moves it, not three lines a notch.
 
 ### Chat
 - The chat's tabs (`chat_tabs.rs`, 2026-11-26). A tab is pulled out of the window once the pointer is more
@@ -252,6 +265,12 @@ classic game not made yet.
   byte) is refused as a broken file; what the client does with one was not looked for (`sprite/spr.rs`).
 
 ### Party, guild
+- The window of the party's instance (`web/hud/instances.rs`, `web/hud/windows/instances.rs`): Escape puts it
+  away as its cross does (what the client's Escape does to it was not found); the left button of its title
+  bar is drawn and does nothing, as in this client's other windows (the client's folds the window to its
+  title); the lines about entering are stood about their middle whatever their number, where the client
+  stands a single line 55 down (its texts are never a single line); the place it was dragged to is kept as
+  every window's is here, not in the client's two numbers of its own.
 - The owner's decision, 2026-11-21: the menu on another player offers a guild's master "Send an Guild Alliance
   Request" only while that player's guild is not allied already, "Set this guild as an Antagonist" only while
   it is not opposed already, and neither on a player of no guild (`crate::guild::relation_rows`,
@@ -429,6 +448,18 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   Bard's song, Meteor Storm, Heaven's Drive, an NPC's `specialeffect` 4, 54 and 71, the waterfalls of
   Yggdrasil, the ghosts of Niflheim, the dust of Morocc, a potion's effect 7 (now `Exit`).
 
+- Volcano, Deluge and Violent Gale (`web/world/prims/grounds.rs flare`) hide those standing in them almost
+  wholly: 49 low walls of light, each mixed in at up to 180 of 255, all drawn after the bodies. The client
+  draws them after the bodies too (their `renderFlag` 5 puts them in `RenderQueues::queue_01EC`, drawn after
+  the sprites, which write no depth: `GameObject.cpp:883`, `AlphaQueuesDX9.cpp WritesDepth`), so the order is
+  the client's; whether its walls are as dense was not compared with a picture of the Windows client (seen
+  here 2026-11-27 in Volcano, from two tabs).
+- A member's job in the party window after that member, or the one looking, came into the party or the game
+  anew is what rAthena's char server read when it loaded the party (`int_party.cpp`: the class is read from
+  the table once, `mapif_parse_PartyChangeMap` renews the map and the level only): a job changed since then
+  shows as the old one until the server loads the party anew. ZC_NOTIFY_MEMBERINFO_TO_GROUPM, which the map
+  server sends as the job changes, is followed (seen 2026-11-27 from both tabs). The server's, not this
+  client's.
 - States on a body (`ailments.rs`, `state_effects/**`, `body/**`, `web/world/ailments.rs`), spirit spheres
   (`spirits.rs`), ground units other than the traps seen (`skill_units.rs`, `web/world/skill_units.rs`),
   cast circles (`scope.rs`), cooldown shades (`cooldowns.rs`), the aura (`aura.rs`, `web/world/aura.rs`).
@@ -497,10 +528,10 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   beyond its first opening (`web/hud/tips.rs`).
 
 ### Maps, world
-- A copy of a map made for one party was not entered: every instance of the classic server asks for a party
-  of two (`instance_check_party(…, 2)` in `npc/instances/*.txt`), and a playtest has one player. The map
-  such a copy is of, `1@tower`, was entered by `@warp` and loads with its music; the client's files have no
-  minimap picture for it (`유저인터페이스\map\1@tower.bmp`: none in the archives), so none is shown.
+- A copy of a map made for one party: `1@orcs` was entered with a party of two (2026-11-27, see `DONE.md`
+  26) and loads; `1@tower` only by `@warp`. The client's files have no minimap picture for either
+  (`유저인터페이스\map\1@orcs.bmp`, `1@tower.bmp`: none in the archives), so none is shown. Not seen: what is
+  in such a copy (its NPCs and monsters were not played), the queue for one, one ending by its time.
 - The World Map (`web/hud/worldmap.rs`); weather (`web/world/prims/weather.rs`), sky, fog and night
   (`scenery/dark.rs`, `fog.rs`, `views.rs`, `web/world/scenery.rs`); map effects and sounds
   (`scenery/makers.rs`, `web/world/scenery/placed.rs`).
@@ -535,6 +566,9 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - Whether Escape closes the box of a Talkie Box's words: `IsOrderFixed` names Graffiti's box and not the
   Talkie Box's, but `CloseWindow` has no arm for `WID_TALKBOXTRAPINPUTWND`; here neither box is closed by
   Escape (`web/hud/windows/skills.rs SKILL_WORDS`).
+- How `UITabControl` draws the mark `SetFlag` puts on the skill window's tab "Etc." while it has a skill
+  not looked at yet (`UINewSkillListWnd::OnCreate`, `UM_REFRESH_EXTRA_SKILL_TAB`): the tab is drawn plain
+  (`web/hud/skills.rs skill_window`).
 - Whether sight-state effects count loop passes or ticks: `state_effects/kept.rs`; the same for a body's
   passes: `web/world/ailments.rs bodies`.
 - What `renderFlag & 0x200` does to a played sprite: `web/world/prims/played.rs`.
@@ -568,7 +602,6 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 
 ### Party, guild
 - What the chat says when a party gets another leader (nothing is said): `web/app/incoming/party.rs`.
-- How the client counts a guild member's `expRatio`: `web/hud/guild/members.rs guild_member_row`.
 - An alliance refused: rAthena answers the one who asked with 3 of ZC_ACK_REQ_ALLY_GUILD
   (`guild_reply_reqalliance`), which is the client's "The other guild has too many Alliances." (line of
   `REQALLYGUILD_OVERSIZE`), not its line for a refusal (1): the chat says what the client would say to that
@@ -640,6 +673,15 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   is never tried after that, because the first file there is the one taken.
 
 ### Found in the game by the owner and the lead, not explained or not compared
+- After the link dropped (the server restarted, or a hidden tab timed out before `web/app/beats.rs`), the
+  login screen came up three times without some of its pictures (2026-11-27): the box "Disconnected from
+  server." without its ground or its OK, once the login window without its ground too; the texts stood
+  where they belong and a press where OK is closed the box, and the next screens were whole. The elements
+  had the right addresses and the pictures loaded when asked for by hand; the browser's list showed one
+  request for `btn_ok.bmp` cut off (`ERR_ABORTED`) as the screen was written. Not explained: writing the
+  music's hint into the corner without writing the page anew (tried, taken out again) changed nothing.
+- The window that leaves a party (`ReceivePartyMemberLeft`) closes the instance's window too since
+  2026-11-27 (`incoming/instances.rs instance_forgotten`): by reading only.
 - The message box of a question (`hud/boxes.rs confirm_box`) is the client's `UIMessageBox` since 2026-11
   (title bar "Message", three lines of 18 cut at 37 letters, its bar and the wheel for more: `message_box.rs`;
   seen in the game with the homunculus's question of six lines). Left: the lines are cut by letters where the
@@ -663,8 +705,9 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
 - Storm Gust and Magnus Exorcismus on a light floor: a single `StormGust.str` still whitens light sand at its
   height (seen 2026-11-26 in the Sograt Desert), as light added to a light floor must; what made it brighter
   than the client's is taken away (the file played again for every hit of every unit; the pictures kept in
-  8 bits a colour). Not compared with the Windows client side by side. Still different from the client: Storm
-  Gust's ten spikes of ice (`CRagEffect::StormGust`, `PP_3DQUADHORN` with `ice.tga`) are not drawn; an effect's
+  8 bits a colour). Not compared with the Windows client side by side. Still different from the client: (Storm
+  Gust's spikes of ice, `CRagEffect::StormGust`, are drawn since 2026-11-27: eight, two at each of four ticks;
+  seen with `@effect 89` only;) an effect's
   file draws its layer 0, which the client skips (empty in both files); the last key of a layer is applied a
   frame late (`effect/transform.rs`). Magnus Exorcismus was not looked at in the game after the change.
 - A character's own level-up shows whenever ZC_PAR_CHANGE tells its level, also when a GM lowers it
@@ -817,6 +860,12 @@ written from `../rodecomp`, covered by tests where it is pure, never looked at i
   `LOADING_PICTURES` stay in `web/app.rs` though only `app/page.rs` uses them.
 
 ### World and primitives (`client/src/web/world/**`, `prim/**`)
+- Tidy of 2026-11-27: the three listeners of a gesture are wired once (`web/app/wiring.rs wire_gesture`: the
+  windows dragged, the chat's tabs, the scroll bar's handle), and the wheel and the arrows move what an NPC
+  said by one rule (`step_list`). Left: the small repeats of `web/world/pursuit.rs` (`chase` and `fetch` end
+  alike: the order turned into a walk or a wait) and of `web/world/combat.rs` (the three lines every function
+  of the world begins with); where the pointer was last is still kept by the tooltip (`web/app/tooltip.rs`)
+  and by the world (`web/world/input.rs`), each for itself, since the world does not reach into the app.
 - Pure rules still under `web/world`: `pursuit.rs`; in `camera.rs` the vector arithmetic of `Camera::view`
   and `View::ray` / `project` / `pick` (tied to the types of the world and to `Gat`) and `shaken` (draws a
   lot of the browser); `overlays/pointer.rs` (`DISTANCE / distance * height / 480.0`). `pose.rs` keeps only
@@ -880,13 +929,14 @@ the code has no note on them: whether they arrive was not checked.
   second until then (`web/sound.rs`, `web/app/wiring.rs`).
 - A tab in the background falls silent (`web/app/screen.rs tune`).
 - A page that is not shown has its timers held back by the browser (one beat a second, and after some
-  minutes one a minute), so the watch on the connection (`link.rs watch`) may wake a minute after the last
-  answer came. It closed the connection then ("Disconnected from server.", seen in the two-player playtest
-  of 2026-11-21: a tab left in the background for some minutes). Against the client's
-  `CPingLiveSchedule::Process`, it now asks first and closes only when what it sent stays unanswered
-  (`ANSWER_WAIT`): tests only, not waited out in the game. Left: the keep-alive itself is held back the same
-  way, and the server's own `stall_time` (60 seconds, `conf/packet_athena.conf`) may still end a page kept
-  hidden for long; a timer in a worker would not be held back.
+  minutes one a minute), and the server ends a connection it has heard nothing from for a minute (rAthena's
+  `stall_time`, `conf/packet_athena.conf`). So the two beats of the connection (the keep-alive and the watch
+  on it) come from a worker, whose timers are not held back (`web/app/beats.rs`); the page's own timers beat
+  only where no worker can be made. This is the browser's need: the Windows client has nothing of the kind.
+  Before it, a tab left in the background lost the game: seen 2026-11-21, and timed 2026-11-27 (hidden at
+  19:08:03, "Character logged off" in the server's log at 19:12:15, with every other hidden tab of the same
+  browser in the same second). The watch still asks first and closes only when what it sent stays unanswered
+  (`link.rs watch`, `ANSWER_WAIT`: tests only).
 
 ### Companions, files
 - A page reads no file of the player's disk: AI scripts and their notes go through the gateway and memory
@@ -1051,10 +1101,13 @@ the decompiled client.
   rows_stepped`): the shop, storage, cart, inventory, vending, the lists to pick from, friends, party, guild
   members, the guild's table and skills, an NPC's menu, the Tipbox's list. Not so yet: the emotions, the
   options' rows, the chat tab's list of kinds, the World Map's list (how the client steps them was not read).
-  None of these lists has the client's bar: they are moved by the wheel alone.
-- A thing's own tooltip in the inventory, the hotkey bar, the skill lists and the states' icons is the
-  browser's (`title`), which comes late and in the system's look; only the menu's icons and the like have the
-  client's (`data-tip`).
+- A thing's tooltip is the client's since 2026-11-27 (`tooltip.rs`, `web/app/tooltip.rs`). Left with the
+  browser's (`title`): the rows of the shops', the storage's and a stall's lists (the client says the name,
+  the amount and the price there: `UIMerchantItemShopWnd::OnMouseHover` and its like), the quest marks, the
+  party's and the mail's pictures, the chat's buttons. The colour of a thing with cards past its slots
+  (`ItemCardColor`) and the yellow of one bound when worn are not given (no item of the classic game has
+  either). A tooltip is put by its thing's corner in the page's measure, the client's by the cell the
+  pointer is in: the same place for a cell.
 - The question of an NPC's shop (buy, sell, cancel) has no words in it; the shop's list and the guild window
   open over Basic Information; the pet, homunculus and mercenary stand on the character after a warp.
 - Enter in an NPC's menu was not seen to fail in any case tried (Kafra, smith, metal seller; the chat's line
@@ -1097,13 +1150,15 @@ the decompiled client.
   (`tables/probability.rs`), by names copied out of the client's compiled list.
 
 ### Bank, attendance check, cash shop (2026-11-26)
-- What the server here lacks, for the owner to add (never done by the workers): `rathena/db/import/attendance.yml`
-  with a period (`Start`, `End` as YYYYMMDD and `Rewards: - Day, ItemId, Amount`), whose days and rewards must
-  be the same as the client's `System\CheckAttendance.lub` (now 20260304 to 20260331, twenty days of items of
-  later content that the classic item database does not have: the file of the client has to be written anew
-  with it); `rathena/db/import/item_cash.yml` with `- Tab: <New|Hot|Limited|Rental|Permanent|Scrolls|
-  Consumables|Other>` and `Items: - Item: <AegisName>, Price: <cash points>`. Until then the attendance
-  window never opens and the cash shop is empty, and both are by reading only beyond that.
+- **The attendance check's table is the server's, not the client's (this project's own, 2026-11-27)**: the
+  client's `System\CheckAttendance.lub` has an event that is over (20260304 to 20260331) and twenty rewards of
+  later content the classic item database does not have, and a server gives its own rewards whatever the
+  client draws; the two agree on a Windows client only by writing that file anew, and the client's files are
+  never changed here. So the gateway gives the browser the period of the server's own database that runs today
+  (`server/db/attendance.yml`, the file Docker mounts as rAthena's `db/import/attendance.yml`;
+  `--attendance <file>`), and the client's file only when there is none. The period is picked as the gateway
+  starts: a gateway left running past the period's end, or started before a change of that file, shows the old
+  one until it is started again.
 - Cash shop, not made: dragging a thing into the list of what is bought and out of it, with the box that asks
   how many (`UICashShopWnd::DragAndDrop`, `UICashShopWnd_Cart::DragAndDrop`: a thing goes in one at a time
   by "Buy" and the plus); the double click on a kind that takes it out; the wheel and the thumb of the list's
@@ -1115,7 +1170,9 @@ the decompiled client.
   (`cashshop_buylist`); a search keeps the page's size of the tab it was begun on.
 - Attendance: the banners of `tb_checkattendance_banner.lub` are not drawn (the table is empty); the files
   `CheckAttendance_<server>.lub` for the Korean servers are not read; the days left are counted as the client
-  counts them, by the player's own clock.
+  counts them, by the player's own clock. In a letter (the reward's), a line of the message table named by
+  its name in the client's code (`<MSG>MSI_…</MSG>`) is not written out, only one named by its number; the
+  links to places and items in a letter are still shown as written.
 - Bank: the client refuses a deposit and a withdrawal while a window of Lapine, reforming, enchanting or
   runes is open, and the window while one of refining or of the barter market is: none of those windows
   exists here. The window's field takes any letters, as the client's does.
@@ -1126,15 +1183,18 @@ the decompiled client.
   (`TextContext::SetColor`): not compared with a picture of the Windows client.
 
 ### Battleground, Adventurer's Agency, Replay (2026-11-26)
-- **For the owner, to switch on (never done by the workers)**: the Adventurer's Agency talks to the game's web
-  service, rAthena's `web-server`, which the Docker setup neither builds nor runs
-  (`server/Dockerfile` copies `login-server`, `char-server`, `map-server` only; `docker-compose.yml` has no
-  service for it). Needed: build it (`make web` beside `make server`, copy `/rathena/web-server` into the
-  image), run it as a fourth service (`./web-server`, its port 8888 published on 127.0.0.1, `conf/web_athena.conf`
-  pointed at the database as the others are), and keep the login server's `use_web_auth_token: yes` (its
-  default). The gateway hands `POST /party/<request>` on to `--web-server` (`127.0.0.1:8888` when not given)
-  and answers 502 until then; the map server reads the same `party_bookings` table when a leader is asked.
-  Until it runs the board shows as the client's does without its service: empty, its arrows dim.
+- **For the owner**: the Adventurer's Agency talks to the game's web service, rAthena's `web-server`, which
+  the Docker setup builds and runs since 2026-11-27 (the service `web`, port 8888 on 127.0.0.1). The gateway
+  reaches it at `--web-server` (`127.0.0.1:8888` when not given): a gateway built before the agency was made
+  has to be built and started anew.
+- **A search by the note brings rAthena's web service down** (seen 2026-11-27; the Windows client would do the
+  same to it): `partybooking_search` of `../rathena/src/web/partybooking_controller.cpp` puts the note into
+  the query as `like '%note%'` and hands the query to `SqlStmt::Prepare`, which reads it as a `printf` format.
+  The service ends, Docker starts it again within seconds, the board keeps what it showed (the gateway answers
+  502). To put right in rAthena, by the owner: the two `%` of that line written `%%`. Its search also takes
+  the two levels as they are (`minimum_level` = and `maximum_level` =), not as a range.
+- `/organize name` typed while the party window is closed shows nothing: the setup window is drawn beside the
+  party window only (seen 2026-11-27; the party's, left).
 - rAthena's web service answers `/party/add`, `del`, `get`, `info`, `list`, `search`; not `/party/change`
   (`CAdventurerAgencyMgr::RequestChangeMaster`, sent when the party's leader changes): this client does not
   send it. Its `list` gives every notice at once and calls their number `totalPage`: the board shows the first
@@ -1145,53 +1205,199 @@ the decompiled client.
   the fields of the search and of a notice are named by hand on both sides (`agency::SEARCH_FIELDS`,
   `NOTICE_FIELDS`); the windows open where the client first puts them and are not kept from one session to the
   next.
-- **The older party booking** (`UISeekPartyWnd`, `UISeekPartyListWnd`, `UISeekPartyMBWnd`,
-  `UIPartyBookingHelpWnd`, `CPartyBookingMgr`; CZ_PARTY_BOOKING_REQ_REGISTER 0x0802 and its kin, and
-  CZ_PARTY_RECRUIT_* 0x08e5…) is not made. In the client of 2026 nothing of the menu or of the party window
-  opens it: only the chat commands `TT_SEEK_PARTY` and `TT_REQ_RECRUIT` do (`MM_OPEN_SEEKPARTY_MEMBER`,
-  `MM_OPEN_SEEKPARTY_LIST`), and the menu's old "booking" icon is skipped as the strip is built
-  (`UIMenuIconWnd::OnCreate`). rAthena reads 0x0802 as a party invitation at this PACKETVER and has 0x08e5 only
-  "to prevent disconnections". Left: the four windows (some 1500 lines of the client), their packets, the two
-  commands.
+- **The old party booking, against the client** (made: `docs/DONE.md`, section 26).
+  - *Decided here against the client of 2026*: `/recruit` and `/booking` open its two windows. That client
+    still has the windows, their packets and what the commands do (`TT_SEEK_PARTY`, `TT_REQ_RECRUIT`), but no
+    word for either in its table of commands (`CSession`'s `m_commandIds`), its two hotkeys are hidden
+    (`HK_PARTY_RECRUIT`, `HK_PARTY_BOOKING_LIST`: `HiddenInterfaceIndex`) and the menu's old icon is skipped:
+    nothing a player does opens the booking there. The two words are those the client's own help of the
+    booking still gives (`PartyBookingHelp` of `party_booking_config.lub`); the owner asked for them.
+  - The windows first stand 510 across and 360 down as the client's, but are kept on the screen, and their
+    places are not kept from one session to the next (the client keeps them in the registry). The window of
+    one's own ad has no part in the order of windows (the client's `IsOrderFixed`) and so lies under the
+    others here: opened in the same place as the list, it is under it until one of them is moved.
+  - Not found in the client: what fills `PartyBookingMgr`'s names of regions and maps (the code that reads
+    them is there, `MakeEntry`; here they are the lists the windows themselves read), so an ad of region 0
+    is not shown (none is registered so); the height of a line of `UIComboBoxEx` (16 here) and how the
+    words "LEVEL", "MAP", "JOB" are drawn (`SetText(.., 1)`: plain here). The box that drops a list
+    (`web/hud/combos.rs`) is written once for the booking; the reputation's own drawing of the same box
+    (`hud/reputation.rs`) is not moved onto it.
+  - The time of an ad is what rAthena sends, the moment it was registered, shown in the browser's own time
+    (the client names the field the time it expires).
+  - The windows stay open across a change of map (the client makes its windows anew for each map and opens
+    only that of one's own ad again); they close when the game is entered anew.
+  - rAthena's own: the search goes by the ad's level being within fifteen UNDER the level sought
+    (`party_booking_search`), the client's own filter of new ads by it being within fifteen OVER; the last ad
+    of a page is given again at the head of the next (the list keeps it once). Neither is mended here.
+  - The fields of the level are named by hand on both sides (`booking::LEVEL`, `OWN_LEVEL`).
+  - Not seen in the game: see `docs/DONE.md` (an ad of another player, the next page, the server's refusals).
 - Battleground, against the client: the window that asks whether to enter has no cross (the client's does
   nothing); the help opens beside the list (the client gives it no place); the list's windows are not kept
-  from one session to the next. Not made: the battleground's own chat (`/battlechat`, CZ_BATTLEFIELD_CHAT
-  0x02db; ZC_BATTLEFIELD_CHAT 0x02dc is read with the other notices as before), ZC_BATTLEFIELD_NOTIFY_HPSP
-  (0x0baa, not sent by rAthena). Not seen in the game: everything from a battle that is ready onward (see
+  from one session to the next. Not made: ZC_BATTLEFIELD_NOTIFY_HPSP (0x0baa, not sent by rAthena). Of
+  the battleground's own chat (`/battlechat`, made: `docs/DONE.md`, section 26): the line of a speaker that is
+  a monster by its number is not given the client's colour for it (`MonsterJobColor`); the client's count of
+  the same line said again and again (`ShowRestrictedNotice`) and its silence under Frenzy
+  (`IsBerserkActive`) are not made for it; a line heard was never seen in the game. Not seen in the game: everything from a battle that is ready onward (see
   `docs/DONE.md`).
 - **Replay: where the browser decides.** There is no `Replay` folder: recordings are kept in the browser's
   IndexedDB (`roweb-replays`), and the list has three buttons of this project's own, "Save to a file", "Load
   a file" and "Delete" (their words are not the client's). The Windows client is started apart for replays
-  (its replay mode); here the login screen has the client's `btn_replay.bmp` under the login window, which
-  opens the list in the login's place. The list has no Exit button (a page is not quit).
-- **Replay: the file.** The container is the client's `.rrf` (text, signature, keys, table of sections, header
-  as tagged records in section 2, packets in section 1, the cipher), but a file of one client does not play in
-  the other: the Windows client keeps what its session held when the recording began as copies of its own
-  memory (sections 3 to 25: `CSession::Build…ReplayRecords`), which this client neither writes nor reads. In
-  their place a file here has one section of its own (the 24th place of the table, number 124): who the
-  character is, and every packet of the map server from entering the game to the recording's beginning, which
-  the player hands to the game at once. More than 32 MB of them are not kept (`BEFORE_MOST`): a recording
-  begun after that many begins from an incomplete state. A file of the Windows client shows in the list with
-  its header and is answered "No Replay File." at OK.
-- **Replay: left.** What the client records of its own windows (CC_REPLAYPACKET 0x08ae: presses, drags, texts
-  typed, `UIWindow::RecordResponse` and its kin) is neither recorded nor played, so windows the player had
-  open are not opened in a replay. The options other than the chat change nothing here (in the client they
-  decide which windows a viewer may open, `Replay::AllowsEvent`, and which sections are written); the boxes
-  "Guild" and "Status" are not shown, as in the client. While a recording plays, the windows and the keys are
-  not held back as the client holds them (`AllowsEvent`): what is pressed sends nothing, there being no
-  server, but opens what it opens. The sounds of what is caught up with at the beginning are all heard at
-  once. The keys of the player (the client's interface keys 39 to 41) are not made. The direction the
-  character faced is written as 0. Speeds of 8 and 16 times have their lines in the table and no button, as
-  in the client.
+  (its replay mode, the list reached from its window of services, `UISelectServerWnd` with `ID_SELECT_REPLAY`,
+  which this client does not have); here the login screen has the client's `btn_replay.bmp` under the login
+  window, which opens the list in the login's place. The list has no Exit button (a page is not quit).
+- **Replay: the file, section by section** (all of it by reading the decompiled client: there is no Windows
+  client here to try a file in, and **nothing was tried against a real Windows client**, in either
+  direction). The same in both: the text of 100 bytes, the signature and the keys, the table of 26 sections
+  (each entry in the place of its number, the 25th place marked 111, the first section at 0x174), the
+  cipher, section 2 (the header's tagged records), section 1 (the packets, each after frame, tick and size;
+  only the packets the client's table marks for recording, `replay/recorded.txt`, and no chat without its
+  option). A recording begins from a snapshot as the client's does, and so does a replay; per section:
+  - **3 the character**: every member from 1010 to 1101 at its size. Filled: the account, the character, the
+    job, the levels, the experience, the points, the stats and their costs, the fighting values, zeny, speed,
+    the head and its colour, the clothes' colour (1063, which the decompiled client calls `m_bodyStyle`), the
+    three headgears, the weapon and the shield (as item numbers, the left hand's half of 1061 nought), the
+    body's state and the effect state (1068, 1069). Zeros: the cart's counts, the party's sharing, the
+    ammunition's place (1050), the robe, the skill points of guild, homunculus and mercenary, the rest.
+  - **4 the stats**: the bonuses, weight, HP, SP; zeros for the five rows of twelve numbers the decompiled
+    client does not name; the account's name empty.
+  - **6 quests**: fully, but a quest's time is written as a date in UTC (the client writes its own clock's).
+  - **7 party and friends**: fully as the client keeps them (it keeps neither job nor level of a member: the
+    character's own are filled in again at playback); the flag of the session and who asked into a party not.
+  - **8 items**: the inventory, the cart, an open storage and the ten worn. Not written: what an item looks
+    like worn (`sprite`), prices, a rented one's end, grade and random options (this client keeps none of
+    them with an item); the other ten lists and five rows (shops, a deal, costumes: a costume worn stays in
+    the inventory's list with where it is worn). Which accessory stands at 3 and which at 7 of the ten was
+    not found in the client: the right one is put at 3. At playback the storage's list is not shown.
+  - **9 companions**: the homunculus, the mercenary and the pet as far as this client keeps them (not what
+    each fights and does, the pet's egg, the homunculus's accessory; its most hunger is written as 100); no
+    elemental.
+  - **10 memorial dungeon, 12 the battlegrounds' queue, 14 the shops**: only defaults (what a new session
+    holds), though this client has the first two as windows: not kept past them.
+  - **11**: the client leaves it empty and reads nothing of it. **This project's own**: one record in it,
+    the character's sex (9014), which no section of the client's has (its session has it from the login). A
+    file without it (the Windows client's) is played as a man.
+  - **13 the hotkey bar**: the 36 places of the first bar; the two quick places empty.
+  - **15 everyone in sight**: each from what the world holds of it now, as the packet 0x09FF where it stands
+    or 0x09FD (setting out now from the cell it has come to) when it walks, a chat room's and a stall's sign
+    after its owner, the portals as NPCs of the job 45. Not kept by the world and so nought: the third
+    option (Fury and the like show only when told anew), a robe, a player's character number, the honour;
+    another player's homunculus or mercenary is written as a pet (7); the places a script's effect plays at
+    (the unseen NPC 139) and a buying stall's sign are left out; nothing for a bar that fills or a Madogear.
+    At playback the chunks of older shapes (0xD0 to 0xD8 but the two) are passed by.
+  - **16 things on the ground**: fully. **17 skills' units**: the unit, its cell, its kind in a byte and
+    whether it is seen; who made it is nought (the world does not keep it); none with words. Read by a new
+    reader of ZC_SKILL_ENTRY (0x011F). Not seen in the game: no unit stood there.
+  - **18 the states' icons**: the state, the time left and the whole time; the three values nought.
+  - **19 the windows, 20 the setting, 21, 23 the flag `isOnQuest`, 24 the navigation**: only defaults (no
+    window is written or opened again; what the flag means was not found).
+  - **22 names and guild**: the names of the players in sight with their party's and guild's, the
+    character's own, its guild and the emblem's version; no emblem's file. At playback the names of party
+    and guild are put under the players; the emblems are not.
+  - **The head of the packets**: the two packets of the map's kind as they last came, the three lists of
+    skills in the layout of 37 bytes (a skill's name in the client's files is left empty: this client has
+    the names only as shown), and, this project's own, a ZC_NOTIFY_TIME with the server's clock, by which
+    the replay's clock is set (the client's files have none there: such a file's clock is set by the first
+    walk or time it tells). The fourth packet of the client (`BuildStatusReplayPacket`, in a mode of the
+    session the decompiled client does not name) is not made.
+  At playback the game is entered by a ZC_ACCEPT_ENTER made of the header (the client sets its session's
+  place from the header without one); the way the character faced is written into the header and not shown
+  (it begins facing south). One that walked as the recording began walks on from its cell; while a replay
+  is held, such walks go on (see "while one plays"). The sounds of the states given back are heard at once.
+  **A file of the Windows client here**: read as far as the above; never tried. **A file of this client in
+  the Windows client**: laid out as its own by every size this page could find; never tried. Files this
+  client wrote before the evening of 2026-11-27 began from a section of its own (the fifth place of the
+  table, or the 24th under the number 124: who the character is and every packet of the map server since
+  the game was entered) and are still played from it; new files have none.
+- **Replay: the records of the windows** (CC_REPLAYPACKET 0x08ae; `replay/told.rs`, read back in
+  `replay/told/read.rs`). The client writes what its dialogs, shops, lists and accept boxes were answered
+  (`UIWindow::RecordResponse`, kind 900: its number of the window, its number of the command, three values),
+  drops (901), the texts of a window's fields as its OK is pressed (902), tabs and boxes of the quest window
+  (913), and plays them by sending the same to the same window. This client now writes and reads the same
+  kinds for the windows it has, window and command as the client's:
+  - the talk: "next" and "close" (16, 218, the third value 22 or 89), the menu's OK and Cancel (17, 184/185),
+    the number and the words typed (902 of 56 or 100, then 184);
+  - a shop: the question (25: 224, 223, 185), the baskets' OK and Cancel (23 and 24), the box "Toggle Item
+    Amount" (22, 213, what it becomes), a row let go over a basket or back (901 onto 23, 24 or 22, from 3, 4 or
+    5), the count box (902 of 15, then 15, 184, 100, the number, what was asked: 1 to 4);
+  - the lists of a skill or an item: OK and Cancel of 39, 94, 99, 74, 79, 80, 107, 111, of the magnifier's (73)
+    and the eggs' (90), the row where each window records it; a thing let go over a forging (901 onto 80);
+  - the boxes that ask: a deal (32), an invitation to a party (35), to a guild (70), to be a friend (109);
+  - a deal's window: a thing let go over it (901 onto 10011), its count (15 with 5 asked), its zeny (902);
+  - the quest window: its opening and closing (909, 914, as before; the client itself writes no closing for
+    that number), its four tabs and its box (913 of 10008).
+  **Against the client, this project's own:** a menu's and a warp list's OK carry the row in the first value
+  always (the client's does only when the row was double-clicked; its button leaves 0, and the row it picked
+  is then not in its recording at all), and the list of spells (99) likewise, where the client records no
+  row; a drop is written without where on the window it fell, prices, slot, refining, cards and options
+  (nought), and is found again by the item's number or its place where it is carried; a text typed is written
+  as this client sends it (UTF-8), not in the client's code page. **Still this project's kind 990** (the
+  press's name; the Windows client passes it by), because the client records nothing for them: the deal
+  window's OK, Trade, Cancel and its box of a screenshot (`CUIExchangeUI` has no `RecordResponse`), a slot of
+  a forging emptied (the client has it dragged out), the cross of a script's picture (`UIIllustWnd`).
+  **Not recorded at all:** a row only picked and a link to an item in a talk (nor does the client), the boxes
+  of the party, guild and friends that ask anything but an invitation, the client's plain message boxes
+  (`UIMessageBox`, whose number is not one of this client's windows), a chat room's settings (904), the
+  navigation (900 of the window 203, 908, 910 to 912): the client's navigation records lean on its whole
+  state written out (911, `CNavigationManager::WriteStates`) and on rows of its lists by their numbers, which
+  this client's navigation keeps in another shape; its kinds are passed by when read. Kinds 903, 905 to 907
+  are passed by too. **Tried:** every rule by tests; in the game the reading only, from a recording made up
+  of an older one of this client (its 990 turned into the client's kinds, a number field and a shop put
+  after it): the talk's "next", the menu answered, "close", the number typed into the field and sent, the
+  shop's question answered, things let go over the basket and back with the count box answered, the
+  basket's OK, each window opening and closing with no hand. **Not tried in the game:** the writing (no
+  session was played with this change: the worker could not log in), the lists, the deal, the boxes that
+  ask, the quest window's tabs; a file of the Windows client.
+- **Replay: while one plays.** Held back as the client holds it, by reading `UIWindowMgr::ProcessShortcutKey`,
+  `Replay::AllowsEvent` and the checks of `g_replayAnimationScaling`: the keys (the player's three; minimap,
+  World Map, quests, commands; the character's windows by the recording's options), the presses of the page
+  (the player, the menu's fold, the windows of status, items, equipment, skills, party and friends by the
+  options; nothing else), every form (nothing typed is taken), Escape (closes the window in front, never
+  opens the options), Enter. Simpler than the client: a window allowed is allowed whole (the client dims
+  single buttons inside them); a press on the world is not held back (it sends nothing, there being no
+  server; the client's `CWorld` check was not followed to its end). Not made: everyone's motions drawn slower
+  or faster with the speed (`Replay::AnimationScale`, `DelayScale`: the packets come faster, walking and
+  striking keep their own time); the waits of skills counted by the player's clock (`CooldownState`).
+  Speeds of 8 and 16 times have their lines in the table and no button, as in the client.
+- **Replay: the recording.** As the client: it ends when the character is moved to another map or enters the
+  game anew, the recorder put away (the client's state 3, in which nothing more is written and from which a
+  new recording is begun by hand); this client then also keeps the file with its length, where the Windows
+  client leaves it unclosed and reads the length from its last record. It also ends, kept, when the
+  connection does. The chat's line at Stop names the folder `\Replay\` and the file, there being no path.
+  The sounds of what is caught up with at the beginning of a replay of an older file are all heard at once.
+- **Replay: ordered and not done** (the owner's list of 2026-11-27): inside a window the one watching may
+  open, single buttons dimmed as the client dims them; presses on the world held back; everyone's motions and
+  walks drawn by the player's speed (`Replay::AnimationScale`, `DelayScale`) and standing still while it is
+  held; the waits of skills by the player's clock; the navigation's records (908, 910 to 912); a recording
+  of five minutes and more, one with a deal and with storage, played and looked at (the longest looked at
+  is 1:13, with a shop).
 
 ### Navigation (2026-11-26)
-- The tables are the Korean service's of 2026 (`navi_*_krpri.lub`, with the translated client's names from
-  `SystemEN\Navi_Data.lub`): the NPCs, monsters and ways out of kRO's Renewal world. On this classic server a
-  way may lead through a portal, a Kafra or a map the server does not have, and monsters are listed where
-  Renewal has them. A table of the server's own world is made by rAthena's `map-server-generator
-  --generate-navi` (it writes `navi_*_krpri.lub` from the server's scripts): the owner would run it against
-  the server's `npc/` and put the files into the client's `data\luafiles514\lua files\navigation\`.
-  Nothing here checks a way against the server.
+- The tables are the server's own where it has them (2026-11-27): `server/navigation.sh` runs rAthena's
+  `map-server-generator --generate-navi` once, in a container of its own (the same sources, conf, scripts and
+  map cache as the map server's; an empty database of its own), and writes `navi_*_krpri.lub` into
+  `server/navigation/pre-re/` (not committed: made data, as the map cache is); the gateway reads that folder
+  (`--navigation-dir`) and gives the client's own tables only where it holds none. What the generator does
+  not know, and so the navigation on this server does not either:
+  - Only portals (`warp`, kind 200) are ways out. A Kafra's teleport, a ship, the airship, and every NPC that
+    takes one somewhere when talked to are not in the table (the client's own has them as kinds 201, 204 and
+    205), so the box "service" changes nothing, and a place reached only through such an NPC has no route:
+    Morroc from Prontera or Payon ("Failed to find a path": every field around it leads into `moc_fild20`,
+    which is left only through its Continental Guards), the islands, the towns over the sea. rAthena's way to
+    add them is a label `OnNaviGenerate:` with `naviregisterwarp "<name>","<map>",<x>,<y>;` in the NPC's own
+    script (as `npc/custom/warper.txt` has it); none of the server's scripts has one. Left for the owner to
+    decide: such labels in scripts of the server's own, or these kinds taken over from the client's table.
+  - A monster is listed once for each line that spawns it (three "Orc Zombie" on `orcsdun01`); the client's
+    table has one row a kind.
+  - No scrolls (`Navi_Scroll`) and no NPCs dressed as players (`navi_picknpc`): both tables are empty.
+  - A map is called by its file's name; the gateway puts the client's name in its place where the client's
+    table knows the map (this project's own choice). 584 maps of the server (guild houses, copies of
+    dungeons) are not in the client's table and keep the file's name.
+  - An NPC that a script moves as the server starts (`movenpc`) is listed where its script first put it. For
+    the 35 that `server/npc/roweb_classic.txt` moves, `navigation.sh` writes the new cell into the
+    generator's own copy of the scripts first; any other script that moves someone is not looked for.
+  The tables are made anew by hand (`server/navigation.sh`) when the server's scripts, `map_conf.txt` or map
+  cache change; nothing does it by itself, and nothing says they are old. For Renewal (`rules.sh renewal`)
+  they are read from `server/navigation/re/`, which was not made or tried.
 - Not made: the button "Read external file path information" (`NAVI_BUTTON_DATA`: the list of the `.txt`
   files of the game's `NavigationData` folder, each a list of places) and the private airship's button
   (`NAVI_BUTTON_PRIVATE_AIRPLANE`, `UIPrivateAirplaneWnd`, `CZ_PRIVATE_AIRSHIP_REQUEST`; the server has

@@ -56,6 +56,8 @@ impl App {
         if let Some(game) = &mut self.game {
             game.map_size = world::map_size();
         }
+        // A replay that begins from its file's sections puts what they keep of the map on it now.
+        self.replay_map_shown();
         self.wait = None;
         self.render();
         // The loading screen goes, and the game comes out of the dark.

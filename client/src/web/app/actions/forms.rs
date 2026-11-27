@@ -6,11 +6,15 @@ impl App {
     /// A line typed that is one of the client's own commands, or a system's, is done: `false` for words that
     /// are none, which are said. The chat's line goes by this, and the line of a talk with one player.
     pub(in crate::web::app) fn typed_command(&mut self, words: &str) -> bool {
-        self.party_typed(words) || self.guild_typed(words) || self.exchange_typed(words) || self.command(words)
+        self.party_typed(words) || self.guild_typed(words) || self.exchange_typed(words) || self.booking_typed(words) || self.command(words)
     }
 
     /// A form of the page was sent: logging in and the account's forms, how many to drop, a line of chat.
     pub(super) fn submitted(&mut self, form: Form) {
+        // While a recording plays nothing typed is taken: the client's fields do nothing then (`UIEditCtrl`).
+        if self.replay.playing.is_some() {
+            return;
+        }
         match form {
             Form::Login => {
                 self.chime();

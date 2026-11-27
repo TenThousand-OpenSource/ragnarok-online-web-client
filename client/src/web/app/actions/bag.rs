@@ -44,6 +44,12 @@ impl App {
             Use::ChatTab(tab) => return self.chat_tab_named(tab),
             // A double click on a line of the titles asks for that title (`clicks/achievements.rs`).
             Use::Title(title) => return self.title_used(title),
+            // A double click on a row of the old party booking's list is its button of a talk with the leader
+            // (`UISeekPartyListWnd::OnLBtnDblClk`).
+            Use::Ad(index) => {
+                self.pressed(crate::press::booking::Press::Row(index));
+                return self.pressed(crate::press::booking::Press::Talk);
+            }
             // A card asks what it can be set into (`clicks/choosing.rs`).
             Use::Item(index) if self.card_used(index) => return,
             Use::Item(index) => self.use_item(index),

@@ -1,6 +1,7 @@
 # Local rAthena for roweb. All ports are published on 127.0.0.1 only.
 #   docker compose -f roweb/server/docker-compose.yml up -d --build
-# Login 127.0.0.1:6900, char 6121, map 5121, database 3306, test mailbox http://127.0.0.1:8025.
+# Login 127.0.0.1:6900, char 6121, map 5121, the game's web service 8888, database 3306, test mailbox
+# http://127.0.0.1:8025.
 # Accounts are seeded from conf/accounts.sql on the first start.
 
 x-rathena: &rathena
@@ -31,6 +32,10 @@ x-rathena: &rathena
     - ./npc/roweb_classic_warps.sed:/rathena/npc/custom/roweb_classic_warps.sed:ro
     # Where one can walk, made from the client's own maps (see the gateway's `mapcache` command).
     - ./mapcache/map_cache.dat:/rathena/db/import/map_cache.dat:ro
+    # The attendance check's days and rewards (the gateway reads the same file for the client's window) and
+    # what the cash shop sells.
+    - ./db/attendance.yml:/rathena/db/import/attendance.yml:ro
+    - ./db/item_cash.yml:/rathena/db/import/item_cash.yml:ro
 
 services:
   db:
@@ -75,6 +80,16 @@ services:
       until nc -z char 6121; do sleep 1; done; exec ./map-server"
     ports: ["127.0.0.1:5121:5121"]
     depends_on: [char]
+
+  # The game's web service (rAthena's web-server): the Adventurer's Agency is asked of it, through the gateway
+  # (its --web-server, 127.0.0.1:8888 when not given). It knows a player by the token the login server gives
+  # (use_web_auth_token, on by default) and keeps the notices in the table `party_bookings`.
+  web:
+    <<: *rathena
+    command: ./web-server
+    ports: ["127.0.0.1:8888:8888"]
+    depends_on:
+      db: { condition: service_healthy }
 
   # A mailbox for development: it accepts every e-mail the gateway sends and shows it at http://127.0.0.1:8025.
   # Nothing leaves the machine. A real server points the gateway at a real SMTP server instead.

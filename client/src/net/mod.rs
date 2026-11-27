@@ -6,17 +6,19 @@
 //! Protocol facts come from rAthena's source (`src/common/packets.hpp`, `src/char/char_clif.cpp`,
 //! `src/map/clif.cpp`) at PACKETVER 20260219.
 
-mod bytes;
+pub(crate) mod bytes;
 pub mod achievements;
 pub mod agency;
 pub mod battleground;
 pub mod reputation;
 pub mod cart;
 pub mod choosing;
+pub mod booking;
 pub mod books;
 pub mod cashshop;
 pub mod attendance;
 pub mod bank;
+pub mod instances;
 pub mod broadcast;
 pub mod emotions;
 pub mod exchange;

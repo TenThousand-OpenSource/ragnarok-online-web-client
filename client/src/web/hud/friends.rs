@@ -53,9 +53,11 @@ impl App {
         }
         let rows: String = self.friends.list.iter().enumerate().map(|(row, friend)| self.friend_row(row, friend)).collect();
         window.push_str(&format!(
-            r#"<div class="a scroll" style="{};overflow-x:hidden" {}>{rows}</div>"#,
+            r#"<div class="a scroll" style="{};overflow-x:hidden" {}>{rows}</div>{}"#,
             at(1, 17, width - 2, self.friends_rows() * ROW),
-            rows_stepped(ROW, self.friends_rows())
+            rows_stepped(ROW, self.friends_rows()),
+            // The window's bar (`UIMessengerGroupWnd::OnCreate`: `Configure(width - 15, 17, 1, height - 58)`).
+            scroll_bar(width - 15, 17, self.friends_rows() * ROW, ROW)
         ));
         window.push_str(&Self::friends_bar(width, height - 40));
         window.push_str(&radio_marked(4, height - 16, true, true, &friend, ""));

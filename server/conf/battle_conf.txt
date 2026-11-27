@@ -16,3 +16,11 @@ synchronize_damage: yes
 // The classic game: a blacksmith NPC refines through its dialog, not through the Refine UI window of later
 // clients (which this client does not have: without this the NPC says nothing).
 feature.refineui: off
+
+// The attendance check (the menu's icon): on, which is rAthena's default, written here because its days and
+// rewards are this server's own (server/db/attendance.yml, mounted as db/import/attendance.yml).
+feature.attendance: on
+
+// The colours of clothes a stylist or @dye may give: 0 to 3. The client's palette 4 is near black for the
+// hunter and the bard, and those above it are not all there for the classic jobs.
+max_cloth_color: 3

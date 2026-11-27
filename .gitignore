@@ -2,6 +2,9 @@ target/
 client/dist/
 # Made from the client's maps by `roweb-gateway mapcache` (see README).
 server/mapcache/map_cache.dat
+# Made from the server's scripts by `server/navigation.sh` (the navigation's tables of this server's world).
+server/navigation/pre-re/
+server/navigation/re/
 .DS_Store
 # Which rules the server plays by: written by rules.sh.
 server/.env

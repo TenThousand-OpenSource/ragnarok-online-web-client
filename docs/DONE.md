@@ -78,7 +78,17 @@ Login, registration and password recovery, the server list, character select, cr
 - What an ID, a password and an e-mail may be, the packets of the login and character servers, the gateway's
   accounts, guard and limiter: tests only (`account.rs`, `net/packets/tests.rs`, `gateway/src/accounts/tests.rs`,
   `limiter.rs`).
-- The forms of registering and recovering, deleting a character: by reading only.
+- The forms of registering and recovering: by reading only.
+- Making and deleting a character, seen in the game (2026-11-27): a hair style and a colour picked, the sex,
+  the figure turned; the Doram's panel that cannot be pressed on the classic server; a name left empty, one of
+  two letters ("Please enter at least 4 characters."), one with signs in it ("A character name is 4 to 23
+  letters and digits.") and one that is taken, each refused in a box; the new character in its slot. Deleting:
+  the question, the wait written in red over the character ("11/28 19:25") with the character seated,
+  "Cancel Deletion" bringing it back; with the wait over (the row's `delete_date` moved back in the database,
+  the server's wait being a day) "Can be deleted" in blue and the Delete button, the question, and the
+  character gone; on an account that has a date of birth the server answers that it wants one, the box asks
+  for it (YYMMDD), a wrong one is refused ("The date of birth is not correct.") and the right one deletes.
+  The e-mail step is rAthena's other setting (`char_del_option`) and was not looked at.
 
 ## 2. Movement
 
@@ -537,6 +547,35 @@ acolyte and thief lines)
   Stone, Sonic Blow (its eight numbers), Enchant Poison; the skill trees of all eight jobs with their second
   page, dragging to the hotkey bar, the descriptions; an axe, a dagger, a mace and a katar in the hand.
 
+**The playtest of the Bard, Dancer, Rogue, Sage, Monk and of skills on allies** (2026-11-27, two tabs)
+- The skill window's last tab, "Etc." (`skills::extra`, test; `web/hud/skills.rs skill_window`): the skills
+  the server told of that stand on none of the job's pages, in the order told (`UINewSkillListWnd::InitTabs`
+  adds the tab with the line `MSI_ETC`, `SkillList` gives it `CPlayerSkillBundle::extra`, which
+  `ClientSkills.cpp` fills with every skill `FindGrouped` does not find; `NumberExtra`). There was no such
+  tab, so a skill copied with Plagiarism was known and shown nowhere. Seen in the game: a Rogue struck by a
+  Fire Bolt on a PVP map has "Fire Bolt 3 / 3" on the tab "Etc.".
+- Seen in the game as they are, nothing changed. Bard and Dancer: Whistle, Poem of Bragi, Apple of Idun
+  (the swirl, the green numbers of its healing on the other, the state's icon on the other's screen), Don't
+  Forget Me, walking while performing, Adaptation, Encore, Musical Strike (the cast, the instrument swung),
+  Frost Joke and Scream (the line over the head and in both chats, the monsters frozen), Lullaby by the two
+  side by side in a party (both in the pose of a duet). The client draws nothing on the ground for a song
+  (`CSkill::OnProcess` has no arm for the units 158 to 175), and so it is here. Rogue: Steal Coin (the coins,
+  the zeny), Backstab, Hiding and Raid, Intimidate (both sent elsewhere on the map), Strip Weapon on the
+  other on a PVP map (the cast, the state's icon on the other's screen), Tunnel Drive (walking while hidden,
+  unseen by the other). Sage: Hindsight (the list of spells, its state's icon), Volcano on the ground from both
+  tabs, Land Protector from the sage's own tab only, Free Cast (the bar and the light go with the one who walks). Monk: five spirit
+  spheres, Triple Attack → Chain Combo → Combo Finish → Asura Strike pressed in the window of the combo (the
+  server makes Asura a skill on oneself for as long, ZC_SKILLINFO_UPDATE2, and the key sends it at once),
+  Fury, Steel Body (its icon), Snap, Finger Offensive, Investigate. On the other and on the ground, from
+  both tabs: Warp Portal (the list with the place of `/memo`, the portal, the other stepping in and arriving),
+  Sanctuary, Safety Wall, Blessing, Kyrie Eleison, Magnificat and Gloria (their icons on the other's
+  screen), Resurrection of the dead other (the window of the dead goes), Devotion (the line between the two
+  on both screens).
+- Not looked at: Loki's Veil and Mr. Kim A Rich Man (the two had walked apart), Throw Arrow, the other three
+  Strips, Close Confine (not among the skills `@allskill` gave), Gank, the Endows (the server answered
+  "Skill has failed."), Deluge, Violent Gale, Dispell, Spell Breaker, Magic Rod, Abracadabra, Dragonology,
+  Blade Stop, Pneuma from the other's screen.
+
 ## 5. Items, inventory, equipment
 
 What is carried and worn, an item's name and description, the character's own numbers, looking at what
@@ -936,8 +975,12 @@ is no way to put it back")
   the letter to that member (`MM_OPEN_WRITE_RODEX`).
 - State: seen in the game with a party of one (2026-11-26: added, drawn, moved to another cell, sorted, its
   menu, the letter's window opened with the name, Heal used on oneself by a press on it, kept over a
-  reload); the rules by tests. Not seen, for want of a second player: another member's gauge and map, one
-  offline or dead, two windows changing places, a member leaving, the leader's rows of the menu.
+  reload); the rules by tests. Seen with two players (2026-11-27, as the second member has them): a window
+  for the leader and one for oneself, one under the other, the crown on the leader's; the leader's gauge
+  falling and coming back as its life did, on the same map; the picture of one who died; the row of the
+  party window grey with "OFF" while the leader was at the characters, and back with its life as it came in
+  again; the windows kept over leaving the game and coming back. Not seen: two windows changing places, a
+  member leaving, the leader's rows of the menu.
 
 ## 11. Guild
 
@@ -995,8 +1038,21 @@ is no way to put it back")
   made / broken during Guild Wars!") whenever `agit_flag` is set, which is the server's rule and no fault of
   the menu. The local server's siege runs by `npc/guild/agit_controller.txt`'s days and hours, and is on
   again after a restart of the map server inside them; a game master ends it with `@agitend`.
-- Positions, the guild's skills, the guild's chat: tests only for their packets; their windows are by
-  reading only.
+- Positions, the guild's skills, the emblem, the members' tab, seen in the game with two players (2026-11-27,
+  the master's screen and a member's): a position's title, its right to invite and its tax changed and sent,
+  the member's row showing the new title on both screens; the member given another position from the list
+  in its row and the OK that sends it; the skill tab with its points after `@guildlvup`, a skill raised
+  (Guild Extension: "Members : 2 / 20"), the member's tab without the buttons; an emblem of 24 by 24 taken
+  from a file and shown in the window and beside the name under the character, a file that is no picture
+  refused ("This file cannot be registered."); the notice sent and told in both chats; a line for the guild
+  (`$`) in both chats; the member's row green while in the game, with its level and the date; a tab the
+  member may not open written grey; `/guildinvite`, an invitation sent while the one before still waits for
+  its answer refused by the server (line 379 in the chat of the one who asked), leaving with a reason, expelling with one and the Expel List, a guild with a member not broken up (line
+  "…because there are guildsmen still present"), `/breakguild` alone and a guild made anew. Left: the tax taken of what a member earns was not seen to arrive (the links dropped
+  under it twice, see the hidden tabs of `DEBTS.md`); alliances and oppositions were not gone through again.
+- The part of the guild's experience a member gave (the members' fifth column) is counted as the client
+  counts it, against what all the members gave together (`guild::exp_ratio`,
+  `GuildInfo::UpdateMemberExpRatios`): tests only; it was counted against the guild's own experience before.
 - The castles (ZC_GUILD_AGIT_INFO 0x0b27, ZC_REQ_ACK_AGIT_INVESTMENT 0x0b2d, ZC_REQ_ACK_MOVE_GUILD_AGIT 0x0b2e,
   CZ_REQ_MOVE_GUILD_AGIT 0x0b28, CZ_REQ_AGIT_INVESTMENT 0x0b2c): tests only for the packets, the table and
   the rules; the list, its menu and the two boxes are by reading only: in the game only a new guild's
@@ -1031,8 +1087,19 @@ keeps as a system of its own named `family`.
 
 **State**
 - The mail icon (the notice of mail not read): seen in the game.
-- The rest of the mail (the mailbox, reading, writing, taking what is in a letter), the friends list, the
-  family: tests only for the rules and packets; the windows are by reading only.
+- The mail, seen in the game between two players (2026-11-27): "Send a mail" of the menu on a player, the
+  receiver asked about (its level and job on the balloon), a title and a text, three of five Red Potions
+  dragged in from the inventory through the box that asks how many, 777 zeny, the weight and the fee
+  following (2,515 z for the three potions and the zeny), "Your mail has been sent."; the icon of new mail on
+  the receiver's screen, the mailbox opened from it, the letter read, the things and the zeny taken each by
+  its button ("Red Potion - 3 obtained.", "Zeny received.", the sums right), the letter deleted after the
+  question, its row then saying so in grey. Not seen: a letter sent back, the Return and Notice tabs, the
+  search, the pages. The title's field starts with the client's word "TITLE" in it, which goes into the
+  letter unless it is typed over, in the client as here (`UIRodexComposeWnd::OnCreate`).
+- The friends list, seen in the game (2026-11-27): a friend deleted from the menu on its row after the
+  question ("Friend removed."), asked again from the menu on the player, the question on the other screen,
+  "You have become friends with …" on both; "has logged in / out" told to the friend. The family: tests
+  only, the windows by reading only.
 
 ## 13. Pets, homunculus, mercenary
 
@@ -1182,8 +1249,8 @@ The minimap and the marks on it, the World Map, the Tipbox, the Adventure Guide.
 - The Tipbox opening as the game is first entered: seen in the game.
 - Where a cell lies on the minimap, a map's name and music, what the Guide shows a character of a level, the
   marks' packets, the gateway's tables of the Guide and the world map, the names of `mapNameTable.txt`, the
-  name of a copy of a map: tests only (no copy of a map was entered in the game: every instance of the
-  classic server asks for a party of two). `1@tower` itself, by `@warp`: seen loading, with its music.
+  name of a copy of a map: tests only. A copy of a map entered with a party of two (`1@orcs`, 2026-11-27, see
+  26): seen loading. `1@tower` itself, by `@warp`: seen loading, with its music.
 - The World Map, the Adventure Guide's pages, the marks on the minimap: by reading only.
 - The Tipbox, 2026-11-21, seen in the game: it opens and closes by Alt+D, its cross, Close and Escape and is
   dragged by its title; the box "Open on Startup" emptied keeps it shut at the next entry (after a reload
@@ -1442,6 +1509,11 @@ server's packets that are not read yet (`/packets`).
 **State**: tests only (the watch, the reasons a session ends, counting unread packets, cutting the stream,
 the golden packets); the `/packets` window is by reading only.
 
+**The beats in a tab that is not shown** (2026-11-27, `web/app/beats.rs`): the keep-alive and the watch are
+beaten by a worker, whose timers a browser does not hold back as it does a hidden page's; the page's own
+timers only where no worker can be made (see `DEBTS.md`, "What does not work in a browser at all", Sound).
+No part of the Windows client.
+
 ### Windows: steps of the wheel, the message box, tooltips (2026-11)
 - Files: `scrolling.rs` (a notch of the wheel as rows, lines or 30 pixels: `UIItemBaseWnd::OnWheel` and its
   like, `UIListBox::OnWheel`, `UITagTextViewer::SendMsg`), `message_box.rs` (`UIMessageBox::Configure`,
@@ -1457,6 +1529,51 @@ the golden packets); the `/packets` window is by reading only.
   in a tip opening the item, a tip's link the tip; the storage closed by a warp (it stayed, and could not be
   closed).
 - Tests only: `vending::own_title` (one's own stall titled with its name), `links::Link::number`.
+
+### The scroll bar, the tooltip, the skill window's Apply and list, Storm Gust's ice, how the switches start (2026-11-27)
+- **The client's scroll bar, one piece** (`UIScrollBar`, `Source/UI/Lists/UIScrollBar.cpp`: `ThumbLength`,
+  `Travel`, `ThumbOffset`, `Part`, `OnLBtnDown`, `OnMouseMove`, `Paint`, `SetRange`; a page of a list one less
+  than it shows, `UIListBox::SendMsg`, `UINewSkillListWnd::SendMsg`; a text counted in pixels, an arrow 1 and a
+  page 30, `UITagTextViewer`). Files: `scrolling.rs` (`Bar`, `Part`, `page`; tests), `web/app/scrollbars.rs`
+  (the handle stood by its list, a press on an arrow or on the way, the handle dragged), `web/hud/lists.rs`
+  (`scroll_bar`, `text_bar`, `end_bar`; `list_of` and `hud/items.rs grid_of` draw it themselves), `.sbar` of
+  `index.html`. It stands where each window of the client puts it: the inventory (`UIItemWnd::OnCreate`), the
+  windows of `UIItemBaseWnd` (shops, storage, cart, vending), friends and party (`UIMessengerGroupWnd`), the
+  guild's tabs, the skill window's list, the lists and texts of `UIListBox` and `UITagTextViewer` (an NPC's
+  words and menu, the message box, the lists to pick from, the Tipbox, the battleground's), the Game Settings'
+  rows, the chat and the chat's own windows (`UIChatHisBox`).
+  Seen in the game (2026-11-27): the inventory's bar (an arrow a row, the way below the handle a page, the
+  handle dragged to the top), the storage's with forty kinds, the chat's (an arrow a line, a page five), the
+  skill list's with the wheel. Tests only: the bar's rules. Not looked at after the change: an NPC's words and
+  menu, the message box, friends, party, guild, the lists to pick from, the Game Settings, the battleground.
+- **The tooltip of a thing** (`CMode::ShowTooltip`, `Source/Client/Mode/ModeTooltip.cpp`: lines of 35 letters,
+  kept within 3 of the screen's edges, the words' colour; `UIItemWnd::OnMouseHover` for where an item's
+  stands and `CSession::GetItemNameColor` for its colour; `ShortcutTooltip.cpp` for a slot of the hotkey bar;
+  `UINewSkillListWnd::OnMouseHover` for a skill of the tree). Files: `tooltip.rs` (`lines`, `placed`; tests),
+  `web/app/tooltip.rs`, `web/parts.rs` (`tip`, `tip_in`, `tip_at`, `tip_by_pointer`). In the client's box now:
+  the things of the inventory, the cart and a stall, what is worn, a card in a slot, the slots of the hotkey
+  bar, the skills of the tree and of the lists. (A state's icon had the client's already, `hud/statuses.rs`.)
+  Seen in the game: an item ("Holy Water : 24 ea" over its cell), a slot of the bar ("F1 Bash Use Lv 2 (Sp :
+  8)", kept on the screen at its top), a skill of the tree by the pointer. Not looked at: what is worn, a
+  card, an item not identified (grey).
+- **The skill window** (`UINewSkillListWnd`: `OnLBtnUp`, `IncreaseSkillLevel`, `ApplySkillPoints`,
+  `ResetLists`, `SendMsg` with `ID_APPLY`, `ID_RESET`, `ID_MINI`, `Paint`, `DrawSkillTree`, `DrawSkillList`,
+  `LayoutButtons`, `UpdateScrollBar`). Files: `skills.rs` (`planned`, `points_line`; tests),
+  `press/skills.rs`, `web/app/clicks/skills.rs` (`skill_opens`, `skill_points_left`), `web/hud/skills.rs`
+  (`skill_rows`, `skill_question`), `web/hud/skill_list.rs skill_row`, `web/hud/windows/skills.rs`. A skill
+  pressed in the tree plans a level ("+n" in red by it, the points as "left(planned) / all"), Apply asks the
+  client's line 1377 and sends, Reset forgets; the small button of the title bar turns the tree into the list
+  of rows (330 wide, ten rows, its bar) and back.
+  Seen in the game: Bash planned twice ("+2", "58(2) / 60"), Apply's question and the levels arriving, the
+  list with its level-up buttons, two levels planned there and Reset, the list moved by the wheel.
+- **Storm Gust's spikes of ice** (`CRagEffect::StormGust`: two `PP_3DQUADHORN` with `ice.tga` at the 58th,
+  87th, 116th and 145th tick). File: `web/world/prims/grounds.rs storm_gust`. Seen in the game with `@effect
+  89`; not looked at under a Storm Gust cast, and not beside the Windows client.
+- **How the switches start** (`CSession::LoadOptionInfo`, the script's `SetCmdOnOffList`, `CmdOnOffList` of
+  `System\LuaFiles514\OptionInfo.lub`; `IsServiceOption`). Files: `gateway/src/tables/commands.rs` (`starts`),
+  `commands.rs starts` (test), `web/data/commands.rs option_listed`, `web/app/settings.rs option_starts`.
+  Tests only, and the gateway's table read from the client's file (38 commands); the rows of the Game
+  Settings were not looked at one by one in the game.
 
 ## 22. Bank, attendance check, cash shop (the menu's icons, 2026-11-26)
 
@@ -1491,11 +1608,19 @@ Three systems of the menu's icons, each under its own name in every layer: `bank
   `UIMenuIconWnd::SendMsg` at `MENUICON_ATTENDANCE`, `CGameMode::ReceiveServiceRequest` (ZC_UI_OPEN) and
   `ReceiveWindow328Result`. ZC_UI_OPEN is read here: the attendance check (7) and the bank (0); its other
   windows are left unread.
-- Server: `feature.attendance: on` is set, but `db/attendance.yml` (and `db/pre-re/attendance.yml`) has no
-  period, so the server answers the icon with "Currently there is no attendance check event."
-- State: tests (the rules, the packets, the table, the golden lines); **seen in the game** only that the
-  icon asks the server and its refusal is said in the chat in red. The window itself, the claim and its
-  answer are **by reading only**: no server here opens it.
+- Server (2026-11-27): `server/db/attendance.yml` (mounted as rAthena's `db/import/attendance.yml`) gives a
+  period, 20261101 to 20270131, and twenty days of classic rewards; `feature.attendance: on` in
+  `server/conf/battle_conf.txt`. The gateway gives the browser that same period in place of the client's
+  `System\CheckAttendance.lub` (`--attendance <file>`, `tables/attendance.rs`; see `docs/DEBTS.md`).
+- The reward comes as a letter whose sender and title the server writes as `<MSG>3455</MSG>` and
+  `<MSG>3456,1</MSG>`: the mailbox writes them out (`links::expanded`, the client's
+  `NavigationLinkParser::ExpandMessages`; test).
+- State: tests (the rules, the packets, the table, the golden lines); **seen in the game** (2026-11-27): the
+  window opening by itself as the game is entered on a day not yet attended, with the server's twenty rewards,
+  the period "11/01 ~ 1/31 24:00" and the days left; day 1 pressed and marked taken, the balloon saying so;
+  the letter "Day 1 attendance reward." from "Officer" with its 20 Red Potions taken into the inventory; the
+  window opened again by the icon with day 1 marked, where pressing a cell does nothing more; not opening by
+  itself on entering the game again that day. Not seen: a second day, the last day.
 
 **Cash shop** (`UICashShopWnd`)
 - Files: `cashshop.rs` (tabs and pages, the list of what is bought, the search, the purchase, the server's
@@ -1507,15 +1632,20 @@ Three systems of the menu's icons, each under its own name in every layer: `bank
   `MM_REQUEST_CASH_SHOP` and `MM_GET_ACCOUNT_LIMITED_SALE_LIST`, `ReceiveCashShopBanner`,
   `ReceiveTypedItemList` (eight bytes a thing: read from the executable at 0x00D1B690, where the decompiled
   structure has fourteen), `ReceiveRequestResult`, `datainfo\tb_cashshop_banner.lub`.
-- Server: rAthena's `db/item_cash.yml` is empty here, so every tab is empty; cash points are the account's
-  (`@cash`). No real money is involved anywhere.
+- Server (2026-11-27): `server/db/item_cash.yml` (mounted as rAthena's `db/import/item_cash.yml`) has a small
+  classic assortment on each of the eight tabs; cash points are the account's (`@cash`). No real money is
+  involved anywhere.
 - State: tests (the rules, the packets, the banners' table, the golden lines); **seen in the game**
   (2026-11-26): the icon opens the window with the 5000 points `@cash` gave, the banner, the tabs and "0 / 0";
   a tab is picked, a banner is picked and the next comes after five seconds, a search that finds nothing says
   so in a message box with OK and keeps the words, "Purchase" with an empty list does nothing, the icon and
-  Escape close the window; nothing of it is left in `/packets`. **By reading only**: the things of a page,
-  the list of what is bought with its plus, minus and cross, the question before a purchase, the purchase and
-  its answers, "Charging" and a banner's page: there is nothing to buy on this server.
+  Escape close the window; nothing of it is left in `/packets`. **Seen in the game** (2026-11-27): the things
+  of each of the eight tabs with their pictures, names and prices; "Buy" putting a kind into the list, its
+  plus, its cross, the sum; "Purchase" asking in a box and, at OK, two Old Blue Boxes and an Old Purple Box
+  arriving, the points going from 5000 to 4820 and the list emptied (the server's `cashlog` has the 180); a
+  search by "Scroll" showing the five scrolls so named and by "scroll" none (it looks at the letters as they
+  are written, as the client's does). **By reading only**: the minus, the answers of a purchase refused,
+  "Charging" and a banner's page.
 
 ## 23. Achievements and titles, reputation, probabilities (the menu's icons, 2026-11-26)
 
@@ -1622,6 +1752,20 @@ Three systems of the menu's icons, each under its own name in every layer: `achi
   arriving and "Arrived at the target map" five cells from the place; a `<NAVIL>` said in the chat shown as
   `<prontera 150,180>` and pressed; a mark of the minimap pressed; on the World Map the search with its
   pictures on the maps found, a map pressed, and the line of the route with its end.
+- The tables of this server's own world (2026-11-27): `server/navigation.sh` with
+  `server/navigation/Dockerfile` (rAthena's `map-server-generator --generate-navi`, `src/map/navi.cpp`, run
+  once beside the running game) writes `server/navigation/pre-re/navi_*_krpri.lub`; the gateway's
+  `--navigation-dir` (`gateway/src/config.rs`, by default that folder) and `tables/navigation.rs of_server`
+  read them in place of the client's, in the same form. Seen in the game with them (a gateway of this build):
+  `/navi orcsdun01 32/170` from Prontera, its list of seven maps (prt_fild05, prt_fild07, gef_fild02,
+  gef_fild03, gef_fild10, in_orcs01) and each of its portals walked into, the server taking the character to
+  the next map of the list every time, to "The goal has been reached"; the search of a monster ("skeleton":
+  Soldier Skeleton on moc_pryd02, pay_dun01, pay_dun02) and Find from Payon through pay_arche and pay_dun00,
+  each portal walked into, to "You have arrived at the mob you were looking for"; the search of an NPC
+  ("Jeweler": moc_ruins twice, lhz_in02) and Find from Morroc through its portal to Morroc Ruins; "Butcher"
+  of Izlude at the cell `roweb_classic.txt` moves him to, from prt_fild08 through the portal into Izlude and
+  the arrows to the market's stalls; "Failed to find a path" to Morroc Ruins from Payon Cave (`docs/DEBTS.md`
+  says why). Tests only: the folder read and an empty one passed by (`tables/navigation.rs`).
 - Tests only: ZC_NAVIGATION_ACTIVE; the copies of maps; `/navi2`'s switches; `<NAVI>` links (wired in
   `hud/texts.rs linked_with`, not pressed in the game); the key `HK_NAVIGATION_ONOFF` (place 42 of the
   interface's keys; it has no key in the client's table until one is set).
@@ -1670,11 +1814,17 @@ Three systems of the menu's icons, each under its own name in every layer: `batt
   `…Completion.cpp` files, `PartyJoinResult.cpp`, `UIComboBoxDef2Wnd`; rAthena's
   `src/web/partybooking_controller.cpp`, `auth.cpp`, `clif_parse_partybooking_join`, `clif_partybooking_ask`,
   `clif_partybooking_reply`. Lines 3356 to 3378, 3415 to 3420, 3442 to 3444, 3489 to 3518 of the message table.
-- State: **seen in the game**: the icon lit; the board opening with its search bar (levels around the
-  character's own, the box of purposes, the four roles, the note, Search, Reset), the page "1 / 1" between dim
-  arrows and Close, as the client's board stands while the service does not answer. **Tests only, by reading
-  beyond**: the list, a notice put up, changed, read and taken down, asking to join and the leader's
-  question: the web service is not running here (see `docs/DEBTS.md`).
+- Server (2026-11-27): rAthena's `web-server` is built into the image (`server/Dockerfile`: `make server web`)
+  and runs as the service `web` of `server/docker-compose.yml`, its port 8888 on 127.0.0.1; the gateway hands
+  the requests to `--web-server` (`127.0.0.1:8888` when not given).
+- State: **seen in the game** (2026-11-27, against the web service): the icon lit; the board opening with its
+  search bar and the strip that puts a notice up, dim for one who leads no party; a party made, the strip
+  opening the window of a notice (leader, levels, purpose, roles, note), "Register" putting it up: the line
+  in the chat, the notice as the player's own strip and as a row, "Cancel Recruitment" beside Close; the row
+  pressed opening it to change ("Edit"); a search by a role and the levels finding it, by other levels
+  finding none; "Reset"; "Cancel Recruitment" taking it down with its line in the chat. **Tests only, by
+  reading beyond**: a notice changed, another player's notice read, asking to join and the leader's question
+  (one account played); a search by the note (it brings rAthena's web service down: `docs/DEBTS.md`).
 
 **Replay** (`Replay`, `UIReplayRECControlWnd`, `UISelectReplayDataWnd`, `UIReplayControlWnd`)
 - Files: `replay.rs` (the `.rrf` file written and read: text, signature, keys, table of sections, the header's
@@ -1687,15 +1837,157 @@ Three systems of the menu's icons, each under its own name in every layer: `batt
 - Taken from: `Source/Client/Replay/Replay.cpp`, `Replay.h`, `ReplayPacketRecorder.cpp`,
   `ReplayRecordOption.h`, the three windows in `Source/UI/Dialogs/UIMessageBox.cpp`, `UIWindowMgr.cpp` at their
   IDs, `UIMenuIconWnd::SendMsg` at `MENUICON_REC`. Lines 1955 to 1988, 2084 to 2086, 2350 of the message table.
+- Since 2026-11-27 also: `replay/sections.rs` (the client's sections 3 and 4, the character and its values, as
+  its tagged records; the records of the windows, CC_REPLAYPACKET 0x08ae), `replay/playing.rs` (what is held
+  back while a recording plays: keys, presses, what the options show), `replay/recorded.txt` (the 747 packets
+  the client's table marks for recording, out of `PacketRegistrations.inc`). Taken from
+  `CSession::BuildCharacterReplayRecords`, `BuildStatsReplayRecords`, `ReplayFileList::Open`,
+  `Replay::Record`, `Replay::AllowsEvent`, `UIWindowMgr::ProcessShortcutKey`, `ApplyReplayOptions`,
+  `RecordWindowPacket`, `CGameMode::ProcessUiMessage`, `ReceiveMapMove`, the arms `MM_START_REPLAY_RECORDING`
+  and `MM_STOP_REPLAY_RECORDING` of `CGameMode::SendMsg`. Lines 1970, 1989 to 1991 of the message table.
 - State: **seen in the game** (2026-11-26): the icon lit; the recorder with its turning picture and its time;
   its options; a recording begun at once and one begun after its name was asked for; Stop, and the file in
   the browser; from the login screen the button, the list with the five lines about the file picked, OK: the
   game entered with no server as the recorded character on its map, the recorded walk played, the player's
   time, bar and map; hold and go on; faster to four times; from the beginning; out, back to the list; the way
-  back to the login. Not looked at: Save to a file, Load a file, Delete (tests of the file's format only), a
-  recording across a change of map, a long one.
+  back to the login. **Seen in the game** (2026-11-27, `qatest`): "Record Start" and "\Replay\<name> is
+  Saved." in the chat; the box "The same file exists already." for a name there is; "REC End please" from
+  the icon while one is recorded; a recording of a minute with two fights, chat, the windows of items, status
+  and quests opened, a walk: played at each speed from a quarter to four times, the fights, the chat's lines
+  and the walk as they were, the quest window opening and closing by its record; the recording ended and the
+  recorder put away by a change of map (and such a file played to its end); a talk with a Kafra recorded and
+  played, its "next", the menu's choice and "close" done again with no hand; a recording made without "Item"
+  and "Chatting": the chat window not shown, the inventory's icon doing nothing, the skills' opening; the
+  icons of options and guild doing nothing; Escape closing one window at a time and never opening the
+  options; Enter not opening the chat's line; the player's three keys (set in the browser's storage to F9,
+  F7, F8: the client's table gives them no key) holding and going on, faster, slower; at the end the button
+  showing "play" and beginning nothing; a file of 2026-11-26 (the older place of this client's section)
+  still played; the windows the server had opened before the recording began (the attendance) closed as
+  the replay begins. Seen once and not again: the loading picture for a moment in the middle of a replay
+  right after the page was opened. **Tests only**: the file's layout against the client's reading of the
+  table, sections 3 and 4 written and read back, the records of the windows, the table of recorded packets,
+  the rules of keys and presses. **By reading only**: everything about the Windows client reading these
+  files, or this client a Windows file (see `docs/DEBTS.md`). Not looked at: the presses of shops, lists,
+  scripts' windows and deals done again in a replay (only the talk's were), the key that opens the recorder
+  (`HK_REPLAY_ONOFF`), a recording ended by a lost connection, a long one.
+- Since the night of 2026-11-27 the windows' answers are written and read as the client's own records:
+  `replay/told.rs` (which press is which record of the kinds 900, 901, 902 and 913, by the client's numbers of
+  windows and commands: the talk, the shops with their drops and count box, the lists, the boxes that ask,
+  the deal's drops and field, the quest window's tabs and box; tests in `replay/told/tests.rs`),
+  `replay/told/read.rs` (the same read back), written in `web/app/clicks/replay.rs` (`replay_lets`,
+  `replay_let_go`, `replay_counted`, called where a shop, a deal and a forging take a drop or a count) and
+  done again in `web/app/incoming/replay.rs` (`replay_done`). Taken from `UIWindow::RecordResponse`,
+  `RecordDrop`, `RecordEditTexts`, `RecordValues`, `UIWindowMgr::InitializeWindowPolicy`, `UIButton::OnLBtnUp`,
+  `UIListBox::OnLBtnDblClk`, the `SendMsg` of `UISayDialogWnd`, `UIChooseWnd`, `UINpcEditDialogWnd`,
+  `UINpcTextEditDialogWnd`, `UIChooseSellBuyWnd`, `UIItemShopWnd`, `UIItemPurchaseWnd`, `UIItemSellWnd`,
+  `UIItemDropCntWnd`, `UIChooseWarpWnd`, `UIMakingArrowListWnd`, `UISpellListWnd`, `UIItemCompositionWnd`,
+  `UIItemIdentifyWnd`, `UIPetEggListWnd`, `UIMakeTargetListWnd`, `UIMakeTargetProcessWnd`, `UIItemRepairWnd`,
+  `UIWeaponRefineWnd`, `UIExchangeAcceptWnd`, `UIJoinPartyAcceptWnd`, `UIJoinGuildAcceptWnd`,
+  `UIJoinFriendAcceptWnd`, `CUIRenewQuestUI`, and `CGameMode::ProcessUiMessage`, `ReceiveUiDragMessage`.
+  State: **tests only** for every rule and for the writing. **Seen in the game** (2026-11-27, with no
+  login: a recording put together from an older one of this client, its presses turned into the client's
+  records and a number field and a shop put after it, played from the login screen at one and at four
+  times): "next", the menu answered and "close" by the records 900; the number 42 put into the field by a
+  record 902 and the field's OK; the shop's question answered "buy"; a row let go over the basket (901), the
+  count box opening and answered 3 (900 of the count box), a thing that is worn going in at once, a row let
+  go back over the list and one taken out by the count box, the basket's OK closing both windows. **Not
+  seen in the game**: a session recorded with this change (the worker could not log in), the lists, a deal,
+  the boxes that ask, the quest window's tabs, a storage; see `docs/DEBTS.md`.
+- Since the evening of 2026-11-27 a recording begins from a snapshot, as the client's does, and a replay
+  from the same. Files: `replay/snapshot.rs` and its children (sections 6 to 24 written and read:
+  `quests`, `people`, `items`, `companions`, `rest`, `actors`, `ground`, `screen`), `replay/snapshot/session.rs`
+  (between this client's session and those sections: an item and where a worn one stands among the ten, the
+  bar's 36 places, a quest's time as a date, those of the party and friends; who the character of a file is
+  by its sections 3, 4 and this project's one record in 11; the packet that enters the game; a status as its
+  packet), `replay/snapshot/skills.rs` (what stands at the head of the packets: the map's kind and the three
+  lists of skills in the layout of 37 bytes), `net/skill_units.rs` (`entry_of_old`, ZC_SKILL_ENTRY 0x011F),
+  `web/world/replay.rs` (the map as it is now: everyone in sight, the portals, the ground, the clock),
+  `web/app/replay_snapshot.rs` with `taken.rs` (the app and the world gathered into the sections as a
+  recording begins) and `given.rs` (the same given back as a replay begins: the session as the game is
+  entered, the map's part once the map shows, and the recording's clock only then). Taken from
+  `CGameMode::SendMsg` at `MM_START_REPLAY_RECORDING`, `Replay::RecordCachedPackets`, `CachePacket`,
+  `BuildSkillInfoListPacket`, the `CSession::Build…ReplayRecords` and `ReadReplay…`, `CGameMode::Initialize`
+  in the replay's state 6, `SaveActorStates`, `ReadReplayActors`, `BuildActorEntryPacket`, `SaveGroundItems`,
+  `WriteReplaySkillState`, `SaveActiveSkillEffects`, `SaveNameCardState`, `LoginMode.cpp` at the arm that
+  begins a replay.
+- State of that: **seen in the game** (2026-11-27 evening, `qatest`, three recordings on `gef_fild07` played
+  right after the page was opened anew, with no login): the replay beginning with the Lord Knight in its hat
+  where it stood; Basic Information with the same HP, SP, weight, zeny and levels as the game showed when the
+  recording began; the hotkey bar with its two items and their counts and its two skills with their levels;
+  the icon of the Awakening Potion with its time running on; the eight Porings spawned around standing
+  within a cell or two of where the game had them (they were walking), then the fight as it was; an Apple on
+  the ground on the very cell it lay on; opened while it played: the inventory (the four piles with their
+  counts), the equipment (Hat, Sword [3], Cotton Shirt, Guard), the skill tree with the levels, the party
+  window with the party's name and the character, the Status window; the clock standing at 0 while the map
+  was read and beginning as it showed; "from the beginning" and "out"; and a file of the morning
+  (`wave2.rrf`, with this client's own section) played as before. **Tests only**: every section's layout and
+  reading back, the conversions of `session.rs`, the head of the packets read by this client's reader of
+  0x010F, one that walks as the packet 0x09FD, a chunk too short or of an unknown kind passed by, a file
+  without section 3 refused; a cart's and a storage's items, a homunculus, a mercenary, a pet, friends,
+  quests, other players with their guilds and names, chat rooms' and stalls' signs, skills' units and
+  portals in a snapshot (the character had none of them around). **By reading only**: a file of the Windows
+  client played here, and one of these in the Windows client.
+
+## 26. Instances (the client's memorial dungeons, 2026-11-27)
+
+A copy of a dungeon made for one party: the window that tells of it, under the name `instances` in every
+layer.
+
+- Files: `instances.rs` (the three states, the line over the window for each, when the window comes back by
+  itself, the lines the chat says as one ends, when the leader has the button, the time as the table's
+  pattern writes it; tests), `net/instances.rs` (ZC_MEMORIALDUNGEON_SUBSCRIPTION_INFO 0x02cb,
+  `_SUBSCRIPTION_NOTIFY` 0x02cc, ZC_MEMORIALDUNGEON_INFO 0x02cd, ZC_MEMORIALDUNGEON_NOTIFY 0x02ce,
+  CZ_MEMORIALDUNGEON_COMMAND 0x02cf; tests, and its line of `golden.txt`), `press/instances.rs`,
+  `web/app/{incoming,clicks,state}/instances.rs`, `web/hud/instances.rs`, `web/hud/windows/instances.rs`,
+  the key in `hotkeys.rs` (`interface::INSTANCE`, the client's `HK_MEMORIALWND_ONOFF`).
+- Taken from: `UIMemorialDunWnd` (`OnCreate`, `Paint`, `ArrangeButtons`, `SendMsg` in
+  `Source/UI/Shortcuts/UIShortCutWnd.cpp`), `CGameMode::ReceiveMemorialDungeonInfo`,
+  `ReceiveMemorialDungeonNotify`, `ReceiveMemorialDungeonSubscriptionInfo`,
+  `ReceiveMemorialDungeonSubscriptionNotify` (`Source/Client/Mode/GameModePackets.cpp`),
+  `MM_MEMORIALDUNGEON_COMMAND` (`GameMode.cpp`), `UIWindowMgr::EnsureWindow` and `CloseWindow` at
+  `WID_MEMORIALDUNWND`, the lines 1260, 1336 to 1348 and 3270 of the message table; rAthena's
+  `clif_instance_create`, `clif_instance_changewait`, `clif_instance_status`, `clif_instance_changestatus`,
+  `clif_parse_MemorialDungeonCommand`.
+- What there is: the window "Memorial Dungeon", 200 by 150 at the left edge 310 down, with the instance's
+  name in blue in the line of its state ("in Standby", "Available", "in Progress"); the place in the queue;
+  by when an empty instance must be entered, with the leader's button "Destroy instance"; the time one that
+  runs ends at, in red; Alt+B shows and hides it; its cross puts it away, and while the instance runs it then
+  stays away when the server tells of the instance again (on every map entered); the chat says in the
+  client's 0x64FFFF why an instance ended.
+- State, seen in the game (2026-11-27, Orc's Memory, a party of two with its leader at the stone of
+  `gef_fild10`): reserved, the window "[Orc's Memory] Available" with the time to enter by and the button;
+  Alt+B twice; entered, "[Orc's Memory] in Progress" with "Dungeon Mission Time Limit:" and its time; the
+  cross, and the window staying away inside; out again by `@warp`, the window back as "Available"; "Destroy
+  instance", the window gone and "The Memorial Dungeon has been removed." in the chat. The map of the copy
+  loads as `1@orcs` (no picture of it for the minimap is in the client's files, so the minimap is empty
+  there, as it must be in the client). Before this the four packets were among those not read. Tests only:
+  the queue (rAthena makes an instance at once, the place in it is told as 0 for a moment), an instance that
+  ends by its time, the second member's window.
+- **Seen in the game** (2026-11-27, late, `qatest`, a recording of 1:13 made by hand in a shop of Prontera and
+  played from the login screen): begun from the snapshot (the character, its zeny, the hotkey bar, the shop's
+  NPC); the buy/sell question answered "buy" by its record; the shop's windows; a potion dragged into the
+  basket (record 901), the window "how many" answered 3, "3 Red Potion" in the basket, OK, the zeny going
+  from 223,456 to 223,306 as it did; "sell" and its window, Cancel; the chat's line. A recording cut by a
+  lost link (the gateway stopped under it): its file kept, 10 seconds, shown in the list. The key set for
+  `HK_REPLAY_ONOFF` opening and closing the recorder. The loading picture in the middle of a replay was not
+  seen again in any of these plays.
 
 ## Two players at once (playtest of 2026-11-21 and 2026-11-26)
+
+**2026-11-27, `tester` and `tester2` (WebHero, Walker) through one gateway**: the guild from both sides (11),
+the small party windows as the second member has them (10), the mail and the friends list (12), the party's
+instance (26), making and deleting a character (1), and a session of an hour with the link dropped by others
+three times (the server restarted twice by another hand; hidden tabs timed out). Seen besides: a deal of
+zeny between the two with the sums right on both; a whisper each way in its window; the party's setup
+changed by the leader ("Even Share", "Party Share") and told in both chats; with items shared, a Knife
+dropped by one and picked up by the other said to the one who dropped it ("Walker has acquired Knife [3].",
+a Fly Wing said nothing: the server tells of the kinds its `show_picker.item_type` names); one walking through a town's Kafra and both
+going from map to map by recall; a member dying beside the other. **A tab kept hidden**: with the beats
+from a worker (`web/app/beats.rs`) the second tab stayed hidden from 19:17:23 to 19:33:48, 16 minutes 25
+seconds by the page's own record of when it was shown, its own timers beating 106 times in the 1014 seconds
+it counted; the server had it in the game all that time, and shown again it stood in the world with what
+had been said meanwhile in its chat, was recalled to another map and fought. Before the worker the same tab
+was logged off by the server 4 minutes 12 seconds after it was hidden (19:08:03 to 19:12:15).
 
 Two accounts (`play6` a Crusader, `play7`) in two tabs through two copies of the gateway, each thing looked
 at on both screens. **Seen in the game**, as the one who does it and as the other sees it:

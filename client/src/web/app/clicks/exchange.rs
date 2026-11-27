@@ -102,6 +102,7 @@ impl App {
         if !self.exchange.open || self.exchange.closed.0 || self.exchange.locking {
             return;
         }
+        self.replay_let_go(&dragged, crate::replay::told::window::EXCHANGE);
         let mine = &self.exchange.mine;
         let Some(item) = self.bag.items.iter().find(|item| item.id == id && item.worn == 0 && !mine.iter().any(|put| put.index == item.index)) else { return };
         let (index, amount) = (item.index, item.amount);
@@ -117,6 +118,7 @@ impl App {
     /// than there is, puts nothing in.
     pub(in crate::web::app) fn exchange_counted(&mut self) {
         if let Some((index, most)) = self.exchange.counting.take() {
+            self.replay_counted(crate::replay::told::asked::DEALT, &field(&wnd::EXCHANGE_COUNT.field()));
             if let Some(count) = Self::counted(&wnd::EXCHANGE_COUNT, most) {
                 self.exchange_put(index, u32::from(count));
             }

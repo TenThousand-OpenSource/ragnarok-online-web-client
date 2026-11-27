@@ -127,7 +127,7 @@ impl App {
             .enumerate()
             .map(|(place, (item, left))| grid_cell(place, 7, item, left, &dragged(Drag::Stock(item.index)), &Self::item_name(item)))
             .collect();
-        format!("<div {}>{}{}</div>", dropped(Drop::Stock), list_frame(280, 120, &Self::words(232, "Available Items for Vending")), grid_of(7, 2, &cells))
+        format!("<div {}>{}{}</div>", dropped(Drop::Stock), list_frame(280, 120, &Self::words(232, "Available Items for Vending")), grid_of(7, 2, 14, &cells))
     }
 
     /// One's own shop while it is open (`UIMerchantItemMyShopWnd`, 280 by 120; its title the client's line
@@ -152,7 +152,7 @@ impl App {
         format!(
             "{}{}{}",
             list_frame(280, 120, &crate::vending::own_title(&Self::words(3237, "My Shop"), &self.vending.title)),
-            grid_of(7, 2, &cells),
+            grid_of(7, 2, 14, &cells),
             picture_press(280 - 61, 120 - 24, "btn_close", Press::MineClose)
         )
     }

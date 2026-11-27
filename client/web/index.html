@@ -91,7 +91,7 @@
   /* What is dragged out of a window, under the pointer (the client draws it a touch see-through: 0xFA of 0xFF). */
   #drag { position: fixed; display: none; width: 0; height: 0; pointer-events: none; opacity: .98; }
   /* What a thing tells when the pointer is on it. */
-  #tip { position: fixed; display: none; padding: 2px 4px; background: rgba(0, 0, 0, .53); color: #fff; white-space: nowrap; pointer-events: none; font-family: Arial, sans-serif; }
+  #tip { position: fixed; display: none; padding: 2px 4px; background: rgba(0, 0, 0, .53); color: #fff; white-space: pre; line-height: 16px; pointer-events: none; font-family: Arial, sans-serif; }
   /* The name of whoever the pointer is on, over their head. */
   #unit-name { position: fixed; display: none; transform: translateX(-50%); padding: 4px; white-space: nowrap; pointer-events: none;
                font: 13px var(--face); color: #fff;
@@ -169,7 +169,16 @@
   .t.titled { color: #000; text-shadow: 1px 1px 0 #fff; max-width: calc(100% - 34px); overflow: hidden; text-overflow: ellipsis; }
   /* What scrolls without a bar. */
   .scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
-  .scroll::-webkit-scrollbar { display: none; }
+  .scroll::-webkit-scrollbar, .chat-log::-webkit-scrollbar { display: none; }
+  /* The client's scroll bar beside a list (`UIScrollBar::Paint`, upright; written by `hud/lists.rs scroll_bar`,
+     moved by `app/scrollbars.rs`): scroll0up.bmp a pixel down, scroll0mid.bmp from 13 down to 13 above the end,
+     scroll0down.bmp ending a pixel above it, and the handle: scroll0bar_up, _mid and _down.bmp, 4 high each. */
+  .sbar > i { position: absolute; left: 0; width: 13px; }
+  .sbar > .u { top: 1px; height: 12px; background: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0up.bmp') 0 0 no-repeat; }
+  .sbar > .m { top: 13px; bottom: 13px; background: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0mid.bmp') 0 0 repeat-y; }
+  .sbar > .d { bottom: 1px; height: 13px; background: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0down.bmp') 0 0 no-repeat; }
+  .sbar > .h { background: url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0bar_up.bmp') 0 0 no-repeat, url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0bar_down.bmp') 0 100% no-repeat,
+                           url('/image/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/scroll0bar_mid.bmp') 0 0 repeat-y; }
   /* What scrolls with the client's own bar (`UIScrollBar::Paint`, upright): 13 wide, scroll0mid.bmp down it, an
      arrow of 13 at each end (scroll0up.bmp, scroll0down.bmp), the handle of scroll0bar_up, _mid and _down.bmp.
      It shows only while there is more than fits, as the client's does. */
@@ -285,7 +294,7 @@
   .sti > .tip { display: none; color: #fff; pointer-events: none; }
   .sti:hover > .tip { display: block; }
   /* The chat: its lines, its tabs, and the line typed into. */
-  .chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: thin; scrollbar-color: #9aa3c8 transparent;
+  .chat-log { padding: 0 2px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column-reverse; scrollbar-width: none;
               color: #fff; font: 13px var(--face); user-select: text; }
   /* A row too wide for the list is cut by its width between any two letters (UIWindow::WrapPixelText), but
      not inside what stands in brackets (hud/chat.rs, crate::chat::held). */

@@ -105,9 +105,9 @@ impl App {
                 match item.cards[slot as usize] {
                     0 => art(if slot < free { "empty_card_slot.bmp" } else { "disable_card_slot.bmp" }, x, top + 2, 24, 24),
                     card => format!(
-                        r#"<div class="a" style="{}" data-info="{card}" title="{}">{}</div>"#,
+                        r#"<div class="a" style="{}" data-info="{card}" {}>{}</div>"#,
                         at(x, top + 2, 24, 24),
-                        escape(&data::item(card).map(|(name, _)| name).unwrap_or_default()),
+                        tip(&data::item(card).map(|(name, _)| name).unwrap_or_default()),
                         Self::item_icon(card, true)
                     ),
                 }
@@ -151,7 +151,7 @@ impl App {
         let mut window = title_bar(width, "Inventory");
         window.push_str(&cross(width, Press::Window));
         window.push_str(&self.inventory_ground(width, body));
-        window.push_str(&grid_of(ITEM_COLUMNS, body / 32, &self.inventory_cells()));
+        window.push_str(&grid_of(ITEM_COLUMNS, body / 32, 17, &self.inventory_cells()));
         window.push_str(&self.inventory_bar(width, 17 + body));
         window
     }

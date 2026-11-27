@@ -104,6 +104,10 @@ impl App {
             |input| crate::web::document().and_then(|document| document.active_element()).is_some_and(|active| active == **input)
         );
         let chord = Chord { key: crate::hotkeys::key_of(code).unwrap_or(0), with };
+        // While a recording plays the keys are the player's, and what the client leaves of the others.
+        if self.replay.playing.is_some() {
+            return self.replay_key(key, chord);
+        }
         // Escape while the box of the away message is open switches the message off, and then does what it
         // does otherwise (`UIWindowMgr::ProcessKeyDown`, `VK_ESCAPE`: `m_autoReplyEnabled = false`). The box
         // itself has no place in the order of windows, and stays.
@@ -210,7 +214,7 @@ impl App {
     /// A key bound to an entry of the client's table of the interface's keys (`crate::hotkeys::interface`): a window
     /// opened or closed, the character seated, the hotkey bar and the chat run through their sizes. Returns
     /// whether the key was used.
-    fn interface_key(&mut self, place: usize) -> bool {
+    pub(super) fn interface_key(&mut self, place: usize) -> bool {
         match place {
             crate::hotkeys::interface::BASIC_INFO => return self.pressed_key(crate::press::status::Press::BasicSize),
             crate::hotkeys::interface::STATUS => return self.pressed_key(crate::press::status::Press::Window),
@@ -252,6 +256,7 @@ impl App {
             }
             crate::hotkeys::interface::MAIL => return self.mail_key(),
             crate::hotkeys::interface::BANK => return self.bank_key(),
+            crate::hotkeys::interface::INSTANCE => return self.pressed_key(crate::press::instances::Press::Window),
             crate::hotkeys::interface::CASH_SHOP => return self.cashshop_key(),
             crate::hotkeys::interface::CART => return self.cart_key(),
             crate::hotkeys::interface::FRIENDS | crate::hotkeys::interface::PARTY => return self.messenger_key(place == crate::hotkeys::interface::FRIENDS),
@@ -263,6 +268,8 @@ impl App {
             crate::hotkeys::interface::ACHIEVEMENTS => return self.pressed_key(crate::press::achievements::Press::Window),
             crate::hotkeys::interface::REPUTATION => return self.pressed_key(crate::press::reputation::Press::Window),
             crate::hotkeys::interface::MENU => return self.pressed_key(crate::press::general::Press::Menu),
+            // The recorder, as its icon of the menu (`HK_REPLAY_ONOFF`).
+            crate::replay::playing::RECORDER => return self.pressed_key(crate::press::replay::Press::Window),
             crate::hotkeys::interface::FRIEND_SETUP => return self.pressed_key(crate::press::friends::Press::Setup),
             // The party's setup opens only for one who is in a party (`WID_PARTYSETTINGWND_PARTYCOUNT`).
             crate::hotkeys::interface::PARTY_SETUP => return self.party.members.is_empty() || self.pressed_key(crate::press::party::Press::Setup),

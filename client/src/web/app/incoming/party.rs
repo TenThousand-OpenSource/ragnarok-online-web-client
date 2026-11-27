@@ -200,6 +200,8 @@ impl App {
             self.party = Party { open, small, mini_of: name.clone(), ..Party::default() };
             self.party_mini_cleared();
             self.chat_line(Self::words(84, "You left the party."), CYAN);
+            // (The window of the party's instance goes with the party: `ReceivePartyMemberLeft`.)
+            self.instance_forgotten();
             self.redraw(&[&wnd::PARTY_ASKS]);
         }
         self.party.picked = None;

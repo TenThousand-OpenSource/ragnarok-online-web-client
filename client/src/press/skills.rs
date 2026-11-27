@@ -32,8 +32,19 @@ presses! {
     Press {
         /// The skill window is opened or closed: its icon in the menu, and the cross in its corner.
         Window = "skills",
-        /// The plus by a skill that can be raised: a skill point goes into the skill of that number.
+        /// A skill that can be raised, pressed in the tree, or the button by it in the list: a level of the
+        /// skill of that number is planned (`UINewSkillListWnd::OnLBtnUp`, `ID_LVLUP1`…).
         Raise(u16) = "raise-skill",
+        /// Apply and Reset under the skills (`ID_APPLY`, `ID_RESET`): the levels planned are asked about and
+        /// sent, or forgotten; and the two answers to what Apply asks.
+        Apply = "skills-apply",
+        Reset = "skills-reset",
+        ApplyYes = "skills-apply-yes",
+        ApplyNo = "skills-apply-no",
+        /// The small button of the title bar (`ID_MINI`): the tree becomes the list of rows and back.
+        Mini = "skills-mini",
+        /// A row of the list, counted from the first skill of the page: it is marked.
+        Pick(usize) = "skill-row",
         /// The cross of a skill's description.
         InfoClose = "skill-info-close",
         /// The hotkey bar's plus and minus: a row more or a row less.
@@ -62,6 +73,12 @@ mod tests {
         let all = [
             Press::Window,
             Press::Raise(28),
+            Press::Apply,
+            Press::Reset,
+            Press::ApplyYes,
+            Press::ApplyNo,
+            Press::Mini,
+            Press::Pick(3),
             Press::InfoClose,
             Press::HotkeyRows(Step::More),
             Press::HotkeyRows(Step::Less),

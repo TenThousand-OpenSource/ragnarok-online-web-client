@@ -1378,14 +1378,26 @@ the decompiled client.
   `server/navigation/pre-re/` (not committed: made data, as the map cache is); the gateway reads that folder
   (`--navigation-dir`) and gives the client's own tables only where it holds none. What the generator does
   not know, and so the navigation on this server does not either:
-  - Only portals (`warp`, kind 200) are ways out. A Kafra's teleport, a ship, the airship, and every NPC that
-    takes one somewhere when talked to are not in the table (the client's own has them as kinds 201, 204 and
-    205), so the box "service" changes nothing, and a place reached only through such an NPC has no route:
-    Morroc from Prontera or Payon ("Failed to find a path": every field around it leads into `moc_fild20`,
-    which is left only through its Continental Guards), the islands, the towns over the sea. rAthena's way to
-    add them is a label `OnNaviGenerate:` with `naviregisterwarp "<name>","<map>",<x>,<y>;` in the NPC's own
-    script (as `npc/custom/warper.txt` has it); none of the server's scripts has one. Left for the owner to
-    decide: such labels in scripts of the server's own, or these kinds taken over from the client's table.
+  - Of itself it takes only portals (`warp`, kind 200) for ways out. The NPCs that carry one elsewhere (a
+    Kafra's teleport, a ship, a guard) are given to it by `server/navigation/links.txt` (147 ways:
+    `tools/client-tables/navigation_links.py` writes it from the scripts the classic server loads; who is a
+    carrier is judged by the client's own table having a way of that kind between the two maps, where one
+    arrives by the server's script), which `navigation.sh` writes as `OnNaviGenerate:` labels into the
+    generator's own copy of the scripts; the running server's scripts are not touched. What that leaves:
+    - what a script asks before it carries (zeny, an item, a quest's state, a level) is not looked at: the
+      table says a way exists. The price is in `links.txt` for a Kafra only, and nowhere in the tables: the
+      client's own have none either, and its window shows none;
+    - the airship is not a whole way: the ship moves between its stops by a timer, and only six of its steps
+      were confirmed by the scripts (Izlude and Hugel aboard, three ways off); no route goes by it;
+    - 113 pairs of maps the client's table joins by an NPC were not confirmed and are not ways here: nearly
+      all Renewal's (Eden, the cash shop's guide, Malangdo, Brasilis, Dewata, the illusion dungeons, the
+      Thanatos tower's floors by its guide), and of the classic world Lutie's Santa (`aldebaran` to
+      `xmas_fild01`), the Moscovia dungeon's signs, Comodo's `cmd_bhole`;
+    - `BY_HAND` of the tool holds the eight Continental Guards of `moc_fild20` (the client's table has them
+      elsewhere): this project's reading of `npc/quests/quests_morocc.txt`;
+    - of several ways of equal length the search takes the first in the table (the client's rule), and the
+      table's order is the generator's: from Prontera to Morroc it names the Kafra of the north gate
+      (152,326) wherever one stands.
   - A monster is listed once for each line that spawns it (three "Orc Zombie" on `orcsdun01`); the client's
     table has one row a kind.
   - No scrolls (`Navi_Scroll`) and no NPCs dressed as players (`navi_picknpc`): both tables are empty.
@@ -1395,8 +1407,8 @@ the decompiled client.
   - An NPC that a script moves as the server starts (`movenpc`) is listed where its script first put it. For
     the 35 that `server/npc/roweb_classic.txt` moves, `navigation.sh` writes the new cell into the
     generator's own copy of the scripts first; any other script that moves someone is not looked for.
-  The tables are made anew by hand (`server/navigation.sh`) when the server's scripts, `map_conf.txt` or map
-  cache change; nothing does it by itself, and nothing says they are old. For Renewal (`rules.sh renewal`)
+  The tables are made anew by hand (`server/navigation.sh`; `links.txt` before it, by its tool, when a script
+  that carries changes) when the server's scripts, `map_conf.txt` or map cache change; nothing does it by itself, and nothing says they are old. For Renewal (`rules.sh renewal`)
   they are read from `server/navigation/re/`, which was not made or tried.
 - Not made: the button "Read external file path information" (`NAVI_BUTTON_DATA`: the list of the `.txt`
   files of the game's `NavigationData` folder, each a list of places) and the private airship's button

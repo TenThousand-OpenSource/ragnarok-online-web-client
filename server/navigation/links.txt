@@ -1,0 +1,155 @@
+# The NPCs of the classic server that carry a player to another map, for the navigation.
+# Written by tools/client-tables/navigation_links.py: see it for what this is and where each row is from.
+# Not to be edited by hand. server/navigation.sh reads it.
+#
+# kind (201 an NPC that asks nothing, 204 one that asks zeny, 205 the airship), the map and the cell the NPC
+# stands on, its unique name, the name shown, the map and the cell it carries to, the zeny a Kafra asks (the
+# client's table has no price; kept to be read), the script whose body holds the NPC's, that script's first
+# line, the file.
+205	airplane	243	73	#AirshipWarp-1		hugel	181	146	0	#AirshipWarp-1	npc/airports/airships.txt
+205	airplane_01	243	73	#AirshipWarp-3		izlude	200	73	0	#AirshipWarp-3	npc/airports/airships.txt
+205	airplane_01	243	73	#AirshipWarp-3		ra_fild12	292	204	0	#AirshipWarp-3	npc/airports/airships.txt
+201	alb2trea	39	50	Fisk#a2t	Fisk	alberta	192	169	0	Fisk#a2t	npc/cities/alberta.txt
+204	alberta	246	29	Aibakthing#ayo	Aibakthing	ayothaya	149	71	0	Aibakthing_ayothaya	npc/cities/ayothaya.txt
+201	alberta	214	77	Captain Janssen	Captain Janssen	e_tower	70	114	0	Captain Janssen	npc/instances/EndlessTower.txt
+204	alberta	189	151	Fisk	Fisk	alb2trea	43	53	0	Fisk	npc/cities/alberta.txt
+204	alberta	189	151	Fisk	Fisk	izlude	195	212	0	Fisk	npc/cities/alberta.txt
+204	alberta	246	40	Girl#0lou	Girl	lou_fild01	190	101	0	Girl_louyang	npc/cities/louyang.txt
+204	alberta	246	62	Kunlun Envoy#gon	Kunlun Envoy	gon_fild01	258	82	0	Kunlun_Envoy_gonryun	npc/cities/gonryun.txt
+204	alberta	246	51	Moscovia P.R. Officer#1	Moscovia P.R. Officer	moscovia	163	55	0	PR_Officer_moscovia	npc/cities/moscovia.txt
+204	alberta	244	118	Sailor#tur	Sailor	tur_dun01	157	39	0	Sailor_alberta	npc/quests/quests_alberta.txt
+204	alberta	246	74	Sea Captain#ama1	Sea Captain	amatsu	197	83	0	Sea_Captain_amatsu	npc/cities/amatsu.txt
+204	alberta	28	229	kaf_alberta	Kafra Employee	morocc	156	46	1800	kaf_alberta	npc/kafras/kafras.txt
+204	alberta	28	229	kaf_alberta	Kafra Employee	payon	161	58	1200	kaf_alberta	npc/kafras/kafras.txt
+204	alberta	28	229	kaf_alberta	Kafra Employee	prontera	116	72	1800	kaf_alberta	npc/kafras/kafras.txt
+204	alberta	113	60	kaf_alberta2	Kafra Employee	morocc	156	46	1800	kaf_alberta2	npc/kafras/kafras.txt
+204	alberta	113	60	kaf_alberta2	Kafra Employee	payon	161	58	1200	kaf_alberta2	npc/kafras/kafras.txt
+204	alberta	113	60	kaf_alberta2	Kafra Employee	prontera	116	72	1800	kaf_alberta2	npc/kafras/kafras.txt
+204	aldebaran	143	119	kaf_aldebaran	Kafra Employee	geffen	120	39	1200	kaf_aldebaran	npc/kafras/kafras.txt
+204	aldebaran	143	119	kaf_aldebaran	Kafra Employee	izlude	128	98	1800	kaf_aldebaran	npc/kafras/kafras.txt
+204	aldebaran	143	119	kaf_aldebaran	Kafra Employee	mjolnir_02	99	351	1700	kaf_aldebaran	npc/kafras/kafras.txt
+204	aldebaran	143	119	kaf_aldebaran	Kafra Employee	yuno	158	125	1200	kaf_aldebaran	npc/kafras/kafras.txt
+201	ama_dun01	229	7	Soldier#ama11	Soldier	ama_in02	119	181	0	Soldier#ama11	npc/quests/quests_amatsu.txt
+201	ama_in02	115	177	Soldier#ama10	Soldier	ama_dun01	229	10	0	Soldier#ama10	npc/quests/quests_amatsu.txt
+201	ama_test	52	44	Assistant#ama	Assistant	amatsu	223	230	0	Assistant#ama	npc/quests/quests_amatsu.txt
+201	amatsu	223	236	Publisher#ama	Publisher	ama_test	52	35	0	Publisher#ama	npc/quests/quests_amatsu.txt
+201	amatsu	194	79	Sea Captain#ama2	Sea Captain	alberta	245	87	0	Sea Captain#ama2	npc/cities/amatsu.txt
+201	ayo_fild01	129	197	Puraim#thai1	Puraim	ayo_fild02	30	135	0	Puraim#thai1	npc/quests/quests_ayothaya.txt
+201	ayo_fild02	25	154	Aik#thai	Aik	ayo_fild01	115	200	0	Aik#thai	npc/quests/quests_ayothaya.txt
+201	ayothaya	152	68	Aibakthing#ayo2	Aibakthing	alberta	245	87	0	Aibakthing#ayo2	npc/cities/ayothaya.txt
+204	cmd_fild07	299	83	Zain#cmd	Zain	alberta	192	169	0	Zain#cmd	npc/cities/comodo.txt
+204	cmd_fild07	299	83	Zain#cmd	Zain	izlude	195	212	0	Zain#cmd	npc/cities/comodo.txt
+204	cmd_fild07	136	134	kaf_cmd_fild07	Kafra Employee	comodo	209	143	1200	kaf_cmd_fild07	npc/kafras/kafras.txt
+204	cmd_fild07	136	134	kaf_cmd_fild07	Kafra Employee	morocc	156	46	1200	kaf_cmd_fild07	npc/kafras/kafras.txt
+201	comodo	193	151	Bor Robin#1	Bor Robin	job_duncer	70	49	0	Bor Robin#1	npc/jobs/2-2/dancer.txt
+204	comodo	195	150	kaf_comodo	Kafra Employee	cmd_fild07	127	134	1200	kaf_comodo	npc/kafras/kafras.txt
+204	comodo	195	150	kaf_comodo	Kafra Employee	morocc	156	46	1800	kaf_comodo	npc/kafras/kafras.txt
+204	comodo	195	150	kaf_comodo	Kafra Employee	umbala	100	154	1800	kaf_comodo	npc/kafras/kafras.txt
+201	e_tower	81	105	Tower Protection Stone	Tower Protection Stone	alberta	223	36	0	Tower Protection Stone	npc/instances/EndlessTower.txt
+204	einbech	39	215	Train Station Staff#ein3	Train Station Staff	einbroch	226	276	0	Train Station Staff#ein3	npc/cities/einbech.txt
+204	einbroch	232	272	EinbrochTrain	Train Station Staff	einbech	43	215	0	EinbrochTrain	npc/cities/einbroch.txt
+204	geffen	203	123	geffen2	Kafra Employee	aldebaran	168	112	1200	geffen2	npc/kafras/kafras.txt
+204	geffen	203	123	geffen2	Kafra Employee	gef_fild10	52	326	1700	geffen2	npc/kafras/kafras.txt
+204	geffen	203	123	geffen2	Kafra Employee	mjolnir_02	99	351	1700	geffen2	npc/kafras/kafras.txt
+204	geffen	203	123	geffen2	Kafra Employee	prontera	116	72	1200	geffen2	npc/kafras/kafras.txt
+204	geffen	120	62	kaf_geffen	Kafra Employee	aldebaran	168	112	1200	kaf_geffen	npc/kafras/kafras.txt
+204	geffen	120	62	kaf_geffen	Kafra Employee	gef_fild10	52	326	1700	kaf_geffen	npc/kafras/kafras.txt
+204	geffen	120	62	kaf_geffen	Kafra Employee	mjolnir_02	99	351	1700	kaf_geffen	npc/kafras/kafras.txt
+204	geffen	120	62	kaf_geffen	Kafra Employee	prontera	116	72	1200	kaf_geffen	npc/kafras/kafras.txt
+201	gon_fild01	255	79	Kunlun Envoy#gon2	Kunlun Envoy	alberta	245	87	0	Kunlun Envoy#gon2	npc/cities/gonryun.txt
+201	hu_fild01	140	163	Tower Keeper	Tower Keeper	tha_scene01	131	220	0	Tower Keeper	npc/quests/thana_quest.txt
+204	hugel	209	109	Boatman#hugel	Boatman	odin_tem01	100	146	0	Boatman#hugel	npc/quests/quests_hugel.txt
+205	hugel	178	142	toairplane#hugel	toairplane	airplane	244	58	0	toairplane#hugel	npc/airports/hugel.txt
+201	izlu2dun	108	27	Sailor#2izlude	Sailor	izlude	195	212	0	Sailor#2izlude	npc/cities/izlude.txt
+205	izlude	202	75	Airship Staff#izlude	Airship Staff	airplane_01	244	58	0	Airship_Staff_izlude	npc/airports/izlude.txt
+204	izlude	180	224	Honeymoon Helper#Izlude	Honeymoon Helper	jawaii	245	125	0	Honeymoon_Helper_Izlude	npc/cities/jawaii.txt
+204	izlude	128	148	Kafra Employee#iz	Kafra Employee	aldebaran	168	112	1800	kaf_izlude	npc/kafras/kafras.txt
+204	izlude	128	148	Kafra Employee#iz	Kafra Employee	geffen	120	39	1200	kaf_izlude	npc/kafras/kafras.txt
+204	izlude	128	148	Kafra Employee#iz	Kafra Employee	morocc	156	46	1200	kaf_izlude	npc/kafras/kafras.txt
+204	izlude	128	148	Kafra Employee#iz	Kafra Employee	payon	161	58	1200	kaf_izlude	npc/kafras/kafras.txt
+204	izlude	197	205	Sailor#izlude	Sailor	alberta	188	169	0	Sailor_izlude	npc/cities/izlude.txt
+204	izlude	197	205	Sailor#izlude	Sailor	izlu2dun	107	50	0	Sailor_izlude	npc/cities/izlude.txt
+201	jawaii	122	263	Mariner#toalbe	Mariner	alberta	192	157	0	Mariner#toalbe	npc/cities/jawaii.txt
+201	jawaii	239	112	Mariner#toizu	Mariner	izlude	195	212	0	Mariner#toizu	npc/cities/jawaii.txt
+201	lou_fild01	190	100	Girl#1lou	Girl	alberta	245	87	0	Girl#1lou	npc/cities/louyang.txt
+204	man_fild02	132	47	Cat Paw Agent#man	Cat Paw Agent	mid_camp	62	127	0	Cat Paw Agent#spl	npc/quests/quests_13_2.txt
+204	man_fild02	132	47	Cat Paw Agent#man	Cat Paw Agent	spl_fild02	32	225	0	Cat Paw Agent#spl	npc/quests/quests_13_2.txt
+201	mid_camp	336	171	Camp Guard#man1	Camp Guard	man_fild01	36	235	0	Camp Guard#man1	npc/quests/quests_13_1.txt
+201	mid_camp	13	143	Camp Guard#man2	Camp Guard	spl_fild02	379	143	0	Camp Guard#man1	npc/quests/quests_13_1.txt
+201	mid_camp	213	286	Rift Guard#4	Rift Guard	moc_fild20	342	179	0	Rift Guard#4	npc/quests/quests_13_1.txt
+201	moc_fild12	35	303	Serutero#cmd	Serutero	cmd_fild08	331	319	0	Serutero#cmd	npc/cities/comodo.txt
+201	moc_fild20	354	174	Continental Guard#02	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	38	174	Continental Guard#03	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	38	183	Continental Guard#04	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	189	21	Continental Guard#05	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	200	21	Continental Guard#06	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	203	336	Continental Guard#07	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	215	336	Continental Guard#08	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	354	183	MocConGuard	Continental Guard	morocc	160	61	0	MocConGuard	npc/quests/quests_morocc.txt
+201	moc_fild20	349	179	Rift Guard#1	Rift Guard	moc_fild22b	38	195	0	Rift Guard#1	npc/quests/quests_13_1.txt
+201	moc_fild22b	37	196	Rift Guard#2	Rift Guard	moc_fild20	342	179	0	Rift Guard#2	npc/quests/quests_13_1.txt
+204	morocc	156	97	kaf_morocc	Kafra Employee	alberta	117	56	1800	kaf_morocc	npc/kafras/kafras.txt
+204	morocc	156	97	kaf_morocc	Kafra Employee	cmd_fild07	127	134	1200	kaf_morocc	npc/kafras/kafras.txt
+204	morocc	156	97	kaf_morocc	Kafra Employee	comodo	209	143	1800	kaf_morocc	npc/kafras/kafras.txt
+204	morocc	156	97	kaf_morocc	Kafra Employee	payon	161	58	1200	kaf_morocc	npc/kafras/kafras.txt
+204	morocc	156	97	kaf_morocc	Kafra Employee	prontera	116	72	1200	kaf_morocc	npc/kafras/kafras.txt
+204	morocc	160	258	kaf_morocc2	Kafra	alberta	117	56	1800	kaf_morocc2	npc/kafras/kafras.txt
+204	morocc	160	258	kaf_morocc2	Kafra	cmd_fild07	127	134	1200	kaf_morocc2	npc/kafras/kafras.txt
+204	morocc	160	258	kaf_morocc2	Kafra	comodo	209	143	1800	kaf_morocc2	npc/kafras/kafras.txt
+204	morocc	160	258	kaf_morocc2	Kafra	payon	161	58	1200	kaf_morocc2	npc/kafras/kafras.txt
+204	morocc	160	258	kaf_morocc2	Kafra	prontera	116	72	1200	kaf_morocc2	npc/kafras/kafras.txt
+201	moscovia	166	53	Moscovia P.R. Officer#2	Moscovia P.R. Officer	alberta	245	87	0	Moscovia P.R. Officer#2	npc/cities/moscovia.txt
+201	moscovia	135	49	Mr. Ibanoff#npc	Mr. Ibanoff	mosk_fild01	93	94	0	Mr. Ibanoff#npc	npc/quests/quests_moscovia.txt
+201	mosk_fild01	86	104	Aged Stranger#npc	Aged Stranger	moscovia	163	54	0	Aged Stranger#npc	npc/quests/quests_moscovia.txt
+201	mosk_fild01	86	104	Aged Stranger#npc	Aged Stranger	mosk_fild02	204	54	0	Aged Stranger#npc	npc/quests/quests_moscovia.txt
+201	nameless_i	259	218	Larjes#Aru	Larjes	ve_fild07	130	130	0	Larjes#Aru	npc/quests/quests_nameless.txt
+201	nameless_n	259	218	Larjes#Boat1	Larjes	ve_fild07	130	130	0	Larjes#Boat1	npc/quests/quests_nameless.txt
+201	odin_tem01	93	146	Boatman	Boatman	hugel	206	109	0	Boatman	npc/quests/quests_hugel.txt
+204	payon	181	104	kaf_payon	Kafra Employee	alberta	117	56	1200	kaf_payon	npc/kafras/kafras.txt
+204	payon	181	104	kaf_payon	Kafra Employee	morocc	156	46	1200	kaf_payon	npc/kafras/kafras.txt
+204	payon	181	104	kaf_payon	Kafra Employee	prontera	116	72	1200	kaf_payon	npc/kafras/kafras.txt
+204	payon	175	226	kaf_payon2	Kafra Employee	alberta	117	56	1200	kaf_payon2	npc/kafras/kafras.txt
+204	payon	175	226	kaf_payon2	Kafra Employee	morocc	156	46	1200	kaf_payon2	npc/kafras/kafras.txt
+204	payon	175	226	kaf_payon2	Kafra Employee	prontera	116	72	1200	kaf_payon2	npc/kafras/kafras.txt
+204	prontera	152	326	kaf_prontera	Kafra Employee	alberta	117	56	1800	kaf_prontera	npc/kafras/kafras.txt
+204	prontera	152	326	kaf_prontera	Kafra Employee	gef_fild10	52	326	1700	kaf_prontera	npc/kafras/kafras.txt
+204	prontera	152	326	kaf_prontera	Kafra Employee	geffen	120	39	1200	kaf_prontera	npc/kafras/kafras.txt
+204	prontera	152	326	kaf_prontera	Kafra Employee	izlude	128	98	600	kaf_prontera	npc/kafras/kafras.txt
+204	prontera	152	326	kaf_prontera	Kafra Employee	morocc	156	46	1200	kaf_prontera	npc/kafras/kafras.txt
+204	prontera	152	326	kaf_prontera	Kafra Employee	payon	161	58	1200	kaf_prontera	npc/kafras/kafras.txt
+204	prontera	151	29	kaf_prontera2	Kafra Employee	alberta	117	56	1800	kaf_prontera2	npc/kafras/kafras.txt
+204	prontera	151	29	kaf_prontera2	Kafra Employee	gef_fild10	52	326	1700	kaf_prontera2	npc/kafras/kafras.txt
+204	prontera	151	29	kaf_prontera2	Kafra Employee	geffen	120	39	1200	kaf_prontera2	npc/kafras/kafras.txt
+204	prontera	151	29	kaf_prontera2	Kafra Employee	izlude	128	98	600	kaf_prontera2	npc/kafras/kafras.txt
+204	prontera	151	29	kaf_prontera2	Kafra Employee	morocc	156	46	1200	kaf_prontera2	npc/kafras/kafras.txt
+204	prontera	151	29	kaf_prontera2	Kafra Employee	payon	161	58	1200	kaf_prontera2	npc/kafras/kafras.txt
+204	prontera	29	207	kaf_prontera3	Kafra Employee	alberta	117	56	1800	kaf_prontera3	npc/kafras/kafras.txt
+204	prontera	29	207	kaf_prontera3	Kafra Employee	gef_fild10	52	326	1700	kaf_prontera3	npc/kafras/kafras.txt
+204	prontera	29	207	kaf_prontera3	Kafra Employee	geffen	120	39	1200	kaf_prontera3	npc/kafras/kafras.txt
+204	prontera	29	207	kaf_prontera3	Kafra Employee	izlude	128	98	600	kaf_prontera3	npc/kafras/kafras.txt
+204	prontera	29	207	kaf_prontera3	Kafra Employee	morocc	156	46	1200	kaf_prontera3	npc/kafras/kafras.txt
+204	prontera	29	207	kaf_prontera3	Kafra Employee	payon	161	58	1200	kaf_prontera3	npc/kafras/kafras.txt
+204	prontera	282	200	kaf_prontera4	Kafra Employee	alberta	117	56	1800	kaf_prontera4	npc/kafras/kafras.txt
+204	prontera	282	200	kaf_prontera4	Kafra Employee	gef_fild10	52	326	1700	kaf_prontera4	npc/kafras/kafras.txt
+204	prontera	282	200	kaf_prontera4	Kafra Employee	geffen	120	39	1200	kaf_prontera4	npc/kafras/kafras.txt
+204	prontera	282	200	kaf_prontera4	Kafra Employee	izlude	128	98	600	kaf_prontera4	npc/kafras/kafras.txt
+204	prontera	282	200	kaf_prontera4	Kafra Employee	morocc	156	46	1200	kaf_prontera4	npc/kafras/kafras.txt
+204	prontera	282	200	kaf_prontera4	Kafra Employee	payon	161	58	1200	kaf_prontera4	npc/kafras/kafras.txt
+204	prontera	146	89	kaf_prontera5	Kafra Employee	alberta	117	56	1800	kaf_prontera5	npc/kafras/kafras.txt
+204	prontera	146	89	kaf_prontera5	Kafra Employee	gef_fild10	52	326	1700	kaf_prontera5	npc/kafras/kafras.txt
+204	prontera	146	89	kaf_prontera5	Kafra Employee	geffen	120	39	1200	kaf_prontera5	npc/kafras/kafras.txt
+204	prontera	146	89	kaf_prontera5	Kafra Employee	izlude	128	98	600	kaf_prontera5	npc/kafras/kafras.txt
+204	prontera	146	89	kaf_prontera5	Kafra Employee	morocc	156	46	1200	kaf_prontera5	npc/kafras/kafras.txt
+204	prontera	146	89	kaf_prontera5	Kafra Employee	payon	161	58	1200	kaf_prontera5	npc/kafras/kafras.txt
+201	prt_fild05	270	212	Culvert Guardian	Culvert Guardian	prt_sewb1	131	247	0	Culvert Guardian	npc/quests/quests_prontera.txt
+204	rachel	109	138	CoolEventCorpStaffRachel	Cool Event Corp. Staff	veins	205	101	0	CoolEventCorpStaffRachel	npc/kafras/cool_event_corp.txt
+204	spl_fild02	25	211	Cat Paw Agent#spl	Cat Paw Agent	man_fild02	129	61	0	Cat Paw Agent#spl	npc/quests/quests_13_2.txt
+204	spl_fild02	25	211	Cat Paw Agent#spl	Cat Paw Agent	mid_camp	62	127	0	Cat Paw Agent#spl	npc/quests/quests_13_2.txt
+201	tha_t02	227	163	3rdf_warp#tt	3rdf_warp	tha_t03	219	159	0	3rdf_warp#tt	npc/quests/thana_quest.txt
+201	tur_dun01	165	29	Sailor#tur2	Sailor	alberta	238	112	0	Sailor#tur2	npc/quests/quests_alberta.txt
+204	umbala	87	160	kaf_umbala	Kafra Employee	comodo	209	143	1800	kaf_umbala	npc/kafras/kafras.txt
+204	veins	208	128	CoolEventCorpStaffVeins	Cool Event Corp. Staff	rachel	115	125	0	CoolEventCorpStaffVeins	npc/kafras/cool_event_corp.txt
+205	y_airport	145	63	Domestic Boarding	Domestic Boarding	yuno	59	244	0	Domestic Boarding	npc/airports/yuno.txt
+204	yuno	152	187	kaf_yuno	Kafra Employee	aldebaran	168	112	1200	kaf_yuno	npc/kafras/kafras.txt
+204	yuno	327	108	kaf_yuno2	Kafra Employee	aldebaran	168	112	1200	kaf_yuno2	npc/kafras/kafras.txt
+204	yuno	277	221	kaf_yuno3	Kafra Employee	aldebaran	168	112	1200	kaf_yuno3	npc/kafras/kafras.txt

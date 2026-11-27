@@ -139,6 +139,8 @@ docker compose -f server/docker-compose.yml up -d --build
 
 # 2a. (Optional.) The navigation's tables of this server's world, into server/navigation/pre-re: without
 #     them the Navigation window guides by the client's tables, which are the Korean service's Renewal world.
+#     (The NPCs that carry one elsewhere are in server/navigation/links.txt; when a script of theirs changes,
+#     write it anew first: tools/client-tables/navigation_links.py, which says how.)
 server/navigation.sh
 
 # 3. The browser client, into client/dist.

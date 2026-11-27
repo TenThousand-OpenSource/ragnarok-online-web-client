@@ -29,8 +29,10 @@ server/                 a Docker setup of rAthena and MariaDB for development: d
                         npc/ (the classic scripts put right for the client's maps: tools/client-tables/
                         classic_overlay.py writes them), mapcache/ and public/ (made locally, not committed)
                         navigation.sh with navigation/Dockerfile (rAthena's generator of the navigation's
-                        tables, run once beside the game) and navigation/pre-re/ (the tables it writes of
-                        this server's world: made locally, not committed; the gateway's --navigation-dir)
+                        tables, run once beside the game), navigation/links.txt (the NPCs that carry one
+                        elsewhere: tools/client-tables/navigation_links.py writes it) with scripts.py (which
+                        marks them for the generator), and navigation/pre-re/ (the tables written of this
+                        server's world: made locally, not committed; the gateway's --navigation-dir)
 translations/           GLOSSARY.md (terms, so that translators agree); src/ (English sources of the
                         translated batches); ru/ (Russian: items-*.json, skills-*.json, and labels.json: the
                         words of an English item description, for the items not translated yet)
@@ -57,7 +59,8 @@ tools/
                         skill_effects.py (client/src/effect_tables/), statuses.py (statuses.txt), commands.py
                         (commands.txt), job_bases.py (web/data/job_bases.txt), job_mounts.py
                         (job_mounts.txt), ground_scopes.py (effect_tables/ground_scopes.txt); and for the
-                        server: classic_overlay.py (server/npc/roweb_classic*), placement_check.py
+                        server: classic_overlay.py (server/npc/roweb_classic*), placement_check.py,
+                        navigation_links.py (server/navigation/links.txt)
 """
 
 

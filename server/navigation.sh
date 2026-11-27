@@ -18,11 +18,12 @@ image="roweb/rathena-navigen:20260219-${ROWEB_IMAGE:-prere}"
 out="$PWD/navigation/$rules"
 net=roweb-navigen
 db=roweb-navigen-db
-moved=
+work=
+marks=
 
 docker build -f navigation/Dockerfile --build-arg PRERE="${ROWEB_PRERE:-yes}" -t "$image" ../../rathena
 
-cleanup() { docker rm -f "$db" >/dev/null 2>&1 || true; docker network rm "$net" >/dev/null 2>&1 || true; [ -z "$moved" ] || rm -f "$moved"; }
+cleanup() { docker rm -f "$db" >/dev/null 2>&1 || true; docker network rm "$net" >/dev/null 2>&1 || true; [ -z "$work" ] || rm -rf "$work"; }
 trap cleanup EXIT
 cleanup
 docker network create "$net" >/dev/null
@@ -41,25 +42,24 @@ for file in db/*; do mounts="$mounts -v $PWD/$file:/rathena/db/import/${file#db/
 for file in npc/*; do mounts="$mounts -v $PWD/$file:/rathena/npc/custom/${file#npc/}:ro"; done
 
 mkdir -p "$out"
-# Whoever npc/roweb_classic.txt moves as the server starts (`movenpc`) is written into the generator's own copy
-# of the scripts where they are moved to: it lists everyone by the cell their script names, not by where they
-# stand afterwards.
-moved="$out/moved.sed"
-python3 - npc/roweb_classic.txt > "$moved" <<'PY'
-import re, sys
-for line in open(sys.argv[1], encoding='latin1'):
-    move = re.match(r'\s*movenpc "([^"]+)",(\d+),(\d+),(\d+);\s*// (\w+)', line)
-    if move:
-        name, x, y, facing, where = move.groups()
-        name = re.sub(r'([.*\[\]\\/^$])', r'\\\1', name)
-        print(f's/^{where},[0-9]*,[0-9]*,[0-9]*\\(\t[^\t]*\t{name}\\(::[^\t]*\\)\\{{0,1\\}}\t\\)/{where},{x},{y},{facing}\\1/')
-PY
-mounts="$mounts -v $moved:/moved.sed:ro"
 folder="generated/clientside/data/luafiles514/lua files/navigation"
-# The scripts are put right first, as the map server's own command does it.
+# The generator's own copy of the scripts is put right first: as the map server's own command does it, and, on
+# the classic server, with whoever is moved as it starts and with the marks of the NPCs that carry one
+# elsewhere (navigation/scripts.py says what and why; navigation/links.txt is who carries where).
+changes="sed -i -f npc/custom/roweb_classic_warps.sed"
+if [ "$rules" = pre-re ]; then
+  work="$out/work"
+  rm -rf "$work" && mkdir -p "$work"
+  python3 navigation/scripts.py before "$work"
+  mounts="$mounts -v $work:/work:ro"
+  changes="$changes -f /work/moved.sed"
+  marks="while read -r number script; do sed -i -f /work/\$number.sed \"\$script\"; done < /work/list;"
+fi
 # shellcheck disable=SC2086
 docker run --rm --network "$net" $mounts -v "$out:/out" "$image" sh -c "
-  find npc -name '*.txt' -not -path 'npc/custom/*' | xargs sed -i -f npc/custom/roweb_classic_warps.sed -f /moved.sed;
+  find npc -name '*.txt' -not -path 'npc/custom/*' | xargs $changes;
+  $marks
   mkdir -p '$folder' && ./map-server-generator --generate-navi && cp '$folder'/navi_*_krpri.lub /out/"
+[ -z "$work" ] || python3 navigation/scripts.py after "$out/navi_link_krpri.lub"
 ls -l "$out"
 echo "The navigation's tables of the $rules server are in $out. Restart the gateway."

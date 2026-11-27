@@ -1764,8 +1764,20 @@ Three systems of the menu's icons, each under its own name in every layer: `achi
   each portal walked into, to "You have arrived at the mob you were looking for"; the search of an NPC
   ("Jeweler": moc_ruins twice, lhz_in02) and Find from Morroc through its portal to Morroc Ruins; "Butcher"
   of Izlude at the cell `roweb_classic.txt` moves him to, from prt_fild08 through the portal into Izlude and
-  the arrows to the market's stalls; "Failed to find a path" to Morroc Ruins from Payon Cave (`docs/DEBTS.md`
-  says why). Tests only: the folder read and an empty one passed by (`tables/navigation.rs`).
+  the arrows to the market's stalls; "Failed to find a path" to Morroc Ruins from Payon Cave (before the
+  NPCs that carry were marked: next line). Tests only: the folder read and an empty one passed by (`tables/navigation.rs`).
+- The NPCs that carry (2026-11-27): `tools/client-tables/navigation_links.py` writes
+  `server/navigation/links.txt` (147 ways: the Kafras' teleports from `F_KafSet`/`F_KafTele`, the ships of
+  Alberta and Izlude, the islands' ways back, the Continental Guards, the trains, the Cool Event staff…), and
+  `server/navigation/scripts.py` puts them into the generator's copy of the scripts as rAthena's
+  `OnNaviGenerate:`/`naviregisterwarp` and gives each way its kind afterwards (201 free, 204 for zeny, 205 the
+  airship, as the client's table and `CNaviData::FindRoute` have them). Seen in the game: from Prontera to
+  Morroc without "service" the list prt_fild08, moc_fild01, moc_fild20 (the guard), morocc; with it "Talk to
+  [Kafra Employee]", the Kafra talked to, Morocc picked for 1200 zeny (her menu's prices are the table's),
+  arriving at 156,46 with "Arrived at the target map"; from Izlude to `iz_dun00` "Talk to [Sailor]", the
+  sailor talked to, Byalan Island for 150 zeny, arriving at 107,50 and the guide going on to the portal of
+  the cave; from Prontera to `alb2trea` with "service" the Kafra, then Fisk of Alberta (not walked), and
+  without it "Failed to find a path". By reading only: every other row of `links.txt`.
 - Tests only: ZC_NAVIGATION_ACTIVE; the copies of maps; `/navi2`'s switches; `<NAVI>` links (wired in
   `hud/texts.rs linked_with`, not pressed in the game); the key `HK_NAVIGATION_ONOFF` (place 42 of the
   interface's keys; it has no key in the client's table until one is set).

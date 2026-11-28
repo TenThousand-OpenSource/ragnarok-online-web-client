@@ -1,0 +1,25 @@
+diff --git a/src/web/partybooking_controller.cpp b/src/web/partybooking_controller.cpp
+index d046ce76e..aaa5809e3 100644
+--- a/src/web/partybooking_controller.cpp
++++ b/src/web/partybooking_controller.cpp
+@@ -76,7 +76,7 @@ bool party_booking_read( std::string& world_name, std::vector<s_party_booking_en
+ 
+ 	std::string query = "SELECT `account_id`, `char_id`, `char_name`, `purpose`, `assist`, `damagedealer`, `healer`, `tanker`, `minimum_level`, `maximum_level`, `comment` FROM `" + std::string( partybookings_table ) + "` WHERE `world_name` = ? AND " + condition + order;
+ 
+-	if( SQL_SUCCESS != stmt.Prepare( query.c_str() )
++	if( SQL_SUCCESS != stmt.PrepareStr( query.c_str() )
+ 		|| SQL_SUCCESS != stmt.BindParam( 0, SQLDT_STRING, (void*)world_name_escaped, strlen( world_name_escaped ) )
+ 		|| SQL_SUCCESS != stmt.Execute()
+ 		|| SQL_SUCCESS != stmt.BindColumn( 0, SQLDT_UINT32, &entry.account_id )
+@@ -465,8 +465,9 @@ HANDLER_FUNC(partybooking_search){
+ 
+ 	std::string condition;
+ 
+-	condition = "`minimum_level` = '" + std::to_string( entry.minimum_level ) + "'";
+-	condition += " AND `maximum_level` = '" + std::to_string( entry.maximum_level ) + "'";
++	// Every ad whose range of levels meets the range asked for
++	condition = "`minimum_level` <= '" + std::to_string( entry.maximum_level ) + "'";
++	condition += " AND `maximum_level` >= '" + std::to_string( entry.minimum_level ) + "'";
+ 
+ 	if( entry.purpose != BOOKING_PURPOSE_ALL ){
+ 		condition += " AND `purpose` = '" + std::to_string( entry.purpose ) + "'";

@@ -1187,12 +1187,13 @@ the decompiled client.
   the Docker setup builds and runs since 2026-11-27 (the service `web`, port 8888 on 127.0.0.1). The gateway
   reaches it at `--web-server` (`127.0.0.1:8888` when not given): a gateway built before the agency was made
   has to be built and started anew.
-- **A search by the note brings rAthena's web service down** (seen 2026-11-27; the Windows client would do the
-  same to it): `partybooking_search` of `../rathena/src/web/partybooking_controller.cpp` puts the note into
-  the query as `like '%note%'` and hands the query to `SqlStmt::Prepare`, which reads it as a `printf` format.
-  The service ends, Docker starts it again within seconds, the board keeps what it showed (the gateway answers
-  502). To put right in rAthena, by the owner: the two `%` of that line written `%%`. Its search also takes
-  the two levels as they are (`minimum_level` = and `maximum_level` =), not as a range.
+- **rAthena's source is changed here in one place**, by the owner's word (2026-11-28):
+  `../rathena/src/web/partybooking_controller.cpp`, kept as `server/patches/rathena-partybooking-search.patch`
+  (to be applied again after rAthena is updated: `git -C ../rathena apply ../roweb/server/patches/...`). The
+  board's query went to `SqlStmt::Prepare` as a `printf` format: any search by the note ended the web service,
+  and a `%s` or `%n` typed by a player was read as a format too. It goes to `PrepareStr` now. The search by
+  levels took the two numbers as they are; it now finds every ad whose range meets the range asked for. Tried
+  on a copy of the service (2026-11-28): notes "dung", "100%", "%s%n"; ranges inside, equal, above, below.
 - `/organize name` typed while the party window is closed shows nothing: the setup window is drawn beside the
   party window only (seen 2026-11-27; the party's, left).
 - rAthena's web service answers `/party/add`, `del`, `get`, `info`, `list`, `search`; not `/party/change`
